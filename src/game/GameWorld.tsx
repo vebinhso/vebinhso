@@ -31,6 +31,12 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
   const walkPhase = useRef(0);
   const { camera } = useThree();
 
+  const [outfit, setOutfit] = useState<any>(null);
+  useEffect(() => {
+    import("@/lib/character").then((m) => setOutfit(m.loadOutfit() || m.DEFAULT_OUTFIT));
+  }, []);
+  const o = outfit || { skin: "#fde68a", hair: "#7c2d12", shirt: "#ef4444", pants: "#1e40af", shoes: "#1f2937", accent: "#fcd34d", hat: undefined };
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
@@ -78,59 +84,73 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
     ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 
     if (controlsRef.current) {
-      const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.2, ref.current.position.z);
+      const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.0, ref.current.position.z);
       controlsRef.current.target.lerp(t, 0.18);
       controlsRef.current.update();
     }
   });
 
+  // Character: 2 cells tall × 1 cell wide
   return (
     <group ref={ref} position={[0, 0, 0]}>
-      {/* legs */}
-      <mesh ref={legL} castShadow position={[-0.18, 0.45, 0]}>
-        <boxGeometry args={[0.25, 0.9, 0.25]} />
-        <meshStandardMaterial color="#1e40af" />
+      <mesh ref={legL} castShadow position={[-0.18, 0.35, 0]}>
+        <boxGeometry args={[0.22, 0.7, 0.22]} />
+        <meshStandardMaterial color={o.pants} />
       </mesh>
-      <mesh ref={legR} castShadow position={[0.18, 0.45, 0]}>
-        <boxGeometry args={[0.25, 0.9, 0.25]} />
-        <meshStandardMaterial color="#1e40af" />
+      <mesh ref={legR} castShadow position={[0.18, 0.35, 0]}>
+        <boxGeometry args={[0.22, 0.7, 0.22]} />
+        <meshStandardMaterial color={o.pants} />
       </mesh>
-      {/* body */}
-      <mesh castShadow position={[0, 1.25, 0]}>
-        <boxGeometry args={[0.7, 0.8, 0.45]} />
-        <meshStandardMaterial color="#ef4444" />
+      <mesh position={[-0.18, 0.05, 0.04]} castShadow>
+        <boxGeometry args={[0.28, 0.1, 0.36]} />
+        <meshStandardMaterial color={o.shoes} />
       </mesh>
-      {/* arms */}
-      <mesh ref={armL} castShadow position={[-0.45, 1.3, 0]}>
-        <boxGeometry args={[0.2, 0.8, 0.25]} />
-        <meshStandardMaterial color="#fcd34d" />
+      <mesh position={[0.18, 0.05, 0.04]} castShadow>
+        <boxGeometry args={[0.28, 0.1, 0.36]} />
+        <meshStandardMaterial color={o.shoes} />
       </mesh>
-      <mesh ref={armR} castShadow position={[0.45, 1.3, 0]}>
-        <boxGeometry args={[0.2, 0.8, 0.25]} />
-        <meshStandardMaterial color="#fcd34d" />
+      <mesh castShadow position={[0, 1.02, 0]}>
+        <boxGeometry args={[0.65, 0.65, 0.38]} />
+        <meshStandardMaterial color={o.shirt} />
       </mesh>
-      {/* head */}
-      <mesh castShadow position={[0, 2.0, 0]}>
-        <sphereGeometry args={[0.38, 18, 18]} />
-        <meshStandardMaterial color="#fde68a" />
+      <mesh position={[0, 0.72, 0]}>
+        <boxGeometry args={[0.68, 0.08, 0.4]} />
+        <meshStandardMaterial color={o.accent} />
       </mesh>
-      {/* eyes */}
-      <mesh position={[-0.13, 2.05, 0.32]}>
-        <sphereGeometry args={[0.06, 10, 10]} />
+      <mesh ref={armL} castShadow position={[-0.42, 1.05, 0]}>
+        <boxGeometry args={[0.18, 0.62, 0.22]} />
+        <meshStandardMaterial color={o.shirt} />
+      </mesh>
+      <mesh ref={armR} castShadow position={[0.42, 1.05, 0]}>
+        <boxGeometry args={[0.18, 0.62, 0.22]} />
+        <meshStandardMaterial color={o.shirt} />
+      </mesh>
+      <mesh castShadow position={[0, 1.65, 0]}>
+        <sphereGeometry args={[0.3, 20, 20]} />
+        <meshStandardMaterial color={o.skin} />
+      </mesh>
+      <mesh castShadow position={[0, 1.82, -0.03]}>
+        <sphereGeometry args={[0.32, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color={o.hair} />
+      </mesh>
+      {o.hat && (
+        <mesh castShadow position={[0, 1.98, 0]}>
+          <coneGeometry args={[0.34, 0.32, 16]} />
+          <meshStandardMaterial color={o.hat} />
+        </mesh>
+      )}
+      <mesh position={[-0.1, 1.68, 0.26]}>
+        <sphereGeometry args={[0.045, 10, 10]} />
         <meshStandardMaterial color="#111" />
       </mesh>
-      <mesh position={[0.13, 2.05, 0.32]}>
-        <sphereGeometry args={[0.06, 10, 10]} />
+      <mesh position={[0.1, 1.68, 0.26]}>
+        <sphereGeometry args={[0.045, 10, 10]} />
         <meshStandardMaterial color="#111" />
-      </mesh>
-      {/* hair/cap */}
-      <mesh castShadow position={[0, 2.35, -0.05]}>
-        <sphereGeometry args={[0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#7c2d12" />
       </mesh>
     </group>
   );
 }
+
 
 function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);

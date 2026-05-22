@@ -16,6 +16,7 @@ import { Route as PetsRouteImport } from './routes/pets'
 import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as GameRouteImport } from './routes/game'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -56,6 +57,11 @@ const InventoryRoute = InventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GameRoute = GameRouteImport.update({
+  id: '/game',
+  path: '/game',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/events'
+    | '/game'
     | '/inventory'
     | '/login'
     | '/missions'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/events'
+    | '/game'
     | '/inventory'
     | '/login'
     | '/missions'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chat'
     | '/events'
+    | '/game'
     | '/inventory'
     | '/login'
     | '/missions'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ChatRoute: typeof ChatRoute
   EventsRoute: typeof EventsRoute
+  GameRoute: typeof GameRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   MissionsRoute: typeof MissionsRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/game': {
+      id: '/game'
+      path: '/game'
+      fullPath: '/game'
+      preLoaderRoute: typeof GameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events': {
       id: '/events'
       path: '/events'
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ChatRoute: ChatRoute,
   EventsRoute: EventsRoute,
+  GameRoute: GameRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   MissionsRoute: MissionsRoute,

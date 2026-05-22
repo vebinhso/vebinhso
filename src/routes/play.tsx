@@ -25,15 +25,22 @@ function PlayPage() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="glass-card max-w-lg w-full p-8 text-center">
           <div className="text-6xl mb-4">🎮</div>
-          <h1 className="text-3xl font-black mb-2">CHƠI NGAY</h1>
+          <h1 className="text-3xl font-black mb-2">VỆ BINH SỐ</h1>
           <p className="font-bold text-muted-foreground mb-6">
             Xin chào <span className="text-orange-600">{user.username}</span> (ID #{user.id})
           </p>
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 mb-6">
-            <p className="font-bold">🚧 Các màn chơi sẽ được bổ sung sau!</p>
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 mb-6 text-left text-sm font-bold space-y-1">
+            <p>🗺️ Map Tổng - Khu Nông thôn (20×20 grid)</p>
+            <p>🎮 WASD di chuyển, SPACE nhảy, chuột xoay camera</p>
+            <p>🛒 Mua đồ ở shop và đặt vào mảnh đất của bạn</p>
+            <p>❓ Trả lời câu hỏi để kiếm tiền</p>
+            <p>📈 Tăng level bằng tài sản ròng & số câu đúng</p>
           </div>
-          <Link to="/" className="toy-button toy-button-primary w-full !text-lg">
-            ← VỀ TRANG CHỦ
+          <Link to="/game" className="toy-button toy-button-primary w-full !text-xl">
+            🚀 VÀO THẾ GIỚI 3D
+          </Link>
+          <Link to="/" className="toy-button w-full mt-3 !text-sm">
+            ← Về trang chủ
           </Link>
         </div>
       </div>

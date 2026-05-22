@@ -566,7 +566,7 @@ function MagicPage() {
             hitTarget={hitTarget}
           />
           <PlayerController onNearDoor={setNear} />
-          {!modal && !boss && !won && <PointerLockControls />}
+          {!modal && !boss && !won && intro === 2 && <PointerLockControls />}
         </Suspense>
       </Canvas>
 

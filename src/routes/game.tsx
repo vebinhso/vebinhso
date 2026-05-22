@@ -14,7 +14,7 @@ function GamePage() {
   const [user, setUser] = useState<Account | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const [rotation] = useState(0);
+  const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
   const [question, setQuestion] = useState<Question | null>(null);
@@ -56,12 +56,17 @@ function GamePage() {
   const handlePlace = (x: number, z: number) => {
     const it = selected ? getItem(selected) : null;
     if (!it || !state) return;
-    if (x < 0 || z < 0 || x + it.w > 20 || z + it.d > 20) return;
-    // collision check
+    const swap = rotation % 2 === 1;
+    const fw = swap ? it.d : it.w;
+    const fd = swap ? it.w : it.d;
+    if (x < 0 || z < 0 || x + fw > 20 || z + fd > 20) return;
     const collides = state.placed.some((p) => {
       const pi = getItem(p.itemId);
       if (!pi) return false;
-      return !(x + it.w <= p.x || p.x + pi.w <= x || z + it.d <= p.z || p.z + pi.d <= z);
+      const ps = p.rotation % 2 === 1;
+      const pw = ps ? pi.d : pi.w;
+      const pd = ps ? pi.w : pi.d;
+      return !(x + fw <= p.x || p.x + pw <= x || z + fd <= p.z || p.z + pd <= z);
     });
     if (collides) return;
     if (state.money < it.price) return;
@@ -124,6 +129,7 @@ function GamePage() {
           placed={state.placed}
           selectedItemId={selected}
           rotation={rotation}
+          onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onRemove={handleRemove}
         />
@@ -157,7 +163,7 @@ function GamePage() {
 
       {/* Bottom controls hint */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none">
-        🎮 WASD: Di chuyển • SPACE: Nhảy • Chuột: Xoay camera • Click: Đặt đồ • Chuột phải: Xóa
+        🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay vật • Chuột: Camera 360° • Click: Đặt • Chuột phải: Xóa
       </div>
 
       {/* Selected item indicator */}

@@ -413,23 +413,20 @@ function Scene({
 }) {
   return (
     <>
-      <Sky sunPosition={[0, -1, 0]} />
-      <color attach="background" args={["#0a0518"]} />
-      <ambientLight intensity={0.25} color="#bbaaff" />
-      <fog attach="fog" args={["#0a0518", 8, 50]} />
+      <color attach="background" args={["#050302"]} />
+      <ambientLight intensity={0.08} color="#3a2a18" />
+      <fog attach="fog" args={["#050302", 6, 40]} />
 
       <Walls />
 
-      {/* torches along walls */}
-      {Array.from({ length: 6 }).map((_, i) => {
-        const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 6);
-        return (
-          <group key={i}>
-            <Torch position={[-CORRIDOR_W / 2 + 0.1, 2.8, z]} />
-            <Torch position={[CORRIDOR_W / 2 - 0.1, 2.8, z]} />
-          </group>
-        );
+      {/* ceiling dome lights down the corridor center */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 12);
+        return <CeilingDome key={i} position={[0, WALL_H - 0.02, z]} />;
       })}
+      {/* bright lamp at far exit for hallway depth glow */}
+      <pointLight position={[0, WALL_H - 0.3, CORRIDOR_LEN / 2 - 1]} intensity={3} distance={14} color="#ffd58a" />
+
 
       {/* 10 doors */}
       {Array.from({ length: 10 }).map((_, i) => {

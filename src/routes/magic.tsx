@@ -7,7 +7,19 @@ import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 
-export const Route = createFileRoute("/magic")({ component: MagicPage });
+export const Route = createFileRoute("/magic")({
+  component: MagicPage,
+  head: () => ({
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Nosifer&family=Creepster&display=swap",
+      },
+    ],
+  }),
+});
 
 // === Stage 1 spec ===
 // Corridor: 10 doors (5 each side). Walk to a door, press E to open.

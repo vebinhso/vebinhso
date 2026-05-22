@@ -459,6 +459,19 @@ function MagicPage() {
   const [won, setWon] = useState(false);
   const [bullets, setBullets] = useState<{ id: number; from: THREE.Vector3; to: THREE.Vector3 }[]>([]);
   const bulletId = useRef(0);
+  // creepy intro: 0 = welcome msg, 1 = "CHẠY ĐI", 2 = gameplay
+  const [intro, setIntro] = useState<0 | 1 | 2>(0);
+  useEffect(() => {
+    if (intro === 0) {
+      const t = setTimeout(() => setIntro(1), 4200);
+      return () => clearTimeout(t);
+    }
+    if (intro === 1) {
+      const t = setTimeout(() => setIntro(2), 3200);
+      return () => clearTimeout(t);
+    }
+  }, [intro]);
+
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });

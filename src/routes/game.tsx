@@ -56,12 +56,17 @@ function GamePage() {
   const handlePlace = (x: number, z: number) => {
     const it = selected ? getItem(selected) : null;
     if (!it || !state) return;
-    if (x < 0 || z < 0 || x + it.w > 20 || z + it.d > 20) return;
-    // collision check
+    const swap = rotation % 2 === 1;
+    const fw = swap ? it.d : it.w;
+    const fd = swap ? it.w : it.d;
+    if (x < 0 || z < 0 || x + fw > 20 || z + fd > 20) return;
     const collides = state.placed.some((p) => {
       const pi = getItem(p.itemId);
       if (!pi) return false;
-      return !(x + it.w <= p.x || p.x + pi.w <= x || z + it.d <= p.z || p.z + pi.d <= z);
+      const ps = p.rotation % 2 === 1;
+      const pw = ps ? pi.d : pi.w;
+      const pd = ps ? pi.w : pi.d;
+      return !(x + fw <= p.x || p.x + pw <= x || z + fd <= p.z || p.z + pd <= z);
     });
     if (collides) return;
     if (state.money < it.price) return;

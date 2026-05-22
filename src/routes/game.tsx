@@ -163,7 +163,7 @@ function GamePage() {
 
       {/* Bottom controls hint */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none">
-        🎮 WASD: Di chuyển • SPACE: Nhảy • Chuột: Xoay camera • Click: Đặt đồ • Chuột phải: Xóa
+        🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay vật • Chuột: Camera 360° • Click: Đặt • Chuột phải: Xóa
       </div>
 
       {/* Selected item indicator */}

@@ -124,6 +124,7 @@ function GamePage() {
           placed={state.placed}
           selectedItemId={selected}
           rotation={rotation}
+          onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onRemove={handleRemove}
         />

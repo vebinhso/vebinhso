@@ -14,6 +14,7 @@ import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PetsRouteImport } from './routes/pets'
 import { Route as MissionsRouteImport } from './routes/missions'
+import { Route as MagicRouteImport } from './routes/magic'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as GameRouteImport } from './routes/game'
@@ -46,6 +47,11 @@ const PetsRoute = PetsRouteImport.update({
 const MissionsRoute = MissionsRouteImport.update({
   id: '/missions',
   path: '/missions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MagicRoute = MagicRouteImport.update({
+  id: '/magic',
+  path: '/magic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/magic': typeof MagicRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/magic': typeof MagicRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/magic': typeof MagicRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/game'
     | '/inventory'
     | '/login'
+    | '/magic'
     | '/missions'
     | '/pets'
     | '/play'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/game'
     | '/inventory'
     | '/login'
+    | '/magic'
     | '/missions'
     | '/pets'
     | '/play'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/game'
     | '/inventory'
     | '/login'
+    | '/magic'
     | '/missions'
     | '/pets'
     | '/play'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   GameRoute: typeof GameRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  MagicRoute: typeof MagicRoute
   MissionsRoute: typeof MissionsRoute
   PetsRoute: typeof PetsRoute
   PlayRoute: typeof PlayRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/missions'
       fullPath: '/missions'
       preLoaderRoute: typeof MissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/magic': {
+      id: '/magic'
+      path: '/magic'
+      fullPath: '/magic'
+      preLoaderRoute: typeof MagicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   GameRoute: GameRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  MagicRoute: MagicRoute,
   MissionsRoute: MissionsRoute,
   PetsRoute: PetsRoute,
   PlayRoute: PlayRoute,
@@ -313,3 +334,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

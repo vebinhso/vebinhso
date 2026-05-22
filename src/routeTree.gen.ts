@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as PlayRouteImport } from './routes/play'
 import { Route as PetsRouteImport } from './routes/pets'
 import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ShopRoute = ShopRouteImport.update({
@@ -27,6 +29,11 @@ const ShopRoute = ShopRouteImport.update({
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PetsRoute = PetsRouteImport.update({
@@ -59,6 +66,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,35 +79,41 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
+  '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
+  '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/missions': typeof MissionsRoute
   '/pets': typeof PetsRoute
+  '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
@@ -103,46 +121,54 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/chat'
     | '/events'
     | '/inventory'
     | '/login'
     | '/missions'
     | '/pets'
+    | '/play'
     | '/ranking'
     | '/shop'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/chat'
     | '/events'
     | '/inventory'
     | '/login'
     | '/missions'
     | '/pets'
+    | '/play'
     | '/ranking'
     | '/shop'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/chat'
     | '/events'
     | '/inventory'
     | '/login'
     | '/missions'
     | '/pets'
+    | '/play'
     | '/ranking'
     | '/shop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   ChatRoute: typeof ChatRoute
   EventsRoute: typeof EventsRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   MissionsRoute: typeof MissionsRoute
   PetsRoute: typeof PetsRoute
+  PlayRoute: typeof PlayRoute
   RankingRoute: typeof RankingRoute
   ShopRoute: typeof ShopRoute
 }
@@ -161,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pets': {
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,12 +257,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   ChatRoute: ChatRoute,
   EventsRoute: EventsRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   MissionsRoute: MissionsRoute,
   PetsRoute: PetsRoute,
+  PlayRoute: PlayRoute,
   RankingRoute: RankingRoute,
   ShopRoute: ShopRoute,
 }

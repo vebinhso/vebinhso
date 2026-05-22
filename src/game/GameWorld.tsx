@@ -1,232 +1,226 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { CATALOG, getItem, type CatalogItem } from "./catalog";
+import { getItem, type CatalogItem } from "./catalog";
+import { ItemModel } from "./Models";
 import type { PlacedItem } from "@/lib/game";
 
-const GRID = 20; // 20x20 plot
+const GRID = 20;
 const CELL = 1;
+const PATH = 3; // cells of path around plot
 
 type Props = {
   placed: PlacedItem[];
   selectedItemId: string | null;
   rotation: number;
+  onRotate: () => void;
   onPlace: (x: number, z: number) => void;
   onRemove: (id: string) => void;
 };
 
 function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {
   const ref = useRef<THREE.Group>(null!);
-  const vel = useRef(new THREE.Vector3());
+  const armL = useRef<THREE.Mesh>(null!);
+  const armR = useRef<THREE.Mesh>(null!);
+  const legL = useRef<THREE.Mesh>(null!);
+  const legR = useRef<THREE.Mesh>(null!);
   const keys = useRef<Record<string, boolean>>({});
   const yVel = useRef(0);
   const grounded = useRef(true);
+  const walkPhase = useRef(0);
   const { camera } = useThree();
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      keys.current[e.key.toLowerCase()] = true;
-      if (e.code === "Space") keys.current[" "] = true;
-    };
-    const up = (e: KeyboardEvent) => {
-      keys.current[e.key.toLowerCase()] = false;
-      if (e.code === "Space") keys.current[" "] = false;
-    };
+    const down = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
+    const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
-    };
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
   }, []);
 
   useFrame((_, dt) => {
     if (!ref.current) return;
     const k = keys.current;
     const speed = 6;
-
-    // camera-relative movement
     const camDir = new THREE.Vector3();
     camera.getWorldDirection(camDir);
-    camDir.y = 0;
-    camDir.normalize();
+    camDir.y = 0; camDir.normalize();
     const right = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
-
     const move = new THREE.Vector3();
     if (k["w"]) move.add(camDir);
     if (k["s"]) move.sub(camDir);
     if (k["d"]) move.add(right);
     if (k["a"]) move.sub(right);
-    if (move.lengthSq() > 0) {
+    const moving = move.lengthSq() > 0;
+    if (moving) {
       move.normalize().multiplyScalar(speed * dt);
       ref.current.position.x += move.x;
       ref.current.position.z += move.z;
-      const angle = Math.atan2(move.x, move.z);
-      ref.current.rotation.y = angle;
+      ref.current.rotation.y = Math.atan2(move.x, move.z);
+      walkPhase.current += dt * 10;
+    } else {
+      walkPhase.current *= 0.8;
     }
+    const swing = Math.sin(walkPhase.current) * 0.7;
+    if (armL.current) armL.current.rotation.x = swing;
+    if (armR.current) armR.current.rotation.x = -swing;
+    if (legL.current) legL.current.rotation.x = -swing;
+    if (legR.current) legR.current.rotation.x = swing;
 
-    // jump
-    if (k[" "] && grounded.current) {
-      yVel.current = 7;
-      grounded.current = false;
-    }
+    if (k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
     yVel.current -= 18 * dt;
     ref.current.position.y += yVel.current * dt;
-    if (ref.current.position.y <= 1) {
-      ref.current.position.y = 1;
-      yVel.current = 0;
-      grounded.current = true;
-    }
+    if (ref.current.position.y <= 0) { ref.current.position.y = 0; yVel.current = 0; grounded.current = true; }
 
-    // clamp inside larger world
-    ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -40, 40);
-    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -40, 40);
+    const limit = (GRID + PATH * 2) / 2;
+    ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
+    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 
-    // third-person camera follow
     if (controlsRef.current) {
-      controlsRef.current.target.lerp(ref.current.position, 0.15);
+      const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.2, ref.current.position.z);
+      controlsRef.current.target.lerp(t, 0.18);
       controlsRef.current.update();
     }
-    vel.current.set(0, 0, 0);
   });
 
   return (
-    <group ref={ref} position={[0, 1, 0]}>
-      {/* body */}
-      <mesh castShadow position={[0, 0, 0]}>
-        <capsuleGeometry args={[0.35, 0.7, 8, 16]} />
-        <meshStandardMaterial color="#3b82f6" />
+    <group ref={ref} position={[0, 0, 0]}>
+      {/* legs */}
+      <mesh ref={legL} castShadow position={[-0.18, 0.45, 0]}>
+        <boxGeometry args={[0.25, 0.9, 0.25]} />
+        <meshStandardMaterial color="#1e40af" />
       </mesh>
-      {/* head */}
-      <mesh castShadow position={[0, 1.0, 0]}>
-        <sphereGeometry args={[0.32, 16, 16]} />
+      <mesh ref={legR} castShadow position={[0.18, 0.45, 0]}>
+        <boxGeometry args={[0.25, 0.9, 0.25]} />
+        <meshStandardMaterial color="#1e40af" />
+      </mesh>
+      {/* body */}
+      <mesh castShadow position={[0, 1.25, 0]}>
+        <boxGeometry args={[0.7, 0.8, 0.45]} />
+        <meshStandardMaterial color="#ef4444" />
+      </mesh>
+      {/* arms */}
+      <mesh ref={armL} castShadow position={[-0.45, 1.3, 0]}>
+        <boxGeometry args={[0.2, 0.8, 0.25]} />
         <meshStandardMaterial color="#fcd34d" />
       </mesh>
-      {/* face direction marker */}
-      <mesh position={[0, 1.05, 0.3]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
+      <mesh ref={armR} castShadow position={[0.45, 1.3, 0]}>
+        <boxGeometry args={[0.2, 0.8, 0.25]} />
+        <meshStandardMaterial color="#fcd34d" />
+      </mesh>
+      {/* head */}
+      <mesh castShadow position={[0, 2.0, 0]}>
+        <sphereGeometry args={[0.38, 18, 18]} />
+        <meshStandardMaterial color="#fde68a" />
+      </mesh>
+      {/* eyes */}
+      <mesh position={[-0.13, 2.05, 0.32]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
         <meshStandardMaterial color="#111" />
       </mesh>
-      {/* hat */}
-      <mesh castShadow position={[0, 1.32, 0]}>
-        <coneGeometry args={[0.35, 0.4, 16]} />
-        <meshStandardMaterial color="#ef4444" />
+      <mesh position={[0.13, 2.05, 0.32]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
+        <meshStandardMaterial color="#111" />
+      </mesh>
+      {/* hair/cap */}
+      <mesh castShadow position={[0, 2.35, -0.05]}>
+        <sphereGeometry args={[0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#7c2d12" />
       </mesh>
     </group>
   );
 }
 
-function ItemMesh({ item, rotation }: { item: CatalogItem; rotation: number }) {
-  const color = item.color;
-  if (item.shape === "cylinder") {
-    return (
-      <mesh castShadow receiveShadow position={[0, item.h / 2, 0]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
-        <cylinderGeometry args={[item.w / 2, item.w / 2, item.h, 16]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
-    );
-  }
-  return (
-    <mesh castShadow receiveShadow position={[0, item.h / 2, 0]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
-      <boxGeometry args={[item.w * CELL, item.h, item.d * CELL]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
-  );
-}
-
-function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove }: Props) {
+function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
-
-  // Plot covers from -GRID/2..GRID/2
   const half = (GRID * CELL) / 2;
+
+  // rotate footprint
+  const rotatedFootprint = (it: CatalogItem) => {
+    const swap = rotation % 2 === 1;
+    return { w: swap ? it.d : it.w, d: swap ? it.w : it.d };
+  };
 
   const handleMove = (e: any) => {
     if (!selected) return;
     const p = e.point as THREE.Vector3;
-    // snap to cells, account for item footprint
     const gx = Math.floor(p.x + half);
     const gz = Math.floor(p.z + half);
     setHover({ x: gx, z: gz });
   };
-
-  const handleClick = () => {
-    if (!selected || !hover) return;
-    onPlace(hover.x, hover.z);
-  };
+  const handleClick = () => { if (selected && hover) onPlace(hover.x, hover.z); };
 
   return (
     <group>
-      {/* Ground around plot */}
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#7cc472" />
+      {/* Far ground */}
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+        <planeGeometry args={[400, 400]} />
+        <meshStandardMaterial color="#86c46c" />
       </mesh>
 
-      {/* Plot */}
+      {/* Path ring around plot */}
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
+        <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
+        <meshStandardMaterial color="#b8b0a4" />
+      </mesh>
+
+      {/* Plot (dirt/grass mix) */}
       <mesh
         receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0, 0]}
+        position={[0, 0.012, 0]}
         onPointerMove={handleMove}
         onPointerOut={() => setHover(null)}
         onClick={handleClick}
       >
         <planeGeometry args={[GRID, GRID]} />
-        <meshStandardMaterial color="#caa472" />
+        <meshStandardMaterial color="#9bca6f" />
       </mesh>
 
-      {/* Grid lines */}
-      <gridHelper args={[GRID, GRID, "#5a3e1b", "#8a6a3a"]} position={[0, 0.01, 0]} />
+      {/* Grid */}
+      <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, 0.02, 0]} />
 
-      {/* Plot border */}
-      {[
-        [0, -half - 0.1],
-        [0, half + 0.1],
-      ].map((p, i) => (
-        <mesh key={"bx" + i} position={[p[0], 0.2, p[1]]}>
-          <boxGeometry args={[GRID + 0.4, 0.4, 0.2]} />
-          <meshStandardMaterial color="#fff" />
-        </mesh>
-      ))}
-      {[
-        [-half - 0.1, 0],
-        [half + 0.1, 0],
-      ].map((p, i) => (
-        <mesh key={"bz" + i} position={[p[0], 0.2, p[1]]}>
-          <boxGeometry args={[0.2, 0.4, GRID + 0.4]} />
-          <meshStandardMaterial color="#fff" />
-        </mesh>
-      ))}
+      {/* Plot border posts */}
+      {[-half, half].map((x) =>
+        [-half, half].map((z) => (
+          <mesh key={`${x}-${z}`} castShadow position={[x, 0.4, z]}>
+            <boxGeometry args={[0.3, 0.8, 0.3]} />
+            <meshStandardMaterial color="#ffffff" />
+          </mesh>
+        ))
+      )}
 
       {/* Placed items */}
       {placed.map((p) => {
         const it = getItem(p.itemId);
         if (!it) return null;
-        const wx = p.x - half + (it.w * CELL) / 2;
-        const wz = p.z - half + (it.d * CELL) / 2;
+        const swap = p.rotation % 2 === 1;
+        const fw = swap ? it.d : it.w;
+        const fd = swap ? it.w : it.d;
+        const wx = p.x - half + fw / 2;
+        const wz = p.z - half + fd / 2;
         return (
           <group
             key={p.id}
             position={[wx, 0, wz]}
-            onContextMenu={(e) => {
-              e.stopPropagation();
-              onRemove(p.id);
-            }}
+            rotation={[0, (p.rotation * Math.PI) / 2, 0]}
+            onContextMenu={(e) => { e.stopPropagation(); onRemove(p.id); }}
           >
-            <ItemMesh item={it} rotation={p.rotation} />
+            <ItemModel item={it} />
           </group>
         );
       })}
 
-      {/* Ghost preview */}
+      {/* Ghost */}
       {selected && hover && (() => {
-        const wx = hover.x - half + (selected.w * CELL) / 2;
-        const wz = hover.z - half + (selected.d * CELL) / 2;
-        const inside = hover.x >= 0 && hover.z >= 0 && hover.x + selected.w <= GRID && hover.z + selected.d <= GRID;
+        const { w: fw, d: fd } = rotatedFootprint(selected);
+        const wx = hover.x - half + fw / 2;
+        const wz = hover.z - half + fd / 2;
+        const inside = hover.x >= 0 && hover.z >= 0 && hover.x + fw <= GRID && hover.z + fd <= GRID;
         return (
-          <group position={[wx, 0, wz]}>
+          <group position={[wx, 0, wz]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
             <mesh position={[0, selected.h / 2, 0]}>
               <boxGeometry args={[selected.w, selected.h, selected.d]} />
               <meshStandardMaterial color={inside ? "#22c55e" : "#ef4444"} transparent opacity={0.45} />
@@ -241,14 +235,23 @@ function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove 
 export default function GameWorld(props: Props) {
   const controlsRef = useRef<any>(null);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "r") props.onRotate();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [props]);
+
   return (
-    <Canvas shadows camera={{ position: [0, 10, 18], fov: 55 }} dpr={[1, 1.5]}>
+    <Canvas shadows camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 1.5]}>
       <Sky sunPosition={[100, 30, 100]} turbidity={2} rayleigh={0.5} />
       <ambientLight intensity={0.7} />
+      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.5]} />
       <directionalLight
         castShadow
-        position={[20, 25, 10]}
-        intensity={1.4}
+        position={[20, 30, 15]}
+        intensity={1.5}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-left={-30}
@@ -259,14 +262,15 @@ export default function GameWorld(props: Props) {
       <Clouds material={THREE.MeshBasicMaterial}>
         <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.6} />
         <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
+        <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.5} />
       </Clouds>
       <Character controlsRef={controlsRef} />
       <PlotAndPlacement {...props} />
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
-        minDistance={5}
-        maxDistance={25}
+        minDistance={4}
+        maxDistance={28}
         maxPolarAngle={Math.PI / 2 - 0.05}
       />
     </Canvas>

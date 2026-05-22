@@ -642,6 +642,91 @@ function MagicPage() {
           </div>
         </div>
       )}
+
+      {/* Creepy intro overlay */}
+      {intro < 2 && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center select-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, #1a0a0a 0%, #050000 70%, #000 100%)",
+          }}
+        >
+          {/* flicker vignette */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.85) 90%)",
+              animation: "creepyFlicker 2.4s infinite",
+            }}
+          />
+          {intro === 0 ? (
+            <p
+              className="relative max-w-2xl text-xl md:text-3xl leading-relaxed text-amber-100/90"
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
+                letterSpacing: "0.03em",
+                textShadow: "0 0 18px rgba(255,80,0,0.35), 0 0 2px #000",
+                animation: "creepyFade 4.2s ease-in-out forwards",
+              }}
+            >
+              Chào mừng đến lâu đài ma thuật,
+              <br />
+              nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
+            </p>
+          ) : (
+            <h1
+              className="relative text-7xl md:text-9xl"
+              style={{
+                fontFamily: "'Nosifer', 'Creepster', 'Montserrat', cursive",
+                color: "#a30000",
+                textShadow:
+                  "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
+                letterSpacing: "0.08em",
+              }}
+            >
+              CHẠY ĐI
+            </h1>
+          )}
+          <style>{`
+            @keyframes creepyFade {
+              0% { opacity: 0; filter: blur(8px); }
+              15% { opacity: 1; filter: blur(0); }
+              85% { opacity: 1; }
+              100% { opacity: 0.2; }
+            }
+            @keyframes creepyFlicker {
+              0%,19%,21%,23%,80%,100% { opacity: 1; }
+              20%,22%,55% { opacity: 0.55; }
+            }
+            @keyframes creepyShake {
+              0% { transform: translate(0,0); }
+              25% { transform: translate(-1px,1px); }
+              50% { transform: translate(1px,-1px); }
+              75% { transform: translate(-1px,-1px); }
+              100% { transform: translate(1px,1px); }
+            }
+            @keyframes bloodDrip {
+              0% { transform: scale(0.6); opacity: 0; text-shadow: 0 0 0 #000; }
+              40% { transform: scale(1.05); opacity: 1; }
+              100% {
+                transform: scale(1);
+                opacity: 1;
+                text-shadow:
+                  0 0 8px #ff0000,
+                  0 0 24px #5a0000,
+                  4px 8px 0 #2a0000,
+                  0 60px 50px rgba(150,0,0,0.85),
+                  0 90px 4px rgba(120,0,0,0.6);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -1,13 +1,25 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { PointerLockControls, Sky } from "@react-three/drei";
+import { PointerLockControls } from "@react-three/drei";
 import { Suspense, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 
-export const Route = createFileRoute("/magic")({ component: MagicPage });
+export const Route = createFileRoute("/magic")({
+  component: MagicPage,
+  head: () => ({
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Nosifer&family=Creepster&display=swap",
+      },
+    ],
+  }),
+});
 
 // === Stage 1 spec ===
 // Corridor: 10 doors (5 each side). Walk to a door, press E to open.
@@ -41,33 +53,64 @@ type DoorState = "closed" | "open" | "cleared";
 function Walls() {
   return (
     <group>
-      {/* floor */}
+      {/* polished dark floor */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[CORRIDOR_W, CORRIDOR_LEN]} />
-        <meshStandardMaterial color="#3b2a4a" roughness={0.9} />
+        <meshStandardMaterial color="#1a1208" metalness={0.55} roughness={0.25} />
       </mesh>
-      {/* ceiling */}
+      {/* dark ceiling */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, WALL_H, 0]}>
         <planeGeometry args={[CORRIDOR_W, CORRIDOR_LEN]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#0a0805" roughness={0.95} />
       </mesh>
-      {/* left/right walls */}
+      {/* left/right walls: cream upper + dark wainscot */}
       {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * CORRIDOR_W / 2, WALL_H / 2, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
-          <planeGeometry args={[CORRIDOR_LEN, WALL_H]} />
-          <meshStandardMaterial color="#2a1a3a" roughness={0.8} />
-        </mesh>
+        <group key={s}>
+          {/* wainscot (lower) */}
+          <mesh position={[s * CORRIDOR_W / 2, 0.6, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[CORRIDOR_LEN, 1.2]} />
+            <meshStandardMaterial color="#1f1408" roughness={0.85} />
+          </mesh>
+          {/* trim */}
+          <mesh position={[s * (CORRIDOR_W / 2 - 0.01), 1.25, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}>
+            <planeGeometry args={[CORRIDOR_LEN, 0.08]} />
+            <meshStandardMaterial color="#3a2410" />
+          </mesh>
+          {/* upper wall */}
+          <mesh position={[s * CORRIDOR_W / 2, (WALL_H + 1.3) / 2, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[CORRIDOR_LEN, WALL_H - 1.3]} />
+            <meshStandardMaterial color="#6b5232" roughness={0.95} />
+          </mesh>
+        </group>
       ))}
       {/* back wall */}
       <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#0a0805" />
       </mesh>
       {/* far wall (exit) */}
       <mesh position={[0, WALL_H / 2, CORRIDOR_LEN / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#050302" />
       </mesh>
+    </group>
+  );
+}
+
+function CeilingDome({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* mount */}
+      <mesh position={[0, 0.04, 0]}>
+        <cylinderGeometry args={[0.32, 0.32, 0.05, 16]} />
+        <meshStandardMaterial color="#2a1d10" />
+      </mesh>
+      {/* dome */}
+      <mesh position={[0, -0.05, 0]}>
+        <sphereGeometry args={[0.3, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#fff2c0" emissive="#ffb547" emissiveIntensity={1.6} transparent opacity={0.95} />
+      </mesh>
+      <pointLight position={[0, -0.15, 0]} intensity={1.4} distance={9} decay={1.6} color="#ffb060" castShadow />
     </group>
   );
 }
@@ -370,23 +413,20 @@ function Scene({
 }) {
   return (
     <>
-      <Sky sunPosition={[0, -1, 0]} />
-      <color attach="background" args={["#0a0518"]} />
-      <ambientLight intensity={0.25} color="#bbaaff" />
-      <fog attach="fog" args={["#0a0518", 8, 50]} />
+      <color attach="background" args={["#050302"]} />
+      <ambientLight intensity={0.08} color="#3a2a18" />
+      <fog attach="fog" args={["#050302", 6, 40]} />
 
       <Walls />
 
-      {/* torches along walls */}
-      {Array.from({ length: 6 }).map((_, i) => {
-        const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 6);
-        return (
-          <group key={i}>
-            <Torch position={[-CORRIDOR_W / 2 + 0.1, 2.8, z]} />
-            <Torch position={[CORRIDOR_W / 2 - 0.1, 2.8, z]} />
-          </group>
-        );
+      {/* ceiling dome lights down the corridor center */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 12);
+        return <CeilingDome key={i} position={[0, WALL_H - 0.02, z]} />;
       })}
+      {/* bright lamp at far exit for hallway depth glow */}
+      <pointLight position={[0, WALL_H - 0.3, CORRIDOR_LEN / 2 - 1]} intensity={3} distance={14} color="#ffd58a" />
+
 
       {/* 10 doors */}
       {Array.from({ length: 10 }).map((_, i) => {
@@ -419,6 +459,19 @@ function MagicPage() {
   const [won, setWon] = useState(false);
   const [bullets, setBullets] = useState<{ id: number; from: THREE.Vector3; to: THREE.Vector3 }[]>([]);
   const bulletId = useRef(0);
+  // creepy intro: 0 = welcome msg, 1 = "CHẠY ĐI", 2 = gameplay
+  const [intro, setIntro] = useState<0 | 1 | 2>(0);
+  useEffect(() => {
+    if (intro === 0) {
+      const t = setTimeout(() => setIntro(1), 4200);
+      return () => clearTimeout(t);
+    }
+    if (intro === 1) {
+      const t = setTimeout(() => setIntro(2), 3200);
+      return () => clearTimeout(t);
+    }
+  }, [intro]);
+
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -513,7 +566,7 @@ function MagicPage() {
             hitTarget={hitTarget}
           />
           <PlayerController onNearDoor={setNear} />
-          {!modal && !boss && !won && <PointerLockControls />}
+          {!modal && !boss && !won && intro === 2 && <PointerLockControls />}
         </Suspense>
       </Canvas>
 
@@ -589,6 +642,91 @@ function MagicPage() {
           </div>
         </div>
       )}
+
+      {/* Creepy intro overlay */}
+      {intro < 2 && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center select-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, #1a0a0a 0%, #050000 70%, #000 100%)",
+          }}
+        >
+          {/* flicker vignette */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.85) 90%)",
+              animation: "creepyFlicker 2.4s infinite",
+            }}
+          />
+          {intro === 0 ? (
+            <p
+              className="relative max-w-2xl text-xl md:text-3xl leading-relaxed text-amber-100/90"
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
+                letterSpacing: "0.03em",
+                textShadow: "0 0 18px rgba(255,80,0,0.35), 0 0 2px #000",
+                animation: "creepyFade 4.2s ease-in-out forwards",
+              }}
+            >
+              Chào mừng đến lâu đài ma thuật,
+              <br />
+              nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
+            </p>
+          ) : (
+            <h1
+              className="relative text-7xl md:text-9xl"
+              style={{
+                fontFamily: "'Nosifer', 'Creepster', 'Montserrat', cursive",
+                color: "#a30000",
+                textShadow:
+                  "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
+                letterSpacing: "0.08em",
+              }}
+            >
+              CHẠY ĐI
+            </h1>
+          )}
+          <style>{`
+            @keyframes creepyFade {
+              0% { opacity: 0; filter: blur(8px); }
+              15% { opacity: 1; filter: blur(0); }
+              85% { opacity: 1; }
+              100% { opacity: 0.2; }
+            }
+            @keyframes creepyFlicker {
+              0%,19%,21%,23%,80%,100% { opacity: 1; }
+              20%,22%,55% { opacity: 0.55; }
+            }
+            @keyframes creepyShake {
+              0% { transform: translate(0,0); }
+              25% { transform: translate(-1px,1px); }
+              50% { transform: translate(1px,-1px); }
+              75% { transform: translate(-1px,-1px); }
+              100% { transform: translate(1px,1px); }
+            }
+            @keyframes bloodDrip {
+              0% { transform: scale(0.6); opacity: 0; text-shadow: 0 0 0 #000; }
+              40% { transform: scale(1.05); opacity: 1; }
+              100% {
+                transform: scale(1);
+                opacity: 1;
+                text-shadow:
+                  0 0 8px #ff0000,
+                  0 0 24px #5a0000,
+                  4px 8px 0 #2a0000,
+                  0 60px 50px rgba(150,0,0,0.85),
+                  0 90px 4px rgba(120,0,0,0.6);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
+

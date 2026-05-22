@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ const ShopRoute = ShopRouteImport.update({
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissionsRoute = MissionsRouteImport.update({
+  id: '/missions',
+  path: '/missions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/missions': typeof MissionsRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/missions': typeof MissionsRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
@@ -60,21 +68,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/missions': typeof MissionsRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventory' | '/login' | '/ranking' | '/shop'
+  fullPaths: '/' | '/inventory' | '/login' | '/missions' | '/ranking' | '/shop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventory' | '/login' | '/ranking' | '/shop'
-  id: '__root__' | '/' | '/inventory' | '/login' | '/ranking' | '/shop'
+  to: '/' | '/inventory' | '/login' | '/missions' | '/ranking' | '/shop'
+  id:
+    | '__root__'
+    | '/'
+    | '/inventory'
+    | '/login'
+    | '/missions'
+    | '/ranking'
+    | '/shop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  MissionsRoute: typeof MissionsRoute
   RankingRoute: typeof RankingRoute
   ShopRoute: typeof ShopRoute
 }
@@ -93,6 +110,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missions': {
+      id: '/missions'
+      path: '/missions'
+      fullPath: '/missions'
+      preLoaderRoute: typeof MissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  MissionsRoute: MissionsRoute,
   RankingRoute: RankingRoute,
   ShopRoute: ShopRoute,
 }

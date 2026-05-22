@@ -1,8 +1,17 @@
-// Shop catalog. Sizes in grid cells (w x d), height in cells (1 cell = 1m visual).
+// Shop catalog đầy đủ theo file CSV "BẢNG QUY ĐỔI" + "CHI TIẾT XÂY DỰNG"
+// Đơn vị: 1 grid cell = 1m. w x d (mặt phẳng), h (chiều cao)
 export type CatalogItem = {
   id: string;
   name: string;
-  category: "Vật liệu" | "Ngoại thất" | "Phòng khách" | "Phòng bếp" | "Phòng ngủ" | "Phòng tắm";
+  category:
+    | "Vật liệu"
+    | "Ngoại thất"
+    | "Phòng khách"
+    | "Phòng bếp"
+    | "Phòng ngủ"
+    | "Phòng tắm"
+    | "Sân vườn"
+    | "Ban công";
   price: number;
   w: number;
   d: number;
@@ -13,35 +22,94 @@ export type CatalogItem = {
 };
 
 export const CATALOG: CatalogItem[] = [
-  // Vật liệu / khung nhà
-  { id: "wall", name: "Tường (1x1)", category: "Vật liệu", price: 10, w: 1, d: 1, h: 3, color: "#f5e6c8", icon: "🧱" },
-  { id: "pillar", name: "Cột bê tông", category: "Vật liệu", price: 7, w: 1, d: 1, h: 3, color: "#9ca3af", icon: "🏛️", shape: "cylinder" },
-  { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 1, h: 3, color: "#8b4513", icon: "🚪" },
+  // ===== Vật liệu / khung nhà =====
+  { id: "wall", name: "Tường gạch (1m)", category: "Vật liệu", price: 10, w: 1, d: 0.25, h: 3, color: "#f5e6c8", icon: "🧱" },
+  { id: "pillar", name: "Cột bê tông", category: "Vật liệu", price: 7, w: 1, d: 1, h: 5, color: "#9ca3af", icon: "🏛️", shape: "cylinder" },
+  { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 0.2, h: 3, color: "#8b4513", icon: "🚪" },
   { id: "floor", name: "Gạch lát sàn", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.1, color: "#d4a574", icon: "🟫" },
-  // Ngoại thất
+  { id: "roof", name: "Mái nhà bê tông", category: "Vật liệu", price: 50, w: 1, d: 1, h: 0.3, color: "#7f1d1d", icon: "🏠" },
+  { id: "roof_ton", name: "Mái tôn", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🏠" },
+  { id: "window", name: "Cửa sổ", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
+  { id: "curtain", name: "Rèm cửa", category: "Vật liệu", price: 50, w: 2, d: 0.1, h: 4, color: "#fda4af", icon: "🪟" },
+
+  // ===== Ngoại thất =====
   { id: "lamp", name: "Cột đèn", category: "Ngoại thất", price: 15, w: 1, d: 1, h: 3, color: "#fbbf24", icon: "💡", shape: "cylinder" },
   { id: "mailbox", name: "Hòm thư", category: "Ngoại thất", price: 10, w: 1, d: 1, h: 1.5, color: "#dc2626", icon: "📫" },
-  { id: "sign", name: "Bảng tên nhà", category: "Ngoại thất", price: 10, w: 2, d: 1, h: 1, color: "#f59e0b", icon: "🪧" },
-  { id: "tree", name: "Cây xanh", category: "Ngoại thất", price: 20, w: 1, d: 1, h: 2.5, color: "#16a34a", icon: "🌳", shape: "cylinder" },
-  // Phòng khách
-  { id: "sofa", name: "Sofa", category: "Phòng khách", price: 120, w: 4, d: 2, h: 1, color: "#a78bfa", icon: "🛋️" },
-  { id: "table", name: "Bàn phòng khách", category: "Phòng khách", price: 60, w: 3, d: 2, h: 0.8, color: "#92400e", icon: "🪑" },
-  { id: "tv", name: "TV 55\"", category: "Phòng khách", price: 200, w: 3, d: 0.3, h: 1.5, color: "#1f2937", icon: "📺" },
-  { id: "tvstand", name: "Kệ TV", category: "Phòng khách", price: 80, w: 4, d: 1, h: 0.8, color: "#7c2d12", icon: "🗄️" },
-  // Phòng bếp
-  { id: "fridge", name: "Tủ lạnh", category: "Phòng bếp", price: 180, w: 1, d: 1, h: 2.5, color: "#e5e7eb", icon: "🧊" },
-  { id: "stove", name: "Bếp ga", category: "Phòng bếp", price: 90, w: 2, d: 1, h: 1, color: "#374151", icon: "🔥" },
-  { id: "diningtable", name: "Bàn ăn 4 người", category: "Phòng bếp", price: 140, w: 4, d: 4, h: 1, color: "#a16207", icon: "🍽️" },
-  // Phòng ngủ
-  { id: "bed", name: "Giường đôi", category: "Phòng ngủ", price: 200, w: 4, d: 3, h: 1, color: "#f9a8d4", icon: "🛏️" },
-  { id: "wardrobe", name: "Tủ quần áo", category: "Phòng ngủ", price: 150, w: 2, d: 1, h: 2.5, color: "#78350f", icon: "🚪" },
-  { id: "desk", name: "Bàn học", category: "Phòng ngủ", price: 70, w: 2, d: 2, h: 1.5, color: "#b45309", icon: "📚" },
-  // Phòng tắm
-  { id: "toilet", name: "Bồn cầu", category: "Phòng tắm", price: 80, w: 1, d: 1.5, h: 1, color: "#f3f4f6", icon: "🚽" },
-  { id: "sink", name: "Lavabo", category: "Phòng tắm", price: 60, w: 1, d: 1, h: 1, color: "#e0f2fe", icon: "🚰" },
+  { id: "sign", name: "Bảng tên nhà", category: "Ngoại thất", price: 10, w: 2, d: 0.2, h: 1.5, color: "#f59e0b", icon: "🪧" },
+  { id: "tree", name: "Cây xanh", category: "Ngoại thất", price: 20, w: 1, d: 1, h: 2.5, color: "#16a34a", icon: "🌳" },
+
+  // ===== Phòng khách =====
+  { id: "sofa", name: "Sofa chữ nhật", category: "Phòng khách", price: 130, w: 4, d: 2, h: 1, color: "#a78bfa", icon: "🛋️" },
+  { id: "table", name: "Bàn phòng khách", category: "Phòng khách", price: 100, w: 3, d: 2, h: 1, color: "#92400e", icon: "🪑" },
+  { id: "roundtable", name: "Bàn tròn", category: "Phòng khách", price: 80, w: 2, d: 2, h: 1, color: "#a16207", icon: "🍵", shape: "cylinder" },
+  { id: "painting", name: "Tranh treo tường", category: "Phòng khách", price: 15, w: 2, d: 0.1, h: 1.2, color: "#fbbf24", icon: "🖼️" },
+  { id: "fan", name: "Quạt máy đứng", category: "Phòng khách", price: 25, w: 1, d: 1, h: 2, color: "#cbd5e1", icon: "🌀" },
+  { id: "tv", name: "TV 55\"", category: "Phòng khách", price: 300, w: 3, d: 0.2, h: 1.5, color: "#0f172a", icon: "📺" },
+  { id: "tvstand", name: "Kệ TV", category: "Phòng khách", price: 30, w: 4, d: 1, h: 1, color: "#7c2d12", icon: "🗄️" },
+  { id: "speaker", name: "Bộ loa", category: "Phòng khách", price: 80, w: 1, d: 1, h: 1.5, color: "#1f2937", icon: "🔊" },
+  { id: "clock", name: "Đồng hồ treo", category: "Phòng khách", price: 35, w: 1, d: 0.1, h: 1, color: "#f3f4f6", icon: "🕰️" },
+
+  // ===== Phòng bếp =====
+  { id: "stove", name: "Bếp ga 2 bếp", category: "Phòng bếp", price: 80, w: 2, d: 1, h: 1, color: "#1f2937", icon: "🔥" },
+  { id: "diningtable", name: "Bàn ăn 4 người", category: "Phòng bếp", price: 120, w: 4, d: 4, h: 1, color: "#a16207", icon: "🍽️" },
+  { id: "fridge", name: "Tủ lạnh", category: "Phòng bếp", price: 140, w: 1, d: 1, h: 2.5, color: "#e5e7eb", icon: "🧊" },
+  { id: "fridge3", name: "Tủ lạnh 3 cánh", category: "Phòng bếp", price: 250, w: 2, d: 1, h: 2.5, color: "#d1d5db", icon: "🧊" },
+  { id: "cabinet", name: "Tủ bếp", category: "Phòng bếp", price: 105, w: 4, d: 1, h: 1, color: "#78350f", icon: "🗄️" },
+  { id: "sink", name: "Bồn rửa chén", category: "Phòng bếp", price: 95, w: 2, d: 1, h: 1, color: "#e0f2fe", icon: "🚰" },
+  { id: "hood", name: "Máy hút mùi", category: "Phòng bếp", price: 150, w: 2, d: 1, h: 1, color: "#374151", icon: "💨" },
+  { id: "microwave", name: "Lò vi sóng", category: "Phòng bếp", price: 85, w: 2, d: 1, h: 1, color: "#1f2937", icon: "♨️" },
+  { id: "oven", name: "Lò nướng", category: "Phòng bếp", price: 160, w: 2, d: 1, h: 1, color: "#0f172a", icon: "♨️" },
+  { id: "dishwasher", name: "Máy rửa chén", category: "Phòng bếp", price: 180, w: 2, d: 1, h: 1, color: "#e5e7eb", icon: "🍽️" },
+  { id: "ricecooker", name: "Nồi cơm điện", category: "Phòng bếp", price: 70, w: 1, d: 1, h: 1, color: "#f9fafb", icon: "🍚", shape: "cylinder" },
+
+  // ===== Phòng ngủ =====
+  { id: "singlebed", name: "Giường đơn", category: "Phòng ngủ", price: 90, w: 2, d: 3, h: 1, color: "#fde68a", icon: "🛏️" },
+  { id: "bed", name: "Giường đôi", category: "Phòng ngủ", price: 160, w: 4, d: 3, h: 1, color: "#f9a8d4", icon: "🛏️" },
+  { id: "bunkbed", name: "Giường tầng", category: "Phòng ngủ", price: 180, w: 2, d: 2.5, h: 3, color: "#fcd34d", icon: "🛏️" },
+  { id: "wardrobe", name: "Tủ quần áo", category: "Phòng ngủ", price: 120, w: 2, d: 1, h: 2.5, color: "#78350f", icon: "👔" },
+  { id: "desk", name: "Bàn học + ghế", category: "Phòng ngủ", price: 70, w: 2, d: 2, h: 2, color: "#b45309", icon: "📚" },
+  { id: "bookshelf", name: "Kệ sách", category: "Phòng ngủ", price: 65, w: 2, d: 1, h: 3, color: "#92400e", icon: "📚" },
+  { id: "aircon", name: "Điều hòa", category: "Phòng ngủ", price: 250, w: 2, d: 0.5, h: 0.8, color: "#f9fafb", icon: "❄️" },
+  { id: "mirror", name: "Gương toàn thân", category: "Phòng ngủ", price: 75, w: 1, d: 0.2, h: 3, color: "#bae6fd", icon: "🪞" },
+  { id: "vanity", name: "Bàn trang điểm", category: "Phòng ngủ", price: 140, w: 2, d: 1, h: 2, color: "#fbcfe8", icon: "💄" },
+  { id: "rug", name: "Thảm phòng ngủ", category: "Phòng ngủ", price: 50, w: 4, d: 3, h: 0.05, color: "#fb7185", icon: "🟥" },
+
+  // ===== Phòng tắm =====
+  { id: "toilet", name: "Bồn cầu", category: "Phòng tắm", price: 90, w: 1, d: 1.5, h: 1, color: "#f9fafb", icon: "🚽" },
+  { id: "lavabo", name: "Lavabo", category: "Phòng tắm", price: 70, w: 1, d: 1, h: 1, color: "#e0f2fe", icon: "🚰" },
+  { id: "bathtub", name: "Bồn tắm", category: "Phòng tắm", price: 250, w: 4, d: 2, h: 1, color: "#f0f9ff", icon: "🛁" },
+  { id: "shower", name: "Vòi sen", category: "Phòng tắm", price: 65, w: 1, d: 1, h: 2.5, color: "#cbd5e1", icon: "🚿" },
+  { id: "washer", name: "Máy giặt", category: "Phòng tắm", price: 380, w: 2, d: 2, h: 1, color: "#f3f4f6", icon: "🧺" },
+
+  // ===== Sân vườn =====
+  { id: "fence", name: "Hàng rào", category: "Sân vườn", price: 70, w: 2, d: 0.2, h: 1.5, color: "#fef3c7", icon: "🪵" },
+  { id: "gate", name: "Cổng nhà", category: "Sân vườn", price: 100, w: 3, d: 0.2, h: 3, color: "#475569", icon: "🚪" },
+  { id: "pot", name: "Chậu cây", category: "Sân vườn", price: 15, w: 1, d: 1, h: 1, color: "#a16207", icon: "🪴", shape: "cylinder" },
+  { id: "bigtree", name: "Cây cảnh lớn", category: "Sân vườn", price: 57, w: 2, d: 2, h: 4, color: "#15803d", icon: "🌳" },
+  { id: "stonebench", name: "Ghế đá", category: "Sân vườn", price: 25, w: 2, d: 1, h: 0.6, color: "#9ca3af", icon: "🪑" },
+  { id: "fishpond", name: "Hồ cá mini", category: "Sân vườn", price: 110, w: 3, d: 2, h: 0.4, color: "#38bdf8", icon: "🐟" },
+  { id: "gardenlamp", name: "Đèn sân vườn", category: "Sân vườn", price: 30, w: 1, d: 1, h: 1.5, color: "#fde047", icon: "💡", shape: "cylinder" },
+  { id: "grass", name: "Bãi cỏ nhân tạo", category: "Sân vườn", price: 79, w: 2, d: 2, h: 0.05, color: "#65a30d", icon: "🌱" },
+  { id: "trashcan", name: "Thùng rác", category: "Sân vườn", price: 40, w: 1, d: 1, h: 1, color: "#22c55e", icon: "🗑️", shape: "cylinder" },
+  { id: "pool", name: "Bể bơi mini", category: "Sân vườn", price: 200, w: 4, d: 3, h: 0.5, color: "#0ea5e9", icon: "🏊" },
+  { id: "pethouse", name: "Chuồng thú cưng", category: "Sân vườn", price: 50, w: 3, d: 2, h: 1.5, color: "#92400e", icon: "🐕" },
+
+  // ===== Ban công =====
+  { id: "teaset", name: "Bộ ghế + bàn trà", category: "Ban công", price: 300, w: 3, d: 2, h: 1, color: "#fbbf24", icon: "🫖" },
+  { id: "smallpot", name: "Chậu nhỏ", category: "Ban công", price: 10, w: 1, d: 1, h: 1, color: "#b45309", icon: "🌵", shape: "cylinder" },
+  { id: "tallpot", name: "Chậu cao", category: "Ban công", price: 50, w: 1, d: 1, h: 1.5, color: "#7c2d12", icon: "🌿", shape: "cylinder" },
 ];
 
-export const CATEGORIES = ["Vật liệu", "Ngoại thất", "Phòng khách", "Phòng bếp", "Phòng ngủ", "Phòng tắm"] as const;
+export const CATEGORIES = [
+  "Vật liệu",
+  "Ngoại thất",
+  "Phòng khách",
+  "Phòng bếp",
+  "Phòng ngủ",
+  "Phòng tắm",
+  "Sân vườn",
+  "Ban công",
+] as const;
 
 export function getItem(id: string) {
   return CATALOG.find((c) => c.id === id);

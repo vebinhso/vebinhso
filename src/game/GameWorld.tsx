@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sky, Cloud, Clouds } from "@react-three/drei";
+import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, SoftShadows } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
@@ -244,31 +244,40 @@ export default function GameWorld(props: Props) {
   }, [props]);
 
   return (
-    <Canvas shadows camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 1.5]}>
-      <Sky sunPosition={[100, 30, 100]} turbidity={2} rayleigh={0.5} />
-      <ambientLight intensity={0.7} />
-      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.5]} />
+    <Canvas shadows="soft" camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
+      <SoftShadows size={25} samples={16} focus={0.5} />
+      <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
+      <Environment preset="park" background={false} environmentIntensity={0.6} />
+      <ambientLight intensity={0.35} />
+      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.35]} />
       <directionalLight
         castShadow
-        position={[20, 30, 15]}
-        intensity={1.5}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        position={[25, 35, 18]}
+        intensity={2}
+        color="#fff5e1"
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
         shadow-camera-left={-30}
         shadow-camera-right={30}
         shadow-camera-top={30}
         shadow-camera-bottom={-30}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.02}
       />
       <Clouds material={THREE.MeshBasicMaterial}>
-        <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.6} />
+        <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.55} />
         <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
-        <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.5} />
+        <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
       </Clouds>
       <Character controlsRef={controlsRef} />
       <PlotAndPlacement {...props} />
+      <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
+      <fog attach="fog" args={["#dbeafe", 60, 180]} />
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
+        enableDamping
+        dampingFactor={0.08}
         minDistance={4}
         maxDistance={28}
         maxPolarAngle={Math.PI / 2 - 0.05}

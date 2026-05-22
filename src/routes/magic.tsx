@@ -53,33 +53,64 @@ type DoorState = "closed" | "open" | "cleared";
 function Walls() {
   return (
     <group>
-      {/* floor */}
+      {/* polished dark floor */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[CORRIDOR_W, CORRIDOR_LEN]} />
-        <meshStandardMaterial color="#3b2a4a" roughness={0.9} />
+        <meshStandardMaterial color="#1a1208" metalness={0.55} roughness={0.25} />
       </mesh>
-      {/* ceiling */}
+      {/* dark ceiling */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, WALL_H, 0]}>
         <planeGeometry args={[CORRIDOR_W, CORRIDOR_LEN]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#0a0805" roughness={0.95} />
       </mesh>
-      {/* left/right walls */}
+      {/* left/right walls: cream upper + dark wainscot */}
       {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * CORRIDOR_W / 2, WALL_H / 2, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
-          <planeGeometry args={[CORRIDOR_LEN, WALL_H]} />
-          <meshStandardMaterial color="#2a1a3a" roughness={0.8} />
-        </mesh>
+        <group key={s}>
+          {/* wainscot (lower) */}
+          <mesh position={[s * CORRIDOR_W / 2, 0.6, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[CORRIDOR_LEN, 1.2]} />
+            <meshStandardMaterial color="#1f1408" roughness={0.85} />
+          </mesh>
+          {/* trim */}
+          <mesh position={[s * (CORRIDOR_W / 2 - 0.01), 1.25, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]}>
+            <planeGeometry args={[CORRIDOR_LEN, 0.08]} />
+            <meshStandardMaterial color="#3a2410" />
+          </mesh>
+          {/* upper wall */}
+          <mesh position={[s * CORRIDOR_W / 2, (WALL_H + 1.3) / 2, 0]} rotation={[0, s > 0 ? -Math.PI / 2 : Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[CORRIDOR_LEN, WALL_H - 1.3]} />
+            <meshStandardMaterial color="#6b5232" roughness={0.95} />
+          </mesh>
+        </group>
       ))}
       {/* back wall */}
       <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#0a0805" />
       </mesh>
       {/* far wall (exit) */}
       <mesh position={[0, WALL_H / 2, CORRIDOR_LEN / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a0f24" />
+        <meshStandardMaterial color="#050302" />
       </mesh>
+    </group>
+  );
+}
+
+function CeilingDome({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* mount */}
+      <mesh position={[0, 0.04, 0]}>
+        <cylinderGeometry args={[0.32, 0.32, 0.05, 16]} />
+        <meshStandardMaterial color="#2a1d10" />
+      </mesh>
+      {/* dome */}
+      <mesh position={[0, -0.05, 0]}>
+        <sphereGeometry args={[0.3, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#fff2c0" emissive="#ffb547" emissiveIntensity={1.6} transparent opacity={0.95} />
+      </mesh>
+      <pointLight position={[0, -0.15, 0]} intensity={1.4} distance={9} decay={1.6} color="#ffb060" castShadow />
     </group>
   );
 }

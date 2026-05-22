@@ -139,6 +139,7 @@ function Text3DLike({ pos, text }: { pos: [number, number, number]; text: string
 
 const _canvasCache: Record<string, HTMLCanvasElement> = {};
 function makeTextCanvas(t: string) {
+  if (typeof document === "undefined") return null as any;
   if (_canvasCache[t]) return _canvasCache[t];
   const c = document.createElement("canvas");
   c.width = 128; c.height = 128;

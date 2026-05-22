@@ -19,6 +19,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as CharacterRouteImport } from './routes/character'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -72,6 +73,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharacterRoute = CharacterRouteImport.update({
+  id: '/character',
+  path: '/character',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -86,6 +92,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/game': typeof GameRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/game': typeof GameRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
   '/game': typeof GameRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/character'
     | '/chat'
     | '/events'
     | '/game'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/character'
     | '/chat'
     | '/events'
     | '/game'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/character'
     | '/chat'
     | '/events'
     | '/game'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  CharacterRoute: typeof CharacterRoute
   ChatRoute: typeof ChatRoute
   EventsRoute: typeof EventsRoute
   GameRoute: typeof GameRoute
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/character': {
+      id: '/character'
+      path: '/character'
+      fullPath: '/character'
+      preLoaderRoute: typeof CharacterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  CharacterRoute: CharacterRoute,
   ChatRoute: ChatRoute,
   EventsRoute: EventsRoute,
   GameRoute: GameRoute,

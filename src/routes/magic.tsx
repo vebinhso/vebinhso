@@ -319,24 +319,30 @@ function DungeonRoom({ withMonster }: { withMonster: boolean }) {
         <meshBasicMaterial color="#1a120a" transparent opacity={0.25} />
       </mesh>
 
-      {/* dim single hanging bulb */}
+      {/* hanging bulb - brighter */}
       <group position={[0, ROOM_H - 0.4, -ROOM_D / 2]}>
         <mesh>
           <cylinderGeometry args={[0.02, 0.02, 0.6]} />
           <meshStandardMaterial color="#111" />
         </mesh>
         <mesh position={[0, -0.4, 0]}>
-          <sphereGeometry args={[0.12, 12, 12]} />
-          <meshStandardMaterial color="#fff7d0" emissive={withMonster ? "#a86020" : "#ffd070"} emissiveIntensity={withMonster ? 1.4 : 2.2} />
+          <sphereGeometry args={[0.14, 14, 14]} />
+          <meshStandardMaterial color="#fff7d0" emissive={withMonster ? "#ffb060" : "#ffe090"} emissiveIntensity={3.2} />
         </mesh>
-        <pointLight position={[0, -0.4, 0]} intensity={withMonster ? 0.9 : 1.6} distance={9} color={withMonster ? "#c07040" : "#ffd070"} />
+        <pointLight position={[0, -0.4, 0]} intensity={withMonster ? 3.2 : 4.0} distance={14} color={withMonster ? "#ffc080" : "#ffe0a0"} />
       </group>
+      {/* corner accent lights for visibility */}
+      <pointLight position={[-ROOM_W / 2 + 0.6, ROOM_H - 0.5, -1]} intensity={1.4} distance={8} color="#ffb070" />
+      <pointLight position={[ROOM_W / 2 - 0.6, ROOM_H - 0.5, -1]} intensity={1.4} distance={8} color="#ffb070" />
+      <pointLight position={[0, 1.6, -ROOM_D + 0.8]} intensity={1.6} distance={9} color="#ffa860" />
 
-      {/* ambient room light */}
-      <ambientLight intensity={withMonster ? 0.18 : 0.35} color="#3a2a1c" />
+      {/* ambient room light - boosted ~+20cd */}
+      <ambientLight intensity={withMonster ? 0.85 : 1.05} color="#5c4632" />
+      <hemisphereLight args={["#c89878", "#2a1a10", 0.55]} />
     </group>
   );
 }
+
 
 function StarRoom() {
   const stars = useStarTexture();

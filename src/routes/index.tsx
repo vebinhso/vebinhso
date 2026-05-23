@@ -3,6 +3,7 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
+import { loadGame } from "@/lib/game";
 import {
   findUserStrict,
   sendRequest,
@@ -22,6 +23,7 @@ function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [streak, setStreak] = useState<LoginStreak | null>(null);
+  const [money, setMoney] = useState(0);
   const [ready, setReady] = useState(false);
 
   const [friends, setFriends] = useState<Account[]>([]);
@@ -41,6 +43,7 @@ function Home() {
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
     setStreak(getLoginStreak(u.id));
+    setMoney(loadGame().money);
     refreshFriends(u.id);
     setReady(true);
   }, [navigate]);
@@ -84,7 +87,7 @@ function Home() {
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
             </p>
-            <p className="text-sm font-bold text-yellow-700">💰 2,400</p>
+            <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
           </div>
         </div>
         <div className="flex flex-col gap-2">

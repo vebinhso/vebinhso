@@ -57,14 +57,15 @@ export function sendRequest(myId: number, friendId: number): { ok: boolean; msg:
       (f.requester_id === friendId && f.receiver_id === myId),
   );
   if (existing) {
-    return {
-      ok: false,
-      msg: existing.status === "accepted" ? "Hai bạn đã là bạn bè." : "Yêu cầu đã tồn tại.",
-    };
+    if (existing.status === "accepted") return { ok: false, msg: "Hai bạn đã là bạn bè." };
+    existing.status = "accepted";
+    write(list);
+    return { ok: true, msg: "Đã kết bạn thành công!" };
   }
-  list.push({ requester_id: myId, receiver_id: friendId, status: "pending", created_at: Date.now() });
+  // Khớp đúng cả tên + ID => kết bạn ngay lập tức
+  list.push({ requester_id: myId, receiver_id: friendId, status: "accepted", created_at: Date.now() });
   write(list);
-  return { ok: true, msg: "Đã gửi lời mời kết bạn!" };
+  return { ok: true, msg: "Đã kết bạn thành công!" };
 }
 
 export function acceptRequest(myId: number, requesterId: number) {

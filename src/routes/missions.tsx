@@ -57,22 +57,28 @@ function fmtTime(s: number) {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
 
-function ProgressRow({ m, current, mode }: { m: Milestone; current: number; mode: Tab }) {
+function ProgressRow({
+  m, current, mode, claimed, onClaim,
+}: {
+  m: Milestone; current: number; mode: Tab; claimed: boolean; onClaim: () => void;
+}) {
   const pct = Math.min(100, Math.round((current / m.target) * 100));
   const done = current >= m.target;
   const isTime = mode === "daily" && m.target >= 60;
+  const canClaim = done && !claimed;
   return (
-    <div className={`rounded-2xl border-2 p-4 bg-white/85 ${done ? "border-emerald-400" : "border-white"}`}>
+    <div className={`rounded-2xl border-2 p-4 bg-white/85 ${claimed ? "border-gray-300 opacity-80" : done ? "border-emerald-400" : "border-white"}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{m.icon}</span>
           <span className="font-black text-sm">{m.label}</span>
         </div>
         <button
-          disabled={!done}
-          className="toy-button toy-button-primary !text-xs !py-1.5 !px-3 disabled:opacity-40"
+          disabled={!canClaim}
+          onClick={onClaim}
+          className={`toy-button !text-xs !py-1.5 !px-3 disabled:opacity-40 ${claimed ? "!bg-gray-300 !text-gray-600" : "toy-button-primary"}`}
         >
-          🎁 {m.reward}
+          {claimed ? "✅ ĐÃ LẤY" : `🎁 ${m.reward}`}
         </button>
       </div>
       <div className="h-3 rounded-full bg-black/10 overflow-hidden">
@@ -92,6 +98,7 @@ function ProgressRow({ m, current, mode }: { m: Milestone; current: number; mode
     </div>
   );
 }
+
 
 function Utilities() {
   const [tab, setTab] = useState<Tab>("daily");

@@ -10,9 +10,10 @@ export type PlacedItem = {
 };
 
 export type GameState = {
-  money: number;       // Tiền trong tài khoản (bắt đầu 0). Dùng để lên cấp.
-  netWorth: number;    // Tài sản ròng = tiền đã đầu tư vào nhà. Hoàn lại khi vật tư biến mất.
+  money: number;
+  netWorth: number;
   correctAnswers: number;
+  answerStreak: number;
   level: number;
   placed: PlacedItem[];
 };
@@ -23,6 +24,7 @@ const DEFAULT: GameState = {
   money: 0,
   netWorth: 0,
   correctAnswers: 0,
+  answerStreak: 0,
   level: 0,
   placed: [],
 };

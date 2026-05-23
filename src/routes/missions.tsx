@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getLoginAt, getCurrentUser } from "@/lib/auth";
+import { getLoginAt, getCurrentUser, getLoginStreak } from "@/lib/auth";
 import { loadGame, computeLevel } from "@/lib/game";
 import { isClaimed, setClaimed } from "@/lib/claims";
 
@@ -111,19 +111,22 @@ function Utilities() {
     return () => clearInterval(t);
   }, []);
 
-  // Level thực tế từ trạng thái game
+  // Level + streak thực tế
   const [playerLevel, setPlayerLevel] = useState(0);
+  const [answerStreak, setAnswerStreak] = useState(0);
   useEffect(() => {
-    setPlayerLevel(computeLevel(loadGame()));
+    const g = loadGame();
+    setPlayerLevel(computeLevel(g));
+    setAnswerStreak(g.answerStreak || 0);
   }, []);
 
   const userId = getCurrentUser()?.id ?? 0;
   const [claimTick, setClaimTick] = useState(0);
 
-  const streak = 7;
-  const loginDays = 3;
-  const weekLevels = 1;
-  const weekRank = 5;
+  const loginStreak = userId ? getLoginStreak(userId) : { currentStreak: 0, totalDays: 0, lastLoginDate: 0 };
+  const loginDays = loginStreak.currentStreak; // streak liên tục theo ngày (sai chuỗi => 1)
+  const weekLevels = 0;
+  const weekRank = 99;
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "daily",  label: "Quà hằng ngày", icon: "🎁" },
@@ -136,7 +139,7 @@ function Utilities() {
   const getProgress = (m: Milestone): number => {
     if (tab === "daily") {
       if (m.target >= 60) return seconds;
-      if (m.label.startsWith("Streak")) return streak;
+      if (m.label.startsWith("Streak")) return answerStreak;
       if (m.label.startsWith("Đăng nhập")) return 1;
     }
     if (tab === "weekly") {

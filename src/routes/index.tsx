@@ -44,7 +44,12 @@ function Home() {
           <div>
             <h1 className="text-lg font-black leading-tight">{user.username}</h1>
             <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
+            <p className="text-xs font-bold text-rose-600">
+              🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
+              <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
+            </p>
             <p className="text-sm font-bold text-yellow-700">💰 2,400</p>
+
           </div>
         </div>
         <div className="flex flex-col gap-2">

@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
+import { loadGame, saveGame } from "@/lib/game";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -838,7 +839,9 @@ function MagicPage() {
   const answerBoss = (idx: number) => {
     if (!boss || !boss.question) return;
     const correct = idx === boss.question.answer;
+    const g = loadGame();
     if (correct) {
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
       const newHp = Math.max(0, boss.hp - boss.perHit);
       const newBullets = boss.bulletsLeft - 1;
       if (newHp <= 0) {
@@ -848,6 +851,7 @@ function MagicPage() {
       }
       setBoss({ ...boss, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() });
     } else {
+      saveGame({ ...g, answerStreak: 0 });
       const nb = Math.max(0, boss.bulletsLeft - 1);
       setBoss({ ...boss, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() });
     }

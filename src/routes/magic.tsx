@@ -385,111 +385,138 @@ function StarRoom() {
 }
 
 function Monster({ progress, visible }: { progress: number; visible: boolean }) {
-  // progress 0 = at back darkness, 1 = at target spot (3.5 cells from player)
   const ref = useRef<THREE.Group>(null!);
   const t = useRef(0);
   useFrame((_, dt) => {
     t.current += dt;
     if (ref.current) {
-      // bobbing walk
-      ref.current.position.y = 1.0 + Math.sin(t.current * 5) * (progress < 1 ? 0.12 : 0.06);
-      ref.current.rotation.y = Math.sin(t.current * 2.2) * 0.12;
+      ref.current.position.y = 1.0 + Math.sin(t.current * 4) * (progress < 1 ? 0.10 : 0.05);
+      ref.current.rotation.y = Math.sin(t.current * 1.6) * 0.08;
     }
   });
   if (!visible) return null;
   const startZ = -ROOM_D + 0.6;
-  const endZ = -5.5; // player at z=-2, monster ends 3.5 cells away
+  const endZ = -5.5;
   const z = startZ + (endZ - startZ) * progress;
-  // appearance reveal
   const reveal = Math.min(1, progress * 1.4);
-  const FUR = "#7ec8e3";       // light blue fur
-  const FUR_DARK = "#4ba3c6";
-  const BODY = "#f4f7fb";      // near white body underneath
+
+  const FUR = "#1aa8c9";
+  const FUR_DARK = "#0d7fa0";
+  const FUR_LIGHT = "#5dc7e0";
+  const RED = "#d62828";
+  const MOUTH = "#2a0a0a";
+  const TONGUE = "#ff4d8a";
+
+  const R = 0.95;
+  const STRANDS = 520;
+  const strands = Array.from({ length: STRANDS }).map((_, i) => {
+    const phi = Math.acos(1 - 2 * ((i + 0.5) / STRANDS));
+    const theta = i * 2.39996323;
+    const nx = Math.sin(phi) * Math.cos(theta);
+    const ny = Math.cos(phi);
+    const nz = Math.sin(phi) * Math.sin(theta);
+    // leave a face area clear (front cap for eyes/mouth)
+    if (nz > 0.55 && ny > -0.35 && ny < 0.55 && Math.abs(nx) < 0.6) return null;
+    const len = 0.30 + (((i * 7) % 11) / 11) * 0.22;
+    const ox = nx * (R - 0.02);
+    const oy = ny * (R - 0.02);
+    const oz = nz * (R - 0.02);
+    const rotX = Math.atan2(Math.sqrt(nx * nx + nz * nz), ny);
+    const rotY = Math.atan2(nx, nz);
+    const shade = (i % 9 === 0) ? FUR_DARK : (i % 5 === 0 ? FUR_LIGHT : FUR);
+    const thickness = 0.022 + (((i * 13) % 5) / 5) * 0.012;
+    return (
+      <group key={i} position={[ox, oy, oz]} rotation={[0, rotY, 0]}>
+        <group rotation={[rotX, 0, 0]}>
+          <mesh position={[0, len / 2, 0]}>
+            <coneGeometry args={[thickness, len, 5]} />
+            <meshStandardMaterial color={shade} roughness={0.95} />
+          </mesh>
+        </group>
+      </group>
+    );
+  });
+
   return (
     <group ref={ref} position={[0, 1.0, z]} scale={[reveal, reveal, reveal]}>
-      {/* main body - white-blue fluffy */}
       <mesh castShadow>
-        <sphereGeometry args={[0.95, 32, 32]} />
-        <meshStandardMaterial color={BODY} roughness={0.85} />
+        <sphereGeometry args={[R, 40, 40]} />
+        <meshStandardMaterial color={FUR} roughness={0.95} />
       </mesh>
-      {/* dense fluffy fur tufts (blue) covering body */}
-      {Array.from({ length: 140 }).map((_, i) => {
-        const a = (i * 137.5) * (Math.PI / 180);
-        const b = Math.acos(1 - 2 * ((i + 0.5) / 140));
-        const r = 0.95;
-        const x = Math.sin(b) * Math.cos(a) * r;
-        const y = Math.cos(b) * r;
-        const zz = Math.sin(b) * Math.sin(a) * r;
-        const sz = 0.09 + ((i * 13) % 7) * 0.012;
-        const col = (i % 5 === 0) ? FUR_DARK : FUR;
-        return (
-          <mesh key={i} position={[x, y, zz]}>
-            <sphereGeometry args={[sz, 7, 7]} />
-            <meshStandardMaterial color={col} roughness={0.9} />
-          </mesh>
-        );
-      })}
-      {/* short stubby arms */}
-      <mesh position={[-0.85, -0.05, 0.15]} rotation={[0, 0, 0.5]} castShadow>
-        <sphereGeometry args={[0.28, 18, 18]} />
-        <meshStandardMaterial color={FUR} roughness={0.9} />
+      {strands}
+
+      {/* stubby arm bumps */}
+      <mesh position={[-0.95, -0.05, 0.1]} castShadow>
+        <sphereGeometry args={[0.30, 22, 22]} />
+        <meshStandardMaterial color={FUR} roughness={0.95} />
       </mesh>
-      <mesh position={[0.85, -0.05, 0.15]} rotation={[0, 0, -0.5]} castShadow>
-        <sphereGeometry args={[0.28, 18, 18]} />
-        <meshStandardMaterial color={FUR} roughness={0.9} />
+      <mesh position={[0.95, -0.05, 0.1]} castShadow>
+        <sphereGeometry args={[0.30, 22, 22]} />
+        <meshStandardMaterial color={FUR} roughness={0.95} />
       </mesh>
-      {/* tiny feet */}
-      <mesh position={[-0.35, -0.95, 0.2]} castShadow>
-        <sphereGeometry args={[0.22, 14, 14]} />
-        <meshStandardMaterial color={FUR_DARK} roughness={0.9} />
+
+      {/* red eye-socket rings */}
+      <mesh position={[-0.32, 0.22, 0.78]} rotation={[0, -0.15, 0]}>
+        <torusGeometry args={[0.24, 0.07, 14, 28]} />
+        <meshStandardMaterial color={RED} roughness={0.5} />
       </mesh>
-      <mesh position={[0.35, -0.95, 0.2]} castShadow>
-        <sphereGeometry args={[0.22, 14, 14]} />
-        <meshStandardMaterial color={FUR_DARK} roughness={0.9} />
+      <mesh position={[0.32, 0.22, 0.78]} rotation={[0, 0.15, 0]}>
+        <torusGeometry args={[0.24, 0.07, 14, 28]} />
+        <meshStandardMaterial color={RED} roughness={0.5} />
       </mesh>
-      {/* big cute eyes - whites */}
-      <mesh position={[-0.3, 0.22, 0.82]}>
-        <sphereGeometry args={[0.26, 20, 20]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.2} />
+      {/* eye whites */}
+      <mesh position={[-0.32, 0.22, 0.86]}>
+        <sphereGeometry args={[0.22, 22, 22]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.25} />
       </mesh>
-      <mesh position={[0.3, 0.22, 0.82]}>
-        <sphereGeometry args={[0.26, 20, 20]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.2} />
+      <mesh position={[0.32, 0.22, 0.86]}>
+        <sphereGeometry args={[0.22, 22, 22]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.25} />
       </mesh>
-      {/* dark pupils */}
-      <mesh position={[-0.3, 0.22, 1.04]}>
-        <sphereGeometry args={[0.11, 14, 14]} />
-        <meshStandardMaterial color="#0a0a14" />
+      {/* irises */}
+      <mesh position={[-0.30, 0.20, 1.03]}>
+        <sphereGeometry args={[0.10, 16, 16]} />
+        <meshStandardMaterial color="#1a4fb8" roughness={0.3} />
       </mesh>
-      <mesh position={[0.3, 0.22, 1.04]}>
-        <sphereGeometry args={[0.11, 14, 14]} />
-        <meshStandardMaterial color="#0a0a14" />
+      <mesh position={[0.34, 0.20, 1.03]}>
+        <sphereGeometry args={[0.10, 16, 16]} />
+        <meshStandardMaterial color="#1a4fb8" roughness={0.3} />
       </mesh>
-      {/* eye highlights */}
-      <mesh position={[-0.26, 0.28, 1.10]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
+      {/* pupils */}
+      <mesh position={[-0.30, 0.20, 1.09]}>
+        <sphereGeometry args={[0.05, 12, 12]} />
+        <meshStandardMaterial color="#000" />
+      </mesh>
+      <mesh position={[0.34, 0.20, 1.09]}>
+        <sphereGeometry args={[0.05, 12, 12]} />
+        <meshStandardMaterial color="#000" />
+      </mesh>
+      {/* highlights */}
+      <mesh position={[-0.26, 0.26, 1.12]}>
+        <sphereGeometry args={[0.025, 8, 8]} />
         <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={1} />
       </mesh>
-      <mesh position={[0.34, 0.28, 1.10]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
+      <mesh position={[0.38, 0.26, 1.12]}>
+        <sphereGeometry args={[0.025, 8, 8]} />
         <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={1} />
       </mesh>
-      {/* small smile - pink */}
-      <mesh position={[0, -0.15, 0.92]} rotation={[0, 0, 0]}>
-        <torusGeometry args={[0.14, 0.03, 8, 16, Math.PI]} />
-        <meshStandardMaterial color="#ff8aa6" />
+
+      {/* big open mouth: red lips + dark interior + tongue */}
+      <mesh position={[0, -0.30, 0.80]} rotation={[0.18, 0, 0]}>
+        <torusGeometry args={[0.34, 0.085, 16, 32]} />
+        <meshStandardMaterial color={RED} roughness={0.4} />
       </mesh>
-      {/* tiny horns / ears tufts */}
-      <mesh position={[-0.55, 0.75, 0.1]} rotation={[0, 0, -0.3]}>
-        <coneGeometry args={[0.12, 0.32, 8]} />
-        <meshStandardMaterial color={FUR_DARK} roughness={0.85} />
+      <mesh position={[0, -0.32, 0.74]} rotation={[0.18, 0, 0]}>
+        <sphereGeometry args={[0.30, 24, 24]} />
+        <meshStandardMaterial color={MOUTH} roughness={0.95} />
       </mesh>
-      <mesh position={[0.55, 0.75, 0.1]} rotation={[0, 0, 0.3]}>
-        <coneGeometry args={[0.12, 0.32, 8]} />
-        <meshStandardMaterial color={FUR_DARK} roughness={0.85} />
+      <mesh position={[0, -0.48, 0.92]} rotation={[0.7, 0, 0]}>
+        <boxGeometry args={[0.16, 0.30, 0.10]} />
+        <meshStandardMaterial color={TONGUE} roughness={0.5} />
       </mesh>
-      {/* soft rim light */}
-      <pointLight position={[0, 0.4, 0.6]} intensity={1.2} distance={5} color="#bfe6ff" />
+
+      <pointLight position={[0, 0.6, 0.8]} intensity={1.4} distance={5} color="#bfe6ff" />
+      <pointLight position={[0, -0.2, 1.0]} intensity={0.5} distance={3} color="#ff8080" />
     </group>
   );
 }
@@ -500,66 +527,100 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
   useFrame((_, dt) => {
     t.current += dt;
     if (ref.current) {
-      // float up from underground while revealing
-      const riseY = pos[1] + (reveal < 1 ? -0.8 * (1 - reveal) : 0) + Math.sin(t.current * 2) * 0.06 * reveal;
+      const riseY = pos[1] + (reveal < 1 ? -0.8 * (1 - reveal) : 0) + Math.sin(t.current * 2) * 0.05 * reveal;
       ref.current.position.y = riseY;
-      ref.current.rotation.y = (1 - reveal) * Math.PI + Math.sin(t.current * 0.8) * 0.05;
     }
   });
   const s = Math.max(0.001, reveal);
+  const lidOpen = Math.min(1, reveal) * 1.05;
+
+  const WOOD = "#7a4318";
+  const WOOD_DARK = "#5a2f0e";
+  const WOOD_LIGHT = "#9a5a26";
+  const GOLD = "#e4b248";
+
+  const W = 1.4, H = 0.75, D = 0.95;
+  // rotate ~25° so front+top face the player
+  const yaw = -Math.PI / 7;
+
   return (
-    <group ref={ref} position={pos} scale={[s, s, s]}>
-      {/* base box - rich wood */}
-      <mesh castShadow position={[0, 0.35, 0]}>
-        <boxGeometry args={[1.1, 0.7, 0.75]} />
-        <meshStandardMaterial color="#6b3a14" metalness={0.25} roughness={0.55} />
+    <group ref={ref} position={pos} scale={[s, s, s]} rotation={[0, yaw, 0]}>
+      {/* SOLID wood body */}
+      <mesh castShadow receiveShadow position={[0, H / 2, 0]}>
+        <boxGeometry args={[W, H, D]} />
+        <meshStandardMaterial color={WOOD} roughness={0.75} />
       </mesh>
-      {/* gold metal bands */}
-      {[-0.42, 0.42].map((zz) => (
-        <mesh key={zz} position={[0, 0.35, zz]}>
-          <boxGeometry args={[1.14, 0.74, 0.04]} />
-          <meshStandardMaterial color="#e4b248" metalness={0.95} roughness={0.25} />
+
+      {/* plank seams on front (decorative only, very thin) */}
+      {[-W / 4, 0, W / 4].map((x, i) => (
+        <mesh key={`pf${i}`} position={[x, H / 2, D / 2 + 0.002]}>
+          <boxGeometry args={[0.022, H * 0.9, 0.005]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
         </mesh>
       ))}
+
+      {/* bottom gold band */}
       <mesh position={[0, 0.05, 0]}>
-        <boxGeometry args={[1.14, 0.08, 0.78]} />
-        <meshStandardMaterial color="#e4b248" metalness={0.95} roughness={0.25} />
+        <boxGeometry args={[W + 0.04, 0.10, D + 0.04]} />
+        <meshStandardMaterial color={GOLD} metalness={0.9} roughness={0.28} />
       </mesh>
-      {/* domed lid (open as reveal completes) */}
-      <group position={[0, 0.7, -0.38]} rotation={[-Math.min(1, reveal) * 0.9, 0, 0]}>
-        <mesh castShadow position={[0, 0, 0.38]}>
-          <cylinderGeometry args={[0.38, 0.38, 1.1, 16, 1, false, 0, Math.PI]} />
-          <meshStandardMaterial color="#7d4318" metalness={0.3} roughness={0.5} />
+      {/* gold vertical corner straps on front */}
+      {[-W / 2 + 0.04, W / 2 - 0.04].map((x, i) => (
+        <mesh key={`gv${i}`} position={[x, H / 2, D / 2 + 0.003]}>
+          <boxGeometry args={[0.08, H, 0.02]} />
+          <meshStandardMaterial color={GOLD} metalness={0.9} roughness={0.28} />
         </mesh>
-        {/* gold lid rim */}
-        <mesh position={[0, 0, 0.38]}>
-          <torusGeometry args={[0.38, 0.04, 8, 20, Math.PI]} />
-          <meshStandardMaterial color="#e4b248" metalness={0.95} roughness={0.2} />
+      ))}
+      {/* lock plate */}
+      <mesh position={[0, H * 0.55, D / 2 + 0.004]}>
+        <boxGeometry args={[0.22, 0.26, 0.02]} />
+        <meshStandardMaterial color={GOLD} metalness={0.95} roughness={0.22} />
+      </mesh>
+      <mesh position={[0, H * 0.55, D / 2 + 0.02]}>
+        <boxGeometry args={[0.06, 0.10, 0.01]} />
+        <meshStandardMaterial color="#1a1208" roughness={0.5} />
+      </mesh>
+
+      {/* Lid — solid block, hinged at back so it opens AWAY from camera */}
+      <group position={[0, H, -D / 2]} rotation={[-lidOpen, 0, 0]}>
+        <mesh castShadow position={[0, 0.06, D / 2]}>
+          <boxGeometry args={[W, 0.14, D]} />
+          <meshStandardMaterial color={WOOD_LIGHT} roughness={0.7} />
         </mesh>
-        {/* lock latch */}
-        <mesh position={[0, -0.18, 0.94]}>
-          <boxGeometry args={[0.18, 0.22, 0.06]} />
-          <meshStandardMaterial color="#d4a020" metalness={0.95} roughness={0.2} />
+        {/* gold rim around lid */}
+        <mesh position={[0, 0.135, D / 2]}>
+          <boxGeometry args={[W + 0.04, 0.05, D + 0.04]} />
+          <meshStandardMaterial color={GOLD} metalness={0.9} roughness={0.25} />
         </mesh>
       </group>
-      {/* gold coins / glow inside (only after lid lifts) */}
-      {reveal > 0.6 && (
-        <>
-          <mesh position={[0, 0.45, 0]}>
-            <sphereGeometry args={[0.28, 16, 16]} />
-            <meshStandardMaterial color="#ffe066" emissive="#ffaa00" emissiveIntensity={2.4} />
+
+      {/* COINS — sit on top of interior, fully visible once lid opens */}
+      {reveal > 0.55 && (
+        <group position={[0, H + 0.02, 0]}>
+          {/* pile base (hemisphere) */}
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.34, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial color="#ffd54a" metalness={0.95} roughness={0.22} emissive="#ffa600" emissiveIntensity={1.2} />
           </mesh>
-          <pointLight position={[0, 0.7, 0]} intensity={2.5 * reveal} distance={6} color="#ffcc55" />
-          {Array.from({ length: 8 }).map((_, i) => (
-            <mesh key={i} position={[Math.cos(i) * 0.25, 0.5 + Math.sin(i * 2) * 0.05, Math.sin(i) * 0.18]}>
-              <cylinderGeometry args={[0.08, 0.08, 0.02, 12]} />
-              <meshStandardMaterial color="#ffd54a" metalness={0.95} roughness={0.2} emissive="#ffaa00" emissiveIntensity={0.6} />
-            </mesh>
-          ))}
-        </>
+          {/* individual coins scattered on top */}
+          {Array.from({ length: 16 }).map((_, i) => {
+            const a = i * 0.9;
+            const r = 0.10 + (i % 3) * 0.07;
+            const cx = Math.cos(a) * r;
+            const cz = Math.sin(a) * r * 0.55;
+            const cy = 0.06 + (i % 4) * 0.03;
+            const tilt = (i % 5) * 0.18;
+            return (
+              <mesh key={i} position={[cx, cy, cz]} rotation={[Math.PI / 2 - 0.12, tilt, i * 0.3]} castShadow>
+                <cylinderGeometry args={[0.09, 0.09, 0.02, 20]} />
+                <meshStandardMaterial color="#ffe066" metalness={0.95} roughness={0.2} emissive="#ffaa00" emissiveIntensity={0.6} />
+              </mesh>
+            );
+          })}
+          <pointLight position={[0, 0.7, 0.3]} intensity={3.0 * reveal} distance={6} color="#ffcc55" />
+        </group>
       )}
-      {/* subtle base glow during reveal */}
-      <pointLight position={[0, 0.2, 0]} intensity={1.2 * reveal} distance={4} color="#ffd070" />
+      <pointLight position={[0, 0.2, 0]} intensity={1.0 * reveal} distance={4} color="#ffd070" />
     </group>
   );
 }

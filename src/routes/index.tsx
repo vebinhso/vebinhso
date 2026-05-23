@@ -67,8 +67,8 @@ function Home() {
 
         <aside className="flex flex-col gap-3 justify-center">
           <Link to="/inventory" className="toy-button min-w-[180px] justify-start">🎒 HÀNH TRANG</Link>
-          <Link to="/missions" className="toy-button min-w-[180px] justify-start">🎯 NHIỆM VỤ</Link>
-          <Link to="/pets" className="toy-button min-w-[180px] justify-start">🐾 THÚ CƯNG</Link>
+          <Link to="/missions" className="toy-button min-w-[180px] justify-start">🎁 TIỆN ÍCH</Link>
+          <Link to="/pets" className="toy-button min-w-[180px] justify-start">⚡ QUYỀN NĂNG</Link>
         </aside>
       </main>
 

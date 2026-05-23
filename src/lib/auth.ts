@@ -10,6 +10,57 @@ const ACCOUNTS_KEY = "vebinhso_accounts";
 const CURRENT_KEY = "vebinhso_current_user";
 const COUNTER_KEY = "vebinhso_id_counter";
 const LOGIN_AT_KEY = "vebinhso_login_at";
+const STREAK_KEY = "vebinhso_login_streak";
+
+export type LoginStreak = {
+  totalDays: number;
+  currentStreak: number;
+  lastLoginDate: number;
+};
+
+function readStreakMap(): Record<string, LoginStreak> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(STREAK_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeStreakMap(m: Record<string, LoginStreak>) {
+  localStorage.setItem(STREAK_KEY, JSON.stringify(m));
+}
+
+/** 1 ngày tính 1 lần; nhiều lần trong cùng ngày không tăng chuỗi. */
+export function recordLoginDay(accountId: number): LoginStreak {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const map = readStreakMap();
+  const key = String(accountId);
+  const cur = map[key];
+  let next: LoginStreak;
+  if (!cur || !cur.lastLoginDate) {
+    next = { totalDays: 1, currentStreak: 1, lastLoginDate: today };
+  } else {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const diff = (today - cur.lastLoginDate) / oneDay;
+    if (diff === 0) next = cur;
+    else if (diff === 1)
+      next = { totalDays: cur.totalDays + 1, currentStreak: cur.currentStreak + 1, lastLoginDate: today };
+    else
+      next = { totalDays: cur.totalDays + 1, currentStreak: 1, lastLoginDate: today };
+  }
+  map[key] = next;
+  writeStreakMap(map);
+  return next;
+}
+
+export function getLoginStreak(accountId: number): LoginStreak {
+  const map = readStreakMap();
+  return map[String(accountId)] || { totalDays: 0, currentStreak: 0, lastLoginDate: 0 };
+}
+
+
 
 export function getAccounts(): Account[] {
   if (typeof window === "undefined") return [];

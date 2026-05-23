@@ -110,10 +110,12 @@ function GamePage() {
         ...state,
         money: state.money + question.reward,
         correctAnswers: state.correctAnswers + 1,
+        answerStreak: state.answerStreak + 1,
       });
-      setQuestionResult(`✅ Chính xác! +${question.reward}đ`);
+      setQuestionResult(`✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`);
     } else {
-      setQuestionResult(`❌ Sai rồi! Đáp án: ${question.options[question.answer]}`);
+      setState({ ...state, answerStreak: 0 });
+      setQuestionResult(`❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`);
     }
     setTimeout(() => {
       setQuestion(null);
@@ -142,7 +144,7 @@ function GamePage() {
           <div className="text-sm">
             <div className="font-black">{user.username} <span className="text-xs text-orange-700">#{user.id}</span></div>
             <div className="font-bold text-yellow-700">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
-            <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu</div>
+            <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu • 🔥 streak {state.answerStreak}</div>
           </div>
         </div>
 

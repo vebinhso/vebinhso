@@ -11,6 +11,86 @@ const CURRENT_KEY = "vebinhso_current_user";
 const COUNTER_KEY = "vebinhso_id_counter";
 const LOGIN_AT_KEY = "vebinhso_login_at";
 const STREAK_KEY = "vebinhso_login_streak";
+const PENDING_KEY = "vebinhso_pending_accounts";
+
+export type PendingAccount = {
+  username: string;
+  email: string;
+  password: string;
+  token: string;
+  expiresAt: number;
+  createdAt: string;
+};
+
+function getPending(): PendingAccount[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(PENDING_KEY) || "[]"); } catch { return []; }
+}
+function savePending(list: PendingAccount[]) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+}
+
+function randomToken(): string {
+  const arr = new Uint8Array(16);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(arr);
+  else for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256);
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Tạo bản đăng ký chờ xác nhận. Trả về token để dựng link xác nhận. */
+export function createPendingRegistration(input: {
+  username: string; email: string; password: string;
+}): { token: string; expiresAt: number } {
+  const list = getPending().filter((p) => p.expiresAt > Date.now());
+  // bỏ pending cũ cùng username/email để token mới được dùng
+  const filtered = list.filter(
+    (p) =>
+      p.username.toLowerCase() !== input.username.toLowerCase() &&
+      p.email.toLowerCase() !== input.email.toLowerCase(),
+  );
+  const token = randomToken();
+  const expiresAt = Date.now() + 3600_000;
+  filtered.push({
+    username: input.username,
+    email: input.email,
+    password: input.password,
+    token,
+    expiresAt,
+    createdAt: new Date().toISOString(),
+  });
+  savePending(filtered);
+  return { token, expiresAt };
+}
+
+/** Xác nhận token: tạo tài khoản thật và xoá pending. */
+export function verifyRegistration(token: string):
+  | { ok: true; account: Account }
+  | { ok: false; reason: string } {
+  const list = getPending();
+  const pending = list.find((p) => p.token === token);
+  if (!pending) return { ok: false, reason: "Link xác nhận không hợp lệ hoặc đã được dùng." };
+  if (pending.expiresAt < Date.now()) {
+    savePending(list.filter((p) => p.token !== token));
+    return { ok: false, reason: "Link xác nhận đã hết hạn. Vui lòng đăng ký lại." };
+  }
+  const accounts = getAccounts();
+  if (accounts.some((a) => a.username.toLowerCase() === pending.username.toLowerCase()))
+    return { ok: false, reason: "Tên đăng nhập đã được sử dụng." };
+  if (accounts.some((a) => a.email.toLowerCase() === pending.email.toLowerCase()))
+    return { ok: false, reason: "Email đã được sử dụng." };
+
+  const account: Account = {
+    id: nextAccountId(),
+    username: pending.username,
+    email: pending.email,
+    password: pending.password,
+    createdAt: new Date().toISOString(),
+  };
+  accounts.push(account);
+  saveAccounts(accounts);
+  savePending(list.filter((p) => p.token !== token));
+  return { ok: true, account };
+}
 
 export type LoginStreak = {
   totalDays: number;

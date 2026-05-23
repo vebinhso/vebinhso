@@ -89,7 +89,7 @@ function GamePage() {
     const p = state.placed.find((x) => x.id === id);
     if (!p) return;
     const it = getItem(p.itemId);
-    const refund = it ? Math.floor(it.price * 0.5) : 0;
+    const refund = it ? it.price : 0; // hoàn 100% vào tài khoản khi vật tư biến mất
     setState({
       ...state,
       money: state.money + refund,

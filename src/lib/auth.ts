@@ -100,6 +100,8 @@ export function setCurrentUser(account: Account | null) {
     localStorage.setItem(CURRENT_KEY, JSON.stringify(account));
     // Ghi nhận thời điểm đăng nhập (mỗi lần đăng nhập làm reset bộ đếm phiên)
     localStorage.setItem(LOGIN_AT_KEY, String(Date.now()));
+    recordLoginDay(account.id);
+
   } else {
     localStorage.removeItem(CURRENT_KEY);
     localStorage.removeItem(LOGIN_AT_KEY);

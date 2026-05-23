@@ -1,13 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useState } from "react";
 import {
   getAccounts,
-  saveAccounts,
-  nextAccountId,
   setCurrentUser,
   findAccount,
-  type Account,
+  createPendingRegistration,
 } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -123,9 +121,12 @@ function Register({ setView }: { setView: (v: View) => void }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [verifyUrl, setVerifyUrl] = useState("");
+
   const handleRegister = () => {
     setError("");
     setSuccess("");
+    setVerifyUrl("");
 
     if (!username.trim() || !email.trim() || !password || !confirm) {
       setError("Vui lòng điền đầy đủ các trường!");
@@ -142,25 +143,24 @@ function Register({ setView }: { setView: (v: View) => void }) {
 
     const accounts = getAccounts();
     if (accounts.some((a) => a.username.toLowerCase() === username.trim().toLowerCase())) {
-      setError("Tên đăng nhập đã tồn tại!");
+      setError("Tên đăng nhập đã từng được sử dụng!");
       return;
     }
     if (accounts.some((a) => a.email.toLowerCase() === email.trim().toLowerCase())) {
-      setError("Email đã được sử dụng!");
+      setError("Email đã từng được sử dụng!");
       return;
     }
 
-    const newAccount: Account = {
-      id: nextAccountId(),
+    const { token } = createPendingRegistration({
       username: username.trim(),
       email: email.trim(),
       password,
-      createdAt: new Date().toISOString(),
-    };
-    accounts.push(newAccount);
-    saveAccounts(accounts);
-    setSuccess(`Tạo tài khoản thành công! ID của bạn: #${newAccount.id}. Đang về đăng nhập...`);
-    setTimeout(() => setView("login"), 1500);
+    });
+    const url = `${window.location.origin}/verify?token=${token}`;
+    setVerifyUrl(url);
+    setSuccess(
+      `Đã gửi email xác nhận tới ${email.trim()}. Vui lòng bấm vào link bên dưới (mô phỏng) để kích hoạt tài khoản. Link có hiệu lực trong 1 giờ.`,
+    );
   };
 
   return (
@@ -188,8 +188,17 @@ function Register({ setView }: { setView: (v: View) => void }) {
           </div>
         )}
         {success && (
-          <div className="text-green-700 font-bold text-sm text-center bg-green-50 rounded-xl p-2">
-            {success}
+          <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-3 space-y-2">
+            <div>{success}</div>
+            {verifyUrl && (
+              <Link
+                to="/verify"
+                search={{ token: verifyUrl.split("token=")[1] }}
+                className="block text-center bg-green-600 text-white px-3 py-2 rounded-xl break-all"
+              >
+                ✉️ Bấm để xác nhận tài khoản
+              </Link>
+            )}
           </div>
         )}
         <button onClick={handleRegister} className="toy-button toy-button-green w-full !text-lg">

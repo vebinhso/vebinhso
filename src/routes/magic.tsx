@@ -670,8 +670,11 @@ type RoomState = {
 function RoomScene({ room }: { room: RoomState }) {
   const isBoss = room.outcome.kind === "boss";
   const isChest = room.outcome.kind === "chest";
-  const monsterProgress = isBoss ? Math.min(1, Math.max(0, (room.phase - 2000) / 1500)) : 0;
+  // Monster: walks from darkness over 5 seconds, starting at phase 2000ms
+  const monsterProgress = isBoss ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const monsterVisible = isBoss && room.phase >= 2000;
+  // Chest: reveals gradually over 5 seconds, starting at phase 2000ms
+  const chestReveal = isChest ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const chestVisible = isChest && room.phase >= 2000;
   return (
     <>
@@ -679,7 +682,7 @@ function RoomScene({ room }: { room: RoomState }) {
       <color attach="background" args={[isChest ? "#03060f" : "#0a0604"]} />
       {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss} />}
       {monsterVisible && <Monster progress={monsterProgress} visible />}
-      {chestVisible && <Chest pos={[0, 0, -5]} />}
+      {chestVisible && <Chest pos={[0, 0, -5]} reveal={chestReveal} />}
       {/* marker for player spot */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>
         <ringGeometry args={[0.45, 0.55, 24]} />
@@ -688,6 +691,7 @@ function RoomScene({ room }: { room: RoomState }) {
     </>
   );
 }
+
 
 // ============ MAIN ============
 function MagicPage() {

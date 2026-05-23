@@ -97,7 +97,53 @@ export const CATALOG: CatalogItem[] = [
   // ===== Ban công =====
   { id: "teaset", name: "Bộ ghế + bàn trà", category: "Ban công", price: 300, w: 3, d: 2, h: 1, color: "#fbbf24", icon: "🫖" },
   { id: "smallpot", name: "Chậu nhỏ", category: "Ban công", price: 10, w: 1, d: 1, h: 1, color: "#b45309", icon: "🌵", shape: "cylinder" },
+  { id: "midpot", name: "Chậu trung bình", category: "Ban công", price: 20, w: 1, d: 1, h: 1, color: "#9a3412", icon: "🪴", shape: "cylinder" },
   { id: "tallpot", name: "Chậu cao", category: "Ban công", price: 50, w: 1, d: 1, h: 1.5, color: "#7c2d12", icon: "🌿", shape: "cylinder" },
+  { id: "patternpot_s", name: "Chậu nhỏ hoạ tiết", category: "Ban công", price: 30, w: 1, d: 1, h: 1, color: "#c2410c", icon: "🌷", shape: "cylinder" },
+  { id: "patternpot_m", name: "Chậu trung hoạ tiết", category: "Ban công", price: 55, w: 1, d: 1, h: 1, color: "#9f1239", icon: "🌹", shape: "cylinder" },
+  { id: "patternpot_l", name: "Chậu cao hoạ tiết", category: "Ban công", price: 90, w: 1, d: 1, h: 1.5, color: "#7f1d1d", icon: "🌺", shape: "cylinder" },
+  { id: "seed_cactus", name: "Hạt giống xương rồng", category: "Ban công", price: 8, w: 1, d: 1, h: 0.2, color: "#84cc16", icon: "🌵" },
+  { id: "seed_paper", name: "Hạt giống hoa giấy", category: "Ban công", price: 12, w: 1, d: 1, h: 0.2, color: "#f472b6", icon: "🌸" },
+  { id: "seed_rose", name: "Hạt giống hoa hồng", category: "Ban công", price: 18, w: 1, d: 1, h: 0.2, color: "#e11d48", icon: "🌹" },
+  { id: "seed_fern", name: "Hạt giống dương xỉ", category: "Ban công", price: 14, w: 1, d: 1, h: 0.2, color: "#16a34a", icon: "🌿" },
+  { id: "seed_mystery", name: "Hạt giống bí ẩn", category: "Ban công", price: 50, w: 1, d: 1, h: 0.2, color: "#a855f7", icon: "✨" },
+  { id: "balconychair", name: "Ghế ban công", category: "Ban công", price: 40, w: 1, d: 2, h: 1, color: "#facc15", icon: "🪑" },
+  { id: "balconytable", name: "Bàn trà ban công", category: "Ban công", price: 70, w: 2, d: 2, h: 1, color: "#a16207", icon: "🍵" },
+
+  // ===== Bổ sung phòng khách =====
+  { id: "ceilingfan", name: "Quạt trần", category: "Phòng khách", price: 110, w: 2, d: 2, h: 0.5, color: "#e5e7eb", icon: "🌀" },
+  { id: "decolamp", name: "Đèn trang trí", category: "Phòng khách", price: 45, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "💡" },
+
+  // ===== Bổ sung phòng bếp =====
+  { id: "waterfilter", name: "Máy lọc nước", category: "Phòng bếp", price: 200, w: 1, d: 1, h: 1, color: "#bae6fd", icon: "💧" },
+  { id: "kitchenlamp", name: "Đèn bếp", category: "Phòng bếp", price: 35, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "💡" },
+
+  // ===== Bổ sung phòng ngủ =====
+  { id: "chair", name: "Ghế đơn", category: "Phòng ngủ", price: 30, w: 1, d: 1, h: 1, color: "#a78bfa", icon: "🪑" },
+  { id: "nightlamp", name: "Đèn ngủ", category: "Phòng ngủ", price: 25, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "🕯️" },
+  { id: "bedroompainting", name: "Tranh phòng ngủ", category: "Phòng ngủ", price: 20, w: 2, d: 0.1, h: 1, color: "#f9a8d4", icon: "🖼️" },
+
+  // ===== Bổ sung phòng tắm =====
+  { id: "bathmirror", name: "Gương phòng tắm", category: "Phòng tắm", price: 40, w: 1, d: 0.1, h: 3, color: "#bae6fd", icon: "🪞" },
+  { id: "lavabocab", name: "Tủ lavabo", category: "Phòng tắm", price: 110, w: 2, d: 1, h: 1, color: "#78350f", icon: "🗄️" },
+  { id: "massagebath", name: "Bồn tắm massage", category: "Phòng tắm", price: 480, w: 5, d: 3, h: 1, color: "#e0f2fe", icon: "🛁" },
+  { id: "waterheater", name: "Máy nước nóng", category: "Phòng tắm", price: 130, w: 1, d: 0.5, h: 1, color: "#f3f4f6", icon: "♨️" },
+  { id: "towelshelf", name: "Kệ khăn", category: "Phòng tắm", price: 20, w: 1, d: 0.5, h: 1, color: "#fde68a", icon: "🧻" },
+  { id: "bathlamp", name: "Đèn phòng tắm", category: "Phòng tắm", price: 30, w: 1, d: 1, h: 0.5, color: "#fef9c3", icon: "💡" },
+
+  // ===== Bổ sung sân vườn =====
+  { id: "stonepath", name: "Lót sân bằng đá", category: "Sân vườn", price: 60, w: 5, d: 2, h: 0.2, color: "#9ca3af", icon: "🪨" },
+  { id: "stringlight", name: "Dây đèn trang trí", category: "Sân vườn", price: 35, w: 3, d: 1, h: 0.1, color: "#fde047", icon: "✨" },
+  { id: "biggardenlamp", name: "Đèn sân (nâng cấp)", category: "Sân vườn", price: 75, w: 1, d: 1, h: 2, color: "#fde047", icon: "🏮", shape: "cylinder" },
+
+  // ===== Bổ sung vật liệu =====
+  { id: "tile_plain", name: "Gạch thường (ban công)", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#e7e5e4", icon: "▫️" },
+  { id: "tile_waterproof", name: "Gạch chống thấm", category: "Vật liệu", price: 8, w: 1, d: 1, h: 0.1, color: "#a8a29e", icon: "🟦" },
+  { id: "tile_pattern", name: "Gạch hoạ tiết", category: "Vật liệu", price: 12, w: 1, d: 1, h: 0.1, color: "#fcd34d", icon: "🟨" },
+  { id: "tile_pattern_wp", name: "Gạch hoạ tiết chống thấm", category: "Vật liệu", price: 18, w: 1, d: 1, h: 0.1, color: "#fb923c", icon: "🟧" },
+  { id: "concrete", name: "Bê tông tươi", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder" },
+  { id: "paint", name: "Sơn (xô)", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.5, color: "#f43f5e", icon: "🎨", shape: "cylinder" },
+  { id: "palette", name: "Palette màu tường", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨" },
 ];
 
 export const CATEGORIES = [

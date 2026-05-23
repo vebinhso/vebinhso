@@ -1,32 +1,66 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
+import { useState } from "react";
+import { CATALOG, CATEGORIES } from "@/game/catalog";
 
-export const Route = createFileRoute("/shop")({ component: Shop });
+export const Route = createFileRoute("/shop")({ component: ShopPage });
 
-const items = [
-  { icon: "🍗", name: "Đùi gà", price: 150 },
-  { icon: "🦴", name: "Xương lớn", price: 200 },
-  { icon: "🍖", name: "Sườn nướng", price: 320 },
-  { icon: "🥩", name: "Bò tươi", price: 480 },
-  { icon: "🐟", name: "Cá hồi", price: 550 },
-  { icon: "🧴", name: "Sữa tắm", price: 90 },
-  { icon: "🎾", name: "Bóng tennis", price: 120 },
-  { icon: "🎀", name: "Nơ hồng", price: 80 },
-];
-
-function Shop() {
+function ShopPage() {
+  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("Vật liệu");
   return (
     <GameLayout showBack>
-      <div className="p-6 md:p-10 max-w-5xl w-full mx-auto">
-        <div className="glass-card p-6">
-          <h1 className="text-3xl font-black text-center mb-6">CỬA HÀNG 🛒</h1>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {items.map((it) => (
-              <div key={it.name} className="bg-white rounded-3xl border-4 border-orange-200 p-4 text-center shadow-md">
-                <div className="text-5xl">{it.icon}</div>
-                <p className="font-black mt-2">{it.name}</p>
-                <p className="text-yellow-700 font-bold">💰 {it.price}</p>
-                <button className="toy-button toy-button-primary !text-sm !py-2 !px-4 mt-2">MUA</button>
+      <div className="p-4 md:p-8 max-w-6xl w-full mx-auto">
+        <div className="glass-card p-4 md:p-6">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h1 className="text-2xl md:text-3xl font-black">🛒 CỬA HÀNG</h1>
+            <Link to="/game" className="toy-button toy-button-primary !text-sm">
+              🏗️ Vào bản đồ nhà để mua & đặt
+            </Link>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCat(c)}
+                className={`toy-button !text-xs !py-2 !px-3 ${
+                  cat === c ? "toy-button-primary !text-xs !py-2 !px-3" : ""
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {CATALOG.filter((it) => it.category === cat).map((it) => (
+              <div
+                key={it.id}
+                className="relative rounded-3xl p-3 text-center border-2 border-amber-200 shadow-lg transition-transform hover:-translate-y-1 hover:rotate-[-1deg]"
+                style={{
+                  background:
+                    "radial-gradient(circle at 30% 25%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
+                  boxShadow:
+                    "0 10px 22px -10px rgba(180,120,0,0.55), inset 0 -6px 0 rgba(0,0,0,0.06), inset 0 4px 0 rgba(255,255,255,0.6)",
+                }}
+              >
+                <div
+                  className="mx-auto w-16 h-16 rounded-full flex items-center justify-center text-4xl mb-1"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
+                    boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  {it.icon}
+                </div>
+                <div className="font-black text-sm leading-tight">{it.name}</div>
+                <div className="text-[10px] text-amber-900/70 font-bold">
+                  {it.w}×{it.d}×{it.h} ô
+                </div>
+                <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-amber-900 text-amber-100 text-xs font-black">
+                  💰 {it.price}đ
+                </div>
               </div>
             ))}
           </div>

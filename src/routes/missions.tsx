@@ -190,7 +190,14 @@ function Utilities() {
             {/* List milestones */}
             <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
               {list.map((m) => (
-                <ProgressRow key={m.label} m={m} current={getProgress(m)} mode={tab} />
+                <ProgressRow
+                  key={m.label + ":" + claimTick}
+                  m={m}
+                  current={getProgress(m)}
+                  mode={tab}
+                  claimed={!!userId && isClaimed(userId, claimKey(m), tab, levelOf(m))}
+                  onClaim={() => handleClaim(m)}
+                />
               ))}
             </div>
           </div>

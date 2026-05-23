@@ -89,7 +89,7 @@ function GamePage() {
     const p = state.placed.find((x) => x.id === id);
     if (!p) return;
     const it = getItem(p.itemId);
-    const refund = it ? Math.floor(it.price * 0.5) : 0;
+    const refund = it ? it.price : 0; // hoàn 100% vào tài khoản khi vật tư biến mất
     setState({
       ...state,
       money: state.money + refund,
@@ -157,7 +157,7 @@ function GamePage() {
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">
         <div className="text-xs font-black text-center">CẤP {level} → CẤP {lvlInfo.next}</div>
         <div className="text-[10px] font-bold text-muted-foreground">
-          🏠 {state.netWorth}/{lvlInfo.netWorthNeeded}đ • 💰 {state.money}/{lvlInfo.moneyNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
+          💰 Tài khoản {state.money}/{lvlInfo.moneyNeeded}đ • 🏠 Tài sản ròng {state.netWorth}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
         </div>
       </div>
 

@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
-import { getLoginAt } from "@/lib/auth";
+import { toast } from "sonner";
+import { getLoginAt, getCurrentUser } from "@/lib/auth";
 import { loadGame, computeLevel } from "@/lib/game";
+import { isClaimed, setClaimed } from "@/lib/claims";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });
+
 
 type Tab = "daily" | "weekly" | "level";
 

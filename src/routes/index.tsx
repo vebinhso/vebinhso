@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
-import { getCurrentUser, setCurrentUser, type Account } from "@/lib/auth";
+import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
+  const [streak, setStreak] = useState<LoginStreak | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -20,8 +21,10 @@ function Home() {
       return;
     }
     setUser(u);
+    setStreak(getLoginStreak(u.id));
     setReady(true);
   }, [navigate]);
+
 
   if (!ready || !user) return null;
 
@@ -41,7 +44,12 @@ function Home() {
           <div>
             <h1 className="text-lg font-black leading-tight">{user.username}</h1>
             <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
+            <p className="text-xs font-bold text-rose-600">
+              🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
+              <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
+            </p>
             <p className="text-sm font-bold text-yellow-700">💰 2,400</p>
+
           </div>
         </div>
         <div className="flex flex-col gap-2">

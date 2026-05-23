@@ -3,15 +3,15 @@ import { getCurrentUser } from "./auth";
 
 export type PlacedItem = {
   id: string;
-  itemId: string; // catalog id
-  x: number; // grid col 0..19
-  z: number; // grid row 0..19
-  rotation: number; // 0..3 (90deg steps)
+  itemId: string;
+  x: number;
+  z: number;
+  rotation: number;
 };
 
 export type GameState = {
-  money: number;
-  netWorth: number;
+  money: number;       // Tiền trong tài khoản (bắt đầu 0). Dùng để lên cấp.
+  netWorth: number;    // Tài sản ròng = tiền đã đầu tư vào nhà. Hoàn lại khi vật tư biến mất.
   correctAnswers: number;
   level: number;
   placed: PlacedItem[];
@@ -20,7 +20,7 @@ export type GameState = {
 const PREFIX = "vebinhso_game_";
 
 const DEFAULT: GameState = {
-  money: 500,
+  money: 0,
   netWorth: 0,
   correctAnswers: 0,
   level: 0,
@@ -50,14 +50,13 @@ export function saveGame(s: GameState) {
   localStorage.setItem(k, JSON.stringify(s));
 }
 
-// Level thresholds based on net worth (đầu tư vào nhà)
-const LEVEL_NETWORTH = [0, 700, 1200, 1700, 2200, 2800, 3500, 4500, 6000, 8000, 10000];
-const LEVEL_MIN_MONEY = [100, 200, 350, 450, 600, 800, 1000, 1200, 1500, 1800, 2200];
+// Số tiền tối thiểu PHẢI CÓ TRONG TÀI KHOẢN để lên cấp tương ứng.
+const LEVEL_MIN_MONEY = [0, 200, 500, 900, 1400, 2000, 2700, 3500, 4500, 6000, 8000];
 
 export function computeLevel(s: GameState): number {
   let lvl = 0;
-  for (let i = 1; i < LEVEL_NETWORTH.length; i++) {
-    if (s.netWorth >= LEVEL_NETWORTH[i] && s.money >= LEVEL_MIN_MONEY[i] && s.correctAnswers >= i * 10) {
+  for (let i = 1; i < LEVEL_MIN_MONEY.length; i++) {
+    if (s.money >= LEVEL_MIN_MONEY[i] && s.correctAnswers >= i * 10) {
       lvl = i;
     } else break;
   }
@@ -66,11 +65,10 @@ export function computeLevel(s: GameState): number {
 
 export function nextLevelInfo(s: GameState) {
   const lvl = computeLevel(s);
-  const next = Math.min(lvl + 1, LEVEL_NETWORTH.length - 1);
+  const next = Math.min(lvl + 1, LEVEL_MIN_MONEY.length - 1);
   return {
     current: lvl,
     next,
-    netWorthNeeded: LEVEL_NETWORTH[next] ?? null,
     moneyNeeded: LEVEL_MIN_MONEY[next] ?? null,
     questionsNeeded: next * 10,
   };

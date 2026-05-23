@@ -798,9 +798,10 @@ function MagicPage() {
     setModal({ kind: "chest", text: `🎁 Rương vàng! +${(room.outcome as any).reward} đồng` });
   };
 
-  // chest auto-prompt once visible
-  const chestReady = room?.outcome.kind === "chest" && room.phase >= 2000;
+  // chest fully revealed after 5s reveal
+  const chestReady = room?.outcome.kind === "chest" && room.phase >= 7000;
   const emptyReady = room?.outcome.kind === "empty" && room.phase >= 1500;
+
 
   return (
     <div className="relative w-full h-screen bg-black">

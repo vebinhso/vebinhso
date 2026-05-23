@@ -853,12 +853,17 @@ function MagicPage() {
         <div className="absolute top-3 right-3 z-20 glass-card px-3 py-2 text-xs font-black max-w-xs">
           {room.outcome.kind === "boss" && (
             room.phase < 2000 ? "🌫️ Đứng yên... có gì đó trong bóng tối..."
-              : room.phase < 3500 ? "👹 Một quái vật đang tiến tới!"
-                : !boss ? "❄️ Chuẩn bị... câu hỏi sắp xuất hiện..."
-                  : "❓ Trả lời đúng để hạ gục quái vật!"
+              : room.phase < 7000 ? "👹 Quái vật đang bước ra từ bóng tối..."
+                : !boss ? "❄️ Quái vật đã đến trước mặt bạn. Chuẩn bị..."
+                  : "❓ Trả lời đúng để bắn đạn băng hạ gục quái vật!"
           )}
           {room.outcome.kind === "empty" && (room.phase < 1500 ? "🌫️ Phòng trống lạnh lẽo..." : "Không có gì ở đây. Bạn có thể rời đi.")}
-          {room.outcome.kind === "chest" && (room.phase < 2000 ? "✨ Bầu trời sao... có gì đó đang xuất hiện..." : "🎁 Rương vàng đã xuất hiện trước mặt bạn!")}
+          {room.outcome.kind === "chest" && (
+            room.phase < 2000 ? "✨ Bầu trời sao... có gì đó đang xuất hiện..."
+              : room.phase < 7000 ? "🪙 Rương báu đang từ từ hiện ra..."
+                : "🎁 Rương vàng đã hoàn toàn xuất hiện. Hãy mở nó!"
+          )}
+
         </div>
       )}
 

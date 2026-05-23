@@ -11,6 +11,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
+  const [streak, setStreak] = useState<LoginStreak | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -20,8 +21,10 @@ function Home() {
       return;
     }
     setUser(u);
+    setStreak(getLoginStreak(u.id));
     setReady(true);
   }, [navigate]);
+
 
   if (!ready || !user) return null;
 

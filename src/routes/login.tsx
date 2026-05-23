@@ -1,13 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useState } from "react";
 import {
   getAccounts,
-  saveAccounts,
-  nextAccountId,
   setCurrentUser,
   findAccount,
-  type Account,
+  createPendingRegistration,
 } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });

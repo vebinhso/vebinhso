@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
+import { getLoginAt } from "@/lib/auth";
+import { loadGame, computeLevel } from "@/lib/game";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });
 
@@ -90,19 +92,25 @@ function ProgressRow({ m, current, mode }: { m: Milestone; current: number; mode
 
 function Utilities() {
   const [tab, setTab] = useState<Tab>("daily");
-  // Đồng hồ phiên: thời gian online tính từ khi mở trang (đơn giản, không cần backend)
+  // Đồng hồ phiên: tính từ lúc người chơi ĐĂNG NHẬP, không phải lúc mở trang tiện ích
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
+    const tick = () => setSeconds(Math.floor((Date.now() - getLoginAt()) / 1000));
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Stats mô phỏng cho streak / login
+  // Level thực tế từ trạng thái game
+  const [playerLevel, setPlayerLevel] = useState(0);
+  useEffect(() => {
+    setPlayerLevel(computeLevel(loadGame()));
+  }, []);
+
   const streak = 7;
   const loginDays = 3;
   const weekLevels = 1;
   const weekRank = 5;
-  const playerLevel = 4;
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "daily",  label: "Quà hằng ngày", icon: "🎁" },

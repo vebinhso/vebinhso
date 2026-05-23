@@ -206,15 +206,40 @@ function GamePage() {
               {CATALOG.filter((c) => c.category === activeCat).map((it) => {
                 const canAfford = state.money >= it.price;
                 return (
-                  <div key={it.id} className="bg-white rounded-2xl border-2 border-orange-200 p-3 text-center">
-                    <div className="text-4xl">{it.icon}</div>
+                  <div
+                    key={it.id}
+                    className="relative rounded-3xl p-3 text-center border-2 border-amber-200 transition-transform hover:-translate-y-1"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
+                      boxShadow:
+                        "0 12px 22px -10px rgba(180,120,0,0.55), inset 0 -6px 0 rgba(0,0,0,0.07), inset 0 4px 0 rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    <div
+                      className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl mb-1"
+                      style={{
+                        background:
+                          "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
+                        boxShadow:
+                          "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {it.icon}
+                    </div>
                     <div className="font-black text-sm mt-1 line-clamp-1">{it.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{it.w}×{it.d} ô</div>
-                    <div className="text-yellow-700 font-bold text-sm">💰 {it.price}đ</div>
+                    <div className="text-[10px] text-amber-900/70 font-bold">
+                      {it.w}×{it.d} ô
+                    </div>
+                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-xs font-black">
+                      💰 {it.price}đ
+                    </div>
                     <button
                       onClick={() => buyAndSelect(it.id)}
                       disabled={!canAfford}
-                      className={`toy-button !text-xs !py-1 !px-3 mt-2 w-full ${canAfford ? "toy-button-primary !text-xs !py-1 !px-3" : "opacity-50"}`}
+                      className={`toy-button !text-xs !py-1 !px-3 mt-2 w-full ${
+                        canAfford ? "toy-button-primary !text-xs !py-1 !px-3" : "opacity-50"
+                      }`}
                     >
                       {canAfford ? "MUA & ĐẶT" : "Hết tiền"}
                     </button>

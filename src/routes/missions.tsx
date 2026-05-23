@@ -117,6 +117,9 @@ function Utilities() {
     setPlayerLevel(computeLevel(loadGame()));
   }, []);
 
+  const userId = getCurrentUser()?.id ?? 0;
+  const [claimTick, setClaimTick] = useState(0);
+
   const streak = 7;
   const loginDays = 3;
   const weekLevels = 1;
@@ -132,7 +135,7 @@ function Utilities() {
 
   const getProgress = (m: Milestone): number => {
     if (tab === "daily") {
-      if (m.target >= 60) return seconds; // online giây
+      if (m.target >= 60) return seconds;
       if (m.label.startsWith("Streak")) return streak;
       if (m.label.startsWith("Đăng nhập")) return 1;
     }
@@ -143,6 +146,16 @@ function Utilities() {
     }
     if (tab === "level") return playerLevel;
     return 0;
+  };
+
+  const claimKey = (m: Milestone) => `${tab}:${m.label}`;
+  const levelOf = (m: Milestone) => (tab === "level" ? m.target : undefined);
+
+  const handleClaim = (m: Milestone) => {
+    if (!userId) { toast.error("Vui lòng đăng nhập."); return; }
+    setClaimed(userId, claimKey(m), tab, levelOf(m));
+    toast.success(`🎉 Đã cộng quà tặng: ${m.reward}`);
+    setClaimTick((t) => t + 1);
   };
 
   return (

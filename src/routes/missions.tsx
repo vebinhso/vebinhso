@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
-import { getLoginAt } from "@/lib/auth";
+import { toast } from "sonner";
+import { getLoginAt, getCurrentUser } from "@/lib/auth";
 import { loadGame, computeLevel } from "@/lib/game";
+import { isClaimed, setClaimed } from "@/lib/claims";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });
+
 
 type Tab = "daily" | "weekly" | "level";
 
@@ -54,22 +57,28 @@ function fmtTime(s: number) {
   return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
 
-function ProgressRow({ m, current, mode }: { m: Milestone; current: number; mode: Tab }) {
+function ProgressRow({
+  m, current, mode, claimed, onClaim,
+}: {
+  m: Milestone; current: number; mode: Tab; claimed: boolean; onClaim: () => void;
+}) {
   const pct = Math.min(100, Math.round((current / m.target) * 100));
   const done = current >= m.target;
   const isTime = mode === "daily" && m.target >= 60;
+  const canClaim = done && !claimed;
   return (
-    <div className={`rounded-2xl border-2 p-4 bg-white/85 ${done ? "border-emerald-400" : "border-white"}`}>
+    <div className={`rounded-2xl border-2 p-4 bg-white/85 ${claimed ? "border-gray-300 opacity-80" : done ? "border-emerald-400" : "border-white"}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{m.icon}</span>
           <span className="font-black text-sm">{m.label}</span>
         </div>
         <button
-          disabled={!done}
-          className="toy-button toy-button-primary !text-xs !py-1.5 !px-3 disabled:opacity-40"
+          disabled={!canClaim}
+          onClick={onClaim}
+          className={`toy-button !text-xs !py-1.5 !px-3 disabled:opacity-40 ${claimed ? "!bg-gray-300 !text-gray-600" : "toy-button-primary"}`}
         >
-          🎁 {m.reward}
+          {claimed ? "✅ ĐÃ LẤY" : `🎁 ${m.reward}`}
         </button>
       </div>
       <div className="h-3 rounded-full bg-black/10 overflow-hidden">
@@ -90,6 +99,7 @@ function ProgressRow({ m, current, mode }: { m: Milestone; current: number; mode
   );
 }
 
+
 function Utilities() {
   const [tab, setTab] = useState<Tab>("daily");
   // Đồng hồ phiên: tính từ lúc người chơi ĐĂNG NHẬP, không phải lúc mở trang tiện ích
@@ -107,6 +117,9 @@ function Utilities() {
     setPlayerLevel(computeLevel(loadGame()));
   }, []);
 
+  const userId = getCurrentUser()?.id ?? 0;
+  const [claimTick, setClaimTick] = useState(0);
+
   const streak = 7;
   const loginDays = 3;
   const weekLevels = 1;
@@ -122,7 +135,7 @@ function Utilities() {
 
   const getProgress = (m: Milestone): number => {
     if (tab === "daily") {
-      if (m.target >= 60) return seconds; // online giây
+      if (m.target >= 60) return seconds;
       if (m.label.startsWith("Streak")) return streak;
       if (m.label.startsWith("Đăng nhập")) return 1;
     }
@@ -133,6 +146,16 @@ function Utilities() {
     }
     if (tab === "level") return playerLevel;
     return 0;
+  };
+
+  const claimKey = (m: Milestone) => `${tab}:${m.label}`;
+  const levelOf = (m: Milestone) => (tab === "level" ? m.target : undefined);
+
+  const handleClaim = (m: Milestone) => {
+    if (!userId) { toast.error("Vui lòng đăng nhập."); return; }
+    setClaimed(userId, claimKey(m), tab, levelOf(m));
+    toast.success(`🎉 Đã cộng quà tặng: ${m.reward}`);
+    setClaimTick((t) => t + 1);
   };
 
   return (
@@ -167,7 +190,14 @@ function Utilities() {
             {/* List milestones */}
             <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
               {list.map((m) => (
-                <ProgressRow key={m.label} m={m} current={getProgress(m)} mode={tab} />
+                <ProgressRow
+                  key={m.label + ":" + claimTick}
+                  m={m}
+                  current={getProgress(m)}
+                  mode={tab}
+                  claimed={!!userId && isClaimed(userId, claimKey(m), tab, levelOf(m))}
+                  onClaim={() => handleClaim(m)}
+                />
               ))}
             </div>
           </div>

@@ -188,8 +188,17 @@ function Register({ setView }: { setView: (v: View) => void }) {
           </div>
         )}
         {success && (
-          <div className="text-green-700 font-bold text-sm text-center bg-green-50 rounded-xl p-2">
-            {success}
+          <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-3 space-y-2">
+            <div>{success}</div>
+            {verifyUrl && (
+              <Link
+                to="/verify"
+                search={{ token: verifyUrl.split("token=")[1] }}
+                className="block text-center bg-green-600 text-white px-3 py-2 rounded-xl break-all"
+              >
+                ✉️ Bấm để xác nhận tài khoản
+              </Link>
+            )}
           </div>
         )}
         <button onClick={handleRegister} className="toy-button toy-button-green w-full !text-lg">

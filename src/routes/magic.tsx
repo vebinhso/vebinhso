@@ -730,7 +730,7 @@ function MagicPage() {
   useEffect(() => {
     if (!room || room.outcome.kind !== "boss") return;
     if (boss) return;
-    if (room.phase >= 2000 + 1500 + 3000) {
+    if (room.phase >= 2000 + 5000 + 2000) {
       const o = room.outcome;
       setBoss({
         door: room.doorIdx,

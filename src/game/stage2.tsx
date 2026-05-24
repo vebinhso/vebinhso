@@ -397,6 +397,14 @@ export function Stage2PlayerController({ active, onNearDoor, onGhostHit }: { act
       if (dd < nd) { nd = dd; nearest = i; }
     });
     onNearDoor(nd < 5 ? nearest : null);
+    // ghost collision
+    if (onGhostHit) {
+      for (const g of GHOST_POSITIONS) {
+        if (!g || !g.alive) continue;
+        const d2 = (camera.position.x - g.x) ** 2 + (camera.position.z - g.z) ** 2;
+        if (d2 < 0.8) { onGhostHit(); break; }
+      }
+    }
   });
   return null;
 }

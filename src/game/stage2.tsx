@@ -113,19 +113,11 @@ function Stage2Floors() {
       {S2_SEGMENTS.map((r, i) => {
         const w = r.xmax - r.xmin, d = r.zmax - r.zmin;
         const cx = (r.xmin + r.xmax) / 2, cz = (r.zmin + r.zmax) / 2;
-        const localTex = useMemo(() => {
-          if (!tex) return null;
-          const t = tex.clone();
-          t.needsUpdate = true;
-          t.wrapS = t.wrapT = THREE.RepeatWrapping;
-          t.repeat.set(Math.max(1, w / 4), Math.max(1, d / 4));
-          return t;
-        }, [tex, w, d]);
         return (
           <group key={`fc${i}`}>
             <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[cx, 0, cz]}>
               <planeGeometry args={[w, d]} />
-              <meshStandardMaterial map={localTex} metalness={0.5} roughness={0.3} />
+              <meshStandardMaterial map={tex} metalness={0.5} roughness={0.3} />
             </mesh>
             <mesh rotation={[Math.PI / 2, 0, 0]} position={[cx, S2_H, cz]}>
               <planeGeometry args={[w, d]} />

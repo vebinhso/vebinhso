@@ -26,16 +26,11 @@ export function findUser(query: string): Account | null {
   );
 }
 
-/** Tìm theo cả username VÀ id (phải khớp đồng thời). */
-export function findUserStrict(username: string, id: string): Account | null {
+/** Tìm chỉ theo username (đúng tuyệt đối, không phân biệt hoa thường). */
+export function findUserByName(username: string): Account | null {
   const u = username.trim().toLowerCase();
-  const i = id.trim();
-  if (!u || !i) return null;
-  return (
-    getAccounts().find(
-      (a) => a.username.toLowerCase() === u && String(a.id) === i,
-    ) || null
-  );
+  if (!u) return null;
+  return getAccounts().find((a) => a.username.toLowerCase() === u) || null;
 }
 
 export function getFriendship(a: number, b: number): Friendship | null {

@@ -835,7 +835,10 @@ function MagicPage() {
   const [s2Modal, setS2Modal] = useState<null | { title: string; text: string; finished?: boolean }>(null);
   const [s2Inv, setS2Inv] = useState<{ shield: boolean; potion: number }>({ shield: false, potion: 0 });
   const [room5Open, setRoom5Open] = useState(false);
-  const [witch, setWitch] = useState<null | { hp: number; maxHp: number; question: Question | null; playerHp: number; phase: "cast" | "answer"; phaseStart: number; correct: number }>(null);
+  const [s2Room, setS2Room] = useState<S2Room | null>(null);
+  const [witch, setWitch] = useState<null | { hp: number; maxHp: number; question: Question | null; playerHp: number; phase: "cast" | "answer"; phaseStart: number; correct: number; wave: number }>(null);
+  const shieldUsedRef = useRef(false);
+  const [shieldBlink, setShieldBlink] = useState(0);
   const [transStart, setTransStart] = useState<number | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);

@@ -926,38 +926,33 @@ function MagicPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [near, doors, modal, boss, room, intro, stage]);
 
-  // Stage 2: open door (E key)
+  // Stage 2: open door (E key) — open a per-room scene
   useEffect(() => {
     if (stage !== 2) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() !== "e" || s2Near == null) return;
-      if (s2Doors[s2Near] === "cleared" || s2Modal || room5Open || witch) return;
+      if (s2Doors[s2Near] === "cleared" || s2Modal || room5Open || witch || s2Room) return;
       const idx = s2Near;
-      const kinds: S2RoomKind[] = ["chest15", "shield", "potion", "empty", "room5"];
+      const kinds: S2RoomKind[] = ["pirate", "forest", "potion", "stars", "room5quiz"];
       const kind = kinds[idx];
       if (document.exitPointerLock) document.exitPointerLock();
-      if (kind === "chest15") {
-        setCoins((c) => c + 15);
-        setS2Modal({ title: "🎁 Phòng 1 — Rương vàng", text: "Bạn tìm được rương! +15 đồng." });
-        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
-      } else if (kind === "shield") {
-        setS2Inv((v) => ({ ...v, shield: true }));
-        setS2Modal({ title: "🛡️ Phòng 2 — Khiên bảo vệ", text: "Bạn nhặt được khiên! Có thể chống tia sét của phù thủy." });
-        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
-      } else if (kind === "potion") {
-        setS2Inv((v) => ({ ...v, potion: v.potion + 2 }));
-        setS2Modal({ title: "🧪 Phòng 3 — Thuốc hồi máu", text: "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp." });
-        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
-      } else if (kind === "empty") {
-        setS2Modal({ title: "🌫️ Phòng 4 — Trống", text: "Không có gì ở đây. Bạn rời đi." });
-        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
-      } else if (kind === "room5") {
+      if (idx === 4) {
+        // Phòng 5: mở bảng chọn cửa con
         setRoom5Open(true);
+      } else {
+        setS2Room({ kind, doorIdx: idx, phase: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [s2Near, s2Doors, s2Modal, room5Open, witch, stage]);
+  }, [s2Near, s2Doors, s2Modal, room5Open, witch, stage, s2Room]);
+
+  // S2 room phase ticker
+  useEffect(() => {
+    if (!s2Room) return;
+    const id = setInterval(() => setS2Room((r) => (r ? { ...r, phase: r.phase + 100 } : r)), 100);
+    return () => clearInterval(id);
+  }, [s2Room]);
 
   // Witch phase ticker (cast lightning every 3s → then question)
   useEffect(() => {

@@ -1183,13 +1183,13 @@ function MagicPage() {
             </>
           ) : s2Room ? (
             <>
-              {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} />}
+              {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} chestOpened={pirateChestOpened} />}
               {s2Room.kind === "forest" && <ForestLakeScene shieldVisible={s2Room.phase >= 5000} />}
               {s2Room.kind === "potion" && <DarkPotionScene potionVisible={s2Room.phase >= 5000} />}
-              {s2Room.kind === "stars" && <S2StarRoomScene />}
-              {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!quiz5} />}
+              {s2Room.kind === "stars" && <SpiderWebRoomScene />}
+              {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!!quiz5 ? false : true} chestOpened={room5ChestOpened} />}
               {s2Room.kind === "room5stars" && <S2StarRoomScene />}
-              {s2Room.kind === "witch" && <DarkPotionScene potionVisible={false} />}
+              {s2Room.kind === "witch" && <WitchRoomScene flashIntensity={witch?.phase === "cast" ? 1 : 0} />}
               {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
               {witch && <Lightning active={witch.phase === "cast"} />}
             </>
@@ -1197,10 +1197,11 @@ function MagicPage() {
             <>
               <Stage2Scene />
               <Stage2PlayerController
-                active={!s2Modal && !room5Open && !witch && !quiz5}
+                active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz}
                 onNearDoor={setS2Near}
+                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
               />
-              {!s2Modal && !room5Open && !witch && !quiz5 && <PointerLockControls />}
+              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && <PointerLockControls />}
             </>
           )}
         </Suspense>

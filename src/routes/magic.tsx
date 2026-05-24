@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
+import { Stage2Scene, Stage2PlayerController, S2_DOOR_SLOTS, S2_LEN, Witch, Lightning } from "@/game/stage2";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -49,7 +50,7 @@ const DOOR_SPACING = CORRIDOR_LEN / 6;
 type DoorState = "closed" | "open" | "cleared";
 
 // ============ CORRIDOR ============
-function CorridorWalls() {
+function CorridorWalls({ exitOpen = false }: { exitOpen?: boolean }) {
   return (
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
@@ -76,10 +77,36 @@ function CorridorWalls() {
           </mesh>
         </group>
       ))}
-      <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
-        <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a140c" />
-      </mesh>
+      {/* far back wall — opens into Stage 2 portal */}
+      {!exitOpen ? (
+        <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
+          <planeGeometry args={[CORRIDOR_W, WALL_H]} />
+          <meshStandardMaterial color="#1a140c" />
+        </mesh>
+      ) : (
+        <group position={[0, 0, -CORRIDOR_LEN / 2]}>
+          {/* dark void beyond */}
+          <mesh position={[0, WALL_H / 2, -0.1]}>
+            <planeGeometry args={[CORRIDOR_W, WALL_H]} />
+            <meshBasicMaterial color="#000" />
+          </mesh>
+          {/* glowing arch frame */}
+          <mesh position={[-CORRIDOR_W / 2 + 0.25, WALL_H / 2, 0.02]}>
+            <boxGeometry args={[0.3, WALL_H, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <mesh position={[CORRIDOR_W / 2 - 0.25, WALL_H / 2, 0.02]}>
+            <boxGeometry args={[0.3, WALL_H, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <mesh position={[0, WALL_H - 0.15, 0.02]}>
+            <boxGeometry args={[CORRIDOR_W, 0.3, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <pointLight position={[0, WALL_H - 0.4, 0.5]} intensity={3.5} distance={14} color="#ff8040" />
+          <pointLight position={[0, 0.5, 0.5]} intensity={2.2} distance={10} color="#ff5020" />
+        </group>
+      )}
       <mesh position={[0, WALL_H / 2, CORRIDOR_LEN / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
         <meshStandardMaterial color="#0a0805" />
@@ -628,11 +655,12 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
 
 
 // ============ PLAYER (corridor) ============
-function PlayerController({ active, onNearDoor }: { active: boolean; onNearDoor: (idx: number | null) => void }) {
+function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
+  const exited = useRef(false);
   useEffect(() => {
     camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 2);
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
@@ -666,7 +694,16 @@ function PlayerController({ active, onNearDoor }: { active: boolean; onNearDoor:
     const halfW = CORRIDOR_W / 2 - 0.4;
     const halfL = CORRIDOR_LEN / 2 - 0.4;
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfW, halfW);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfL, halfL);
+    if (exitOpen) {
+      // allow crossing the back wall
+      camera.position.z = Math.min(camera.position.z, halfL);
+      if (!exited.current && camera.position.z < -halfL - 0.5) {
+        exited.current = true;
+        onExitCross?.();
+      }
+    } else {
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfL, halfL);
+    }
 
     let nearest = -1;
     let nd = 999;
@@ -694,7 +731,7 @@ function RoomCameraSetup() {
 }
 
 // ============ CORRIDOR SCENE ============
-function CorridorScene({ doors }: { doors: DoorState[] }) {
+function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boolean }) {
   return (
     <>
       <color attach="background" args={["#0a0805"]} />
@@ -703,7 +740,7 @@ function CorridorScene({ doors }: { doors: DoorState[] }) {
       <hemisphereLight args={["#8a7050", "#1a1208", 0.35]} />
       <fog attach="fog" args={["#0a0805", 10, 55]} />
 
-      <CorridorWalls />
+      <CorridorWalls exitOpen={exitOpen} />
 
       {Array.from({ length: 12 }).map((_, i) => {
         const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 12);
@@ -756,6 +793,10 @@ function RoomScene({ room }: { room: RoomState }) {
 
 
 // ============ MAIN ============
+type Stage = 1 | "transition" | 2;
+type S2RoomKind = "chest15" | "shield" | "potion" | "empty" | "room5";
+type S2DoorState = "closed" | "cleared";
+
 function MagicPage() {
   const navigate = useNavigate();
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
@@ -766,6 +807,19 @@ function MagicPage() {
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
+
+  // Stage 2 state
+  const [stage, setStage] = useState<Stage>(1);
+  const [exitOpen, setExitOpen] = useState(false);
+  const [exitDeadline, setExitDeadline] = useState<number | null>(null);
+  const [exitNow, setExitNow] = useState(Date.now());
+  const [s2Near, setS2Near] = useState<number | null>(null);
+  const [s2Doors, setS2Doors] = useState<S2DoorState[]>(Array(5).fill("closed"));
+  const [s2Modal, setS2Modal] = useState<null | { title: string; text: string; finished?: boolean }>(null);
+  const [s2Inv, setS2Inv] = useState<{ shield: boolean; potion: number }>({ shield: false, potion: 0 });
+  const [room5Open, setRoom5Open] = useState(false);
+  const [witch, setWitch] = useState<null | { hp: number; maxHp: number; question: Question | null; playerHp: number; phase: "cast" | "answer"; phaseStart: number; correct: number }>(null);
+  const [transStart, setTransStart] = useState<number | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -803,25 +857,114 @@ function MagicPage() {
     }
   }, [room, boss]);
 
-  // open door = enter room (or finish for exit)
+  // 20s exit timer ticker
   useEffect(() => {
+    if (!exitOpen || exitDeadline == null || stage !== 1) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExitNow(now);
+      if (now >= exitDeadline) {
+        // timed out — close back wall
+        setExitOpen(false);
+        setExitDeadline(null);
+        // mark door 10 as cleared so they can try again? keep closed so they can re-open
+        setDoors((d) => { const n = [...d]; n[9] = "closed"; return n; });
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, [exitOpen, exitDeadline, stage]);
+
+  // transition timer
+  useEffect(() => {
+    if (stage !== "transition" || transStart == null) return;
+    const t = setTimeout(() => {
+      setStage(2);
+      setTransStart(null);
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [stage, transStart]);
+
+  // open door = enter room (or trigger exit for door 10)
+  useEffect(() => {
+    if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && intro === 2) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
         if (outcome.kind === "exit") {
-          setWon(true);
-          setModal({ kind: "exit", text: `🏆 Bạn đã thoát Stage 1! Tổng thưởng: ${coins} đồng` });
+          // OPEN BACK WALL + 20s timer instead of ending game
+          setExitOpen(true);
+          setExitDeadline(Date.now() + 20000);
+          if (document.exitPointerLock) document.exitPointerLock();
           return;
         }
-        // exit pointer lock so room camera is fixed
         if (document.exitPointerLock) document.exitPointerLock();
         setRoom({ doorIdx: near, outcome, phase: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [near, doors, modal, boss, room, coins, intro]);
+  }, [near, doors, modal, boss, room, intro, stage]);
+
+  // Stage 2: open door (E key)
+  useEffect(() => {
+    if (stage !== 2) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== "e" || s2Near == null) return;
+      if (s2Doors[s2Near] === "cleared" || s2Modal || room5Open || witch) return;
+      const idx = s2Near;
+      const kinds: S2RoomKind[] = ["chest15", "shield", "potion", "empty", "room5"];
+      const kind = kinds[idx];
+      if (document.exitPointerLock) document.exitPointerLock();
+      if (kind === "chest15") {
+        setCoins((c) => c + 15);
+        setS2Modal({ title: "🎁 Phòng 1 — Rương vàng", text: "Bạn tìm được rương! +15 đồng." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "shield") {
+        setS2Inv((v) => ({ ...v, shield: true }));
+        setS2Modal({ title: "🛡️ Phòng 2 — Khiên bảo vệ", text: "Bạn nhặt được khiên! Có thể chống tia sét của phù thủy." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "potion") {
+        setS2Inv((v) => ({ ...v, potion: v.potion + 2 }));
+        setS2Modal({ title: "🧪 Phòng 3 — Thuốc hồi máu", text: "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "empty") {
+        setS2Modal({ title: "🌫️ Phòng 4 — Trống", text: "Không có gì ở đây. Bạn rời đi." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "room5") {
+        setRoom5Open(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [s2Near, s2Doors, s2Modal, room5Open, witch, stage]);
+
+  // Witch phase ticker (cast lightning every 3s → then question)
+  useEffect(() => {
+    if (!witch) return;
+    const id = setInterval(() => {
+      setWitch((w) => {
+        if (!w) return w;
+        const elapsed = Date.now() - w.phaseStart;
+        if (w.phase === "cast" && elapsed >= 2000) {
+          // lightning resolves
+          let php = w.playerHp;
+          if (!s2Inv.shield) php -= 25; else php -= 8; // shield reduces
+          if (php < 30 && s2Inv.potion > 0) {
+            php = Math.min(100, php + 40);
+            setS2Inv((v) => ({ ...v, potion: v.potion - 1 }));
+          }
+          if (php <= 0) {
+            setS2Modal({ title: "💀 Thất bại", text: "Phù thủy đã hạ gục bạn. Hãy thử cánh cửa khác!" });
+            return null;
+          }
+          return { ...w, phase: "answer", phaseStart: Date.now(), question: randomQuestion(), playerHp: php };
+        }
+        return w;
+      });
+    }, 100);
+    return () => clearInterval(id);
+  }, [witch, s2Inv.shield, s2Inv.potion]);
 
   const exitRoom = (cleared: boolean) => {
     if (room) {
@@ -863,53 +1006,168 @@ function MagicPage() {
     setModal({ kind: "chest", text: `🎁 Rương vàng! +${(room.outcome as any).reward} đồng` });
   };
 
+  // Room 5 sub-door choices
+  const chooseRoom5 = (door: 1 | 2 | 3) => {
+    setRoom5Open(false);
+    if (door === 2) {
+      setS2Modal({ title: "🚪 Cửa 2 — Lối thoát", text: "Bạn chọn cánh cửa trống và thoát nhẹ nhàng. Stage 2 hoàn thành!", finished: true });
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+    } else if (door === 1) {
+      // 10 medium questions
+      setWitch(null);
+      runQuiz10();
+    } else if (door === 3) {
+      setWitch({ hp: 100, maxHp: 100, question: null, playerHp: 100, phase: "cast", phaseStart: Date.now(), correct: 0 });
+    }
+  };
+
+  const [quiz10, setQuiz10] = useState<null | { q: Question; idx: number; correct: number }>(null);
+  const runQuiz10 = () => {
+    setQuiz10({ q: randomQuestion(), idx: 0, correct: 0 });
+  };
+  const answerQuiz10 = (i: number) => {
+    if (!quiz10) return;
+    const isCorrect = i === quiz10.q.answer;
+    const nextCorrect = quiz10.correct + (isCorrect ? 1 : 0);
+    const nextIdx = quiz10.idx + 1;
+    if (nextIdx >= 10) {
+      const reward = nextCorrect * 15;
+      setCoins((c) => c + reward);
+      setQuiz10(null);
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Bạn trả lời đúng ${nextCorrect}/10 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      return;
+    }
+    setQuiz10({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+
+  const answerWitch = (i: number) => {
+    if (!witch || !witch.question) return;
+    const isCorrect = i === witch.question.answer;
+    if (isCorrect) {
+      const newHp = Math.max(0, witch.hp - 20);
+      const newCorrect = witch.correct + 1;
+      if (newHp <= 0) {
+        setCoins((c) => c + 100);
+        setWitch(null);
+        setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+        setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "Bạn đã đánh bại phù thủy! +100 đồng. Stage 2 hoàn thành!", finished: true });
+        return;
+      }
+      setWitch({ ...witch, hp: newHp, correct: newCorrect, phase: "cast", phaseStart: Date.now(), question: null });
+    } else {
+      setWitch({ ...witch, phase: "cast", phaseStart: Date.now(), question: null });
+    }
+  };
+
   // chest fully revealed after 5s reveal
   const chestReady = room?.outcome.kind === "chest" && room.phase >= 7000;
   const emptyReady = room?.outcome.kind === "empty" && room.phase >= 1500;
 
+  const exitSeconds = exitDeadline ? Math.max(0, Math.ceil((exitDeadline - exitNow) / 1000)) : 0;
 
   return (
     <div className="relative w-full h-screen bg-black">
       <Canvas shadows camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 2]}>
         <Suspense fallback={null}>
-          {room ? (
+          {stage === 1 && room ? (
             <RoomScene room={room} />
+          ) : stage === 1 ? (
+            <>
+              <CorridorScene doors={doors} exitOpen={exitOpen} />
+              <PlayerController
+                active={!modal && !won && intro === 2}
+                onNearDoor={setNear}
+                exitOpen={exitOpen}
+                onExitCross={() => { setStage("transition"); setTransStart(Date.now()); }}
+              />
+              {!modal && !won && intro === 2 && <PointerLockControls />}
+            </>
+          ) : stage === "transition" ? (
+            <>
+              <color attach="background" args={["#000"]} />
+              <ambientLight intensity={0.02} />
+            </>
           ) : (
             <>
-              <CorridorScene doors={doors} />
-              <PlayerController active={!modal && !won && intro === 2} onNearDoor={setNear} />
-              {!modal && !won && intro === 2 && <PointerLockControls />}
+              <Stage2Scene />
+              <Stage2PlayerController
+                active={!s2Modal && !room5Open && !witch && !quiz10}
+                onNearDoor={setS2Near}
+              />
+              {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
+              {witch && <Lightning active={witch.phase === "cast"} />}
+              {!s2Modal && !room5Open && !witch && !quiz10 && <PointerLockControls />}
             </>
           )}
         </Suspense>
       </Canvas>
 
-      {/* HUD */}
+      {/* HUD top-left */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
         <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>
         <div className="glass-card px-3 py-2 text-sm font-black">
-          💰 {coins} đồng · 🚪 {doors.filter((d) => d === "cleared").length}/10
+          💰 {coins} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
         </div>
+        {stage === 2 && (s2Inv.shield || s2Inv.potion > 0) && (
+          <div className="glass-card px-3 py-2 text-xs font-black">
+            {s2Inv.shield && <span>🛡️ Khiên </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
+          </div>
+        )}
       </div>
 
+      {/* 20s countdown — top right when exit is opening */}
+      {stage === 1 && exitOpen && (
+        <div className="absolute top-3 right-3 z-30 glass-card px-4 py-3 text-center" style={{ background: "rgba(40,0,0,0.7)", border: "2px solid #ff6020", boxShadow: "0 0 24px rgba(255,80,20,0.6)" }}>
+          <div className="text-xs font-black text-amber-200">⏱️ CỬA SẼ ĐÓNG TRONG</div>
+          <div className="text-3xl font-black text-orange-400" style={{ textShadow: "0 0 12px #ff6020" }}>{exitSeconds}s</div>
+          <div className="text-[10px] font-bold text-amber-100/80 mt-1">Chạy tới cuối hành lang!</div>
+        </div>
+      )}
+
       {/* crosshair only in corridor */}
-      {!room && (
+      {!room && stage !== "transition" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="w-3 h-3 rounded-full border-2 border-white/80 shadow-lg" />
         </div>
       )}
 
-      {/* hint */}
-      {!room && near != null && doors[near] === "closed" && !modal && !won && (
+      {/* hint stage 1 */}
+      {stage === 1 && !room && near != null && doors[near] === "closed" && !modal && !won && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
           Nhấn <span className="text-orange-600">E</span> để mở Cửa {near + 1}
         </div>
       )}
 
+      {/* hint stage 2 */}
+      {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz10 && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
+          Nhấn <span className="text-orange-600">E</span> để vào Phòng {s2Near + 1}
+        </div>
+      )}
+
       {/* controls hint */}
-      {!room && (
+      {!room && stage !== "transition" && (
         <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20">
           WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột
+        </div>
+      )}
+
+      {/* Stage transition overlay */}
+      {stage === "transition" && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
+          <h1
+            className="text-6xl md:text-8xl font-black tracking-widest"
+            style={{
+              fontFamily: "'Nosifer', 'Creepster', serif",
+              color: "#c0c0c0",
+              textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
+              animation: "khuVuc2Fade 3.2s ease-in-out forwards",
+            }}
+          >
+            KHU VỰC 2
+          </h1>
+          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} }`}</style>
         </div>
       )}
 
@@ -961,6 +1219,92 @@ function MagicPage() {
             ) : (
               <button onClick={closeModal} className="toy-button toy-button-primary w-full">Tiếp tục</button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Stage 2 modal */}
+      {s2Modal && (
+        <div className="absolute inset-0 z-30 bg-black/70 flex items-center justify-center p-4">
+          <div className="glass-card max-w-sm w-full p-6 text-center">
+            <p className="text-xl font-black mb-2">{s2Modal.title}</p>
+            <p className="font-bold mb-4">{s2Modal.text}</p>
+            {s2Modal.finished ? (
+              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 Hoàn thành — Về chọn map</Link>
+            ) : (
+              <button onClick={() => setS2Modal(null)} className="toy-button toy-button-primary w-full">Tiếp tục</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Room 5 — 3 sub-doors */}
+      {room5Open && (
+        <div className="absolute inset-0 z-30 bg-black/80 flex items-center justify-center p-4">
+          <div className="glass-card max-w-lg w-full p-6">
+            <p className="text-2xl font-black text-center mb-4">🚪 Phòng 5 — Chọn cánh cửa</p>
+            <div className="grid gap-3">
+              <button onClick={() => chooseRoom5(1)} className="toy-button !text-left p-4">
+                <div className="font-black">Cửa 1 — 📜 Thử thách kiến thức</div>
+                <div className="text-xs font-bold opacity-80">Trả lời 10 câu hỏi · +15 đồng/câu đúng</div>
+              </button>
+              <button onClick={() => chooseRoom5(2)} className="toy-button !text-left p-4">
+                <div className="font-black">Cửa 2 — 🌫️ Lối thoát yên bình</div>
+                <div className="text-xs font-bold opacity-80">Thoát ngay không cần làm gì</div>
+              </button>
+              <button onClick={() => chooseRoom5(3)} className="toy-button !text-left p-4 bg-gradient-to-br from-purple-700 to-indigo-900 text-white">
+                <div className="font-black">Cửa 3 — 🧙‍♀️ Phù thủy</div>
+                <div className="text-xs font-bold opacity-90">Đánh bại phù thủy · +100 đồng (cần khiên/thuốc)</div>
+              </button>
+            </div>
+            <button onClick={() => setRoom5Open(false)} className="toy-button !text-xs w-full mt-4">← Đóng</button>
+          </div>
+        </div>
+      )}
+
+      {/* Witch fight */}
+      {witch && (
+        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>🧙‍♀️ Phù thủy</span>
+              <span>❤️ Bạn: {witch.playerHp}/100</span>
+              <span>💜 Boss: {witch.hp}/{witch.maxHp}</span>
+            </div>
+            <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-purple-500" style={{ width: `${(witch.hp / witch.maxHp) * 100}%` }} />
+            </div>
+            {witch.phase === "cast" ? (
+              <p className="font-black text-center py-4">⚡ Phù thủy đang phóng tia sét... {s2Inv.shield ? "🛡️ Khiên giảm sát thương!" : "Không có khiên — chịu sát thương đầy đủ!"}</p>
+            ) : witch.question ? (
+              <>
+                <p className="font-black text-base mb-3">❓ {witch.question.q}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {witch.question.options.map((opt, i) => (
+                    <button key={i} onClick={() => answerWitch(i)} className="toy-button !text-sm py-2">{opt}</button>
+                  ))}
+                </div>
+                <p className="text-xs font-bold mt-2 opacity-70">Đáp đúng → −20 HP phù thủy ({witch.correct}/5 câu đúng)</p>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Quiz of 10 (door 1 in room 5) */}
+      {quiz10 && (
+        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>📜 Cửa 1 — Câu {quiz10.idx + 1}/10</span>
+              <span>✅ Đúng: {quiz10.correct}</span>
+            </div>
+            <p className="font-black text-base mb-3">❓ {quiz10.q.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {quiz10.q.options.map((opt, i) => (
+                <button key={i} onClick={() => answerQuiz10(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
           </div>
         </div>
       )}

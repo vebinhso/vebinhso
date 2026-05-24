@@ -50,7 +50,7 @@ const DOOR_SPACING = CORRIDOR_LEN / 6;
 type DoorState = "closed" | "open" | "cleared";
 
 // ============ CORRIDOR ============
-function CorridorWalls() {
+function CorridorWalls({ exitOpen = false }: { exitOpen?: boolean }) {
   return (
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
@@ -77,10 +77,36 @@ function CorridorWalls() {
           </mesh>
         </group>
       ))}
-      <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
-        <planeGeometry args={[CORRIDOR_W, WALL_H]} />
-        <meshStandardMaterial color="#1a140c" />
-      </mesh>
+      {/* far back wall — opens into Stage 2 portal */}
+      {!exitOpen ? (
+        <mesh position={[0, WALL_H / 2, -CORRIDOR_LEN / 2]}>
+          <planeGeometry args={[CORRIDOR_W, WALL_H]} />
+          <meshStandardMaterial color="#1a140c" />
+        </mesh>
+      ) : (
+        <group position={[0, 0, -CORRIDOR_LEN / 2]}>
+          {/* dark void beyond */}
+          <mesh position={[0, WALL_H / 2, -0.1]}>
+            <planeGeometry args={[CORRIDOR_W, WALL_H]} />
+            <meshBasicMaterial color="#000" />
+          </mesh>
+          {/* glowing arch frame */}
+          <mesh position={[-CORRIDOR_W / 2 + 0.25, WALL_H / 2, 0.02]}>
+            <boxGeometry args={[0.3, WALL_H, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <mesh position={[CORRIDOR_W / 2 - 0.25, WALL_H / 2, 0.02]}>
+            <boxGeometry args={[0.3, WALL_H, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <mesh position={[0, WALL_H - 0.15, 0.02]}>
+            <boxGeometry args={[CORRIDOR_W, 0.3, 0.3]} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+          </mesh>
+          <pointLight position={[0, WALL_H - 0.4, 0.5]} intensity={3.5} distance={14} color="#ff8040" />
+          <pointLight position={[0, 0.5, 0.5]} intensity={2.2} distance={10} color="#ff5020" />
+        </group>
+      )}
       <mesh position={[0, WALL_H / 2, CORRIDOR_LEN / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[CORRIDOR_W, WALL_H]} />
         <meshStandardMaterial color="#0a0805" />

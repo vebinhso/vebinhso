@@ -655,11 +655,12 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
 
 
 // ============ PLAYER (corridor) ============
-function PlayerController({ active, onNearDoor }: { active: boolean; onNearDoor: (idx: number | null) => void }) {
+function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
+  const exited = useRef(false);
   useEffect(() => {
     camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 2);
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
@@ -693,7 +694,16 @@ function PlayerController({ active, onNearDoor }: { active: boolean; onNearDoor:
     const halfW = CORRIDOR_W / 2 - 0.4;
     const halfL = CORRIDOR_LEN / 2 - 0.4;
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfW, halfW);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfL, halfL);
+    if (exitOpen) {
+      // allow crossing the back wall
+      camera.position.z = Math.min(camera.position.z, halfL);
+      if (!exited.current && camera.position.z < -halfL - 0.5) {
+        exited.current = true;
+        onExitCross?.();
+      }
+    } else {
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfL, halfL);
+    }
 
     let nearest = -1;
     let nd = 999;

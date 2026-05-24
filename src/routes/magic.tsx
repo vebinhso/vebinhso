@@ -731,7 +731,7 @@ function RoomCameraSetup() {
 }
 
 // ============ CORRIDOR SCENE ============
-function CorridorScene({ doors }: { doors: DoorState[] }) {
+function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boolean }) {
   return (
     <>
       <color attach="background" args={["#0a0805"]} />

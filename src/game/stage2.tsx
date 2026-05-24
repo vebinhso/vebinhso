@@ -442,19 +442,32 @@ export function Witch({ visible, hp, maxHp }: { visible: boolean; hp: number; ma
   );
 }
 
-// ============ LIGHTNING ============
+// ============ LIGHTNING — large multi-bolt strike ============
 export function Lightning({ active }: { active: boolean }) {
-  const ref = useRef<THREE.Mesh>(null!);
+  const grp = useRef<THREE.Group>(null!);
   useFrame(() => {
-    if (ref.current) {
-      (ref.current.material as THREE.MeshBasicMaterial).opacity = active ? 0.7 + Math.random() * 0.3 : 0;
-    }
+    if (!grp.current) return;
+    const op = active ? 0.7 + Math.random() * 0.3 : 0;
+    grp.current.traverse((c: any) => {
+      if (c.material && "opacity" in c.material) c.material.opacity = op;
+    });
   });
   return (
-    <mesh ref={ref} position={[0, 1.5, -3]}>
-      <cylinderGeometry args={[0.04, 0.04, 4.5, 6]} />
-      <meshBasicMaterial color="#bfe6ff" transparent opacity={0} />
-    </mesh>
+    <group ref={grp}>
+      {[-1.6, -0.6, 0.4, 1.4].map((x, i) => (
+        <group key={i} position={[x, 0, -3 - (i % 2) * 0.5]} rotation={[0, (i % 2 ? 0.1 : -0.1), 0]}>
+          <mesh position={[0, 2.5, 0]} rotation={[0, 0, (Math.random() - 0.5) * 0.3]}>
+            <cylinderGeometry args={[0.06 + Math.random() * 0.04, 0.02, 5, 6]} />
+            <meshBasicMaterial color="#dff0ff" transparent opacity={0} />
+          </mesh>
+          <mesh position={[0.15 * (i % 2 ? 1 : -1), 1.4, 0]} rotation={[0, 0, (i % 2 ? -0.5 : 0.5)]}>
+            <cylinderGeometry args={[0.03, 0.015, 1.5, 6]} />
+            <meshBasicMaterial color="#bfe6ff" transparent opacity={0} />
+          </mesh>
+          <pointLight position={[0, 3, 0]} intensity={4} distance={12} color="#cfe6ff" />
+        </group>
+      ))}
+    </group>
   );
 }
 

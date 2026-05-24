@@ -1103,32 +1103,71 @@ function MagicPage() {
         </Suspense>
       </Canvas>
 
-      {/* HUD */}
+      {/* HUD top-left */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
         <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>
         <div className="glass-card px-3 py-2 text-sm font-black">
-          💰 {coins} đồng · 🚪 {doors.filter((d) => d === "cleared").length}/10
+          💰 {coins} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
         </div>
+        {stage === 2 && (s2Inv.shield || s2Inv.potion > 0) && (
+          <div className="glass-card px-3 py-2 text-xs font-black">
+            {s2Inv.shield && <span>🛡️ Khiên </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
+          </div>
+        )}
       </div>
 
+      {/* 20s countdown — top right when exit is opening */}
+      {stage === 1 && exitOpen && (
+        <div className="absolute top-3 right-3 z-30 glass-card px-4 py-3 text-center" style={{ background: "rgba(40,0,0,0.7)", border: "2px solid #ff6020", boxShadow: "0 0 24px rgba(255,80,20,0.6)" }}>
+          <div className="text-xs font-black text-amber-200">⏱️ CỬA SẼ ĐÓNG TRONG</div>
+          <div className="text-3xl font-black text-orange-400" style={{ textShadow: "0 0 12px #ff6020" }}>{exitSeconds}s</div>
+          <div className="text-[10px] font-bold text-amber-100/80 mt-1">Chạy tới cuối hành lang!</div>
+        </div>
+      )}
+
       {/* crosshair only in corridor */}
-      {!room && (
+      {!room && stage !== "transition" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="w-3 h-3 rounded-full border-2 border-white/80 shadow-lg" />
         </div>
       )}
 
-      {/* hint */}
-      {!room && near != null && doors[near] === "closed" && !modal && !won && (
+      {/* hint stage 1 */}
+      {stage === 1 && !room && near != null && doors[near] === "closed" && !modal && !won && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
           Nhấn <span className="text-orange-600">E</span> để mở Cửa {near + 1}
         </div>
       )}
 
+      {/* hint stage 2 */}
+      {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz10 && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
+          Nhấn <span className="text-orange-600">E</span> để vào Phòng {s2Near + 1}
+        </div>
+      )}
+
       {/* controls hint */}
-      {!room && (
+      {!room && stage !== "transition" && (
         <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20">
           WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột
+        </div>
+      )}
+
+      {/* Stage transition overlay */}
+      {stage === "transition" && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black">
+          <h1
+            className="text-6xl md:text-8xl font-black tracking-widest"
+            style={{
+              fontFamily: "'Nosifer', 'Creepster', serif",
+              color: "#c0c0c0",
+              textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
+              animation: "khuVuc2Fade 3.2s ease-in-out forwards",
+            }}
+          >
+            KHU VỰC 2
+          </h1>
+          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} }`}</style>
         </div>
       )}
 

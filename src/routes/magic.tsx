@@ -1093,11 +1093,21 @@ function MagicPage() {
     s2ClearAndExit(2, "🧪 Thuốc hồi máu", "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp.");
   };
   const s2OpenChestPirate = () => {
-    addCoins(25);
-    s2ClearAndExit(0, "🏴‍☠️ Kho báu cướp biển", "+25 đồng. Bạn rời khỏi tàu cướp biển!");
+    setPirateChestOpened(true);
+    setTimeout(() => {
+      addCoins(25);
+      setPirateChestOpened(false);
+      s2ClearAndExit(0, "🏴‍☠️ Kho báu cướp biển", "+25 đồng. Bạn rời khỏi tàu cướp biển!");
+    }, 1600);
   };
   const s2ExitStars = () => {
-    s2ClearAndExit(3, "✨ Phòng sao", "Bạn rời căn phòng trống đầy sao.");
+    s2ClearAndExit(3, "🕷️ Phòng mạng nhện", "Bạn rời căn phòng tối đầy mạng nhện.");
+  };
+  const answerGhostQuiz = (i: number) => {
+    if (!ghostQuiz) return;
+    const correct = i === ghostQuiz.answer;
+    if (correct) addCoins(20);
+    setGhostQuiz(null);
   };
 
   // Room 5 sub-door choices

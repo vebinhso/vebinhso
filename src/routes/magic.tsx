@@ -1349,7 +1349,7 @@ function MagicPage() {
             <p className="font-black text-base mb-3">❓ {quiz5.q.q}</p>
             <div className="grid grid-cols-2 gap-2">
               {quiz5.q.options.map((opt, i) => (
-                <button key={i} onClick={() => answerQuiz10(i)} className="toy-button !text-sm py-2">{opt}</button>
+                <button key={i} onClick={() => answerQuiz5(i)} className="toy-button !text-sm py-2">{opt}</button>
               ))}
             </div>
           </div>

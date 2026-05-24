@@ -362,8 +362,8 @@ function GlowPotion({ visible }: { visible: boolean }) {
         <meshPhysicalMaterial color="#ff2a3a" emissive="#ff3050" emissiveIntensity={1.6} roughness={0.15} metalness={0.1} transparent opacity={0.92} transmission={0.4} />
       </mesh>
       {/* gold band */}
-      <mesh position={[0, 0.05, 0]}>
-        <torusGeometry args={[0.42, 0.06, 12, 28]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[0, 0.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.42, 0.06, 12, 28]} />
         <meshStandardMaterial color="#e4b248" metalness={0.95} roughness={0.2} />
       </mesh>
       {/* neck */}

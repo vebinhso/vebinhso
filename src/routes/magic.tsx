@@ -1135,6 +1135,18 @@ function MagicPage() {
               <color attach="background" args={["#000"]} />
               <ambientLight intensity={0.02} />
             </>
+          ) : s2Room ? (
+            <>
+              {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} />}
+              {s2Room.kind === "forest" && <ForestLakeScene shieldVisible={s2Room.phase >= 5000} />}
+              {s2Room.kind === "potion" && <DarkPotionScene potionVisible={s2Room.phase >= 5000} />}
+              {s2Room.kind === "stars" && <S2StarRoomScene />}
+              {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!quiz5} />}
+              {s2Room.kind === "room5stars" && <S2StarRoomScene />}
+              {s2Room.kind === "witch" && <DarkPotionScene potionVisible={false} />}
+              {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
+              {witch && <Lightning active={witch.phase === "cast"} />}
+            </>
           ) : (
             <>
               <Stage2Scene />
@@ -1142,8 +1154,6 @@ function MagicPage() {
                 active={!s2Modal && !room5Open && !witch && !quiz5}
                 onNearDoor={setS2Near}
               />
-              {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
-              {witch && <Lightning active={witch.phase === "cast"} />}
               {!s2Modal && !room5Open && !witch && !quiz5 && <PointerLockControls />}
             </>
           )}

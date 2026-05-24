@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
-import { Stage2Scene, Stage2PlayerController, S2_DOOR_SLOTS, S2_LEN, Witch, Lightning } from "@/game/stage2";
+import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -673,9 +673,10 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { activ
   const grounded = useRef(true);
   const exited = useRef(false);
   useEffect(() => {
-    // spawn at the FRONT of the corridor, facing the back wall (where the exit portal opens)
-    camera.position.set(0, 1.7, CORRIDOR_LEN / 2 - 2);
-    camera.lookAt(0, 1.6, -CORRIDOR_LEN / 2);
+    // spawn at the BACK of the corridor (near door 1, near where the exit portal opens),
+    // facing the far end of the corridor (toward door 10).
+    camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
+    camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);
@@ -708,9 +709,10 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { activ
     const halfL = CORRIDOR_LEN / 2 - 0.4;
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfW, halfW);
     if (exitOpen) {
-      // allow crossing the back wall
+      // back wall opens — allow crossing southward through the portal
+      camera.position.z = Math.max(camera.position.z, -halfL);
       camera.position.z = Math.min(camera.position.z, halfL);
-      if (!exited.current && camera.position.z < -halfL - 0.5) {
+      if (!exited.current && camera.position.z < -halfL + 0.2) {
         exited.current = true;
         onExitCross?.();
       }

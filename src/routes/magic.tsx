@@ -810,8 +810,9 @@ function RoomScene({ room }: { room: RoomState }) {
 
 // ============ MAIN ============
 type Stage = 1 | "transition" | 2;
-type S2RoomKind = "chest15" | "shield" | "potion" | "empty" | "room5";
+type S2RoomKind = "pirate" | "forest" | "potion" | "stars" | "room5quiz" | "room5stars" | "witch";
 type S2DoorState = "closed" | "cleared";
+type S2Room = { kind: S2RoomKind; doorIdx: number; phase: number; picked?: boolean };
 
 function MagicPage() {
   const navigate = useNavigate();

@@ -740,7 +740,7 @@ function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boo
       <hemisphereLight args={["#8a7050", "#1a1208", 0.35]} />
       <fog attach="fog" args={["#0a0805", 10, 55]} />
 
-      <CorridorWalls />
+      <CorridorWalls exitOpen={exitOpen} />
 
       {Array.from({ length: 12 }).map((_, i) => {
         const z = -CORRIDOR_LEN / 2 + (i + 0.5) * (CORRIDOR_LEN / 12);

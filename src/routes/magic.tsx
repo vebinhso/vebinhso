@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
-import { Stage2Scene, Stage2PlayerController, S2_DOOR_SLOTS, S2_LEN, Witch, Lightning } from "@/game/stage2";
+import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,

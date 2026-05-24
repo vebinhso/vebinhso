@@ -8,6 +8,7 @@ import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
+import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene } from "@/game/stage2rooms";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,

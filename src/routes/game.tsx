@@ -263,11 +263,14 @@ function GamePage() {
         </div>
       )}
 
-      {/* Question modal */}
+      {/* Question modal — trả lời liên tục */}
       {question && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4">
           <div className="glass-card max-w-md w-full p-6">
-            <div className="text-xs font-bold text-orange-700 mb-2">❓ Trả lời đúng để +{question.reward}đ</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-bold text-orange-700">❓ Trả lời đúng để +{question.reward}đ</div>
+              <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3">✖ Thoát</button>
+            </div>
             <h3 className="text-lg font-black mb-4">{question.q}</h3>
             <div className="grid grid-cols-1 gap-2">
               {question.options.map((opt, i) => (
@@ -284,6 +287,9 @@ function GamePage() {
             {questionResult && (
               <div className="mt-4 text-center font-black text-lg">{questionResult}</div>
             )}
+            <p className="text-[11px] font-bold text-muted-foreground mt-3 text-center">
+              Trả lời sẽ tự sang câu tiếp theo. Bấm <span className="text-orange-600">✖ Thoát</span> để dừng.
+            </p>
           </div>
         </div>
       )}

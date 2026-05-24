@@ -1223,6 +1223,92 @@ function MagicPage() {
         </div>
       )}
 
+      {/* Stage 2 modal */}
+      {s2Modal && (
+        <div className="absolute inset-0 z-30 bg-black/70 flex items-center justify-center p-4">
+          <div className="glass-card max-w-sm w-full p-6 text-center">
+            <p className="text-xl font-black mb-2">{s2Modal.title}</p>
+            <p className="font-bold mb-4">{s2Modal.text}</p>
+            {s2Modal.finished ? (
+              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 Hoàn thành — Về chọn map</Link>
+            ) : (
+              <button onClick={() => setS2Modal(null)} className="toy-button toy-button-primary w-full">Tiếp tục</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Room 5 — 3 sub-doors */}
+      {room5Open && (
+        <div className="absolute inset-0 z-30 bg-black/80 flex items-center justify-center p-4">
+          <div className="glass-card max-w-lg w-full p-6">
+            <p className="text-2xl font-black text-center mb-4">🚪 Phòng 5 — Chọn cánh cửa</p>
+            <div className="grid gap-3">
+              <button onClick={() => chooseRoom5(1)} className="toy-button !text-left p-4">
+                <div className="font-black">Cửa 1 — 📜 Thử thách kiến thức</div>
+                <div className="text-xs font-bold opacity-80">Trả lời 10 câu hỏi · +15 đồng/câu đúng</div>
+              </button>
+              <button onClick={() => chooseRoom5(2)} className="toy-button !text-left p-4">
+                <div className="font-black">Cửa 2 — 🌫️ Lối thoát yên bình</div>
+                <div className="text-xs font-bold opacity-80">Thoát ngay không cần làm gì</div>
+              </button>
+              <button onClick={() => chooseRoom5(3)} className="toy-button !text-left p-4 bg-gradient-to-br from-purple-700 to-indigo-900 text-white">
+                <div className="font-black">Cửa 3 — 🧙‍♀️ Phù thủy</div>
+                <div className="text-xs font-bold opacity-90">Đánh bại phù thủy · +100 đồng (cần khiên/thuốc)</div>
+              </button>
+            </div>
+            <button onClick={() => setRoom5Open(false)} className="toy-button !text-xs w-full mt-4">← Đóng</button>
+          </div>
+        </div>
+      )}
+
+      {/* Witch fight */}
+      {witch && (
+        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>🧙‍♀️ Phù thủy</span>
+              <span>❤️ Bạn: {witch.playerHp}/100</span>
+              <span>💜 Boss: {witch.hp}/{witch.maxHp}</span>
+            </div>
+            <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-purple-500" style={{ width: `${(witch.hp / witch.maxHp) * 100}%` }} />
+            </div>
+            {witch.phase === "cast" ? (
+              <p className="font-black text-center py-4">⚡ Phù thủy đang phóng tia sét... {s2Inv.shield ? "🛡️ Khiên giảm sát thương!" : "Không có khiên — chịu sát thương đầy đủ!"}</p>
+            ) : witch.question ? (
+              <>
+                <p className="font-black text-base mb-3">❓ {witch.question.q}</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {witch.question.options.map((opt, i) => (
+                    <button key={i} onClick={() => answerWitch(i)} className="toy-button !text-sm py-2">{opt}</button>
+                  ))}
+                </div>
+                <p className="text-xs font-bold mt-2 opacity-70">Đáp đúng → −20 HP phù thủy ({witch.correct}/5 câu đúng)</p>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Quiz of 10 (door 1 in room 5) */}
+      {quiz10 && (
+        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>📜 Cửa 1 — Câu {quiz10.idx + 1}/10</span>
+              <span>✅ Đúng: {quiz10.correct}</span>
+            </div>
+            <p className="font-black text-base mb-3">❓ {quiz10.q.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {quiz10.q.options.map((opt, i) => (
+                <button key={i} onClick={() => answerQuiz10(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Boss question */}
       {boss && boss.question && (
         <div className="absolute inset-x-0 bottom-0 z-30 p-4">

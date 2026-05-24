@@ -92,6 +92,7 @@ function Home() {
         <div className="flex flex-col gap-2">
           <Link to="/shop" className="toy-button text-sm">🛒 CỬA HÀNG</Link>
           <Link to="/ranking" className="toy-button text-sm">📊 XẾP HẠNG</Link>
+          <Link to="/tutorial" className="toy-button text-sm">📖 HƯỚNG DẪN</Link>
           <button onClick={handleLogout} className="toy-button text-sm">🚪 ĐĂNG XUẤT</button>
         </div>
       </header>

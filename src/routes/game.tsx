@@ -103,24 +103,34 @@ function GamePage() {
     setQuestionResult(null);
   };
 
+  const closeQuestion = () => {
+    setQuestion(null);
+    setQuestionResult(null);
+  };
+
   const answerQuestion = (idx: number) => {
     if (!question) return;
+    let next: GameState;
+    let resultText: string;
     if (idx === question.answer) {
-      setState({
+      next = {
         ...state,
         money: state.money + question.reward,
         correctAnswers: state.correctAnswers + 1,
         answerStreak: state.answerStreak + 1,
-      });
-      setQuestionResult(`✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`);
+      };
+      resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
-      setState({ ...state, answerStreak: 0 });
-      setQuestionResult(`❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`);
+      next = { ...state, answerStreak: 0 };
+      resultText = `❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`;
     }
+    setState(next);
+    setQuestionResult(resultText);
+    // Sang câu mới sau 1.2s — KHÔNG đóng modal, người chơi trả lời liên tục
     setTimeout(() => {
-      setQuestion(null);
+      setQuestion(randomQuestion());
       setQuestionResult(null);
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -253,11 +263,14 @@ function GamePage() {
         </div>
       )}
 
-      {/* Question modal */}
+      {/* Question modal — trả lời liên tục */}
       {question && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4">
           <div className="glass-card max-w-md w-full p-6">
-            <div className="text-xs font-bold text-orange-700 mb-2">❓ Trả lời đúng để +{question.reward}đ</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-bold text-orange-700">❓ Trả lời đúng để +{question.reward}đ</div>
+              <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3">✖ Thoát</button>
+            </div>
             <h3 className="text-lg font-black mb-4">{question.q}</h3>
             <div className="grid grid-cols-1 gap-2">
               {question.options.map((opt, i) => (
@@ -274,6 +287,9 @@ function GamePage() {
             {questionResult && (
               <div className="mt-4 text-center font-black text-lg">{questionResult}</div>
             )}
+            <p className="text-[11px] font-bold text-muted-foreground mt-3 text-center">
+              Trả lời sẽ tự sang câu tiếp theo. Bấm <span className="text-orange-600">✖ Thoát</span> để dừng.
+            </p>
           </div>
         </div>
       )}

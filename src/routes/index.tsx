@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import {
-  findUserStrict,
+  findUserByName,
   sendRequest,
   listFriends,
   listIncomingRequests,
@@ -29,7 +29,6 @@ function Home() {
   const [friends, setFriends] = useState<Account[]>([]);
   const [incoming, setIncoming] = useState<{ from: Account; created_at: number }[]>([]);
   const [searchName, setSearchName] = useState("");
-  const [searchId, setSearchId] = useState("");
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");
 
@@ -54,8 +53,8 @@ function Home() {
 
   const handleSearch = () => {
     setFound(null); setSearchErr("");
-    const acc = findUserStrict(searchName, searchId);
-    if (!acc) { setSearchErr("ID hoặc tên đăng nhập sai!"); return; }
+    const acc = findUserByName(searchName);
+    if (!acc) { setSearchErr("Không tìm thấy người dùng với tên này!"); return; }
     if (acc.id === user.id) { setSearchErr("Không thể tự kết bạn với chính mình."); return; }
     setFound(acc);
   };
@@ -142,13 +141,8 @@ function Home() {
             <input
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              placeholder="Tên đăng nhập"
-              className="w-full mb-1 px-2 py-1 rounded-md border-2 border-white text-xs"
-            />
-            <input
-              value={searchId}
-              onChange={(e) => setSearchId(e.target.value)}
-              placeholder="ID (ví dụ: 3)"
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Nhập tên đăng nhập"
               className="w-full mb-2 px-2 py-1 rounded-md border-2 border-white text-xs"
             />
             <button onClick={handleSearch} className="w-full toy-button !text-xs !py-1.5">🔍 TÌM</button>

@@ -3,7 +3,7 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getLoginAt, getCurrentUser, getLoginStreak } from "@/lib/auth";
-import { loadGame, computeLevel } from "@/lib/game";
+import { loadGame, saveGame, computeLevel } from "@/lib/game";
 import { isClaimed, setClaimed } from "@/lib/claims";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });
@@ -156,8 +156,19 @@ function Utilities() {
 
   const handleClaim = (m: Milestone) => {
     if (!userId) { toast.error("Vui lòng đăng nhập."); return; }
+    // Trích số tiền từ chuỗi phần thưởng (vd: "+8đ", "50đ + 20 Gạch", "+100đ")
+    const matches = Array.from(m.reward.matchAll(/(\d+)\s*đ/g));
+    const moneyGain = matches.reduce((s, x) => s + parseInt(x[1], 10), 0);
+    if (moneyGain > 0) {
+      const g = loadGame();
+      saveGame({ ...g, money: g.money + moneyGain });
+    }
     setClaimed(userId, claimKey(m), tab, levelOf(m));
-    toast.success(`🎉 Đã cộng quà tặng: ${m.reward}`);
+    toast.success(
+      moneyGain > 0
+        ? `🎉 +${moneyGain}đ đã cộng vào tài khoản! (${m.reward})`
+        : `🎉 Đã nhận quà: ${m.reward}`,
+    );
     setClaimTick((t) => t + 1);
   };
 

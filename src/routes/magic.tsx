@@ -1203,6 +1203,55 @@ function MagicPage() {
         </div>
       )}
 
+      {/* S2 room action banners + buttons */}
+      {s2Room && !witch && !quiz5 && (
+        <>
+          <div className="absolute top-16 right-3 z-20 glass-card px-3 py-2 text-xs font-black max-w-xs">
+            {s2Room.kind === "pirate" && (s2Room.phase < 5000 ? "🏴‍☠️ Sóng vỗ... rương đang trồi lên..." : "🪙 Rương cướp biển đã xuất hiện!")}
+            {s2Room.kind === "forest" && (s2Room.phase < 5000 ? "🌲 Hồ tĩnh lặng... có gì đang nổi lên..." : "🛡️ Khiên thần đã hiện ra giữa hồ!")}
+            {s2Room.kind === "potion" && (s2Room.phase < 5000 ? "🌑 Bóng tối... có ánh sáng đỏ..." : "🧪 Lọ thuốc hồi máu đã xuất hiện!")}
+            {s2Room.kind === "stars" && "✨ Phòng trống đầy sao..."}
+            {s2Room.kind === "room5quiz" && "📜 Trả lời 5 câu để mở rương!"}
+            {s2Room.kind === "room5stars" && "🌫️ Lối thoát yên bình..."}
+          </div>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+            {s2Room.kind === "pirate" && s2Room.phase >= 5000 && (
+              <button onClick={s2OpenChestPirate} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương (+25)</button>
+            )}
+            {s2Room.kind === "forest" && s2Room.phase >= 5000 && (
+              <button onClick={s2PickShield} className="toy-button toy-button-primary !text-base px-6 py-3">🛡️ Nhặt khiên</button>
+            )}
+            {s2Room.kind === "potion" && s2Room.phase >= 5000 && (
+              <button onClick={s2PickPotion} className="toy-button toy-button-primary !text-base px-6 py-3">🧪 Nhặt thuốc</button>
+            )}
+            {s2Room.kind === "stars" && (
+              <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 Rời phòng</button>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Shield button — round, glowing, only during witch fight */}
+      {witch && s2Inv.shield && (
+        <button
+          onClick={useShield}
+          className="absolute z-30"
+          style={{
+            right: 24, bottom: 220, width: 88, height: 88, borderRadius: "50%",
+            background: "radial-gradient(circle at 30% 30%, #5fd0ff, #1a3550)",
+            border: "3px solid #bfeaff",
+            boxShadow: `0 0 ${20 + shieldBlink % 2 * 20}px #5fd0ff, inset 0 0 18px rgba(255,255,255,0.6)`,
+            cursor: witch.phase === "cast" ? "pointer" : "default",
+            opacity: witch.phase === "cast" ? 1 : 0.55,
+            fontSize: 36,
+          }}
+          title="Bấm để chống tia sét"
+        >
+          🛡️
+        </button>
+      )}
+
+
       {/* controls hint */}
       {!room && stage !== "transition" && (
         <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20">

@@ -1296,6 +1296,9 @@ function MagicPage() {
             {s2Room.kind === "stars" && (
               <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 Rời phòng</button>
             )}
+            {s2Room.kind === "room5quiz" && !quiz5 && !room5ChestOpened && (
+              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương</button>
+            )}
           </div>
         </>
       )}

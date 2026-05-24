@@ -230,62 +230,78 @@ function Stage2Sconces() {
   );
 }
 
-// ============ GHOSTS — glowing patrol mobs ============
-function pathLength() {
-  let total = 0;
-  for (let i = 1; i < GHOST_PATH.length; i++) {
-    total += Math.hypot(GHOST_PATH[i][0] - GHOST_PATH[i - 1][0], GHOST_PATH[i][1] - GHOST_PATH[i - 1][1]);
-  }
-  return total;
-}
-const PATH_LEN = pathLength();
+// ============ GHOSTS — random spawn (wall/floor/ceiling) ============
+export const GHOST_POSITIONS: { x: number; z: number; y: number; alive: boolean }[] = [];
 
-function pointAlongPath(t: number): [number, number] {
-  // t in [0, 1)
-  const target = ((t % 1) + 1) % 1 * PATH_LEN;
-  let acc = 0;
-  for (let i = 1; i < GHOST_PATH.length; i++) {
-    const [x1, z1] = GHOST_PATH[i - 1];
-    const [x2, z2] = GHOST_PATH[i];
-    const seg = Math.hypot(x2 - x1, z2 - z1);
-    if (acc + seg >= target) {
-      const f = (target - acc) / seg;
-      return [x1 + (x2 - x1) * f, z1 + (z2 - z1) * f];
-    }
-    acc += seg;
+function randomPointInSegment(): [number, number] {
+  const areas = S2_SEGMENTS.map(r => (r.xmax - r.xmin) * (r.zmax - r.zmin));
+  const total = areas.reduce((a, b) => a + b, 0);
+  let pick = Math.random() * total;
+  let r = S2_SEGMENTS[0];
+  for (let i = 0; i < S2_SEGMENTS.length; i++) {
+    if (pick < areas[i]) { r = S2_SEGMENTS[i]; break; }
+    pick -= areas[i];
   }
-  return GHOST_PATH[GHOST_PATH.length - 1];
+  const pad = 0.8;
+  const x = r.xmin + pad + Math.random() * (r.xmax - r.xmin - pad * 2);
+  const z = r.zmin + pad + Math.random() * (r.zmax - r.zmin - pad * 2);
+  return [x, z];
 }
+type SpawnMode = "wall" | "floor" | "ceiling";
 
-function Ghost({ phase, speed, dir }: { phase: number; speed: number; dir: 1 | -1 }) {
+function Ghost({ slot, initialDelay }: { slot: number; initialDelay: number }) {
   const ref = useRef<THREE.Group>(null!);
-  const t = useRef(phase);
-  useFrame((_, dt) => {
-    t.current += dt * speed * dir;
-    const [x, z] = pointAlongPath(t.current);
-    if (ref.current) {
-      ref.current.position.x = x;
-      ref.current.position.z = z;
-      ref.current.position.y = 1.4 + Math.sin((t.current + phase) * 3) * 0.18;
-      ref.current.rotation.y = Math.sin(t.current * 1.2) * 0.3;
-    }
+  const state = useRef({
+    pos: randomPointInSegment(),
+    mode: (["wall", "floor", "ceiling"] as SpawnMode[])[Math.floor(Math.random() * 3)],
+    bornAt: performance.now() + initialDelay,
+    lifeMs: 7000 + Math.random() * 4000,
   });
-  // Smooth rounded ghost — single capsule body, soft skirt, no sharp head bump.
-  // Uses a half-sphere top + cylinder middle + 6 small rounded tabs as a gentle "skirt".
+  useFrame(() => {
+    if (!ref.current) return;
+    const now = performance.now();
+    const age = now - state.current.bornAt;
+    if (age < 0) { ref.current.visible = false; GHOST_POSITIONS[slot] = { x: 0, z: 0, y: 0, alive: false }; return; }
+    if (age > state.current.lifeMs) {
+      state.current = {
+        pos: randomPointInSegment(),
+        mode: (["wall", "floor", "ceiling"] as SpawnMode[])[Math.floor(Math.random() * 3)],
+        bornAt: now + 600 + Math.random() * 1200,
+        lifeMs: 6000 + Math.random() * 4000,
+      };
+      return;
+    }
+    ref.current.visible = true;
+    const fadeIn = 1200, fadeOut = 1200;
+    const opacity = age < fadeIn ? age / fadeIn
+      : age > state.current.lifeMs - fadeOut ? Math.max(0, (state.current.lifeMs - age) / fadeOut) : 1;
+    let yBase = 1.4;
+    if (state.current.mode === "floor") yBase = 0.3 + Math.min(1, age / fadeIn) * 1.1;
+    if (state.current.mode === "ceiling") yBase = S2_H - 0.5 - Math.min(1, age / fadeIn) * 2.8;
+    const [x, z] = state.current.pos;
+    const wx = x + Math.sin(now / 1200 + slot) * 0.4;
+    const wz = z + Math.cos(now / 1300 + slot) * 0.4;
+    ref.current.position.set(wx, yBase + Math.sin(now / 700 + slot) * 0.12, wz);
+    ref.current.rotation.y = Math.sin(now / 1400 + slot) * 0.4;
+    GHOST_POSITIONS[slot] = { x: wx, z: wz, y: yBase, alive: opacity > 0.35 };
+    ref.current.traverse((c: any) => {
+      if (c.material && "opacity" in c.material) {
+        c.material.transparent = true;
+        c.material.opacity = 0.92 * opacity;
+      }
+    });
+  });
   return (
     <group ref={ref}>
       <pointLight intensity={1.6} distance={6.5} color="#cfeeff" decay={1.7} />
-      {/* rounded top dome */}
       <mesh position={[0, 0.15, 0]}>
         <sphereGeometry args={[0.55, 36, 28, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
         <meshStandardMaterial color="#ffffff" emissive="#e6f5ff" emissiveIntensity={1.5} transparent opacity={0.96} roughness={0.45} />
       </mesh>
-      {/* gown body */}
       <mesh position={[0, -0.18, 0]}>
         <cylinderGeometry args={[0.55, 0.52, 0.68, 36, 1, true]} />
         <meshStandardMaterial color="#ffffff" emissive="#e6f5ff" emissiveIntensity={1.4} transparent opacity={0.94} roughness={0.5} side={THREE.DoubleSide} />
       </mesh>
-      {/* soft scalloped bottom edge */}
       {Array.from({ length: 7 }).map((_, i) => {
         const a = (i / 7) * Math.PI * 2;
         return (
@@ -295,20 +311,9 @@ function Ghost({ phase, speed, dir }: { phase: number; speed: number; dir: 1 | -
           </mesh>
         );
       })}
-      {/* soft eyes */}
-      <mesh position={[-0.17, 0.22, 0.46]}>
-        <sphereGeometry args={[0.08, 18, 18]} />
-        <meshStandardMaterial color="#0a0a14" />
-      </mesh>
-      <mesh position={[0.17, 0.22, 0.46]}>
-        <sphereGeometry args={[0.08, 18, 18]} />
-        <meshStandardMaterial color="#0a0a14" />
-      </mesh>
-      {/* tiny nose dot */}
-      <mesh position={[0, 0.06, 0.52]}>
-        <sphereGeometry args={[0.04, 12, 12]} />
-        <meshStandardMaterial color="#0a0a14" />
-      </mesh>
+      <mesh position={[-0.17, 0.22, 0.46]}><sphereGeometry args={[0.08, 18, 18]} /><meshStandardMaterial color="#0a0a14" /></mesh>
+      <mesh position={[0.17, 0.22, 0.46]}><sphereGeometry args={[0.08, 18, 18]} /><meshStandardMaterial color="#0a0a14" /></mesh>
+      <mesh position={[0, 0.06, 0.52]}><sphereGeometry args={[0.04, 12, 12]} /><meshStandardMaterial color="#0a0a14" /></mesh>
     </group>
   );
 }
@@ -316,9 +321,11 @@ function Ghost({ phase, speed, dir }: { phase: number; speed: number; dir: 1 | -
 function Stage2Ghosts() {
   return (
     <>
-      <Ghost phase={0.0} speed={0.04} dir={1} />
-      <Ghost phase={0.35} speed={0.05} dir={-1} />
-      <Ghost phase={0.7} speed={0.045} dir={1} />
+      <Ghost slot={0} initialDelay={0} />
+      <Ghost slot={1} initialDelay={1400} />
+      <Ghost slot={2} initialDelay={2800} />
+      <Ghost slot={3} initialDelay={4200} />
+      <Ghost slot={4} initialDelay={5600} />
     </>
   );
 }

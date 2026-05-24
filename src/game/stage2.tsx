@@ -270,38 +270,44 @@ function Ghost({ phase, speed, dir }: { phase: number; speed: number; dir: 1 | -
       ref.current.rotation.y = Math.sin(t.current * 1.2) * 0.3;
     }
   });
+  // Smooth rounded ghost — single capsule body, soft skirt, no sharp head bump.
+  // Uses a half-sphere top + cylinder middle + 6 small rounded tabs as a gentle "skirt".
   return (
     <group ref={ref}>
-      {/* glowing aura */}
-      <pointLight intensity={1.4} distance={5} color="#9be6ff" decay={1.8} />
-      {/* body */}
-      <mesh>
-        <sphereGeometry args={[0.42, 20, 20]} />
-        <meshStandardMaterial color="#ffffff" emissive="#bfe6ff" emissiveIntensity={1.4} transparent opacity={0.92} />
+      <pointLight intensity={1.6} distance={6.5} color="#cfeeff" decay={1.7} />
+      {/* rounded top dome */}
+      <mesh position={[0, 0.15, 0]}>
+        <sphereGeometry args={[0.55, 36, 28, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+        <meshStandardMaterial color="#ffffff" emissive="#e6f5ff" emissiveIntensity={1.5} transparent opacity={0.96} roughness={0.45} />
       </mesh>
-      {/* head bump */}
-      <mesh position={[0, 0.18, 0]}>
-        <sphereGeometry args={[0.34, 18, 18]} />
-        <meshStandardMaterial color="#ffffff" emissive="#bfe6ff" emissiveIntensity={1.4} transparent opacity={0.92} />
+      {/* gown body */}
+      <mesh position={[0, -0.18, 0]}>
+        <cylinderGeometry args={[0.55, 0.52, 0.68, 36, 1, true]} />
+        <meshStandardMaterial color="#ffffff" emissive="#e6f5ff" emissiveIntensity={1.4} transparent opacity={0.94} roughness={0.5} side={THREE.DoubleSide} />
       </mesh>
-      {/* droopy tail */}
-      <mesh position={[0, -0.35, 0]}>
-        <coneGeometry args={[0.4, 0.7, 14]} />
-        <meshStandardMaterial color="#ffffff" emissive="#9be6ff" emissiveIntensity={1.6} transparent opacity={0.85} />
+      {/* soft scalloped bottom edge */}
+      {Array.from({ length: 7 }).map((_, i) => {
+        const a = (i / 7) * Math.PI * 2;
+        return (
+          <mesh key={i} position={[Math.cos(a) * 0.46, -0.58, Math.sin(a) * 0.46]}>
+            <sphereGeometry args={[0.18, 18, 18]} />
+            <meshStandardMaterial color="#ffffff" emissive="#e6f5ff" emissiveIntensity={1.4} transparent opacity={0.92} roughness={0.5} />
+          </mesh>
+        );
+      })}
+      {/* soft eyes */}
+      <mesh position={[-0.17, 0.22, 0.46]}>
+        <sphereGeometry args={[0.08, 18, 18]} />
+        <meshStandardMaterial color="#0a0a14" />
       </mesh>
-      {/* eyes */}
-      <mesh position={[-0.12, 0.22, 0.32]}>
-        <sphereGeometry args={[0.05, 10, 10]} />
-        <meshStandardMaterial color="#0a1a2a" />
+      <mesh position={[0.17, 0.22, 0.46]}>
+        <sphereGeometry args={[0.08, 18, 18]} />
+        <meshStandardMaterial color="#0a0a14" />
       </mesh>
-      <mesh position={[0.12, 0.22, 0.32]}>
-        <sphereGeometry args={[0.05, 10, 10]} />
-        <meshStandardMaterial color="#0a1a2a" />
-      </mesh>
-      {/* tiny smile */}
-      <mesh position={[0, 0.05, 0.38]} rotation={[0, 0, 0]}>
-        <torusGeometry args={[0.07, 0.012, 8, 14, Math.PI]} />
-        <meshStandardMaterial color="#222" />
+      {/* tiny nose dot */}
+      <mesh position={[0, 0.06, 0.52]}>
+        <sphereGeometry args={[0.04, 12, 12]} />
+        <meshStandardMaterial color="#0a0a14" />
       </mesh>
     </group>
   );

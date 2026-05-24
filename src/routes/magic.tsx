@@ -793,6 +793,10 @@ function RoomScene({ room }: { room: RoomState }) {
 
 
 // ============ MAIN ============
+type Stage = 1 | "transition" | 2;
+type S2RoomKind = "chest15" | "shield" | "potion" | "empty" | "room5";
+type S2DoorState = "closed" | "cleared";
+
 function MagicPage() {
   const navigate = useNavigate();
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
@@ -803,6 +807,19 @@ function MagicPage() {
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
+
+  // Stage 2 state
+  const [stage, setStage] = useState<Stage>(1);
+  const [exitOpen, setExitOpen] = useState(false);
+  const [exitDeadline, setExitDeadline] = useState<number | null>(null);
+  const [exitNow, setExitNow] = useState(Date.now());
+  const [s2Near, setS2Near] = useState<number | null>(null);
+  const [s2Doors, setS2Doors] = useState<S2DoorState[]>(Array(5).fill("closed"));
+  const [s2Modal, setS2Modal] = useState<null | { title: string; text: string; finished?: boolean }>(null);
+  const [s2Inv, setS2Inv] = useState<{ shield: boolean; potion: number }>({ shield: false, potion: 0 });
+  const [room5Open, setRoom5Open] = useState(false);
+  const [witch, setWitch] = useState<null | { hp: number; maxHp: number; question: Question | null; playerHp: number; phase: "cast" | "answer"; phaseStart: number; correct: number }>(null);
+  const [transStart, setTransStart] = useState<number | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -840,25 +857,114 @@ function MagicPage() {
     }
   }, [room, boss]);
 
-  // open door = enter room (or finish for exit)
+  // 20s exit timer ticker
   useEffect(() => {
+    if (!exitOpen || exitDeadline == null || stage !== 1) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExitNow(now);
+      if (now >= exitDeadline) {
+        // timed out — close back wall
+        setExitOpen(false);
+        setExitDeadline(null);
+        // mark door 10 as cleared so they can try again? keep closed so they can re-open
+        setDoors((d) => { const n = [...d]; n[9] = "closed"; return n; });
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, [exitOpen, exitDeadline, stage]);
+
+  // transition timer
+  useEffect(() => {
+    if (stage !== "transition" || transStart == null) return;
+    const t = setTimeout(() => {
+      setStage(2);
+      setTransStart(null);
+    }, 3200);
+    return () => clearTimeout(t);
+  }, [stage, transStart]);
+
+  // open door = enter room (or trigger exit for door 10)
+  useEffect(() => {
+    if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && intro === 2) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
         if (outcome.kind === "exit") {
-          setWon(true);
-          setModal({ kind: "exit", text: `🏆 Bạn đã thoát Stage 1! Tổng thưởng: ${coins} đồng` });
+          // OPEN BACK WALL + 20s timer instead of ending game
+          setExitOpen(true);
+          setExitDeadline(Date.now() + 20000);
+          if (document.exitPointerLock) document.exitPointerLock();
           return;
         }
-        // exit pointer lock so room camera is fixed
         if (document.exitPointerLock) document.exitPointerLock();
         setRoom({ doorIdx: near, outcome, phase: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [near, doors, modal, boss, room, coins, intro]);
+  }, [near, doors, modal, boss, room, intro, stage]);
+
+  // Stage 2: open door (E key)
+  useEffect(() => {
+    if (stage !== 2) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== "e" || s2Near == null) return;
+      if (s2Doors[s2Near] === "cleared" || s2Modal || room5Open || witch) return;
+      const idx = s2Near;
+      const kinds: S2RoomKind[] = ["chest15", "shield", "potion", "empty", "room5"];
+      const kind = kinds[idx];
+      if (document.exitPointerLock) document.exitPointerLock();
+      if (kind === "chest15") {
+        setCoins((c) => c + 15);
+        setS2Modal({ title: "🎁 Phòng 1 — Rương vàng", text: "Bạn tìm được rương! +15 đồng." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "shield") {
+        setS2Inv((v) => ({ ...v, shield: true }));
+        setS2Modal({ title: "🛡️ Phòng 2 — Khiên bảo vệ", text: "Bạn nhặt được khiên! Có thể chống tia sét của phù thủy." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "potion") {
+        setS2Inv((v) => ({ ...v, potion: v.potion + 2 }));
+        setS2Modal({ title: "🧪 Phòng 3 — Thuốc hồi máu", text: "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "empty") {
+        setS2Modal({ title: "🌫️ Phòng 4 — Trống", text: "Không có gì ở đây. Bạn rời đi." });
+        setS2Doors((d) => { const n = [...d]; n[idx] = "cleared"; return n; });
+      } else if (kind === "room5") {
+        setRoom5Open(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [s2Near, s2Doors, s2Modal, room5Open, witch, stage]);
+
+  // Witch phase ticker (cast lightning every 3s → then question)
+  useEffect(() => {
+    if (!witch) return;
+    const id = setInterval(() => {
+      setWitch((w) => {
+        if (!w) return w;
+        const elapsed = Date.now() - w.phaseStart;
+        if (w.phase === "cast" && elapsed >= 2000) {
+          // lightning resolves
+          let php = w.playerHp;
+          if (!s2Inv.shield) php -= 25; else php -= 8; // shield reduces
+          if (php < 30 && s2Inv.potion > 0) {
+            php = Math.min(100, php + 40);
+            setS2Inv((v) => ({ ...v, potion: v.potion - 1 }));
+          }
+          if (php <= 0) {
+            setS2Modal({ title: "💀 Thất bại", text: "Phù thủy đã hạ gục bạn. Hãy thử cánh cửa khác!" });
+            return null;
+          }
+          return { ...w, phase: "answer", phaseStart: Date.now(), question: randomQuestion(), playerHp: php };
+        }
+        return w;
+      });
+    }, 100);
+    return () => clearInterval(id);
+  }, [witch, s2Inv.shield, s2Inv.potion]);
 
   const exitRoom = (cleared: boolean) => {
     if (room) {
@@ -900,22 +1006,98 @@ function MagicPage() {
     setModal({ kind: "chest", text: `🎁 Rương vàng! +${(room.outcome as any).reward} đồng` });
   };
 
+  // Room 5 sub-door choices
+  const chooseRoom5 = (door: 1 | 2 | 3) => {
+    setRoom5Open(false);
+    if (door === 2) {
+      setS2Modal({ title: "🚪 Cửa 2 — Lối thoát", text: "Bạn chọn cánh cửa trống và thoát nhẹ nhàng. Stage 2 hoàn thành!", finished: true });
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+    } else if (door === 1) {
+      // 10 medium questions
+      setWitch(null);
+      runQuiz10();
+    } else if (door === 3) {
+      setWitch({ hp: 100, maxHp: 100, question: null, playerHp: 100, phase: "cast", phaseStart: Date.now(), correct: 0 });
+    }
+  };
+
+  const [quiz10, setQuiz10] = useState<null | { q: Question; idx: number; correct: number }>(null);
+  const runQuiz10 = () => {
+    setQuiz10({ q: randomQuestion(), idx: 0, correct: 0 });
+  };
+  const answerQuiz10 = (i: number) => {
+    if (!quiz10) return;
+    const isCorrect = i === quiz10.q.answer;
+    const nextCorrect = quiz10.correct + (isCorrect ? 1 : 0);
+    const nextIdx = quiz10.idx + 1;
+    if (nextIdx >= 10) {
+      const reward = nextCorrect * 15;
+      setCoins((c) => c + reward);
+      setQuiz10(null);
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Bạn trả lời đúng ${nextCorrect}/10 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      return;
+    }
+    setQuiz10({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+
+  const answerWitch = (i: number) => {
+    if (!witch || !witch.question) return;
+    const isCorrect = i === witch.question.answer;
+    if (isCorrect) {
+      const newHp = Math.max(0, witch.hp - 20);
+      const newCorrect = witch.correct + 1;
+      if (newHp <= 0) {
+        setCoins((c) => c + 100);
+        setWitch(null);
+        setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+        setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "Bạn đã đánh bại phù thủy! +100 đồng. Stage 2 hoàn thành!", finished: true });
+        return;
+      }
+      setWitch({ ...witch, hp: newHp, correct: newCorrect, phase: "cast", phaseStart: Date.now(), question: null });
+    } else {
+      setWitch({ ...witch, phase: "cast", phaseStart: Date.now(), question: null });
+    }
+  };
+
   // chest fully revealed after 5s reveal
   const chestReady = room?.outcome.kind === "chest" && room.phase >= 7000;
   const emptyReady = room?.outcome.kind === "empty" && room.phase >= 1500;
 
+  const exitSeconds = exitDeadline ? Math.max(0, Math.ceil((exitDeadline - exitNow) / 1000)) : 0;
 
   return (
     <div className="relative w-full h-screen bg-black">
       <Canvas shadows camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 2]}>
         <Suspense fallback={null}>
-          {room ? (
+          {stage === 1 && room ? (
             <RoomScene room={room} />
+          ) : stage === 1 ? (
+            <>
+              <CorridorScene doors={doors} exitOpen={exitOpen} />
+              <PlayerController
+                active={!modal && !won && intro === 2}
+                onNearDoor={setNear}
+                exitOpen={exitOpen}
+                onExitCross={() => { setStage("transition"); setTransStart(Date.now()); }}
+              />
+              {!modal && !won && intro === 2 && <PointerLockControls />}
+            </>
+          ) : stage === "transition" ? (
+            <>
+              <color attach="background" args={["#000"]} />
+              <ambientLight intensity={0.02} />
+            </>
           ) : (
             <>
-              <CorridorScene doors={doors} />
-              <PlayerController active={!modal && !won && intro === 2} onNearDoor={setNear} />
-              {!modal && !won && intro === 2 && <PointerLockControls />}
+              <Stage2Scene />
+              <Stage2PlayerController
+                active={!s2Modal && !room5Open && !witch && !quiz10}
+                onNearDoor={setS2Near}
+              />
+              {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
+              {witch && <Lightning active={witch.phase === "cast"} />}
+              {!s2Modal && !room5Open && !witch && !quiz10 && <PointerLockControls />}
             </>
           )}
         </Suspense>

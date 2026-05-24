@@ -1514,6 +1514,31 @@ function MagicPage() {
         </div>
       )}
 
+      {/* Lightning screen flash during witch cast */}
+      {witch && witch.phase === "cast" && (
+        <div
+          className="absolute inset-0 z-20 pointer-events-none"
+          style={{ background: "rgba(220,240,255,0.55)", animation: "lightFlash 0.5s ease-out infinite" }}
+        />
+      )}
+      <style>{`@keyframes lightFlash { 0%,100%{opacity:0;} 10%,30%{opacity:1;} 20%{opacity:0.3;} 50%{opacity:0;} }`}</style>
+
+      {/* Ghost collision quiz */}
+      {ghostQuiz && (
+        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-5">
+            <p className="text-lg font-black mb-3 text-center">👻 Bị ma tấn công! Trả lời nhanh (+20đ nếu đúng)</p>
+            <p className="font-black mb-3">❓ {ghostQuiz.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {ghostQuiz.options.map((opt, i) => (
+                <button key={i} onClick={() => answerGhostQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Creepy intro overlay */}
       {intro < 2 && (
         <div

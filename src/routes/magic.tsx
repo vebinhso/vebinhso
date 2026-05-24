@@ -1139,12 +1139,12 @@ function MagicPage() {
             <>
               <Stage2Scene />
               <Stage2PlayerController
-                active={!s2Modal && !room5Open && !witch && !quiz10}
+                active={!s2Modal && !room5Open && !witch && !quiz5}
                 onNearDoor={setS2Near}
               />
               {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
               {witch && <Lightning active={witch.phase === "cast"} />}
-              {!s2Modal && !room5Open && !witch && !quiz10 && <PointerLockControls />}
+              {!s2Modal && !room5Open && !witch && !quiz5 && <PointerLockControls />}
             </>
           )}
         </Suspense>
@@ -1187,7 +1187,7 @@ function MagicPage() {
       )}
 
       {/* hint stage 2 */}
-      {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz10 && (
+      {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz5 && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
           Nhấn <span className="text-orange-600">E</span> để vào Phòng {s2Near + 1}
         </div>
@@ -1339,16 +1339,16 @@ function MagicPage() {
       )}
 
       {/* Quiz of 10 (door 1 in room 5) */}
-      {quiz10 && (
+      {quiz5 && (
         <div className="absolute inset-x-0 bottom-0 z-30 p-4">
           <div className="max-w-2xl mx-auto glass-card p-4">
             <div className="flex items-center justify-between mb-2 text-xs font-black">
-              <span>📜 Cửa 1 — Câu {quiz10.idx + 1}/10</span>
-              <span>✅ Đúng: {quiz10.correct}</span>
+              <span>📜 Cửa 1 — Câu {quiz5.idx + 1}/5</span>
+              <span>✅ Đúng: {quiz5.correct}</span>
             </div>
-            <p className="font-black text-base mb-3">❓ {quiz10.q.q}</p>
+            <p className="font-black text-base mb-3">❓ {quiz5.q.q}</p>
             <div className="grid grid-cols-2 gap-2">
-              {quiz10.q.options.map((opt, i) => (
+              {quiz5.q.options.map((opt, i) => (
                 <button key={i} onClick={() => answerQuiz10(i)} className="toy-button !text-sm py-2">{opt}</button>
               ))}
             </div>

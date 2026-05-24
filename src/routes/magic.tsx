@@ -860,6 +860,9 @@ function MagicPage() {
   const [shieldBlink, setShieldBlink] = useState(0);
   const [transStart, setTransStart] = useState<number | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [pirateChestOpened, setPirateChestOpened] = useState(false);
+  const [room5ChestOpened, setRoom5ChestOpened] = useState(false);
+  const [ghostQuiz, setGhostQuiz] = useState<Question | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {

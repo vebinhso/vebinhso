@@ -103,24 +103,34 @@ function GamePage() {
     setQuestionResult(null);
   };
 
+  const closeQuestion = () => {
+    setQuestion(null);
+    setQuestionResult(null);
+  };
+
   const answerQuestion = (idx: number) => {
     if (!question) return;
+    let next: GameState;
+    let resultText: string;
     if (idx === question.answer) {
-      setState({
+      next = {
         ...state,
         money: state.money + question.reward,
         correctAnswers: state.correctAnswers + 1,
         answerStreak: state.answerStreak + 1,
-      });
-      setQuestionResult(`✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`);
+      };
+      resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
-      setState({ ...state, answerStreak: 0 });
-      setQuestionResult(`❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`);
+      next = { ...state, answerStreak: 0 };
+      resultText = `❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`;
     }
+    setState(next);
+    setQuestionResult(resultText);
+    // Sang câu mới sau 1.2s — KHÔNG đóng modal, người chơi trả lời liên tục
     setTimeout(() => {
-      setQuestion(null);
+      setQuestion(randomQuestion());
       setQuestionResult(null);
-    }, 1500);
+    }, 1200);
   };
 
   return (

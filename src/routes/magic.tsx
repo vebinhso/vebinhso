@@ -954,7 +954,8 @@ function MagicPage() {
     return () => clearInterval(id);
   }, [s2Room]);
 
-  // Witch phase ticker (cast lightning every 3s → then question)
+  // Witch fight: 5 lightning waves. Each wave = 2s cast phase → player must press shield button
+  // to block; resolves; then 1 question, correct answer = -20 boss HP. Win if boss HP <= 0.
   useEffect(() => {
     if (!witch) return;
     const id = setInterval(() => {
@@ -962,9 +963,10 @@ function MagicPage() {
         if (!w) return w;
         const elapsed = Date.now() - w.phaseStart;
         if (w.phase === "cast" && elapsed >= 2000) {
-          // lightning resolves
           let php = w.playerHp;
-          if (!s2Inv.shield) php -= 25; else php -= 8; // shield reduces
+          const blocked = shieldUsedRef.current && s2Inv.shield;
+          if (!blocked) php -= 22;
+          shieldUsedRef.current = false;
           if (php < 30 && s2Inv.potion > 0) {
             php = Math.min(100, php + 40);
             setS2Inv((v) => ({ ...v, potion: v.potion - 1 }));
@@ -980,6 +982,12 @@ function MagicPage() {
     }, 100);
     return () => clearInterval(id);
   }, [witch, s2Inv.shield, s2Inv.potion]);
+
+  const useShield = () => {
+    if (!witch || witch.phase !== "cast" || !s2Inv.shield) return;
+    shieldUsedRef.current = true;
+    setShieldBlink((n) => n + 1);
+  };
 
   const exitRoom = (cleared: boolean) => {
     if (room) {
@@ -1021,58 +1029,82 @@ function MagicPage() {
     setModal({ kind: "chest", text: `🎁 Rương vàng! +${(room.outcome as any).reward} đồng` });
   };
 
+  // === S2 room actions ===
+  const s2ClearAndExit = (doorIdx: number, title: string, text: string, finished = false) => {
+    setS2Doors((d) => { const n = [...d]; n[doorIdx] = "cleared"; return n; });
+    setS2Room(null);
+    setS2Modal({ title, text, finished });
+  };
+  const s2PickShield = () => {
+    setS2Inv((v) => ({ ...v, shield: true }));
+    s2ClearAndExit(1, "🛡️ Khiên bảo vệ", "Bạn nhặt được khiên thần! Dùng nút khiên để chống tia sét.");
+  };
+  const s2PickPotion = () => {
+    setS2Inv((v) => ({ ...v, potion: v.potion + 2 }));
+    s2ClearAndExit(2, "🧪 Thuốc hồi máu", "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp.");
+  };
+  const s2OpenChestPirate = () => {
+    setCoins((c) => c + 25);
+    s2ClearAndExit(0, "🏴‍☠️ Kho báu cướp biển", "+25 đồng. Bạn rời khỏi tàu cướp biển!");
+  };
+  const s2ExitStars = () => {
+    s2ClearAndExit(3, "✨ Phòng sao", "Bạn rời căn phòng trống đầy sao.");
+  };
+
   // Room 5 sub-door choices
   const chooseRoom5 = (door: 1 | 2 | 3) => {
     setRoom5Open(false);
-    if (door === 2) {
-      setS2Modal({ title: "🚪 Cửa 2 — Lối thoát", text: "Bạn chọn cánh cửa trống và thoát nhẹ nhàng. Stage 2 hoàn thành!", finished: true });
-      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-    } else if (door === 1) {
-      // 10 medium questions
-      setWitch(null);
-      runQuiz10();
+    if (door === 1) {
+      // 5-question quiz then chest
+      setS2Room({ kind: "room5quiz", doorIdx: 4, phase: 0 });
+      setQuiz5({ q: randomQuestion(), idx: 0, correct: 0 });
+    } else if (door === 2) {
+      setS2Room({ kind: "room5stars", doorIdx: 4, phase: 0 });
     } else if (door === 3) {
-      setWitch({ hp: 100, maxHp: 100, question: null, playerHp: 100, phase: "cast", phaseStart: Date.now(), correct: 0 });
+      setS2Room({ kind: "witch", doorIdx: 4, phase: 0 });
+      setWitch({ hp: 100, maxHp: 100, question: null, playerHp: 100, phase: "cast", phaseStart: Date.now(), correct: 0, wave: 1 });
     }
   };
 
-  const [quiz10, setQuiz10] = useState<null | { q: Question; idx: number; correct: number }>(null);
-  const runQuiz10 = () => {
-    setQuiz10({ q: randomQuestion(), idx: 0, correct: 0 });
-  };
-  const answerQuiz10 = (i: number) => {
-    if (!quiz10) return;
-    const isCorrect = i === quiz10.q.answer;
-    const nextCorrect = quiz10.correct + (isCorrect ? 1 : 0);
-    const nextIdx = quiz10.idx + 1;
-    if (nextIdx >= 10) {
-      const reward = nextCorrect * 15;
+  const [quiz5, setQuiz5] = useState<null | { q: Question; idx: number; correct: number }>(null);
+  const answerQuiz5 = (i: number) => {
+    if (!quiz5) return;
+    const isCorrect = i === quiz5.q.answer;
+    const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
+    const nextIdx = quiz5.idx + 1;
+    if (nextIdx >= 5) {
+      const reward = nextCorrect * 20;
       setCoins((c) => c + reward);
-      setQuiz10(null);
+      setQuiz5(null);
       setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Bạn trả lời đúng ${nextCorrect}/10 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      setS2Room(null);
+      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${nextCorrect}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
       return;
     }
-    setQuiz10({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
   };
 
   const answerWitch = (i: number) => {
     if (!witch || !witch.question) return;
     const isCorrect = i === witch.question.answer;
-    if (isCorrect) {
-      const newHp = Math.max(0, witch.hp - 20);
-      const newCorrect = witch.correct + 1;
-      if (newHp <= 0) {
-        setCoins((c) => c + 100);
-        setWitch(null);
-        setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-        setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "Bạn đã đánh bại phù thủy! +100 đồng. Stage 2 hoàn thành!", finished: true });
-        return;
-      }
-      setWitch({ ...witch, hp: newHp, correct: newCorrect, phase: "cast", phaseStart: Date.now(), question: null });
-    } else {
-      setWitch({ ...witch, phase: "cast", phaseStart: Date.now(), question: null });
+    const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
+    const newCorrect = witch.correct + (isCorrect ? 1 : 0);
+    if (newHp <= 0) {
+      setCoins((c) => c + 100);
+      setWitch(null);
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Room(null);
+      setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "+100 đồng. Stage 2 hoàn thành!", finished: true });
+      return;
     }
+    const nextWave = witch.wave + 1;
+    if (nextWave > 5) {
+      // 5 waves done, boss still alive
+      setWitch(null);
+      setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
+      return;
+    }
+    setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });
   };
 
   // chest fully revealed after 5s reveal

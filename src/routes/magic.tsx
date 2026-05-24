@@ -1132,15 +1132,24 @@ function MagicPage() {
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
     if (nextIdx >= 5) {
-      const reward = nextCorrect * 20;
-      addCoins(reward);
       setQuiz5(null);
-      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-      setS2Room(null);
-      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${nextCorrect}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      // Show chest, player must press "Mở rương"
+      (window as any).__room5correct = nextCorrect;
       return;
     }
     setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+  const openRoom5Chest = () => {
+    const correct = (window as any).__room5correct ?? 0;
+    setRoom5ChestOpened(true);
+    setTimeout(() => {
+      const reward = correct * 20;
+      addCoins(reward);
+      setRoom5ChestOpened(false);
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Room(null);
+      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${correct}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+    }, 1600);
   };
 
   const answerWitch = (i: number) => {

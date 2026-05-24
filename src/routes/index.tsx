@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import {
-  findUserStrict,
+  findUserByName,
   sendRequest,
   listFriends,
   listIncomingRequests,

@@ -814,6 +814,25 @@ type S2RoomKind = "pirate" | "forest" | "potion" | "stars" | "room5quiz" | "room
 type S2DoorState = "closed" | "cleared";
 type S2Room = { kind: S2RoomKind; doorIdx: number; phase: number; picked?: boolean };
 
+const MAGIC_SAVE_KEY = "vebinhso_magic_progress";
+type MagicSave = {
+  stage: 1 | 2;
+  doors: DoorState[];
+  s2Doors: S2DoorState[];
+  s2Inv: { shield: boolean; potion: number };
+  coins: number;
+};
+function loadMagic(): MagicSave | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(MAGIC_SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveMagic(s: MagicSave) {
+  try { localStorage.setItem(MAGIC_SAVE_KEY, JSON.stringify(s)); } catch {}
+}
+
 function MagicPage() {
   const navigate = useNavigate();
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
@@ -840,6 +859,7 @@ function MagicPage() {
   const shieldUsedRef = useRef(false);
   const [shieldBlink, setShieldBlink] = useState(0);
   const [transStart, setTransStart] = useState<number | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -850,7 +870,26 @@ function MagicPage() {
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
     setOutfit(loadOutfit() || DEFAULT_OUTFIT);
+    // Hydrate saved progress
+    const saved = loadMagic();
+    if (saved) {
+      if (saved.stage === 2) setStage(2);
+      setDoors(saved.doors || Array(10).fill("closed"));
+      setS2Doors(saved.s2Doors || Array(5).fill("closed"));
+      setS2Inv(saved.s2Inv || { shield: false, potion: 0 });
+      setCoins(saved.coins || 0);
+    }
+    setHydrated(true);
   }, [navigate]);
+
+  // Auto-save progress
+  useEffect(() => {
+    if (!hydrated) return;
+    saveMagic({
+      stage: stage === "transition" ? 1 : (stage as 1 | 2),
+      doors, s2Doors, s2Inv, coins,
+    });
+  }, [hydrated, stage, doors, s2Doors, s2Inv, coins]);
 
   // room phase ticker
   useEffect(() => {

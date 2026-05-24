@@ -85,26 +85,37 @@ function CorridorWalls({ exitOpen = false }: { exitOpen?: boolean }) {
         </mesh>
       ) : (
         <group position={[0, 0, -CORRIDOR_LEN / 2]}>
-          {/* dark void beyond */}
-          <mesh position={[0, WALL_H / 2, -0.1]}>
+          {/* dark void beyond — pushed back so player clearly walks through */}
+          <mesh position={[0, WALL_H / 2, -1.2]}>
             <planeGeometry args={[CORRIDOR_W, WALL_H]} />
             <meshBasicMaterial color="#000" />
           </mesh>
-          {/* glowing arch frame */}
+          {/* glowing arch frame — left, right, top pillars */}
           <mesh position={[-CORRIDOR_W / 2 + 0.25, WALL_H / 2, 0.02]}>
             <boxGeometry args={[0.3, WALL_H, 0.3]} />
-            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff7030" emissiveIntensity={2.6} />
           </mesh>
           <mesh position={[CORRIDOR_W / 2 - 0.25, WALL_H / 2, 0.02]}>
             <boxGeometry args={[0.3, WALL_H, 0.3]} />
-            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff7030" emissiveIntensity={2.6} />
           </mesh>
           <mesh position={[0, WALL_H - 0.15, 0.02]}>
             <boxGeometry args={[CORRIDOR_W, 0.3, 0.3]} />
-            <meshStandardMaterial color="#1a0d05" emissive="#ff6020" emissiveIntensity={1.4} />
+            <meshStandardMaterial color="#1a0d05" emissive="#ff7030" emissiveIntensity={2.6} />
           </mesh>
-          <pointLight position={[0, WALL_H - 0.4, 0.5]} intensity={3.5} distance={14} color="#ff8040" />
-          <pointLight position={[0, 0.5, 0.5]} intensity={2.2} distance={10} color="#ff5020" />
+          {/* glowing threshold strip on the floor — invites the player to step through */}
+          <mesh position={[0, 0.02, 0.05]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[CORRIDOR_W - 0.6, 0.25]} />
+            <meshStandardMaterial color="#ffb060" emissive="#ff8030" emissiveIntensity={3} />
+          </mesh>
+          {/* swirling portal disc inside the arch */}
+          <mesh position={[0, WALL_H / 2, -0.2]}>
+            <planeGeometry args={[CORRIDOR_W - 0.7, WALL_H - 0.5]} />
+            <meshBasicMaterial color="#ff7030" transparent opacity={0.18} />
+          </mesh>
+          <pointLight position={[0, WALL_H - 0.4, 0.5]} intensity={5} distance={20} color="#ff9050" />
+          <pointLight position={[0, 0.5, 0.5]} intensity={3.5} distance={14} color="#ff5020" />
+          <pointLight position={[0, WALL_H / 2, 2.5]} intensity={2.2} distance={12} color="#ffb070" />
         </group>
       )}
       <mesh position={[0, WALL_H / 2, CORRIDOR_LEN / 2]} rotation={[0, Math.PI, 0]}>
@@ -662,7 +673,9 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { activ
   const grounded = useRef(true);
   const exited = useRef(false);
   useEffect(() => {
-    camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 2);
+    // spawn at the FRONT of the corridor, facing the back wall (where the exit portal opens)
+    camera.position.set(0, 1.7, CORRIDOR_LEN / 2 - 2);
+    camera.lookAt(0, 1.6, -CORRIDOR_LEN / 2);
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);

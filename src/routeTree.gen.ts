@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as PlayRouteImport } from './routes/play'
@@ -28,6 +29,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorialRoute = TutorialRouteImport.update({
+  id: '/tutorial',
+  path: '/tutorial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopRoute = ShopRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
+  '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
+  '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
 }
 export interface FileRoutesById {
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
   '/shop': typeof ShopRoute
+  '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
 }
 export interface FileRouteTypes {
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/play'
     | '/ranking'
     | '/shop'
+    | '/tutorial'
     | '/verify'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/play'
     | '/ranking'
     | '/shop'
+    | '/tutorial'
     | '/verify'
   id:
     | '__root__'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/play'
     | '/ranking'
     | '/shop'
+    | '/tutorial'
     | '/verify'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   PlayRoute: typeof PlayRoute
   RankingRoute: typeof RankingRoute
   ShopRoute: typeof ShopRoute
+  TutorialRoute: typeof TutorialRoute
   VerifyRoute: typeof VerifyRoute
 }
 
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutorial': {
+      id: '/tutorial'
+      path: '/tutorial'
+      fullPath: '/tutorial'
+      preLoaderRoute: typeof TutorialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shop': {
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayRoute: PlayRoute,
   RankingRoute: RankingRoute,
   ShopRoute: ShopRoute,
+  TutorialRoute: TutorialRoute,
   VerifyRoute: VerifyRoute,
 }
 export const routeTree = rootRouteImport

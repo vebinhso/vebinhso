@@ -662,7 +662,9 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { activ
   const grounded = useRef(true);
   const exited = useRef(false);
   useEffect(() => {
-    camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 2);
+    // spawn at the FRONT of the corridor, facing the back wall (where the exit portal opens)
+    camera.position.set(0, 1.7, CORRIDOR_LEN / 2 - 2);
+    camera.lookAt(0, 1.6, -CORRIDOR_LEN / 2);
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);

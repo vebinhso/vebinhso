@@ -891,6 +891,13 @@ function MagicPage() {
     });
   }, [hydrated, stage, doors, s2Doors, s2Inv, coins]);
 
+  // Cộng vàng vừa cho local HUD vừa vào game.money toàn cục
+  const addCoins = (n: number) => {
+    setCoins((c) => c + n);
+    const g = loadGame();
+    saveGame({ ...g, money: g.money + n });
+  };
+
   // room phase ticker
   useEffect(() => {
     if (!room) return;

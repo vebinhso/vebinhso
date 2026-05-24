@@ -29,7 +29,6 @@ function Home() {
   const [friends, setFriends] = useState<Account[]>([]);
   const [incoming, setIncoming] = useState<{ from: Account; created_at: number }[]>([]);
   const [searchName, setSearchName] = useState("");
-  const [searchId, setSearchId] = useState("");
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");
 
@@ -54,8 +53,8 @@ function Home() {
 
   const handleSearch = () => {
     setFound(null); setSearchErr("");
-    const acc = findUserStrict(searchName, searchId);
-    if (!acc) { setSearchErr("ID hoặc tên đăng nhập sai!"); return; }
+    const acc = findUserByName(searchName);
+    if (!acc) { setSearchErr("Không tìm thấy người dùng với tên này!"); return; }
     if (acc.id === user.id) { setSearchErr("Không thể tự kết bạn với chính mình."); return; }
     setFound(acc);
   };

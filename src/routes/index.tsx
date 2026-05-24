@@ -141,13 +141,8 @@ function Home() {
             <input
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              placeholder="Tên đăng nhập"
-              className="w-full mb-1 px-2 py-1 rounded-md border-2 border-white text-xs"
-            />
-            <input
-              value={searchId}
-              onChange={(e) => setSearchId(e.target.value)}
-              placeholder="ID (ví dụ: 3)"
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Nhập tên đăng nhập"
               className="w-full mb-2 px-2 py-1 rounded-md border-2 border-white text-xs"
             />
             <button onClick={handleSearch} className="w-full toy-button !text-xs !py-1.5">🔍 TÌM</button>

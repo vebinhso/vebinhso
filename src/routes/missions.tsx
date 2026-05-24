@@ -3,7 +3,7 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getLoginAt, getCurrentUser, getLoginStreak } from "@/lib/auth";
-import { loadGame, computeLevel } from "@/lib/game";
+import { loadGame, saveGame, computeLevel } from "@/lib/game";
 import { isClaimed, setClaimed } from "@/lib/claims";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });

@@ -349,7 +349,7 @@ export function Stage2Corridor() {
 }
 
 // ============ PLAYER ============
-export function Stage2PlayerController({ active, onNearDoor }: { active: boolean; onNearDoor: (idx: number | null) => void }) {
+export function Stage2PlayerController({ active, onNearDoor, onGhostHit }: { active: boolean; onNearDoor: (idx: number | null) => void; onGhostHit?: () => void }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);

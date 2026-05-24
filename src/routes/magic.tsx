@@ -8,7 +8,7 @@ import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
-import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene } from "@/game/stage2rooms";
+import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -860,6 +860,9 @@ function MagicPage() {
   const [shieldBlink, setShieldBlink] = useState(0);
   const [transStart, setTransStart] = useState<number | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [pirateChestOpened, setPirateChestOpened] = useState(false);
+  const [room5ChestOpened, setRoom5ChestOpened] = useState(false);
+  const [ghostQuiz, setGhostQuiz] = useState<Question | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -1090,11 +1093,21 @@ function MagicPage() {
     s2ClearAndExit(2, "🧪 Thuốc hồi máu", "Bạn nhặt được 2 lọ thuốc hồi máu! Tự hồi khi máu thấp.");
   };
   const s2OpenChestPirate = () => {
-    addCoins(25);
-    s2ClearAndExit(0, "🏴‍☠️ Kho báu cướp biển", "+25 đồng. Bạn rời khỏi tàu cướp biển!");
+    setPirateChestOpened(true);
+    setTimeout(() => {
+      addCoins(25);
+      setPirateChestOpened(false);
+      s2ClearAndExit(0, "🏴‍☠️ Kho báu cướp biển", "+25 đồng. Bạn rời khỏi tàu cướp biển!");
+    }, 1600);
   };
   const s2ExitStars = () => {
-    s2ClearAndExit(3, "✨ Phòng sao", "Bạn rời căn phòng trống đầy sao.");
+    s2ClearAndExit(3, "🕷️ Phòng mạng nhện", "Bạn rời căn phòng tối đầy mạng nhện.");
+  };
+  const answerGhostQuiz = (i: number) => {
+    if (!ghostQuiz) return;
+    const correct = i === ghostQuiz.answer;
+    if (correct) addCoins(20);
+    setGhostQuiz(null);
   };
 
   // Room 5 sub-door choices
@@ -1119,15 +1132,24 @@ function MagicPage() {
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
     if (nextIdx >= 5) {
-      const reward = nextCorrect * 20;
-      addCoins(reward);
       setQuiz5(null);
-      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-      setS2Room(null);
-      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${nextCorrect}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      // Show chest, player must press "Mở rương"
+      (window as any).__room5correct = nextCorrect;
       return;
     }
     setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+  const openRoom5Chest = () => {
+    const correct = (window as any).__room5correct ?? 0;
+    setRoom5ChestOpened(true);
+    setTimeout(() => {
+      const reward = correct * 20;
+      addCoins(reward);
+      setRoom5ChestOpened(false);
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Room(null);
+      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${correct}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+    }, 1600);
   };
 
   const answerWitch = (i: number) => {
@@ -1183,13 +1205,13 @@ function MagicPage() {
             </>
           ) : s2Room ? (
             <>
-              {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} />}
+              {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} chestOpened={pirateChestOpened} />}
               {s2Room.kind === "forest" && <ForestLakeScene shieldVisible={s2Room.phase >= 5000} />}
               {s2Room.kind === "potion" && <DarkPotionScene potionVisible={s2Room.phase >= 5000} />}
-              {s2Room.kind === "stars" && <S2StarRoomScene />}
-              {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!quiz5} />}
+              {s2Room.kind === "stars" && <SpiderWebRoomScene />}
+              {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!!quiz5 ? false : true} chestOpened={room5ChestOpened} />}
               {s2Room.kind === "room5stars" && <S2StarRoomScene />}
-              {s2Room.kind === "witch" && <DarkPotionScene potionVisible={false} />}
+              {s2Room.kind === "witch" && <WitchRoomScene flashIntensity={witch?.phase === "cast" ? 1 : 0} />}
               {witch && <Witch visible hp={witch.hp} maxHp={witch.maxHp} />}
               {witch && <Lightning active={witch.phase === "cast"} />}
             </>
@@ -1197,10 +1219,11 @@ function MagicPage() {
             <>
               <Stage2Scene />
               <Stage2PlayerController
-                active={!s2Modal && !room5Open && !witch && !quiz5}
+                active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz}
                 onNearDoor={setS2Near}
+                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
               />
-              {!s2Modal && !room5Open && !witch && !quiz5 && <PointerLockControls />}
+              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && <PointerLockControls />}
             </>
           )}
         </Suspense>
@@ -1272,6 +1295,9 @@ function MagicPage() {
             )}
             {s2Room.kind === "stars" && (
               <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 Rời phòng</button>
+            )}
+            {s2Room.kind === "room5quiz" && !quiz5 && !room5ChestOpened && (
+              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương</button>
             )}
           </div>
         </>
@@ -1487,6 +1513,31 @@ function MagicPage() {
           </div>
         </div>
       )}
+
+      {/* Lightning screen flash during witch cast */}
+      {witch && witch.phase === "cast" && (
+        <div
+          className="absolute inset-0 z-20 pointer-events-none"
+          style={{ background: "rgba(220,240,255,0.55)", animation: "lightFlash 0.5s ease-out infinite" }}
+        />
+      )}
+      <style>{`@keyframes lightFlash { 0%,100%{opacity:0;} 10%,30%{opacity:1;} 20%{opacity:0.3;} 50%{opacity:0;} }`}</style>
+
+      {/* Ghost collision quiz */}
+      {ghostQuiz && (
+        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
+          <div className="glass-card max-w-md w-full p-5">
+            <p className="text-lg font-black mb-3 text-center">👻 Bị ma tấn công! Trả lời nhanh (+20đ nếu đúng)</p>
+            <p className="font-black mb-3">❓ {ghostQuiz.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {ghostQuiz.options.map((opt, i) => (
+                <button key={i} onClick={() => answerGhostQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Creepy intro overlay */}
       {intro < 2 && (

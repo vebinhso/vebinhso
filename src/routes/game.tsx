@@ -190,8 +190,68 @@ function GamePage() {
     flash("🧹 Đã gỡ tường");
   };
 
-  // Wall-mode: click 2 pillars to build between them
+  const removeRoof = (id: string) => {
+    const r = state.roofs.find((x) => x.id === id);
+    const refundNW = r?.value ?? 0;
+    setState({
+      ...state,
+      roofs: state.roofs.filter((x) => x.id !== id),
+      netWorth: Math.max(0, state.netWorth - refundNW),
+    });
+    flash("🧹 Đã gỡ mái nhà");
+  };
+
+  // Build wall between 2 pillars, or build roof from 4 pillars
   const onPillarClick = (placedId: string) => {
+    if (roofMode) {
+      // Toggle pick: deselect if already chosen
+      if (roofPicks.includes(placedId)) {
+        setRoofPicks(roofPicks.filter((x) => x !== placedId));
+        return;
+      }
+      const next = [...roofPicks, placedId];
+      if (next.length < 4) {
+        setRoofPicks(next);
+        flash(`Đã chọn ${next.length}/4 cột trụ chính cho mái nhà.`);
+        return;
+      }
+      // 4 pillars chosen → compute bounding box
+      const corners = next
+        .map((id) => state.placed.find((p) => p.id === id))
+        .filter(Boolean) as PlacedItem[];
+      const xs = corners.map((p) => p.x - 10 + 0.5);
+      const zs = corners.map((p) => p.z - 10 + 0.5);
+      const ax = Math.min(...xs), bx = Math.max(...xs);
+      const az = Math.min(...zs), bz = Math.max(...zs);
+      const w = Math.max(1, Math.round(bx - ax));
+      const d = Math.max(1, Math.round(bz - az));
+      const tilesNeeded = w * d;
+      const inv = roofStyle === "ton" ? state.roofTilesTon : state.roofTiles;
+      if (inv < tilesNeeded) {
+        flash(`❌ Thiếu gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}! Cần ${tilesNeeded} (đang có ${inv}).`, 3000);
+        setRoofPicks([]);
+        return;
+      }
+      const it = getItem(roofStyle === "ton" ? "roof_ton" : "roof");
+      const unitPrice = it ? it.price / (it.qty ?? 10) : 5;
+      const value = Math.round(unitPrice * tilesNeeded);
+      const seg: RoofSegment = {
+        id: `r-${Date.now()}`,
+        ax, az, bx, bz,
+        style: roofStyle,
+        value,
+      };
+      setState({
+        ...state,
+        roofTiles: roofStyle === "tile" ? state.roofTiles - tilesNeeded : state.roofTiles,
+        roofTilesTon: roofStyle === "ton" ? state.roofTilesTon - tilesNeeded : state.roofTilesTon,
+        roofs: [...state.roofs, seg],
+        netWorth: state.netWorth + value,
+      });
+      setRoofPicks([]);
+      flash(`🏠 Xây mái nhà ${w}m × ${d}m — tốn ${tilesNeeded} gạch mái.`, 2500);
+      return;
+    }
     if (!wallMode) return;
     if (!wallPickA) {
       setWallPickA(placedId);
@@ -209,7 +269,6 @@ function GamePage() {
       setWallPickA(null);
       return;
     }
-    // Center of each pillar in world coords
     const ax = A.x - 10 + 0.5;
     const az = A.z - 10 + 0.5;
     const bx = B.x - 10 + 0.5;

@@ -449,6 +449,8 @@ function GamePage() {
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none max-w-[92vw] text-center">
         {wallMode
           ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
+          : roofMode
+          ? `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`
           : "🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}
       </div>
 
@@ -499,6 +501,7 @@ function GamePage() {
                 const label =
                   kind === "brick" ? "MUA GẠCH" :
                   kind === "concrete" ? "MUA BÊ TÔNG" :
+                  kind === "rooftile" ? "MUA GẠCH MÁI" :
                   kind === "palette" ? "MỞ PALETTE" :
                   "MUA & ĐẶT";
                 return (

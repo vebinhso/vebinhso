@@ -10,7 +10,10 @@ import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;
 const CELL = 1;
-const PATH = 3;
+// Đường đi 1 ô bao quanh mảnh đất 20x20 ⇒ (22² − 20²) = 84 ô đường
+const PATH = 1;
+// Toàn bộ vùng nông thôn: 220×220 = 48,400 grid cells
+const WORLD = 220;
 
 type Props = {
   placed: PlacedItem[];

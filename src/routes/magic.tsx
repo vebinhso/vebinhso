@@ -1301,17 +1301,22 @@ function MagicPage() {
 
         <Suspense fallback={null}>
           {stage === 1 && room ? (
-            <RoomScene room={room} />
+            <RoomScene room={room} animalName={currentAnimal} />
           ) : stage === 1 ? (
             <>
-              <CorridorScene doors={doors} exitOpen={exitOpen} />
+              <CorridorScene
+                doors={doors}
+                exitOpen={exitOpen}
+                onTigerHit={onTigerHit}
+                tigersActive={!modal && !won && !animalQuiz && intro === 2}
+              />
               <PlayerController
-                active={!modal && !won && intro === 2}
+                active={!modal && !won && !animalQuiz && intro === 2}
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
               />
-              {!modal && !won && intro === 2 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
             </>
           ) : stage === "transition" ? (
             <>
@@ -1323,7 +1328,13 @@ function MagicPage() {
               {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} chestOpened={pirateChestOpened} />}
               {s2Room.kind === "forest" && <ForestLakeScene shieldVisible={s2Room.phase >= 5000} />}
               {s2Room.kind === "potion" && <DarkPotionScene potionVisible={s2Room.phase >= 5000} />}
-              {s2Room.kind === "stars" && <SpiderWebRoomScene />}
+              {s2Room.kind === "stars" && (
+                <>
+                  <SpiderWebRoomScene />
+                  <RoomCameraSetup />
+                  {currentAnimal && <RandomAnimal name={currentAnimal} />}
+                </>
+              )}
               {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!!quiz5 ? false : true} chestOpened={room5ChestOpened} />}
               {s2Room.kind === "room5stars" && <S2StarRoomScene />}
               {s2Room.kind === "witch" && <WitchRoomScene flashIntensity={witch?.phase === "cast" ? 1 : 0} />}

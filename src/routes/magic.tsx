@@ -149,20 +149,21 @@ function CorridorDoor({ pos, rotY, state, index }: { pos: [number, number, numbe
   const ref = useRef<THREE.Group>(null!);
   useFrame(() => {
     if (!ref.current) return;
-    const target = state === "open" || state === "cleared" ? Math.PI / 2.2 : 0;
+    // Only "open" animates — "cleared" doors look identical to "closed" (no progress indicator)
+    const target = state === "open" ? Math.PI / 2.2 : 0;
     ref.current.rotation.y += (target - ref.current.rotation.y) * 0.1;
   });
   return (
     <group position={pos} rotation={[0, rotY, 0]}>
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[1.6, 3, 0.15]} />
-        <meshStandardMaterial color={state === "cleared" ? "#4a5d3a" : "#5a3a1a"} />
+        <meshStandardMaterial color="#5a3a1a" />
       </mesh>
       <group position={[-0.6, 0, 0]}>
         <group ref={ref}>
           <mesh position={[0.6, 1.4, 0.05]} castShadow>
             <boxGeometry args={[1.2, 2.6, 0.1]} />
-            <meshStandardMaterial color={state === "cleared" ? "#6b8e4a" : "#8b5a2b"} metalness={0.2} roughness={0.6} />
+            <meshStandardMaterial color="#8b5a2b" metalness={0.2} roughness={0.6} />
           </mesh>
           <mesh position={[1.05, 1.4, 0.12]}>
             <sphereGeometry args={[0.08, 10, 10]} />

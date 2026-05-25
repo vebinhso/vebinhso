@@ -1021,6 +1021,13 @@ function MagicPage() {
           return;
         }
         if (document.exitPointerLock) document.exitPointerLock();
+        // Save corridor return position right in front of this door (facing into corridor)
+        {
+          const side = near % 2 === 0 ? -1 : 1;
+          const z = -CORRIDOR_LEN / 2 + DOOR_SPACING * (Math.floor(near / 2) + 1);
+          const x = side * (CORRIDOR_W / 2 - 1.4);
+          corridorSpawnRef.current = { x, z, lookX: -side, lookZ: 0 };
+        }
         if (outcome.kind === "animal") {
           setCurrentAnimal(pickRandomAnimal(Date.now() + near));
         } else {
@@ -1303,6 +1310,7 @@ function MagicPage() {
       setDoors(Array(10).fill("closed"));
       setRoom(null); setModal(null); setBoss(null); setWon(false);
       setExitOpen(false); setExitDeadline(null);
+      corridorSpawnRef.current = null;
       setStage(1);
       setIntro(0);
     } else {
@@ -1336,6 +1344,7 @@ function MagicPage() {
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
+                spawnRef={corridorSpawnRef}
               />
               {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
             </>

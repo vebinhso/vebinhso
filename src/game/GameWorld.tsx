@@ -309,8 +309,8 @@ function Neighborhood() {
     { wall: "#fed7aa", roof: "#9a3412" },
     { wall: "#ffffff", roof: "#1f2937" },
   ];
-  const houses: React.ReactNode[] = [];
-  const trees: React.ReactNode[] = [];
+  const houses: ReactNode[] = [];
+  const trees: ReactNode[] = [];
   let i = 0;
   for (let gx = -worldHalf + STEP / 2; gx < worldHalf; gx += STEP) {
     for (let gz = -worldHalf + STEP / 2; gz < worldHalf; gz += STEP) {

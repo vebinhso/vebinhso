@@ -894,6 +894,7 @@ function MagicPage() {
   const [stage2Unlocked, setStage2Unlocked] = useState(false);
   const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
   const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
+  const s2SpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => {

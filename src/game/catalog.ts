@@ -19,6 +19,10 @@ export type CatalogItem = {
   color: string;
   icon: string;
   shape?: "box" | "cylinder";
+  // "place" (mặc định): chọn rồi đặt; "brick"/"concrete": mua dồn kho vật liệu;
+  // "palette": mở khung chọn màu sơn tường
+  kind?: "place" | "brick" | "concrete" | "palette";
+  qty?: number; // số lượng cộng vào kho mỗi lần mua
 };
 
 export const CATALOG: CatalogItem[] = [

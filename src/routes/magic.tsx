@@ -19,7 +19,7 @@ export const Route = createFileRoute("/magic")({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
       },
     ],
   }),
@@ -669,22 +669,28 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
 
 
 // ============ PLAYER (corridor) ============
-function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void }) {
+function PlayerController({ active, onNearDoor, exitOpen, onExitCross, spawnRef }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void; spawnRef?: React.MutableRefObject<{ x: number; z: number; lookX: number; lookZ: number } | null> }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
   const exited = useRef(false);
   useEffect(() => {
-    // spawn at the BACK of the corridor (near door 1, near where the exit portal opens),
-    // facing the far end of the corridor (toward door 10).
-    camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
-    camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
+    const s = spawnRef?.current;
+    if (s) {
+      camera.position.set(s.x, 1.7, s.z);
+      camera.lookAt(s.x + s.lookX, 1.6, s.z + s.lookZ);
+    } else {
+      // spawn at the BACK of the corridor (near door 1, near where the exit portal opens),
+      // facing the far end of the corridor (toward door 10).
+      camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
+      camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
+    }
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);
     return () => { window.removeEventListener("keydown", d); window.removeEventListener("keyup", u); };
-  }, [camera]);
+  }, [camera, spawnRef]);
 
   useFrame((_, dt) => {
     if (!active) return;
@@ -886,6 +892,7 @@ function MagicPage() {
   const [ghostQuiz, setGhostQuiz] = useState<Question | null>(null);
   const [stage2Unlocked, setStage2Unlocked] = useState(false);
   const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
+  const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -1014,6 +1021,13 @@ function MagicPage() {
           return;
         }
         if (document.exitPointerLock) document.exitPointerLock();
+        // Save corridor return position right in front of this door (facing into corridor)
+        {
+          const side = near % 2 === 0 ? -1 : 1;
+          const z = -CORRIDOR_LEN / 2 + DOOR_SPACING * (Math.floor(near / 2) + 1);
+          const x = side * (CORRIDOR_W / 2 - 1.4);
+          corridorSpawnRef.current = { x, z, lookX: -side, lookZ: 0 };
+        }
         if (outcome.kind === "animal") {
           setCurrentAnimal(pickRandomAnimal(Date.now() + near));
         } else {
@@ -1296,6 +1310,7 @@ function MagicPage() {
       setDoors(Array(10).fill("closed"));
       setRoom(null); setModal(null); setBoss(null); setWon(false);
       setExitOpen(false); setExitDeadline(null);
+      corridorSpawnRef.current = null;
       setStage(1);
       setIntro(0);
     } else {
@@ -1329,6 +1344,7 @@ function MagicPage() {
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
+                spawnRef={corridorSpawnRef}
               />
               {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
             </>
@@ -1477,7 +1493,7 @@ function MagicPage() {
           <h1
             className="text-6xl md:text-8xl font-black tracking-widest"
             style={{
-              fontFamily: "'Pirata One', 'Special Elite', serif",
+              fontFamily: "'Anton', sans-serif",
               color: "#c0c0c0",
               textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
               animation: "khuVuc2Fade 3.2s ease-in-out forwards",
@@ -1727,19 +1743,33 @@ function MagicPage() {
               nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
             </p>
           ) : (
-            <h1
-              className="relative text-7xl md:text-9xl"
-              style={{
-                fontFamily: "'Pirata One', 'Special Elite', 'Montserrat', serif",
-                color: "#a30000",
-                textShadow:
-                  "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
-                animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
-                letterSpacing: "0.08em",
-              }}
-            >
-              CHẠY ĐI
-            </h1>
+            <div className="relative flex flex-col items-center gap-4">
+              <h1
+                className="text-7xl md:text-9xl"
+                style={{
+                  fontFamily: "'Anton', sans-serif",
+                  color: "#a30000",
+                  textShadow:
+                    "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                  animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                CHẠY ĐI !
+              </h1>
+              <h2
+                className="text-4xl md:text-6xl"
+                style={{
+                  fontFamily: "'Anton', sans-serif",
+                  color: "#ffb070",
+                  letterSpacing: "0.18em",
+                  textShadow: "0 0 14px #ff6020, 0 4px 0 #4a1500",
+                  animation: "creepyFade 2.6s ease-out 0.4s both",
+                }}
+              >
+                KHU VỰC 1
+              </h2>
+            </div>
           )}
           <style>{`
             @keyframes creepyFade {
@@ -1781,8 +1811,8 @@ function MagicPage() {
       {selectedArea === null && (
         <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Pirata One', 'Special Elite', serif", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
-              🗺️ Bản đồ Ma Thuật
+            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
+              BẢN ĐỒ MA THUẬT
             </h1>
             <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>
           </div>

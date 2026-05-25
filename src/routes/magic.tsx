@@ -821,6 +821,7 @@ type MagicSave = {
   s2Doors: S2DoorState[];
   s2Inv: { shield: boolean; potion: number };
   coins: number;
+  stage2Unlocked?: boolean;
 };
 function loadMagic(): MagicSave | null {
   if (typeof window === "undefined") return null;
@@ -863,6 +864,8 @@ function MagicPage() {
   const [pirateChestOpened, setPirateChestOpened] = useState(false);
   const [room5ChestOpened, setRoom5ChestOpened] = useState(false);
   const [ghostQuiz, setGhostQuiz] = useState<Question | null>(null);
+  const [stage2Unlocked, setStage2Unlocked] = useState(false);
+  const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
 
   const [intro, setIntro] = useState<0 | 1 | 2>(0);
   useEffect(() => {
@@ -876,11 +879,11 @@ function MagicPage() {
     // Hydrate saved progress
     const saved = loadMagic();
     if (saved) {
-      if (saved.stage === 2) setStage(2);
       setDoors(saved.doors || Array(10).fill("closed"));
       setS2Doors(saved.s2Doors || Array(5).fill("closed"));
       setS2Inv(saved.s2Inv || { shield: false, potion: 0 });
       setCoins(saved.coins || 0);
+      setStage2Unlocked(!!saved.stage2Unlocked || saved.stage === 2);
     }
     setHydrated(true);
   }, [navigate]);
@@ -890,9 +893,9 @@ function MagicPage() {
     if (!hydrated) return;
     saveMagic({
       stage: stage === "transition" ? 1 : (stage as 1 | 2),
-      doors, s2Doors, s2Inv, coins,
+      doors, s2Doors, s2Inv, coins, stage2Unlocked,
     });
-  }, [hydrated, stage, doors, s2Doors, s2Inv, coins]);
+  }, [hydrated, stage, doors, s2Doors, s2Inv, coins, stage2Unlocked]);
 
   // Cộng vàng vừa cho local HUD vừa vào game.money toàn cục
   const addCoins = (n: number) => {

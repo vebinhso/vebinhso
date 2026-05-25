@@ -1098,6 +1098,14 @@ function MagicPage() {
       const idx = s2Near;
       const kinds: S2RoomKind[] = ["pirate", "forest", "potion", "stars", "room5quiz"];
       const kind = kinds[idx];
+      // Save spawn position right in front of this door (facing into the corridor)
+      const door = S2_DOORS[idx];
+      if (door) {
+        const dx = door.approach[0] - door.x;
+        const dz = door.approach[1] - door.z;
+        const len = Math.hypot(dx, dz) || 1;
+        s2SpawnRef.current = { x: door.approach[0], z: door.approach[1], lookX: dx / len, lookZ: dz / len };
+      }
       if (document.exitPointerLock) document.exitPointerLock();
       if (idx === 4) {
         // Phòng 5: mở bảng chọn cửa con

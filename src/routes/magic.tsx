@@ -1496,14 +1496,15 @@ function MagicPage() {
             className="text-6xl md:text-8xl font-black tracking-widest"
             style={{
               fontFamily: "'Anton', sans-serif",
-              color: "#c0c0c0",
-              textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
-              animation: "khuVuc2Fade 3.2s ease-in-out forwards",
+              color: "#ff1a1a",
+              letterSpacing: "0.2em",
+              textShadow: "0 0 18px #ff0000, 0 0 36px #6a0000, 0 4px 0 #2a0000",
+              animation: "khuVuc2Fade 3.2s ease-in-out forwards, creepyShake 0.22s infinite",
             }}
           >
             KHU VỰC 2
           </h1>
-          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} }`}</style>
+          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} } @keyframes creepyShake { 0%{transform:translate(0,0);} 25%{transform:translate(-1px,1px);} 50%{transform:translate(1px,-1px);} 75%{transform:translate(-1px,-1px);} 100%{transform:translate(1px,1px);} }`}</style>
         </div>
       )}
 

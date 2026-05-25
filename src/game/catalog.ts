@@ -149,9 +149,8 @@ export const CATALOG: CatalogItem[] = [
   { id: "tile_waterproof", name: "Gạch chống thấm", category: "Vật liệu", price: 8, w: 1, d: 1, h: 0.1, color: "#a8a29e", icon: "🟦" },
   { id: "tile_pattern", name: "Gạch hoạ tiết", category: "Vật liệu", price: 12, w: 1, d: 1, h: 0.1, color: "#fcd34d", icon: "🟨" },
   { id: "tile_pattern_wp", name: "Gạch hoạ tiết chống thấm", category: "Vật liệu", price: 18, w: 1, d: 1, h: 0.1, color: "#fb923c", icon: "🟧" },
-  { id: "concrete", name: "Bê tông tươi", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder" },
   { id: "paint", name: "Sơn (xô)", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.5, color: "#f43f5e", icon: "🎨", shape: "cylinder" },
-  { id: "palette", name: "Palette màu tường", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨" },
+  { id: "palette", name: "Palette màu tường (mở khung chọn)", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨", kind: "palette" },
 ];
 
 export const CATEGORIES = [

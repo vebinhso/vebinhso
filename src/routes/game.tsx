@@ -197,24 +197,24 @@ function GamePage() {
       setWallPickA(null);
       return;
     }
+    const brickUnit = getItem("brick_pack");
+    const concreteUnit = getItem("concrete");
+    const wallValue = Math.round(
+      (brickUnit ? (brickUnit.price / (brickUnit.qty ?? 10)) * cost.bricks : 0) +
+      (concreteUnit ? (concreteUnit.price / (concreteUnit.qty ?? 1)) * cost.concrete : 0)
+    );
     const seg: WallSegment = {
       id: `w-${Date.now()}`,
       ax, az, bx, bz,
       color: state.wallColor,
-      value: 0,
+      value: wallValue,
     };
-    // Giá trị tường = giá vật liệu đã dùng để xây (cộng vào tài sản ròng)
-    const brickUnit = getItem("brick_pack");
-    const concreteUnit = getItem("concrete");
-    const wallValue =
-      (brickUnit ? (brickUnit.price / (brickUnit.qty ?? 10)) * cost.bricks : 0) +
-      (concreteUnit ? (concreteUnit.price / (concreteUnit.qty ?? 1)) * cost.concrete : 0);
     setState({
       ...state,
       bricks: state.bricks - cost.bricks,
       concrete: state.concrete - cost.concrete,
       walls: [...state.walls, seg],
-      netWorth: state.netWorth + Math.round(wallValue),
+      netWorth: state.netWorth + wallValue,
     });
     setWallPickA(null);
     flash(`🧱 Xây tường ${cost.length}m × ${WALL_HEIGHT}m — tốn ${cost.bricks} gạch + ${cost.concrete} bê tông.`, 2500);

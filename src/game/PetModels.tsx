@@ -32,8 +32,13 @@ export function Animal({ name, scale = 1 }: { name: AnimalName; scale?: number |
   return <primitive object={cloned} scale={scale as any} />;
 }
 
-// ============ Tiger walks from darkness (replaces blue monster at room with progress 0..1) ============
-export function TigerEmerging({ progress, baseZ = -9 }: { progress: number; baseZ?: number }) {
+// Player camera in room is at z=-2 → animal stands 2.8 cells in front of player
+const PLAYER_Z = -2;
+const STAND_Z = PLAYER_Z - 2.8; // -4.8
+const DARK_Z = -9.5;
+
+// ============ Tiger walks out of darkness (ends 2.8 cells in front of player) ============
+export function TigerEmerging({ progress, baseZ = DARK_Z }: { progress: number; baseZ?: number }) {
   const ref = useRef<THREE.Group>(null!);
   const t = useRef(0);
   useFrame((_, dt) => {
@@ -42,9 +47,7 @@ export function TigerEmerging({ progress, baseZ = -9 }: { progress: number; base
       ref.current.position.y = 0.05 + Math.abs(Math.sin(t.current * 5)) * 0.04;
     }
   });
-  const startZ = baseZ;
-  const endZ = -5;
-  const z = startZ + (endZ - startZ) * progress;
+  const z = baseZ + (STAND_Z - baseZ) * progress;
   const reveal = Math.min(1, progress * 1.4);
   return (
     <group ref={ref} position={[0, 0.05, z]} rotation={[0, 0, 0]} scale={[reveal * 1.7, reveal * 1.7, reveal * 1.7]}>
@@ -67,7 +70,7 @@ export function ParrotDescending({ progress }: { progress: number }) {
   const y = startY + (endY - startY) * progress;
   const reveal = Math.min(1, progress * 1.4);
   return (
-    <group ref={ref} position={[0, y, -5]} scale={[reveal * 1.6, reveal * 1.6, reveal * 1.6]}>
+    <group ref={ref} position={[0, y, STAND_Z]} scale={[reveal * 1.6, reveal * 1.6, reveal * 1.6]}>
       <Animal name="parrot" />
       <pointLight position={[0, 0.5, 0]} intensity={1.4} distance={5} color="#a0ffd0" />
     </group>
@@ -82,13 +85,11 @@ export function BeaverEmerging({ progress }: { progress: number }) {
   const y = startY + (endY - startY) * progress;
   const reveal = Math.min(1, progress * 1.4);
   return (
-    <group position={[0, 0, -5]}>
-      {/* Dirt mound rim */}
+    <group position={[0, 0, STAND_Z]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]} receiveShadow>
         <ringGeometry args={[0.75, 1.35, 28]} />
         <meshStandardMaterial color="#3a2410" roughness={1} />
       </mesh>
-      {/* Dark hole interior */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0]}>
         <circleGeometry args={[0.78, 28]} />
         <meshStandardMaterial color="#0a0604" roughness={1} />
@@ -101,7 +102,7 @@ export function BeaverEmerging({ progress }: { progress: number }) {
   );
 }
 
-// ============ Random non-special animal (for "animal2q" doors) ============
+// ============ Random animal — walks out of darkness, ends 2.8 cells from player ============
 const RANDOM_POOL: AnimalName[] = ANIMAL_NAMES.filter(
   (n) => n !== "tiger" && n !== "parrot" && n !== "beaver"
 ) as AnimalName[];
@@ -110,18 +111,21 @@ export function pickRandomAnimal(seed: number): AnimalName {
   return RANDOM_POOL[Math.abs(seed) % RANDOM_POOL.length];
 }
 
-export function RandomAnimal({ name }: { name: AnimalName }) {
+export function RandomAnimal({ name, progress = 1 }: { name: AnimalName; progress?: number }) {
   const ref = useRef<THREE.Group>(null!);
   const t = useRef(0);
   useFrame((_, dt) => {
     t.current += dt;
-    if (ref.current) {
-      ref.current.position.y = 0.05 + Math.sin(t.current * 2.5) * 0.10;
+    if (ref.current && progress >= 1) {
       ref.current.rotation.y = Math.sin(t.current * 0.8) * 0.35;
     }
   });
+  const p = Math.max(0, Math.min(1, progress));
+  const z = DARK_Z + (STAND_Z - DARK_Z) * p;
+  const bob = p >= 1 ? Math.sin(t.current * 2.5) * 0.08 : 0;
+  const reveal = Math.min(1, p * 1.4);
   return (
-    <group ref={ref} position={[0, 0.05, -5]} scale={1.7}>
+    <group ref={ref} position={[0, 0.05 + bob, z]} scale={1.7 * reveal}>
       <Animal name={name} />
       <pointLight position={[0, 1.2, 0.6]} intensity={1.5} distance={5} color="#bfe6ff" />
     </group>

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/magic")({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
       },
     ],
   }),

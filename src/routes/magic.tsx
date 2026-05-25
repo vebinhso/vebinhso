@@ -1744,29 +1744,32 @@ function MagicPage() {
               <br />
               nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
             </p>
-          ) : (
+          ) : intro === 1 ? (
             <div className="relative flex flex-col items-center gap-4">
               <h1
                 className="text-7xl md:text-9xl"
                 style={{
                   fontFamily: "'Anton', sans-serif",
-                  color: "#a30000",
+                  color: "#ff1a1a",
                   textShadow:
-                    "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                    "0 0 10px #ff0000, 0 0 28px #8a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
                   animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
                   letterSpacing: "0.08em",
                 }}
               >
                 CHẠY ĐI !
               </h1>
+            </div>
+          ) : (
+            <div className="relative flex flex-col items-center gap-4">
               <h2
-                className="text-4xl md:text-6xl"
+                className="text-6xl md:text-8xl"
                 style={{
                   fontFamily: "'Anton', sans-serif",
-                  color: "#ffb070",
+                  color: "#ff1a1a",
                   letterSpacing: "0.18em",
-                  textShadow: "0 0 14px #ff6020, 0 4px 0 #4a1500",
-                  animation: "creepyFade 2.6s ease-out 0.4s both",
+                  textShadow: "0 0 14px #ff0000, 0 0 28px #6a0000, 0 4px 0 #2a0000",
+                  animation: "creepyFade 2.4s ease-out both, creepyShake 0.22s infinite",
                 }}
               >
                 KHU VỰC 1

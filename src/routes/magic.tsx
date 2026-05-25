@@ -1232,7 +1232,9 @@ function MagicPage() {
     }, 1600);
   };
   const s2ExitStars = () => {
-    s2ClearAndExit(3, "🕷️ Phòng mạng nhện", "Bạn rời căn phòng tối đầy mạng nhện.");
+    setS2Doors((d) => { const n = [...d]; n[3] = "cleared"; return n; });
+    setS2Room(null);
+    setGameComplete(true);
   };
   const answerGhostQuiz = (i: number) => {
     if (!ghostQuiz) return;

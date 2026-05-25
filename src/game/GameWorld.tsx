@@ -94,7 +94,7 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
     ref.current.position.y += yVel.current * dt;
     if (ref.current.position.y <= 0) { ref.current.position.y = 0; yVel.current = 0; grounded.current = true; }
 
-    const limit = (GRID + PATH * 2) / 2;
+    const limit = WORLD / 2 - 0.5;
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
     ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 

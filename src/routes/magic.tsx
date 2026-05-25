@@ -1319,6 +1319,14 @@ function MagicPage() {
   const chestReady = room?.outcome.kind === "chest" && room.phase >= 7000;
   const emptyReady = room?.outcome.kind === "empty" && room.phase >= 1500;
 
+  // Stage 2 completion celebration — auto count up to 10s, then show "Về trang chủ" button
+  useEffect(() => {
+    if (!gameComplete) { setCompleteElapsed(0); return; }
+    const start = Date.now();
+    const t = setInterval(() => setCompleteElapsed((Date.now() - start) / 1000), 100);
+    return () => clearInterval(t);
+  }, [gameComplete]);
+
   const exitSeconds = exitDeadline ? Math.max(0, Math.ceil((exitDeadline - exitNow) / 1000)) : 0;
 
   // Area selection overlay

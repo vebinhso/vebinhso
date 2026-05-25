@@ -835,6 +835,118 @@ function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalNa
 }
 
 
+
+// ============ Game complete overlay (Stage 2 done): glowing Anton text + fireworks ============
+function Firework({ side, delay }: { side: "left" | "right"; delay: number }) {
+  // Random palette per spark cluster
+  const colors = ["#fde047", "#ef4444", "#22d3ee", "#a855f7", "#10b981", "#fb923c", "#ec4899"];
+  const sparks = Array.from({ length: 14 }).map((_, i) => {
+    const angle = (i / 14) * Math.PI * 2;
+    const dist = 70 + Math.random() * 60;
+    return {
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      d: delay + Math.random() * 0.2,
+    };
+  });
+  const left = side === "left" ? `${10 + Math.random() * 18}%` : "auto";
+  const right = side === "right" ? `${10 + Math.random() * 18}%` : "auto";
+  const top = `${20 + Math.random() * 35}%`;
+  return (
+    <div style={{ position: "absolute", left, right, top, width: 0, height: 0 }}>
+      {sparks.map((s, i) => (
+        <div
+          key={i}
+          className="fw-spark"
+          style={{
+            color: s.color,
+            background: s.color,
+            left: 0,
+            top: 0,
+            animation: `fwBurst 1.6s ease-out ${s.d}s infinite`,
+            transform: `translate(${s.x}px, ${s.y}px)`,
+          }}
+        />
+      ))}
+      {/* central flash */}
+      <div
+        className="fw-spark"
+        style={{
+          color: "#fffbe6",
+          background: "#fffbe6",
+          width: 18,
+          height: 18,
+          animation: `fwBurst 1.6s ease-out ${delay}s infinite`,
+        }}
+      />
+    </div>
+  );
+}
+
+function GameCompleteOverlay({ elapsed }: { elapsed: number }) {
+  const showButton = elapsed >= 10;
+  // Generate 8 fireworks (4 each side) staggered
+  const fireworks = Array.from({ length: 10 }).map((_, i) => ({
+    side: (i % 2 === 0 ? "left" : "right") as "left" | "right",
+    delay: (i * 0.35) % 2.2,
+    key: i,
+  }));
+  return (
+    <div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: "radial-gradient(ellipse at center, #1a0033 0%, #000 80%)" }}
+    >
+      {/* Fireworks */}
+      {fireworks.map((f) => (
+        <Firework key={f.key} side={f.side} delay={f.delay} />
+      ))}
+
+      {/* Glowing title */}
+      <h1
+        style={{
+          fontFamily: "'Anton', sans-serif",
+          fontSize: "clamp(2.4rem, 7vw, 6rem)",
+          color: "#fffbe6",
+          letterSpacing: "0.06em",
+          textAlign: "center",
+          lineHeight: 1.05,
+          padding: "0 24px",
+          animation: "glowPulse 1.6s ease-in-out infinite",
+          zIndex: 2,
+        }}
+      >
+        CHÚC MỪNG BẠN ĐÃ<br />HOÀN THÀNH TRÒ CHƠI!
+      </h1>
+
+      {/* Countdown / button */}
+      <div className="mt-10 z-10">
+        {showButton ? (
+          <Link
+            to="/"
+            className="toy-button toy-button-primary !text-lg px-8 py-4"
+            style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em" }}
+          >
+            🏠 VỀ TRANG CHỦ
+          </Link>
+        ) : (
+          <div
+            style={{
+              fontFamily: "'Anton', sans-serif",
+              color: "#fde047",
+              fontSize: "1.4rem",
+              letterSpacing: "0.1em",
+              textShadow: "0 0 12px #fb923c",
+            }}
+          >
+            {Math.max(0, Math.ceil(10 - elapsed))}s...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ============ MAIN ============
 type Stage = 1 | "transition" | 2;
 type S2RoomKind = "pirate" | "forest" | "potion" | "stars" | "room5quiz" | "room5stars" | "witch";

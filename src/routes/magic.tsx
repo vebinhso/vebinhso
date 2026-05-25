@@ -899,7 +899,7 @@ function MagicPage() {
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
     if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
-    if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
+    if (intro === 3) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
   useEffect(() => {
@@ -1012,7 +1012,7 @@ function MagicPage() {
   useEffect(() => {
     if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 2) {
+      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 3) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
         if (outcome.kind === "exit") {
@@ -1339,16 +1339,16 @@ function MagicPage() {
                 doors={doors}
                 exitOpen={exitOpen}
                 onTigerHit={onTigerHit}
-                tigersActive={!modal && !won && !animalQuiz && intro === 2}
+                tigersActive={!modal && !won && !animalQuiz && intro === 3}
               />
               <PlayerController
-                active={!modal && !won && !animalQuiz && intro === 2}
+                active={!modal && !won && !animalQuiz && intro === 3}
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
                 spawnRef={corridorSpawnRef}
               />
-              {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
             </>
           ) : stage === "transition" ? (
             <>
@@ -1717,7 +1717,7 @@ function MagicPage() {
 
 
       {/* Creepy intro overlay */}
-      {intro < 2 && selectedArea === 1 && (
+      {intro < 3 && selectedArea === 1 && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center select-none"
           style={{ background: "radial-gradient(ellipse at center, #1a0a0a 0%, #050000 70%, #000 100%)" }}

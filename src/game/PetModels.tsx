@@ -128,7 +128,90 @@ export function RandomAnimal({ name }: { name: AnimalName }) {
   );
 }
 
-// ============ Two tigers patrolling stage 1 corridor; calls onHit when player collides ============
+// ============ Two tigers wandering stage 1 corridor with varied direction/speed ============
+type TigerAgent = {
+  ref: React.MutableRefObject<THREE.Group | null>;
+  pos: THREE.Vector3;
+  heading: number;       // current facing angle (radians)
+  targetHeading: number; // desired facing angle
+  speed: number;         // current speed (m/s)
+  targetSpeed: number;   // desired speed
+  nextDecision: number;  // seconds until next behavior change
+  yawVel: number;        // visual extra yaw wobble
+};
+
+function useTigerAgent(initial: THREE.Vector3, seed: number): TigerAgent {
+  const ref = useRef<THREE.Group | null>(null);
+  const agent = useRef<TigerAgent>({
+    ref,
+    pos: initial.clone(),
+    heading: Math.random() * Math.PI * 2,
+    targetHeading: Math.random() * Math.PI * 2,
+    speed: 1.2 + seed * 0.3,
+    targetSpeed: 1.5,
+    nextDecision: 0.5 + Math.random(),
+    yawVel: 0,
+  });
+  return agent.current;
+}
+
+function CorridorTiger({
+  agent,
+  bounds,
+  onCheckHit,
+}: {
+  agent: TigerAgent;
+  bounds: { halfX: number; halfZ: number };
+  onCheckHit: (pos: THREE.Vector3) => void;
+}) {
+  useFrame((_, dt) => {
+    const a = agent;
+    a.nextDecision -= dt;
+    if (a.nextDecision <= 0) {
+      // Pick a new direction + speed; sometimes do a sharp turn (quay đầu)
+      const sharp = Math.random() < 0.35;
+      a.targetHeading = sharp
+        ? a.heading + Math.PI + (Math.random() - 0.5) * 1.2
+        : a.heading + (Math.random() - 0.5) * Math.PI;
+      // Mix of slow and fast wanders
+      a.targetSpeed = Math.random() < 0.3 ? 0.4 + Math.random() * 0.6 : 1.6 + Math.random() * 2.2;
+      a.nextDecision = 0.6 + Math.random() * 1.8;
+    }
+    // Smoothly rotate toward target heading (shortest arc)
+    let diff = a.targetHeading - a.heading;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    const turnRate = 3.2; // rad/s
+    a.heading += Math.max(-turnRate * dt, Math.min(turnRate * dt, diff));
+    // Ease speed
+    a.speed += (a.targetSpeed - a.speed) * Math.min(1, dt * 2.5);
+
+    // Move forward (note: model "forward" is -Z by default)
+    const vx = Math.sin(a.heading) * a.speed;
+    const vz = Math.cos(a.heading) * a.speed;
+    a.pos.x += vx * dt;
+    a.pos.z += vz * dt;
+
+    // Bounce off corridor bounds by flipping target heading
+    if (a.pos.x > bounds.halfX) { a.pos.x = bounds.halfX; a.targetHeading = -a.heading; }
+    if (a.pos.x < -bounds.halfX) { a.pos.x = -bounds.halfX; a.targetHeading = -a.heading; }
+    if (a.pos.z > bounds.halfZ) { a.pos.z = bounds.halfZ; a.targetHeading = Math.PI - a.heading; }
+    if (a.pos.z < -bounds.halfZ) { a.pos.z = -bounds.halfZ; a.targetHeading = Math.PI - a.heading; }
+
+    if (a.ref.current) {
+      a.ref.current.position.set(a.pos.x, 0.05, a.pos.z);
+      a.ref.current.rotation.y = a.heading;
+    }
+    onCheckHit(a.pos);
+  });
+  return (
+    <group ref={agent.ref} scale={1.3}>
+      <Animal name="tiger" />
+      <pointLight position={[0, 0.8, 0]} intensity={1.0} distance={3.5} color="#ffb070" />
+    </group>
+  );
+}
+
 export function CorridorTigers({
   onHit,
   corridorLen,
@@ -141,58 +224,28 @@ export function CorridorTigers({
   active: boolean;
 }) {
   const { camera } = useThree();
-  const ref1 = useRef<THREE.Group>(null!);
-  const ref2 = useRef<THREE.Group>(null!);
   const lastHit = useRef(0);
-  const t0 = useRef(performance.now());
-  useFrame(() => {
-    const now = performance.now();
-    const elapsed = (now - t0.current) / 1000;
-    const range = corridorLen / 2 - 6;
-    const lane = corridorW / 2 - 1.2;
+  const halfX = Math.max(1, corridorW / 2 - 1.0);
+  const halfZ = Math.max(2, corridorLen / 2 - 4);
+  const a1 = useTigerAgent(new THREE.Vector3(-halfX * 0.4, 0.05, -halfZ * 0.5), 0);
+  const a2 = useTigerAgent(new THREE.Vector3(halfX * 0.4, 0.05, halfZ * 0.5), 1);
 
-    // Tiger A: long sweep along the corridor on left lane
-    if (ref1.current) {
-      const phase = elapsed * 0.45;
-      const z = Math.sin(phase) * range;
-      const dz = Math.cos(phase) * range * 0.45;
-      const x = -lane * 0.55 + Math.sin(elapsed * 0.7) * lane * 0.25;
-      ref1.current.position.set(x, 0.05, z);
-      ref1.current.rotation.y = Math.atan2(0, dz) + (dz < 0 ? Math.PI : 0);
-    }
-    // Tiger B: different phase + right lane
-    if (ref2.current) {
-      const phase = elapsed * 0.55 + 2.1;
-      const z = Math.sin(phase) * range;
-      const dz = Math.cos(phase) * range * 0.55;
-      const x = lane * 0.55 + Math.cos(elapsed * 0.6) * lane * 0.25;
-      ref2.current.position.set(x, 0.05, z);
-      ref2.current.rotation.y = Math.atan2(0, dz) + (dz < 0 ? Math.PI : 0);
-    }
-
+  const check = (pos: THREE.Vector3) => {
     if (!active) return;
+    const now = performance.now();
     if (now - lastHit.current < 4000) return;
-    for (const r of [ref1, ref2]) {
-      if (!r.current) continue;
-      const p = r.current.position;
-      const d2 = (camera.position.x - p.x) ** 2 + (camera.position.z - p.z) ** 2;
-      if (d2 < 1.4) {
-        lastHit.current = now;
-        onHit();
-        break;
-      }
+    const d2 = (camera.position.x - pos.x) ** 2 + (camera.position.z - pos.z) ** 2;
+    if (d2 < 1.6) {
+      lastHit.current = now;
+      onHit();
     }
-  });
+  };
+
   return (
     <>
-      <group ref={ref1} scale={1.3}>
-        <Animal name="tiger" />
-        <pointLight position={[0, 0.8, 0]} intensity={1.0} distance={3.5} color="#ffb070" />
-      </group>
-      <group ref={ref2} scale={1.3}>
-        <Animal name="tiger" />
-        <pointLight position={[0, 0.8, 0]} intensity={1.0} distance={3.5} color="#ffb070" />
-      </group>
+      <CorridorTiger agent={a1} bounds={{ halfX, halfZ }} onCheckHit={check} />
+      <CorridorTiger agent={a2} bounds={{ halfX, halfZ }} onCheckHit={check} />
     </>
   );
 }
+

@@ -1184,9 +1184,31 @@ function MagicPage() {
 
   const exitSeconds = exitDeadline ? Math.max(0, Math.ceil((exitDeadline - exitNow) / 1000)) : 0;
 
+  // Area selection overlay
+  const pickArea = (a: 1 | 2) => {
+    if (a === 2 && !stage2Unlocked) return;
+    if (a === 1) {
+      // Reset stage 1 progress so it's replayable; keep coins & inventory
+      setDoors(Array(10).fill("closed"));
+      setRoom(null); setModal(null); setBoss(null); setWon(false);
+      setExitOpen(false); setExitDeadline(null);
+      setStage(1);
+      setIntro(0);
+    } else {
+      // Replay stage 2: reset doors & inv flags but keep coins
+      setS2Doors(Array(5).fill("closed"));
+      setS2Inv({ shield: false, potion: 0 });
+      setS2Room(null); setS2Modal(null); setRoom5Open(false); setWitch(null);
+      setPirateChestOpened(false); setRoom5ChestOpened(false); setGhostQuiz(null);
+      setStage(2);
+    }
+    setSelectedArea(a);
+  };
+
   return (
     <div className="relative w-full h-screen bg-black">
       <Canvas shadows camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 2]}>
+
         <Suspense fallback={null}>
           {stage === 1 && room ? (
             <RoomScene room={room} />

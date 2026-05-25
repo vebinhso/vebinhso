@@ -669,22 +669,28 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
 
 
 // ============ PLAYER (corridor) ============
-function PlayerController({ active, onNearDoor, exitOpen, onExitCross }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void }) {
+function PlayerController({ active, onNearDoor, exitOpen, onExitCross, spawnRef }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void; spawnRef?: React.MutableRefObject<{ x: number; z: number; lookX: number; lookZ: number } | null> }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
   const exited = useRef(false);
   useEffect(() => {
-    // spawn at the BACK of the corridor (near door 1, near where the exit portal opens),
-    // facing the far end of the corridor (toward door 10).
-    camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
-    camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
+    const s = spawnRef?.current;
+    if (s) {
+      camera.position.set(s.x, 1.7, s.z);
+      camera.lookAt(s.x + s.lookX, 1.6, s.z + s.lookZ);
+    } else {
+      // spawn at the BACK of the corridor (near door 1, near where the exit portal opens),
+      // facing the far end of the corridor (toward door 10).
+      camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
+      camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
+    }
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);
     return () => { window.removeEventListener("keydown", d); window.removeEventListener("keyup", u); };
-  }, [camera]);
+  }, [camera, spawnRef]);
 
   useFrame((_, dt) => {
     if (!active) return;

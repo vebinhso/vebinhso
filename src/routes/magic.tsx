@@ -1197,7 +1197,7 @@ function MagicPage() {
                 active={!modal && !won && intro === 2}
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
-                onExitCross={() => { setStage("transition"); setTransStart(Date.now()); }}
+                onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
               />
               {!modal && !won && intro === 2 && <PointerLockControls />}
             </>

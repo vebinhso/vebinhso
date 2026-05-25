@@ -12,6 +12,7 @@ import {
   type GameState,
   type PlacedItem,
   type WallSegment,
+  type RoofSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question } from "@/game/questions";
@@ -36,6 +37,11 @@ function GamePage() {
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);
   const [wallPickA, setWallPickA] = useState<string | null>(null);
+
+  // Roof-build flow (pick 4 pillars defining a rectangle)
+  const [roofMode, setRoofMode] = useState(false);
+  const [roofPicks, setRoofPicks] = useState<string[]>([]);
+  const [roofStyle, setRoofStyle] = useState<"tile" | "ton">("tile");
 
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);

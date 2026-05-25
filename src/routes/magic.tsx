@@ -1023,13 +1023,7 @@ function MagicPage() {
       if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 3) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
-        if (outcome.kind === "exit") {
-          // OPEN BACK WALL + 20s timer instead of ending game
-          setExitOpen(true);
-          setExitDeadline(Date.now() + 20000);
-          if (document.exitPointerLock) document.exitPointerLock();
-          return;
-        }
+        // (Exit wall opens automatically once all 10 doors are cleared — see useEffect above)
         if (document.exitPointerLock) document.exitPointerLock();
         // Save corridor return position right in front of this door (facing into corridor)
         {

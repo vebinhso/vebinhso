@@ -16,6 +16,7 @@ export type WallSegment = {
   bx: number;
   bz: number;
   color: string;
+  value?: number; // giá trị vật liệu đã dùng, cộng vào tài sản ròng
 };
 
 export type GameState = {

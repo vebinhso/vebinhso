@@ -1273,7 +1273,13 @@ export function ItemModel({ item }: { item: CatalogItem }) {
     case "pethouse": return <PetHouse />;
     case "teaset": return <TeaSet />;
     case "smallpot": return <SmallPot />;
+    case "midpot": return <MidPot />;
     case "tallpot": return <TallPot />;
+    case "patternpot_s": return <PatternPotSmall />;
+    case "patternpot_m": return <PatternPotMid />;
+    case "patternpot_l": return <PatternPotTall />;
+    case "balconychair": return <BalconyChair />;
+    case "balconytable": return <BalconyTable />;
     case "diningtable":
       return (
         <group>

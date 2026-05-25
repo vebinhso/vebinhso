@@ -1283,7 +1283,9 @@ function MagicPage() {
       setRoom5ChestOpened(false);
       setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
       setS2Room(null);
-      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${correct}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Room(null);
+      setGameComplete(true);
     }, 1600);
   };
 

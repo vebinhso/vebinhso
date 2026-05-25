@@ -9,6 +9,7 @@ import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
 import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
+import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, CorridorTigers, pickRandomAnimal, type AnimalName } from "@/game/PetModels";
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -28,19 +29,20 @@ type DoorKind =
   | { kind: "empty" }
   | { kind: "chest"; reward: number }
   | { kind: "boss"; level: 1 | 2 | 3; hp: number; bullets: number; perHit: number }
+  | { kind: "animal" } // random animal — answer 2 questions to clear
   | { kind: "exit" };
 
 const DOOR_OUTCOMES: DoorKind[] = [
-  { kind: "empty" },
-  { kind: "boss", level: 1, hp: 100, bullets: 10, perHit: 10 },
-  { kind: "chest", reward: 20 },
-  { kind: "boss", level: 2, hp: 100, bullets: 5, perHit: 20 },
-  { kind: "chest", reward: 30 },
-  { kind: "empty" },
-  { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },
-  { kind: "empty" },
-  { kind: "chest", reward: 10 },
-  { kind: "exit" },
+  { kind: "animal" },                                            // 1 — random animal (2 câu)
+  { kind: "boss", level: 1, hp: 100, bullets: 10, perHit: 10 },  // 2 — tiger
+  { kind: "chest", reward: 20 },                                 // 3
+  { kind: "boss", level: 2, hp: 100, bullets: 5, perHit: 20 },   // 4 — parrot
+  { kind: "chest", reward: 30 },                                 // 5
+  { kind: "animal" },                                            // 6 — random animal (2 câu)
+  { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },   // 7 — beaver
+  { kind: "animal" },                                            // 8 — random animal (2 câu)
+  { kind: "chest", reward: 10 },                                 // 9
+  { kind: "exit" },                                              // 10
 ];
 
 const CORRIDOR_LEN = 60;
@@ -747,7 +749,7 @@ function RoomCameraSetup() {
 }
 
 // ============ CORRIDOR SCENE ============
-function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boolean }) {
+function CorridorScene({ doors, exitOpen, onTigerHit, tigersActive }: { doors: DoorState[]; exitOpen?: boolean; onTigerHit: () => void; tigersActive: boolean }) {
   return (
     <>
       <color attach="background" args={["#0a0805"]} />
@@ -771,6 +773,9 @@ function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boo
         const x = side * (CORRIDOR_W / 2 - 0.05);
         return <CorridorDoor key={i} index={i + 1} pos={[x, 0, z]} rotY={side > 0 ? -Math.PI / 2 : Math.PI / 2} state={doors[i]} />;
       })}
+
+      {/* Two patrolling tigers — touching one triggers a 5-question quiz */}
+      <CorridorTigers onHit={onTigerHit} corridorLen={CORRIDOR_LEN} corridorW={CORRIDOR_W} active={tigersActive} />
     </>
   );
 }
@@ -782,21 +787,36 @@ type RoomState = {
   phase: number; // ms since enter
 };
 
-function RoomScene({ room }: { room: RoomState }) {
+function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalName | null }) {
   const isBoss = room.outcome.kind === "boss";
   const isChest = room.outcome.kind === "chest";
+  const isAnimal = room.outcome.kind === "animal";
   // Monster: walks from darkness over 5 seconds, starting at phase 2000ms
   const monsterProgress = isBoss ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const monsterVisible = isBoss && room.phase >= 2000;
   // Chest: reveals gradually over 5 seconds, starting at phase 2000ms
   const chestReveal = isChest ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const chestVisible = isChest && room.phase >= 2000;
+  // Animal door: reveals over 2.5s starting at 1000ms
+  const animalProgress = isAnimal ? Math.min(1, Math.max(0, (room.phase - 1000) / 2500)) : 0;
+  const animalVisible = isAnimal && room.phase >= 1000 && animalName;
+
+  // Boss door → specific animal based on door index
+  const renderBossAnimal = () => {
+    if (room.doorIdx === 1) return <TigerEmerging progress={monsterProgress} />;
+    if (room.doorIdx === 3) return <ParrotDescending progress={monsterProgress} />;
+    if (room.doorIdx === 6) return <BeaverEmerging progress={monsterProgress} />;
+    // fallback
+    return <TigerEmerging progress={monsterProgress} />;
+  };
+
   return (
     <>
       <RoomCameraSetup />
       <color attach="background" args={[isChest ? "#03060f" : "#0a0604"]} />
-      {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss} />}
-      {monsterVisible && <Monster progress={monsterProgress} visible />}
+      {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss || isAnimal} />}
+      {monsterVisible && renderBossAnimal()}
+      {animalVisible && animalName && <RandomAnimal name={animalName} />}
       {chestVisible && <Chest pos={[0, 0, -5]} reveal={chestReveal} />}
       {/* marker for player spot */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>
@@ -956,11 +976,24 @@ function MagicPage() {
     return () => clearTimeout(t);
   }, [stage, transStart]);
 
+  // current animal name for animal-kind rooms (random pick once on entry)
+  const [currentAnimal, setCurrentAnimal] = useState<AnimalName | null>(null);
+
+  // mini-quiz for animal encounters: 2 questions for animal doors, 5 for corridor tigers
+  const [animalQuiz, setAnimalQuiz] = useState<null | {
+    q: Question;
+    idx: number;
+    total: number;
+    correct: number;
+    source: "door" | "corridor" | "s2";
+    doorIdx?: number;
+  }>(null);
+
   // open door = enter room (or trigger exit for door 10)
   useEffect(() => {
     if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && intro === 2) {
+      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 2) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
         if (outcome.kind === "exit") {
@@ -971,12 +1004,60 @@ function MagicPage() {
           return;
         }
         if (document.exitPointerLock) document.exitPointerLock();
+        if (outcome.kind === "animal") {
+          setCurrentAnimal(pickRandomAnimal(Date.now() + near));
+        } else {
+          setCurrentAnimal(null);
+        }
         setRoom({ doorIdx: near, outcome, phase: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [near, doors, modal, boss, room, intro, stage]);
+  }, [near, doors, modal, boss, room, intro, stage, animalQuiz]);
+
+  // Auto-trigger 2-question quiz once the animal in an animal-kind room is fully revealed
+  useEffect(() => {
+    if (!room || room.outcome.kind !== "animal" || animalQuiz) return;
+    if (room.phase >= 3500) {
+      setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 2, correct: 0, source: "door", doorIdx: room.doorIdx });
+    }
+  }, [room, animalQuiz]);
+
+  const onTigerHit = () => {
+    if (animalQuiz || modal || boss || room) return;
+    if (document.exitPointerLock) document.exitPointerLock();
+    setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 5, correct: 0, source: "corridor" });
+  };
+
+  const answerAnimalQuiz = (i: number) => {
+    if (!animalQuiz) return;
+    const isCorrect = i === animalQuiz.q.answer;
+    const reward = isCorrect ? animalQuiz.q.reward : 0;
+    if (reward) addCoins(reward);
+    const nextCorrect = animalQuiz.correct + (isCorrect ? 1 : 0);
+    const nextIdx = animalQuiz.idx + 1;
+    if (nextIdx >= animalQuiz.total) {
+      const src = animalQuiz.source;
+      const dIdx = animalQuiz.doorIdx;
+      setAnimalQuiz(null);
+      if (src === "door" && dIdx != null) {
+        setDoors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+        setRoom(null);
+        setCurrentAnimal(null);
+        setModal({ kind: "chest", text: `🐾 Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời căn phòng có chú vật ngộ nghĩnh!` });
+      } else if (src === "s2" && dIdx != null) {
+        setS2Doors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+        setS2Room(null);
+        setCurrentAnimal(null);
+        setS2Modal({ title: "🐾 Phòng động vật", text: `Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời khỏi căn phòng có thú lạ.` });
+      }
+      // corridor: just continue playing
+      return;
+    }
+    setAnimalQuiz({ ...animalQuiz, q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+
 
   // Stage 2: open door (E key) — open a per-room scene
   useEffect(() => {
@@ -992,7 +1073,16 @@ function MagicPage() {
         // Phòng 5: mở bảng chọn cửa con
         setRoom5Open(true);
       } else {
-        setS2Room({ kind, doorIdx: idx, phase: 0 });
+        if (idx === 3) {
+          // Cửa 4 stage 2: random animal + 2-question quiz
+          const an = pickRandomAnimal(Date.now() + idx);
+          setCurrentAnimal(an);
+          setS2Room({ kind, doorIdx: idx, phase: 0 });
+          setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 2, correct: 0, source: "s2", doorIdx: idx });
+        } else {
+          setCurrentAnimal(null);
+          setS2Room({ kind, doorIdx: idx, phase: 0 });
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1211,17 +1301,22 @@ function MagicPage() {
 
         <Suspense fallback={null}>
           {stage === 1 && room ? (
-            <RoomScene room={room} />
+            <RoomScene room={room} animalName={currentAnimal} />
           ) : stage === 1 ? (
             <>
-              <CorridorScene doors={doors} exitOpen={exitOpen} />
+              <CorridorScene
+                doors={doors}
+                exitOpen={exitOpen}
+                onTigerHit={onTigerHit}
+                tigersActive={!modal && !won && !animalQuiz && intro === 2}
+              />
               <PlayerController
-                active={!modal && !won && intro === 2}
+                active={!modal && !won && !animalQuiz && intro === 2}
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
               />
-              {!modal && !won && intro === 2 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
             </>
           ) : stage === "transition" ? (
             <>
@@ -1233,7 +1328,13 @@ function MagicPage() {
               {s2Room.kind === "pirate" && <PirateRoomScene phase={s2Room.phase} chestVisible={s2Room.phase >= 5000} chestOpened={pirateChestOpened} />}
               {s2Room.kind === "forest" && <ForestLakeScene shieldVisible={s2Room.phase >= 5000} />}
               {s2Room.kind === "potion" && <DarkPotionScene potionVisible={s2Room.phase >= 5000} />}
-              {s2Room.kind === "stars" && <SpiderWebRoomScene />}
+              {s2Room.kind === "stars" && (
+                <>
+                  <SpiderWebRoomScene />
+                  <RoomCameraSetup />
+                  {currentAnimal && <RandomAnimal name={currentAnimal} />}
+                </>
+              )}
               {s2Room.kind === "room5quiz" && <PirateRoomScene phase={s2Room.phase} chestVisible={!!quiz5 ? false : true} chestOpened={room5ChestOpened} />}
               {s2Room.kind === "room5stars" && <S2StarRoomScene />}
               {s2Room.kind === "witch" && <WitchRoomScene flashIntensity={witch?.phase === "cast" ? 1 : 0} />}
@@ -1244,11 +1345,11 @@ function MagicPage() {
             <>
               <Stage2Scene />
               <Stage2PlayerController
-                active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz}
-                onNearDoor={setS2Near}
-                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
-              />
-              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && <PointerLockControls />}
+               active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz}
+               onNearDoor={setS2Near}
+               onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5 && !animalQuiz) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
+             />
+             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
             </>
           )}
         </Suspense>
@@ -1547,6 +1648,25 @@ function MagicPage() {
         />
       )}
       <style>{`@keyframes lightFlash { 0%,100%{opacity:0;} 10%,30%{opacity:1;} 20%{opacity:0.3;} 50%{opacity:0;} }`}</style>
+
+      {/* Animal encounter quiz (door=2 câu, corridor tiger=5 câu) */}
+      {animalQuiz && (
+        <div className="absolute inset-x-0 bottom-0 z-40 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>{animalQuiz.source === "corridor" ? "🐯 Hổ tấn công! Trả lời để thoát" : "🐾 Gặp thú lạ — trả lời câu hỏi"}</span>
+              <span>Câu {animalQuiz.idx + 1}/{animalQuiz.total} · ✅ {animalQuiz.correct}</span>
+            </div>
+            <p className="font-black text-base mb-3">❓ {animalQuiz.q.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {animalQuiz.q.options.map((opt, i) => (
+                <button key={i} onClick={() => answerAnimalQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
+            <p className="text-xs font-bold mt-2 opacity-70">Mỗi câu đúng +{animalQuiz.q.reward}đ</p>
+          </div>
+        </div>
+      )}
 
       {/* Ghost collision quiz */}
       {ghostQuiz && (

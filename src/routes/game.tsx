@@ -201,6 +201,7 @@ function GamePage() {
       id: `w-${Date.now()}`,
       ax, az, bx, bz,
       color: state.wallColor,
+      value: 0,
     };
     // Giá trị tường = giá vật liệu đã dùng để xây (cộng vào tài sản ròng)
     const brickUnit = getItem("brick_pack");

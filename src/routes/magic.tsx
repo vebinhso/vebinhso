@@ -749,7 +749,7 @@ function RoomCameraSetup() {
 }
 
 // ============ CORRIDOR SCENE ============
-function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boolean }) {
+function CorridorScene({ doors, exitOpen, onTigerHit, tigersActive }: { doors: DoorState[]; exitOpen?: boolean; onTigerHit: () => void; tigersActive: boolean }) {
   return (
     <>
       <color attach="background" args={["#0a0805"]} />
@@ -773,6 +773,9 @@ function CorridorScene({ doors, exitOpen }: { doors: DoorState[]; exitOpen?: boo
         const x = side * (CORRIDOR_W / 2 - 0.05);
         return <CorridorDoor key={i} index={i + 1} pos={[x, 0, z]} rotY={side > 0 ? -Math.PI / 2 : Math.PI / 2} state={doors[i]} />;
       })}
+
+      {/* Two patrolling tigers — touching one triggers a 5-question quiz */}
+      <CorridorTigers onHit={onTigerHit} corridorLen={CORRIDOR_LEN} corridorW={CORRIDOR_W} active={tigersActive} />
     </>
   );
 }

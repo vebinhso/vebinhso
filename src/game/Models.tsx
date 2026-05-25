@@ -957,17 +957,97 @@ export function PetHouse() {
   );
 }
 
-export function TeaSet() {
+// ============ BALCONY — realistic pots & tea set (no plain boxes) ============
+
+// Curved terracotta pot using a lathe geometry (rotational profile)
+function CurvedPot({
+  height = 0.8,
+  topR = 0.36,
+  midR = 0.42,
+  bottomR = 0.24,
+  color = "#b45309",
+  rimColor = "#92400e",
+}: {
+  height?: number;
+  topR?: number;
+  midR?: number;
+  bottomR?: number;
+  color?: string;
+  rimColor?: string;
+}) {
+  // Profile points from base to rim (x = radius, y = height)
+  const points = [
+    new THREE.Vector2(bottomR * 0.7, 0.0),
+    new THREE.Vector2(bottomR, 0.05),
+    new THREE.Vector2(midR * 0.95, height * 0.35),
+    new THREE.Vector2(midR, height * 0.55),
+    new THREE.Vector2(midR * 0.97, height * 0.75),
+    new THREE.Vector2(topR, height * 0.95),
+    new THREE.Vector2(topR + 0.04, height),
+  ];
   return (
     <group>
-      <RoundTable />
-      {[-1, 1].map((x, i) => (
-        <group key={i} position={[x * 1.3, 0, 0]}>
-          <mesh castShadow position={[0, 0.4, 0]}>
-            <boxGeometry args={[0.5, 0.8, 0.5]} />
-            <MStd color="#fbbf24" />
-          </mesh>
-        </group>
+      {/* Pot body */}
+      <mesh castShadow receiveShadow position={[0, 0, 0]}>
+        <latheGeometry args={[points, 32]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+      {/* Rim ring */}
+      <mesh castShadow position={[0, height - 0.02, 0]}>
+        <torusGeometry args={[topR + 0.02, 0.04, 12, 32]} />
+        <meshStandardMaterial color={rimColor} roughness={0.8} />
+      </mesh>
+      {/* Soil disk */}
+      <mesh receiveShadow position={[0, height - 0.04, 0]}>
+        <cylinderGeometry args={[topR - 0.02, topR - 0.02, 0.05, 24]} />
+        <meshStandardMaterial color="#3f2a14" roughness={1} />
+      </mesh>
+    </group>
+  );
+}
+
+// Pattern decoration: vertical painted bands using slim rings
+function PotPattern({ height = 0.8, radius = 0.42, color = "#fde047" }: { height?: number; radius?: number; color?: string }) {
+  return (
+    <group>
+      {[0.3, 0.55, 0.8].map((y, i) => (
+        <mesh key={i} position={[0, height * y, 0]}>
+          <torusGeometry args={[radius + 0.005, 0.022, 8, 32]} />
+          <meshStandardMaterial color={color} roughness={0.5} metalness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Foliage = clustered spheres (lush, organic look) — replaces the plain cone
+function Foliage({ y = 0.9, scale = 1, color = "#16a34a", flowerColor }: { y?: number; scale?: number; color?: string; flowerColor?: string }) {
+  const blobs: [number, number, number, number][] = [
+    [0, 0, 0, 0.32],
+    [0.18, 0.05, 0.08, 0.22],
+    [-0.16, 0.07, -0.05, 0.24],
+    [0.04, 0.18, -0.12, 0.2],
+    [-0.08, 0.16, 0.15, 0.22],
+    [0.1, 0.28, 0.05, 0.18],
+  ];
+  return (
+    <group position={[0, y, 0]} scale={scale}>
+      {blobs.map(([x, by, z, r], i) => (
+        <mesh key={i} position={[x, by, z]} castShadow>
+          <sphereGeometry args={[r, 14, 12]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      ))}
+      {flowerColor && [
+        [0.16, 0.22, -0.02],
+        [-0.12, 0.12, 0.18],
+        [0.02, 0.34, 0.12],
+        [-0.18, 0.18, -0.1],
+      ].map(([x, by, z], i) => (
+        <mesh key={`f${i}`} position={[x, by, z]} castShadow>
+          <sphereGeometry args={[0.08, 10, 10]} />
+          <meshStandardMaterial color={flowerColor} emissive={flowerColor} emissiveIntensity={0.15} roughness={0.6} />
+        </mesh>
       ))}
     </group>
   );
@@ -976,14 +1056,17 @@ export function TeaSet() {
 export function SmallPot() {
   return (
     <group>
-      <mesh castShadow position={[0, 0.4, 0]}>
-        <cylinderGeometry args={[0.3, 0.2, 0.8, 18]} />
-        <MStd color="#b45309" />
-      </mesh>
-      <mesh castShadow position={[0, 0.9, 0]}>
-        <coneGeometry args={[0.25, 0.5, 8]} />
-        <MStd color="#16a34a" />
-      </mesh>
+      <CurvedPot height={0.7} topR={0.32} midR={0.38} bottomR={0.22} color="#b45309" />
+      <Foliage y={0.66} scale={0.95} color="#16a34a" />
+    </group>
+  );
+}
+
+export function MidPot() {
+  return (
+    <group>
+      <CurvedPot height={0.9} topR={0.4} midR={0.46} bottomR={0.26} color="#9a3412" />
+      <Foliage y={0.86} scale={1.1} color="#15803d" flowerColor="#f472b6" />
     </group>
   );
 }
@@ -991,17 +1074,143 @@ export function SmallPot() {
 export function TallPot() {
   return (
     <group>
-      <mesh castShadow position={[0, 0.75, 0]}>
-        <cylinderGeometry args={[0.35, 0.25, 1.5, 18]} />
-        <MStd color="#7c2d12" />
-      </mesh>
-      <mesh castShadow position={[0, 1.7, 0]}>
-        <sphereGeometry args={[0.4, 14, 12]} />
-        <MStd color="#15803d" />
-      </mesh>
+      <CurvedPot height={1.4} topR={0.36} midR={0.42} bottomR={0.24} color="#7c2d12" rimColor="#5b1d0a" />
+      <Foliage y={1.36} scale={1.25} color="#15803d" />
     </group>
   );
 }
+
+export function PatternPotSmall() {
+  return (
+    <group>
+      <CurvedPot height={0.7} topR={0.32} midR={0.38} bottomR={0.22} color="#c2410c" rimColor="#9a3412" />
+      <PotPattern height={0.7} radius={0.38} color="#fde047" />
+      <Foliage y={0.66} scale={0.95} color="#16a34a" flowerColor="#fb7185" />
+    </group>
+  );
+}
+
+export function PatternPotMid() {
+  return (
+    <group>
+      <CurvedPot height={0.9} topR={0.4} midR={0.46} bottomR={0.26} color="#9f1239" rimColor="#7f1d1d" />
+      <PotPattern height={0.9} radius={0.46} color="#fcd34d" />
+      <Foliage y={0.86} scale={1.1} color="#16a34a" flowerColor="#e11d48" />
+    </group>
+  );
+}
+
+export function PatternPotTall() {
+  return (
+    <group>
+      <CurvedPot height={1.4} topR={0.38} midR={0.46} bottomR={0.26} color="#7f1d1d" rimColor="#450a0a" />
+      <PotPattern height={1.4} radius={0.46} color="#fcd34d" />
+      <Foliage y={1.36} scale={1.25} color="#15803d" flowerColor="#f97316" />
+    </group>
+  );
+}
+
+// Curvy chair using lathe back + soft cushion sphere — far from a cube
+export function BalconyChair() {
+  // Curved seat back profile
+  const backProfile = [
+    new THREE.Vector2(0.0, 0.0),
+    new THREE.Vector2(0.04, 0.4),
+    new THREE.Vector2(0.06, 0.9),
+    new THREE.Vector2(0.04, 1.1),
+    new THREE.Vector2(0.0, 1.15),
+  ];
+  return (
+    <group>
+      {/* Curved seat (squashed cushion sphere) */}
+      <mesh castShadow position={[0, 0.5, 0]} scale={[0.9, 0.35, 0.95]}>
+        <sphereGeometry args={[0.5, 24, 18]} />
+        <meshStandardMaterial color="#facc15" roughness={0.7} />
+      </mesh>
+      {/* Lathe-curved back rest */}
+      <group position={[0, 0.6, -0.4]} rotation={[Math.PI / 12, 0, 0]}>
+        <mesh castShadow>
+          <latheGeometry args={[backProfile, 24]} />
+          <meshStandardMaterial color="#a16207" roughness={0.6} />
+        </mesh>
+      </group>
+      {/* 4 curved legs (tapered cylinders, tilted slightly outward) */}
+      {[
+        [0.32, 0.32, 0.05, 0.05],
+        [-0.32, 0.32, -0.05, 0.05],
+        [0.3, -0.3, 0.05, -0.05],
+        [-0.3, -0.3, -0.05, -0.05],
+      ].map(([x, z, rz, rx], i) => (
+        <mesh key={i} castShadow position={[x, 0.22, z]} rotation={[rx, 0, rz]}>
+          <cylinderGeometry args={[0.04, 0.06, 0.45, 12]} />
+          <meshStandardMaterial color="#3f2a14" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Round bistro tea table with curved pedestal + saucer + teapot on top
+export function BalconyTable() {
+  return (
+    <group>
+      {/* Base pedestal — curved profile */}
+      <mesh castShadow position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.45, 0.55, 0.1, 24]} />
+        <meshStandardMaterial color="#52341e" roughness={0.7} />
+      </mesh>
+      {/* Slim column */}
+      <mesh castShadow position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[0.08, 0.12, 0.6, 18]} />
+        <meshStandardMaterial color="#3f2a14" roughness={0.6} />
+      </mesh>
+      {/* Round table top with bevelled edge */}
+      <mesh castShadow position={[0, 0.78, 0]}>
+        <cylinderGeometry args={[0.85, 0.85, 0.08, 32]} />
+        <meshStandardMaterial color="#a16207" roughness={0.45} />
+      </mesh>
+      <mesh castShadow position={[0, 0.83, 0]}>
+        <torusGeometry args={[0.85, 0.04, 12, 40]} />
+        <meshStandardMaterial color="#78350f" roughness={0.5} />
+      </mesh>
+      {/* Decorative teapot (sphere body + curved spout + handle ring) */}
+      <group position={[0, 0.93, 0]}>
+        <mesh castShadow position={[0, 0.13, 0]}>
+          <sphereGeometry args={[0.18, 20, 16]} />
+          <meshStandardMaterial color="#f5f3ee" roughness={0.4} metalness={0.05} />
+        </mesh>
+        <mesh castShadow position={[0.22, 0.16, 0]} rotation={[0, 0, -Math.PI / 3]}>
+          <cylinderGeometry args={[0.03, 0.045, 0.18, 10]} />
+          <meshStandardMaterial color="#f5f3ee" roughness={0.4} />
+        </mesh>
+        <mesh castShadow position={[-0.2, 0.13, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <torusGeometry args={[0.07, 0.022, 8, 18]} />
+          <meshStandardMaterial color="#f5f3ee" roughness={0.4} />
+        </mesh>
+        <mesh castShadow position={[0, 0.3, 0]}>
+          <sphereGeometry args={[0.04, 12, 10]} />
+          <meshStandardMaterial color="#a16207" roughness={0.5} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// Tea set = round table with 2 elegant chairs (replaces the previous cube-cup version)
+export function TeaSet() {
+  return (
+    <group>
+      <BalconyTable />
+      <group position={[1.25, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <BalconyChair />
+      </group>
+      <group position={[-1.25, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <BalconyChair />
+      </group>
+    </group>
+  );
+}
+
 
 export function ItemModel({ item }: { item: CatalogItem }) {
   switch (item.id) {

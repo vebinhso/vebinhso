@@ -1477,7 +1477,7 @@ function MagicPage() {
           <h1
             className="text-6xl md:text-8xl font-black tracking-widest"
             style={{
-              fontFamily: "'Pirata One', 'Special Elite', serif",
+              fontFamily: "'Anton', sans-serif",
               color: "#c0c0c0",
               textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
               animation: "khuVuc2Fade 3.2s ease-in-out forwards",
@@ -1727,19 +1727,33 @@ function MagicPage() {
               nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
             </p>
           ) : (
-            <h1
-              className="relative text-7xl md:text-9xl"
-              style={{
-                fontFamily: "'Pirata One', 'Special Elite', 'Montserrat', serif",
-                color: "#a30000",
-                textShadow:
-                  "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
-                animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
-                letterSpacing: "0.08em",
-              }}
-            >
-              CHẠY ĐI
-            </h1>
+            <div className="relative flex flex-col items-center gap-4">
+              <h1
+                className="text-7xl md:text-9xl"
+                style={{
+                  fontFamily: "'Anton', sans-serif",
+                  color: "#a30000",
+                  textShadow:
+                    "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                  animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                CHẠY ĐI !
+              </h1>
+              <h2
+                className="text-4xl md:text-6xl"
+                style={{
+                  fontFamily: "'Anton', sans-serif",
+                  color: "#ffb070",
+                  letterSpacing: "0.18em",
+                  textShadow: "0 0 14px #ff6020, 0 4px 0 #4a1500",
+                  animation: "creepyFade 2.6s ease-out 0.4s both",
+                }}
+              >
+                KHU VỰC 1
+              </h2>
+            </div>
           )}
           <style>{`
             @keyframes creepyFade {
@@ -1781,8 +1795,8 @@ function MagicPage() {
       {selectedArea === null && (
         <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Pirata One', 'Special Elite', serif", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
-              🗺️ Bản đồ Ma Thuật
+            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
+              BẢN ĐỒ MA THUẬT
             </h1>
             <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>
           </div>

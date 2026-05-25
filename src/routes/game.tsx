@@ -89,6 +89,18 @@ function GamePage() {
       flash(`🪣 +${it.qty ?? 1} xô bê tông tươi vào kho`);
       return;
     }
+    if (kind === "rooftile") {
+      const qty = it.qty ?? 10;
+      const style = it.roofStyle ?? "tile";
+      setState({
+        ...state,
+        money: state.money - it.price,
+        roofTiles: style === "tile" ? state.roofTiles + qty : state.roofTiles,
+        roofTilesTon: style === "ton" ? state.roofTilesTon + qty : state.roofTilesTon,
+      });
+      flash(`🏠 +${qty} gạch mái ${style === "ton" ? "tôn" : "ngói"} vào kho`);
+      return;
+    }
     if (kind === "palette") {
       if (!state.ownedPalettes.length) {
         // mua lần đầu: trừ tiền & mở tất cả palette

@@ -1508,6 +1508,9 @@ function MagicPage() {
         </button>
       )}
 
+      {/* ===== STAGE 2 GAME COMPLETE CELEBRATION ===== */}
+      {gameComplete && <GameCompleteOverlay elapsed={completeElapsed} />}
+
 
       {/* controls hint */}
       {!room && stage !== "transition" && (

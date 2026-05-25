@@ -975,15 +975,23 @@ function MagicPage() {
       const now = Date.now();
       setExitNow(now);
       if (now >= exitDeadline) {
-        // timed out — close back wall
+        // timed out — close back wall, player must complete a door again to retry
         setExitOpen(false);
         setExitDeadline(null);
-        // mark door 10 as cleared so they can try again? keep closed so they can re-open
-        setDoors((d) => { const n = [...d]; n[9] = "closed"; return n; });
       }
     }, 100);
     return () => clearInterval(id);
   }, [exitOpen, exitDeadline, stage]);
+
+  // Auto-open exit wall once ALL 10 doors in stage 1 are cleared
+  useEffect(() => {
+    if (stage !== 1) return;
+    if (exitOpen) return;
+    if (doors.length === 10 && doors.every((d) => d === "cleared")) {
+      setExitOpen(true);
+      setExitDeadline(Date.now() + 20000);
+    }
+  }, [doors, stage, exitOpen]);
 
   // transition timer
   useEffect(() => {

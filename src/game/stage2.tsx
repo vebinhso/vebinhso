@@ -1,5 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
+import type React from "react";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 

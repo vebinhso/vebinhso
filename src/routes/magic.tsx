@@ -1332,6 +1332,7 @@ function MagicPage() {
       setS2Inv({ shield: false, potion: 0 });
       setS2Room(null); setS2Modal(null); setRoom5Open(false); setWitch(null);
       setPirateChestOpened(false); setRoom5ChestOpened(false); setGhostQuiz(null);
+      s2SpawnRef.current = null;
       setStage(2);
     }
     setSelectedArea(a);

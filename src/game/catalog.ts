@@ -21,8 +21,9 @@ export type CatalogItem = {
   shape?: "box" | "cylinder";
   // "place" (mặc định): chọn rồi đặt; "brick"/"concrete": mua dồn kho vật liệu;
   // "palette": mở khung chọn màu sơn tường
-  kind?: "place" | "brick" | "concrete" | "palette";
+  kind?: "place" | "brick" | "concrete" | "palette" | "rooftile";
   qty?: number; // số lượng cộng vào kho mỗi lần mua
+  roofStyle?: "tile" | "ton"; // chỉ áp dụng khi kind = "rooftile"
 };
 
 export const CATALOG: CatalogItem[] = [
@@ -35,8 +36,9 @@ export const CATALOG: CatalogItem[] = [
   { id: "concrete", name: "Bê tông tươi (1 xô)", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder", kind: "concrete", qty: 1 },
   { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 0.2, h: 3, color: "#8b4513", icon: "🚪" },
   { id: "floor", name: "Gạch lát sàn", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.1, color: "#d4a574", icon: "🟫" },
-  { id: "roof", name: "Mái nhà bê tông", category: "Vật liệu", price: 50, w: 1, d: 1, h: 0.3, color: "#7f1d1d", icon: "🏠" },
-  { id: "roof_ton", name: "Mái tôn", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🏠" },
+  // Mái nhà: mua dồn kho "gạch mái nhà". Khi xây sẽ chọn 4 cột trụ → tự dựng mái theo diện tích (1m² = 1 gạch mái).
+  { id: "roof", name: "Gạch mái ngói (10 miếng)", category: "Vật liệu", price: 50, w: 1, d: 1, h: 0.3, color: "#7f1d1d", icon: "🧱", kind: "rooftile", qty: 10, roofStyle: "tile" },
+  { id: "roof_ton", name: "Gạch mái tôn (10 miếng)", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🟥", kind: "rooftile", qty: 10, roofStyle: "ton" },
   { id: "window", name: "Cửa sổ (gắn tường)", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
   { id: "curtain", name: "Rèm cửa", category: "Vật liệu", price: 50, w: 2, d: 0.1, h: 4, color: "#fda4af", icon: "🪟" },
 

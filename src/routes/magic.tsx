@@ -19,7 +19,7 @@ export const Route = createFileRoute("/magic")({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Nosifer&family=Creepster&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
       },
     ],
   }),
@@ -924,6 +924,16 @@ function MagicPage() {
     saveGame({ ...g, money: g.money + n });
   };
 
+  // Cộng / reset số câu hỏi trả lời đúng (DÙNG CHUNG với map nhà)
+  const bumpQuestion = (isCorrect: boolean) => {
+    const g = loadGame();
+    if (isCorrect) {
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
+    } else {
+      saveGame({ ...g, answerStreak: 0 });
+    }
+  };
+
   // room phase ticker
   useEffect(() => {
     if (!room) return;
@@ -1035,6 +1045,7 @@ function MagicPage() {
     const isCorrect = i === animalQuiz.q.answer;
     const reward = isCorrect ? animalQuiz.q.reward : 0;
     if (reward) addCoins(reward);
+    bumpQuestion(isCorrect);
     const nextCorrect = animalQuiz.correct + (isCorrect ? 1 : 0);
     const nextIdx = animalQuiz.idx + 1;
     if (nextIdx >= animalQuiz.total) {
@@ -1200,6 +1211,7 @@ function MagicPage() {
     if (!ghostQuiz) return;
     const correct = i === ghostQuiz.answer;
     if (correct) addCoins(20);
+    bumpQuestion(correct);
     setGhostQuiz(null);
   };
 
@@ -1222,6 +1234,7 @@ function MagicPage() {
   const answerQuiz5 = (i: number) => {
     if (!quiz5) return;
     const isCorrect = i === quiz5.q.answer;
+    bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
     if (nextIdx >= 5) {
@@ -1248,6 +1261,7 @@ function MagicPage() {
   const answerWitch = (i: number) => {
     if (!witch || !witch.question) return;
     const isCorrect = i === witch.question.answer;
+    bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);
     if (newHp <= 0) {
@@ -1463,7 +1477,7 @@ function MagicPage() {
           <h1
             className="text-6xl md:text-8xl font-black tracking-widest"
             style={{
-              fontFamily: "'Nosifer', 'Creepster', serif",
+              fontFamily: "'Pirata One', 'Special Elite', serif",
               color: "#c0c0c0",
               textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
               animation: "khuVuc2Fade 3.2s ease-in-out forwards",
@@ -1716,7 +1730,7 @@ function MagicPage() {
             <h1
               className="relative text-7xl md:text-9xl"
               style={{
-                fontFamily: "'Nosifer', 'Creepster', 'Montserrat', cursive",
+                fontFamily: "'Pirata One', 'Special Elite', 'Montserrat', serif",
                 color: "#a30000",
                 textShadow:
                   "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
@@ -1767,7 +1781,7 @@ function MagicPage() {
       {selectedArea === null && (
         <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "Creepster, serif", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
+            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Pirata One', 'Special Elite', serif", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
               🗺️ Bản đồ Ma Thuật
             </h1>
             <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>

@@ -19,6 +19,16 @@ export type WallSegment = {
   value?: number; // giá trị vật liệu đã dùng, cộng vào tài sản ròng
 };
 
+export type RoofSegment = {
+  id: string;
+  ax: number; // bbox min x (world coords, center origin)
+  az: number; // bbox min z
+  bx: number; // bbox max x
+  bz: number; // bbox max z
+  style: "tile" | "ton"; // ngói đỏ vs mái tôn
+  value: number;
+};
+
 export type GameState = {
   money: number;
   netWorth: number;
@@ -31,6 +41,9 @@ export type GameState = {
   walls: WallSegment[];
   wallColor: string;
   ownedPalettes: string[]; // palette ids unlocked
+  roofTiles: number; // gạch mái nhà (ngói đỏ)
+  roofTilesTon: number; // gạch mái tôn
+  roofs: RoofSegment[];
 };
 
 const PREFIX = "vebinhso_game_";
@@ -47,6 +60,9 @@ const DEFAULT: GameState = {
   walls: [],
   wallColor: "#f5e6c8",
   ownedPalettes: [],
+  roofTiles: 0,
+  roofTilesTon: 0,
+  roofs: [],
 };
 
 function key() {

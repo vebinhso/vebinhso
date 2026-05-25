@@ -895,10 +895,11 @@ function MagicPage() {
   const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
   const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
 
-  const [intro, setIntro] = useState<0 | 1 | 2>(0);
+  const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
-    if (intro === 1) { const t = setTimeout(() => setIntro(2), 3200); return () => clearTimeout(t); }
+    if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
+    if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
   useEffect(() => {

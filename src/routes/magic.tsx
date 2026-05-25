@@ -1300,7 +1300,7 @@ function MagicPage() {
       setWitch(null);
       setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
       setS2Room(null);
-      setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "+100 đồng. Stage 2 hoàn thành!", finished: true });
+      setGameComplete(true);
       return;
     }
     const nextWave = witch.wave + 1;

@@ -4,19 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
-import type { PlacedItem } from "@/lib/game";
+import type { PlacedItem, WallSegment } from "@/lib/game";
+import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;
 const CELL = 1;
-const PATH = 3; // cells of path around plot
+const PATH = 3;
 
 type Props = {
   placed: PlacedItem[];
+  walls: WallSegment[];
+  wallColor: string;
+  wallMode: boolean;
+  wallPickA: string | null;
   selectedItemId: string | null;
   rotation: number;
   onRotate: () => void;
   onPlace: (x: number, z: number) => void;
   onRemove: (id: string) => void;
+  onPillarClick: (placedId: string) => void;
+  onWallRemove: (id: string) => void;
 };
 
 function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {

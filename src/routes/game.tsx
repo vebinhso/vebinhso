@@ -1,7 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
-import { loadGame, saveGame, computeLevel, nextLevelInfo, type GameState, type PlacedItem } from "@/lib/game";
+import {
+  loadGame,
+  saveGame,
+  computeLevel,
+  nextLevelInfo,
+  wallCost,
+  WALL_HEIGHT,
+  WALL_PALETTES,
+  type GameState,
+  type PlacedItem,
+  type WallSegment,
+} from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question } from "@/game/questions";
 
@@ -20,6 +31,14 @@ function GamePage() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Wall-build flow
+  const [wallMode, setWallMode] = useState(false);
+  const [wallPickA, setWallPickA] = useState<string | null>(null);
+
+  // Palette picker modal
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -41,12 +60,41 @@ function GamePage() {
   const level = computeLevel(state);
   const lvlInfo = nextLevelInfo(state);
 
+  const flash = (msg: string, ms = 1800) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), ms);
+  };
+
   const buyAndSelect = (itemId: string) => {
     const it = getItem(itemId);
-    if (!it) return;
+    if (!it || !state) return;
     if (state.money < it.price) {
-      setQuestionResult("❌ Không đủ tiền! Trả lời câu hỏi để kiếm tiền.");
-      setTimeout(() => setQuestionResult(null), 2000);
+      flash("❌ Không đủ tiền! Trả lời câu hỏi để kiếm thêm.");
+      return;
+    }
+    const kind = it.kind ?? "place";
+    if (kind === "brick") {
+      setState({ ...state, money: state.money - it.price, bricks: state.bricks + (it.qty ?? 10) });
+      flash(`🧱 +${it.qty ?? 10} viên gạch vào kho`);
+      return;
+    }
+    if (kind === "concrete") {
+      setState({ ...state, money: state.money - it.price, concrete: state.concrete + (it.qty ?? 1) });
+      flash(`🪣 +${it.qty ?? 1} xô bê tông tươi vào kho`);
+      return;
+    }
+    if (kind === "palette") {
+      if (!state.ownedPalettes.length) {
+        // mua lần đầu: trừ tiền & mở tất cả palette
+        setState({ ...state, money: state.money - it.price, ownedPalettes: WALL_PALETTES.map((p) => p.id) });
+      }
+      setPaletteOpen(true);
+      setShopOpen(false);
+      return;
+    }
+    // Cửa sổ: phải có ít nhất 1 tường để gắn
+    if (it.id === "window" && state.walls.length === 0) {
+      flash("⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");
       return;
     }
     setSelected(itemId);
@@ -60,9 +108,24 @@ function GamePage() {
     const fw = swap ? it.d : it.w;
     const fd = swap ? it.w : it.d;
     if (x < 0 || z < 0 || x + fw > 20 || z + fd > 20) return;
+
+    // Cửa sổ: chỉ cho phép đặt nếu nằm trên 1 tường (kiểm tra khoảng cách điểm tới đoạn tường)
+    if (it.id === "window") {
+      const cx = x + fw / 2 - 10;
+      const cz = z + fd / 2 - 10;
+      const ok = state.walls.some((w) => pointOnSegment(cx, cz, w, 0.6));
+      if (!ok) {
+        flash("🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé.");
+        return;
+      }
+    }
+
     const collides = state.placed.some((p) => {
       const pi = getItem(p.itemId);
       if (!pi) return false;
+      // Mái không kiểm tra va chạm sàn (đặt trên đỉnh tường)
+      if (isRoof(pi.id) || isRoof(it.id)) return false;
+      if (pi.id === "window" || it.id === "window") return false;
       const ps = p.rotation % 2 === 1;
       const pw = ps ? pi.d : pi.w;
       const pd = ps ? pi.w : pi.d;
@@ -89,7 +152,7 @@ function GamePage() {
     const p = state.placed.find((x) => x.id === id);
     if (!p) return;
     const it = getItem(p.itemId);
-    const refund = it ? it.price : 0; // hoàn 100% vào tài khoản khi vật tư biến mất
+    const refund = it ? it.price : 0;
     setState({
       ...state,
       money: state.money + refund,
@@ -98,16 +161,71 @@ function GamePage() {
     });
   };
 
+  const removeWall = (id: string) => {
+    setState({ ...state, walls: state.walls.filter((w) => w.id !== id) });
+    flash("🧹 Đã gỡ tường");
+  };
+
+  // Wall-mode: click 2 pillars to build between them
+  const onPillarClick = (placedId: string) => {
+    if (!wallMode) return;
+    if (!wallPickA) {
+      setWallPickA(placedId);
+      flash("Đã chọn cột A — chọn cột B để xây.");
+      return;
+    }
+    if (wallPickA === placedId) {
+      setWallPickA(null);
+      flash("Đã huỷ chọn cột A");
+      return;
+    }
+    const A = state.placed.find((p) => p.id === wallPickA);
+    const B = state.placed.find((p) => p.id === placedId);
+    if (!A || !B) {
+      setWallPickA(null);
+      return;
+    }
+    // Center of each pillar in world coords
+    const ax = A.x - 10 + 0.5;
+    const az = A.z - 10 + 0.5;
+    const bx = B.x - 10 + 0.5;
+    const bz = B.z - 10 + 0.5;
+    const dist = Math.hypot(bx - ax, bz - az);
+    const cost = wallCost(dist);
+    if (state.bricks < cost.bricks || state.concrete < cost.concrete) {
+      flash(`❌ Thiếu vật liệu! Cần ${cost.bricks} gạch + ${cost.concrete} xô bê tông (đang có ${state.bricks}/${state.concrete}).`, 3000);
+      setWallPickA(null);
+      return;
+    }
+    const seg: WallSegment = {
+      id: `w-${Date.now()}`,
+      ax, az, bx, bz,
+      color: state.wallColor,
+    };
+    setState({
+      ...state,
+      bricks: state.bricks - cost.bricks,
+      concrete: state.concrete - cost.concrete,
+      walls: [...state.walls, seg],
+    });
+    setWallPickA(null);
+    flash(`🧱 Xây tường ${cost.length}m × ${WALL_HEIGHT}m — tốn ${cost.bricks} gạch + ${cost.concrete} bê tông.`, 2500);
+  };
+
+  const pickPaletteColor = (hex: string) => {
+    setState({ ...state, wallColor: hex });
+    setPaletteOpen(false);
+    flash(`🎨 Màu tường mới: ${hex}`);
+  };
+
   const openQuestion = () => {
     setQuestion(randomQuestion());
     setQuestionResult(null);
   };
-
   const closeQuestion = () => {
     setQuestion(null);
     setQuestionResult(null);
   };
-
   const answerQuestion = (idx: number) => {
     if (!question) return;
     let next: GameState;
@@ -122,28 +240,35 @@ function GamePage() {
       resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
       next = { ...state, answerStreak: 0 };
-      resultText = `❌ Sai rồi! Streak về 0. Đáp án: ${question.options[question.answer]}`;
+      resultText = `❌ Sai rồi! Đáp án: ${question.options[question.answer]}`;
     }
     setState(next);
     setQuestionResult(resultText);
-    // Sang câu mới sau 1.2s — KHÔNG đóng modal, người chơi trả lời liên tục
     setTimeout(() => {
       setQuestion(randomQuestion());
       setQuestionResult(null);
     }, 1200);
   };
 
+  const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar");
+  const canEnterWallMode = pillarsPlaced.length >= 2;
+
   return (
     <div className="fixed inset-0 bg-sky-300 overflow-hidden select-none">
-      {/* 3D scene */}
       <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-white font-black text-2xl">Đang tải thế giới 3D...</div>}>
         <GameWorld
           placed={state.placed}
+          walls={state.walls}
+          wallColor={state.wallColor}
+          wallMode={wallMode}
+          wallPickA={wallPickA}
           selectedItemId={selected}
           rotation={rotation}
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onRemove={handleRemove}
+          onPillarClick={onPillarClick}
+          onWallRemove={removeWall}
         />
       </Suspense>
 
@@ -155,6 +280,7 @@ function GamePage() {
             <div className="font-black">{user.username} <span className="text-xs text-orange-700">#{user.id}</span></div>
             <div className="font-bold text-yellow-700">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
             <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu • 🔥 streak {state.answerStreak}</div>
+            <div className="text-xs font-bold text-stone-700">🧱 Gạch: {state.bricks} • 🪣 Bê tông: {state.concrete}</div>
           </div>
         </div>
 
@@ -162,6 +288,25 @@ function GamePage() {
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
           <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+          <button
+            onClick={() => {
+              if (!canEnterWallMode) {
+                flash("Đặt ít nhất 2 cột bê tông trước khi xây tường.");
+                return;
+              }
+              setWallMode((w) => !w);
+              setWallPickA(null);
+              setSelected(null);
+            }}
+            className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
+          >
+            {wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
+          </button>
+          {state.ownedPalettes.length > 0 && (
+            <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3" style={{ background: state.wallColor }}>
+              🎨 Đổi màu tường
+            </button>
+          )}
         </div>
       </div>
 
@@ -169,16 +314,17 @@ function GamePage() {
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">
         <div className="text-xs font-black text-center">CẤP {level} → CẤP {lvlInfo.next}</div>
         <div className="text-[10px] font-bold text-muted-foreground">
-          💰 Tài khoản {state.money}/{lvlInfo.moneyNeeded}đ • 🏠 Tài sản ròng {state.netWorth}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
+          💰 {state.money}/{lvlInfo.moneyNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
         </div>
       </div>
 
-      {/* Bottom controls hint */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none">
-        🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay vật • Chuột: Camera 360° • Click: Đặt • Chuột phải: Xóa
+      {/* Controls hint */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none max-w-[92vw] text-center">
+        {wallMode
+          ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
+          : "🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}
       </div>
 
-      {/* Selected item indicator */}
       {selected && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
           <span className="text-2xl">{getItem(selected)?.icon}</span>
@@ -187,19 +333,18 @@ function GamePage() {
         </div>
       )}
 
-      {/* Toast result */}
-      {questionResult && !question && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 glass-card px-5 py-3 font-black text-base animate-bounce">
-          {questionResult}
+      {toast && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 glass-card px-5 py-3 font-black text-base animate-bounce pointer-events-none z-40">
+          {toast}
         </div>
       )}
 
-      {/* Shop modal */}
+      {/* Shop */}
       {shopOpen && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4" onClick={() => setShopOpen(false)}>
           <div className="glass-card max-w-3xl w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b-2 border-white/50 flex items-center justify-between">
-              <h2 className="text-2xl font-black">🛒 CỬA HÀNG VỆ BINH</h2>
+              <h2 className="text-2xl font-black">🛒 CỬA HÀNG</h2>
               <div className="font-bold text-yellow-700">💰 {state.money}đ</div>
               <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
             </div>
@@ -214,46 +359,36 @@ function GamePage() {
                 </button>
               ))}
             </div>
+            {activeCat === "Vật liệu" && (
+              <div className="px-4 pt-3 text-[11px] font-bold text-stone-700">
+                💡 Đặt CỘT BÊ TÔNG trước để giới hạn bề ngang. Mua GẠCH + BÊ TÔNG TƯƠI, rồi bấm
+                {" "}<span className="text-orange-700">🧱 XÂY TƯỜNG</span> để hệ thống tự quy đổi (10 gạch + 1 bê tông cho 1m × 5m).
+              </div>
+            )}
             <div className="p-4 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {CATALOG.filter((c) => c.category === activeCat).map((it) => {
                 const canAfford = state.money >= it.price;
+                const kind = it.kind ?? "place";
+                const label =
+                  kind === "brick" ? "MUA GẠCH" :
+                  kind === "concrete" ? "MUA BÊ TÔNG" :
+                  kind === "palette" ? "MỞ PALETTE" :
+                  "MUA & ĐẶT";
                 return (
-                  <div
-                    key={it.id}
-                    className="relative rounded-3xl p-3 text-center border-2 border-amber-200 transition-transform hover:-translate-y-1"
-                    style={{
-                      background:
-                        "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
-                      boxShadow:
-                        "0 12px 22px -10px rgba(180,120,0,0.55), inset 0 -6px 0 rgba(0,0,0,0.07), inset 0 4px 0 rgba(255,255,255,0.6)",
-                    }}
-                  >
-                    <div
-                      className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl mb-1"
-                      style={{
-                        background:
-                          "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
-                        boxShadow:
-                          "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      {it.icon}
-                    </div>
+                  <div key={it.id} className="relative rounded-3xl p-3 text-center border-2 border-amber-200" style={{
+                    background: "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
+                    boxShadow: "0 12px 22px -10px rgba(180,120,0,0.55), inset 0 -6px 0 rgba(0,0,0,0.07), inset 0 4px 0 rgba(255,255,255,0.6)",
+                  }}>
+                    <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl mb-1" style={{
+                      background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
+                      boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
+                    }}>{it.icon}</div>
                     <div className="font-black text-sm mt-1 line-clamp-1">{it.name}</div>
-                    <div className="text-[10px] text-amber-900/70 font-bold">
-                      {it.w}×{it.d} ô
-                    </div>
-                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-xs font-black">
-                      💰 {it.price}đ
-                    </div>
-                    <button
-                      onClick={() => buyAndSelect(it.id)}
-                      disabled={!canAfford}
-                      className={`toy-button !text-xs !py-1 !px-3 mt-2 w-full ${
-                        canAfford ? "toy-button-primary !text-xs !py-1 !px-3" : "opacity-50"
-                      }`}
-                    >
-                      {canAfford ? "MUA & ĐẶT" : "Hết tiền"}
+                    <div className="text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d} ô</div>
+                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-xs font-black">💰 {it.price}đ</div>
+                    <button onClick={() => buyAndSelect(it.id)} disabled={!canAfford}
+                      className={`toy-button !text-xs !py-1 !px-3 mt-2 w-full ${canAfford ? "toy-button-primary !text-xs !py-1 !px-3" : "opacity-50"}`}>
+                      {canAfford ? label : "Hết tiền"}
                     </button>
                   </div>
                 );
@@ -263,7 +398,40 @@ function GamePage() {
         </div>
       )}
 
-      {/* Question modal — trả lời liên tục */}
+      {/* Palette modal */}
+      {paletteOpen && (
+        <div className="absolute inset-0 bg-black/60 z-40 flex items-center justify-center p-4" onClick={() => setPaletteOpen(false)}>
+          <div className="glass-card max-w-4xl w-full max-h-[85vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-2xl font-black">🎨 PALETTE MÀU TƯỜNG</h2>
+              <button onClick={() => setPaletteOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
+            </div>
+            <p className="text-xs font-bold text-stone-700 mb-3">Chọn 1 ô màu bất kỳ để sơn cho các tường (tường mới và sẵn có).</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {WALL_PALETTES.map((p) => (
+                <div key={p.id} className="rounded-2xl p-3 bg-white/70 border border-white/80">
+                  <div className="text-sm font-black mb-2">{p.name}</div>
+                  <div className="flex rounded-xl overflow-hidden shadow-inner">
+                    {p.colors.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => pickPaletteColor(c)}
+                        className="flex-1 h-14 hover:scale-110 transition-transform border-r last:border-r-0 border-white/40 relative group"
+                        style={{ background: c }}
+                        title={c}
+                      >
+                        <span className="absolute inset-x-0 bottom-0 text-[9px] font-black text-white/90 mix-blend-difference">{c}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Question modal */}
       {question && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4">
           <div className="glass-card max-w-md w-full p-6">
@@ -274,25 +442,33 @@ function GamePage() {
             <h3 className="text-lg font-black mb-4">{question.q}</h3>
             <div className="grid grid-cols-1 gap-2">
               {question.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => answerQuestion(i)}
-                  disabled={!!questionResult}
-                  className="toy-button !text-sm !py-2 w-full justify-start"
-                >
+                <button key={i} onClick={() => answerQuestion(i)} disabled={!!questionResult}
+                  className="toy-button !text-sm !py-2 w-full justify-start">
                   {String.fromCharCode(65 + i)}. {opt}
                 </button>
               ))}
             </div>
-            {questionResult && (
-              <div className="mt-4 text-center font-black text-lg">{questionResult}</div>
-            )}
-            <p className="text-[11px] font-bold text-muted-foreground mt-3 text-center">
-              Trả lời sẽ tự sang câu tiếp theo. Bấm <span className="text-orange-600">✖ Thoát</span> để dừng.
-            </p>
+            {questionResult && <div className="mt-4 text-center font-black text-lg">{questionResult}</div>}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function isRoof(id: string) {
+  return id === "roof" || id === "roof_ton";
+}
+
+function pointOnSegment(px: number, pz: number, w: WallSegment, tol: number) {
+  // distance from point to segment AB
+  const ax = w.ax, az = w.az, bx = w.bx, bz = w.bz;
+  const dx = bx - ax, dz = bz - az;
+  const len2 = dx * dx + dz * dz;
+  if (len2 === 0) return Math.hypot(px - ax, pz - az) <= tol;
+  let t = ((px - ax) * dx + (pz - az) * dz) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx;
+  const cz = az + t * dz;
+  return Math.hypot(px - cx, pz - cz) <= tol;
 }

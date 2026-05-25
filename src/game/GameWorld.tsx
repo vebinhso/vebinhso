@@ -4,19 +4,26 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
-import type { PlacedItem } from "@/lib/game";
+import type { PlacedItem, WallSegment } from "@/lib/game";
+import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;
 const CELL = 1;
-const PATH = 3; // cells of path around plot
+const PATH = 3;
 
 type Props = {
   placed: PlacedItem[];
+  walls: WallSegment[];
+  wallColor: string;
+  wallMode: boolean;
+  wallPickA: string | null;
   selectedItemId: string | null;
   rotation: number;
   onRotate: () => void;
   onPlace: (x: number, z: number) => void;
   onRemove: (id: string) => void;
+  onPillarClick: (placedId: string) => void;
+  onWallRemove: (id: string) => void;
 };
 
 function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {
@@ -152,41 +159,64 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
 }
 
 
-function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove }: Omit<Props, "onRotate">) {
+function isRoof(id: string) {
+  return id === "roof" || id === "roof_ton";
+}
+
+function WallMesh({ w, color, highlight, onRemove }: { w: WallSegment; color: string; highlight?: boolean; onRemove: () => void }) {
+  const dx = w.bx - w.ax;
+  const dz = w.bz - w.az;
+  const len = Math.hypot(dx, dz);
+  const angle = Math.atan2(dx, dz);
+  const cx = (w.ax + w.bx) / 2;
+  const cz = (w.az + w.bz) / 2;
+  return (
+    <group position={[cx, 0, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); onRemove(); }}>
+      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
+        <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
+        <meshStandardMaterial color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} />
+      </mesh>
+      {/* Top concrete cap */}
+      <mesh castShadow position={[0, WALL_HEIGHT + 0.06, 0]}>
+        <boxGeometry args={[0.35, 0.12, len]} />
+        <meshStandardMaterial color="#9ca3af" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
+function PlotAndPlacement({
+  placed, walls, wallColor, wallMode, wallPickA,
+  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove,
+}: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
   const half = (GRID * CELL) / 2;
 
-  // rotate footprint
   const rotatedFootprint = (it: CatalogItem) => {
     const swap = rotation % 2 === 1;
     return { w: swap ? it.d : it.w, d: swap ? it.w : it.d };
   };
 
   const handleMove = (e: any) => {
-    if (!selected) return;
+    if (!selected || wallMode) return;
     const p = e.point as THREE.Vector3;
     const gx = Math.floor(p.x + half);
     const gz = Math.floor(p.z + half);
     setHover({ x: gx, z: gz });
   };
-  const handleClick = () => { if (selected && hover) onPlace(hover.x, hover.z); };
+  const handleClick = () => { if (!wallMode && selected && hover) onPlace(hover.x, hover.z); };
 
   return (
     <group>
-      {/* Far ground */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
-
-      {/* Path ring around plot */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />
       </mesh>
-
-      {/* Plot (dirt/grass mix) */}
       <mesh
         receiveShadow
         rotation={[-Math.PI / 2, 0, 0]}
@@ -198,11 +228,8 @@ function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove 
         <planeGeometry args={[GRID, GRID]} />
         <meshStandardMaterial color="#9bca6f" />
       </mesh>
-
-      {/* Grid */}
       <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, 0.02, 0]} />
 
-      {/* Plot border posts */}
       {[-half, half].map((x) =>
         [-half, half].map((z) => (
           <mesh key={`${x}-${z}`} castShadow position={[x, 0.4, z]}>
@@ -211,6 +238,11 @@ function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove 
           </mesh>
         ))
       )}
+
+      {/* Walls (auto-built between pillars) */}
+      {walls.map((w) => (
+        <WallMesh key={w.id} w={w} color={wallColor} onRemove={() => onWallRemove(w.id)} />
+      ))}
 
       {/* Placed items */}
       {placed.map((p) => {
@@ -221,26 +253,51 @@ function PlotAndPlacement({ placed, selectedItemId, rotation, onPlace, onRemove 
         const fd = swap ? it.w : it.d;
         const wx = p.x - half + fw / 2;
         const wz = p.z - half + fd / 2;
+        // Mái nhà nằm trên đỉnh tường
+        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0);
+        const isSelectedPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         return (
           <group
             key={p.id}
-            position={[wx, 0, wz]}
+            position={[wx, yOffset, wz]}
             rotation={[0, (p.rotation * Math.PI) / 2, 0]}
-            onContextMenu={(e) => { e.stopPropagation(); onRemove(p.id); }}
+            onContextMenu={(e) => {
+              e.stopPropagation();
+              if (!wallMode) onRemove(p.id);
+            }}
+            onClick={(e) => {
+              if (wallMode && p.itemId === "pillar") {
+                e.stopPropagation();
+                onPillarClick(p.id);
+              }
+            }}
           >
             <ItemModel item={it} />
+            {isSelectedPillar && (
+              <mesh position={[0, 2.5, 0]}>
+                <torusGeometry args={[0.6, 0.08, 8, 24]} />
+                <meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1} />
+              </mesh>
+            )}
+            {wallMode && p.itemId === "pillar" && !isSelectedPillar && (
+              <mesh position={[0, 5.3, 0]}>
+                <sphereGeometry args={[0.18, 12, 12]} />
+                <meshStandardMaterial color="#22c55e" emissive="#16a34a" emissiveIntensity={0.8} />
+              </mesh>
+            )}
           </group>
         );
       })}
 
       {/* Ghost */}
-      {selected && hover && (() => {
+      {!wallMode && selected && hover && (() => {
         const { w: fw, d: fd } = rotatedFootprint(selected);
         const wx = hover.x - half + fw / 2;
         const wz = hover.z - half + fd / 2;
         const inside = hover.x >= 0 && hover.z >= 0 && hover.x + fw <= GRID && hover.z + fd <= GRID;
+        const yOffset = isRoof(selected.id) ? WALL_HEIGHT : (selected.id === "window" ? 1.2 : 0);
         return (
-          <group position={[wx, 0, wz]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
+          <group position={[wx, yOffset, wz]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
             <mesh position={[0, selected.h / 2, 0]}>
               <boxGeometry args={[selected.w, selected.h, selected.d]} />
               <meshStandardMaterial color={inside ? "#22c55e" : "#ef4444"} transparent opacity={0.45} />

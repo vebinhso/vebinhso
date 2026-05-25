@@ -19,17 +19,25 @@ export type CatalogItem = {
   color: string;
   icon: string;
   shape?: "box" | "cylinder";
+  // "place" (mặc định): chọn rồi đặt; "brick"/"concrete": mua dồn kho vật liệu;
+  // "palette": mở khung chọn màu sơn tường
+  kind?: "place" | "brick" | "concrete" | "palette";
+  qty?: number; // số lượng cộng vào kho mỗi lần mua
 };
 
 export const CATALOG: CatalogItem[] = [
   // ===== Vật liệu / khung nhà =====
-  { id: "wall", name: "Tường gạch (1m)", category: "Vật liệu", price: 10, w: 1, d: 0.25, h: 3, color: "#f5e6c8", icon: "🧱" },
-  { id: "pillar", name: "Cột bê tông", category: "Vật liệu", price: 7, w: 1, d: 1, h: 5, color: "#9ca3af", icon: "🏛️", shape: "cylinder" },
+  // Cột bê tông: dùng ĐẦU TIÊN để định hình bề ngang trước khi xây tường
+  { id: "pillar", name: "Cột bê tông (đặt trước)", category: "Vật liệu", price: 7, w: 1, d: 1, h: 5, color: "#9ca3af", icon: "🏛️", shape: "cylinder" },
+  // Vật liệu xây: mua dồn vào kho, hệ thống tự quy đổi khi xây tường
+  // Quy đổi: 1m dài × 5m cao = 10 viên gạch + 1 xô bê tông tươi
+  { id: "brick_pack", name: "Gạch (10 viên)", category: "Vật liệu", price: 10, w: 1, d: 1, h: 0.5, color: "#c1440e", icon: "🧱", kind: "brick", qty: 10 },
+  { id: "concrete", name: "Bê tông tươi (1 xô)", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder", kind: "concrete", qty: 1 },
   { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 0.2, h: 3, color: "#8b4513", icon: "🚪" },
   { id: "floor", name: "Gạch lát sàn", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.1, color: "#d4a574", icon: "🟫" },
   { id: "roof", name: "Mái nhà bê tông", category: "Vật liệu", price: 50, w: 1, d: 1, h: 0.3, color: "#7f1d1d", icon: "🏠" },
   { id: "roof_ton", name: "Mái tôn", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🏠" },
-  { id: "window", name: "Cửa sổ", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
+  { id: "window", name: "Cửa sổ (gắn tường)", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
   { id: "curtain", name: "Rèm cửa", category: "Vật liệu", price: 50, w: 2, d: 0.1, h: 4, color: "#fda4af", icon: "🪟" },
 
   // ===== Ngoại thất =====
@@ -141,9 +149,8 @@ export const CATALOG: CatalogItem[] = [
   { id: "tile_waterproof", name: "Gạch chống thấm", category: "Vật liệu", price: 8, w: 1, d: 1, h: 0.1, color: "#a8a29e", icon: "🟦" },
   { id: "tile_pattern", name: "Gạch hoạ tiết", category: "Vật liệu", price: 12, w: 1, d: 1, h: 0.1, color: "#fcd34d", icon: "🟨" },
   { id: "tile_pattern_wp", name: "Gạch hoạ tiết chống thấm", category: "Vật liệu", price: 18, w: 1, d: 1, h: 0.1, color: "#fb923c", icon: "🟧" },
-  { id: "concrete", name: "Bê tông tươi", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder" },
   { id: "paint", name: "Sơn (xô)", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.5, color: "#f43f5e", icon: "🎨", shape: "cylinder" },
-  { id: "palette", name: "Palette màu tường", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨" },
+  { id: "palette", name: "Palette màu tường (mở khung chọn)", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨", kind: "palette" },
 ];
 
 export const CATEGORIES = [

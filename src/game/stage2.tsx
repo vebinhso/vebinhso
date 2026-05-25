@@ -1,5 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
+import type React from "react";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
@@ -349,20 +350,26 @@ export function Stage2Corridor() {
 }
 
 // ============ PLAYER ============
-export function Stage2PlayerController({ active, onNearDoor, onGhostHit }: { active: boolean; onNearDoor: (idx: number | null) => void; onGhostHit?: () => void }) {
+export function Stage2PlayerController({ active, onNearDoor, onGhostHit, spawnRef }: { active: boolean; onNearDoor: (idx: number | null) => void; onGhostHit?: () => void; spawnRef?: React.MutableRefObject<{ x: number; z: number; lookX: number; lookZ: number } | null> }) {
   const { camera } = useThree();
   const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
 
   useEffect(() => {
-    camera.position.set(0, 1.7, 0);
-    camera.lookAt(0, 1.6, -10);
+    const s = spawnRef?.current;
+    if (s) {
+      camera.position.set(s.x, 1.7, s.z);
+      camera.lookAt(s.x + s.lookX, 1.6, s.z + s.lookZ);
+    } else {
+      camera.position.set(0, 1.7, 0);
+      camera.lookAt(0, 1.6, -10);
+    }
     const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
     const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);
     return () => { window.removeEventListener("keydown", d); window.removeEventListener("keyup", u); };
-  }, [camera]);
+  }, [camera, spawnRef]);
 
   useFrame((_, dt) => {
     if (!active) return;

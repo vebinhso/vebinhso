@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
 import { loadGame, saveGame } from "@/lib/game";
-import { Stage2Scene, Stage2PlayerController, Witch, Lightning } from "@/game/stage2";
+import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from "@/game/stage2";
 import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
 import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, CorridorTigers, pickRandomAnimal, type AnimalName } from "@/game/PetModels";
 
@@ -42,7 +42,7 @@ const DOOR_OUTCOMES: DoorKind[] = [
   { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },   // 7 — beaver
   { kind: "animal" },                                            // 8 — random animal (2 câu)
   { kind: "chest", reward: 10 },                                 // 9
-  { kind: "exit" },                                              // 10
+  { kind: "animal" },                                            // 10 — random animal (cửa cuối, hoàn thành mới mở lối thoát)
 ];
 
 const CORRIDOR_LEN = 60;
@@ -149,20 +149,21 @@ function CorridorDoor({ pos, rotY, state, index }: { pos: [number, number, numbe
   const ref = useRef<THREE.Group>(null!);
   useFrame(() => {
     if (!ref.current) return;
-    const target = state === "open" || state === "cleared" ? Math.PI / 2.2 : 0;
+    // Only "open" animates — "cleared" doors look identical to "closed" (no progress indicator)
+    const target = state === "open" ? Math.PI / 2.2 : 0;
     ref.current.rotation.y += (target - ref.current.rotation.y) * 0.1;
   });
   return (
     <group position={pos} rotation={[0, rotY, 0]}>
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[1.6, 3, 0.15]} />
-        <meshStandardMaterial color={state === "cleared" ? "#4a5d3a" : "#5a3a1a"} />
+        <meshStandardMaterial color="#5a3a1a" />
       </mesh>
       <group position={[-0.6, 0, 0]}>
         <group ref={ref}>
           <mesh position={[0.6, 1.4, 0.05]} castShadow>
             <boxGeometry args={[1.2, 2.6, 0.1]} />
-            <meshStandardMaterial color={state === "cleared" ? "#6b8e4a" : "#8b5a2b"} metalness={0.2} roughness={0.6} />
+            <meshStandardMaterial color="#8b5a2b" metalness={0.2} roughness={0.6} />
           </mesh>
           <mesh position={[1.05, 1.4, 0.12]}>
             <sphereGeometry args={[0.08, 10, 10]} />
@@ -893,11 +894,13 @@ function MagicPage() {
   const [stage2Unlocked, setStage2Unlocked] = useState(false);
   const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
   const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
+  const s2SpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
 
-  const [intro, setIntro] = useState<0 | 1 | 2>(0);
+  const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
-    if (intro === 1) { const t = setTimeout(() => setIntro(2), 3200); return () => clearTimeout(t); }
+    if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
+    if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
   useEffect(() => {
@@ -973,15 +976,23 @@ function MagicPage() {
       const now = Date.now();
       setExitNow(now);
       if (now >= exitDeadline) {
-        // timed out — close back wall
+        // timed out — close back wall, player must complete a door again to retry
         setExitOpen(false);
         setExitDeadline(null);
-        // mark door 10 as cleared so they can try again? keep closed so they can re-open
-        setDoors((d) => { const n = [...d]; n[9] = "closed"; return n; });
       }
     }, 100);
     return () => clearInterval(id);
   }, [exitOpen, exitDeadline, stage]);
+
+  // Auto-open exit wall once ALL 10 doors in stage 1 are cleared
+  useEffect(() => {
+    if (stage !== 1) return;
+    if (exitOpen) return;
+    if (doors.length === 10 && doors.every((d) => d === "cleared")) {
+      setExitOpen(true);
+      setExitDeadline(Date.now() + 20000);
+    }
+  }, [doors, stage, exitOpen]);
 
   // transition timer
   useEffect(() => {
@@ -1010,16 +1021,10 @@ function MagicPage() {
   useEffect(() => {
     if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 2) {
+      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 3) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
-        if (outcome.kind === "exit") {
-          // OPEN BACK WALL + 20s timer instead of ending game
-          setExitOpen(true);
-          setExitDeadline(Date.now() + 20000);
-          if (document.exitPointerLock) document.exitPointerLock();
-          return;
-        }
+        // (Exit wall opens automatically once all 10 doors are cleared — see useEffect above)
         if (document.exitPointerLock) document.exitPointerLock();
         // Save corridor return position right in front of this door (facing into corridor)
         {
@@ -1093,6 +1098,14 @@ function MagicPage() {
       const idx = s2Near;
       const kinds: S2RoomKind[] = ["pirate", "forest", "potion", "stars", "room5quiz"];
       const kind = kinds[idx];
+      // Save spawn position right in front of this door (facing into the corridor)
+      const door = S2_DOORS[idx];
+      if (door) {
+        const dx = door.approach[0] - door.x;
+        const dz = door.approach[1] - door.z;
+        const len = Math.hypot(dx, dz) || 1;
+        s2SpawnRef.current = { x: door.approach[0], z: door.approach[1], lookX: dx / len, lookZ: dz / len };
+      }
       if (document.exitPointerLock) document.exitPointerLock();
       if (idx === 4) {
         // Phòng 5: mở bảng chọn cửa con
@@ -1319,6 +1332,7 @@ function MagicPage() {
       setS2Inv({ shield: false, potion: 0 });
       setS2Room(null); setS2Modal(null); setRoom5Open(false); setWitch(null);
       setPirateChestOpened(false); setRoom5ChestOpened(false); setGhostQuiz(null);
+      s2SpawnRef.current = null;
       setStage(2);
     }
     setSelectedArea(a);
@@ -1337,16 +1351,16 @@ function MagicPage() {
                 doors={doors}
                 exitOpen={exitOpen}
                 onTigerHit={onTigerHit}
-                tigersActive={!modal && !won && !animalQuiz && intro === 2}
+                tigersActive={!modal && !won && !animalQuiz && intro === 3}
               />
               <PlayerController
-                active={!modal && !won && !animalQuiz && intro === 2}
+                active={!modal && !won && !animalQuiz && intro === 3}
                 onNearDoor={setNear}
                 exitOpen={exitOpen}
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
                 spawnRef={corridorSpawnRef}
               />
-              {!modal && !won && !animalQuiz && intro === 2 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
             </>
           ) : stage === "transition" ? (
             <>
@@ -1378,6 +1392,7 @@ function MagicPage() {
                active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz}
                onNearDoor={setS2Near}
                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5 && !animalQuiz) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
+               spawnRef={s2SpawnRef}
              />
              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
             </>
@@ -1494,14 +1509,15 @@ function MagicPage() {
             className="text-6xl md:text-8xl font-black tracking-widest"
             style={{
               fontFamily: "'Anton', sans-serif",
-              color: "#c0c0c0",
-              textShadow: "0 0 24px rgba(200,200,255,0.4), 0 0 48px rgba(100,100,150,0.3)",
-              animation: "khuVuc2Fade 3.2s ease-in-out forwards",
+              color: "#ff1a1a",
+              letterSpacing: "0.2em",
+              textShadow: "0 0 18px #ff0000, 0 0 36px #6a0000, 0 4px 0 #2a0000",
+              animation: "khuVuc2Fade 3.2s ease-in-out forwards, creepyShake 0.22s infinite",
             }}
           >
             KHU VỰC 2
           </h1>
-          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} }`}</style>
+          <style>{`@keyframes khuVuc2Fade { 0%{opacity:0;letter-spacing:0.5em;} 30%{opacity:1;letter-spacing:0.2em;} 80%{opacity:1;} 100%{opacity:0;} } @keyframes creepyShake { 0%{transform:translate(0,0);} 25%{transform:translate(-1px,1px);} 50%{transform:translate(1px,-1px);} 75%{transform:translate(-1px,-1px);} 100%{transform:translate(1px,1px);} }`}</style>
         </div>
       )}
 
@@ -1715,7 +1731,7 @@ function MagicPage() {
 
 
       {/* Creepy intro overlay */}
-      {intro < 2 && selectedArea === 1 && (
+      {intro < 3 && selectedArea === 1 && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center select-none"
           style={{ background: "radial-gradient(ellipse at center, #1a0a0a 0%, #050000 70%, #000 100%)" }}
@@ -1742,29 +1758,32 @@ function MagicPage() {
               <br />
               nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
             </p>
-          ) : (
+          ) : intro === 1 ? (
             <div className="relative flex flex-col items-center gap-4">
               <h1
                 className="text-7xl md:text-9xl"
                 style={{
                   fontFamily: "'Anton', sans-serif",
-                  color: "#a30000",
+                  color: "#ff1a1a",
                   textShadow:
-                    "0 0 8px #ff0000, 0 0 24px #5a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
+                    "0 0 10px #ff0000, 0 0 28px #8a0000, 4px 8px 0 #2a0000, 0 30px 28px rgba(120,0,0,0.6)",
                   animation: "bloodDrip 1.4s ease-out, creepyShake 0.18s infinite",
                   letterSpacing: "0.08em",
                 }}
               >
                 CHẠY ĐI !
               </h1>
+            </div>
+          ) : (
+            <div className="relative flex flex-col items-center gap-4">
               <h2
-                className="text-4xl md:text-6xl"
+                className="text-6xl md:text-8xl"
                 style={{
                   fontFamily: "'Anton', sans-serif",
-                  color: "#ffb070",
+                  color: "#ff1a1a",
                   letterSpacing: "0.18em",
-                  textShadow: "0 0 14px #ff6020, 0 4px 0 #4a1500",
-                  animation: "creepyFade 2.6s ease-out 0.4s both",
+                  textShadow: "0 0 14px #ff0000, 0 0 28px #6a0000, 0 4px 0 #2a0000",
+                  animation: "creepyFade 2.4s ease-out both, creepyShake 0.22s infinite",
                 }}
               >
                 KHU VỰC 1

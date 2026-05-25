@@ -880,6 +880,8 @@ function MagicPage() {
   const [s2Near, setS2Near] = useState<number | null>(null);
   const [s2Doors, setS2Doors] = useState<S2DoorState[]>(Array(5).fill("closed"));
   const [s2Modal, setS2Modal] = useState<null | { title: string; text: string; finished?: boolean }>(null);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [completeElapsed, setCompleteElapsed] = useState(0);
   const [s2Inv, setS2Inv] = useState<{ shield: boolean; potion: number }>({ shield: false, potion: 0 });
   const [room5Open, setRoom5Open] = useState(false);
   const [s2Room, setS2Room] = useState<S2Room | null>(null);

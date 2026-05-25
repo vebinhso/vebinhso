@@ -1073,7 +1073,16 @@ function MagicPage() {
         // Phòng 5: mở bảng chọn cửa con
         setRoom5Open(true);
       } else {
-        setS2Room({ kind, doorIdx: idx, phase: 0 });
+        if (idx === 3) {
+          // Cửa 4 stage 2: random animal + 2-question quiz
+          const an = pickRandomAnimal(Date.now() + idx);
+          setCurrentAnimal(an);
+          setS2Room({ kind, doorIdx: idx, phase: 0 });
+          setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 2, correct: 0, source: "s2", doorIdx: idx });
+        } else {
+          setCurrentAnimal(null);
+          setS2Room({ kind, doorIdx: idx, phase: 0 });
+        }
       }
     };
     window.addEventListener("keydown", onKey);

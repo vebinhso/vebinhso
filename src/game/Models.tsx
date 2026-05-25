@@ -1,4 +1,5 @@
 // Models 3D chi tiết, PBR (metalness/roughness) — hướng tả thực cartoon
+import * as THREE from "three";
 import type { CatalogItem } from "./catalog";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {

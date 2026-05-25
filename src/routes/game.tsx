@@ -328,7 +328,7 @@ function GamePage() {
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">
         <div className="text-xs font-black text-center">CẤP {level} → CẤP {lvlInfo.next}</div>
         <div className="text-[10px] font-bold text-muted-foreground">
-          💰 {state.money}/{lvlInfo.moneyNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
+          🏠 {state.netWorth}/{lvlInfo.netWorthNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
         </div>
       </div>
 

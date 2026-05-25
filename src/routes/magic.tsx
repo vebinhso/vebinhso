@@ -787,21 +787,36 @@ type RoomState = {
   phase: number; // ms since enter
 };
 
-function RoomScene({ room }: { room: RoomState }) {
+function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalName | null }) {
   const isBoss = room.outcome.kind === "boss";
   const isChest = room.outcome.kind === "chest";
+  const isAnimal = room.outcome.kind === "animal";
   // Monster: walks from darkness over 5 seconds, starting at phase 2000ms
   const monsterProgress = isBoss ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const monsterVisible = isBoss && room.phase >= 2000;
   // Chest: reveals gradually over 5 seconds, starting at phase 2000ms
   const chestReveal = isChest ? Math.min(1, Math.max(0, (room.phase - 2000) / 5000)) : 0;
   const chestVisible = isChest && room.phase >= 2000;
+  // Animal door: reveals over 2.5s starting at 1000ms
+  const animalProgress = isAnimal ? Math.min(1, Math.max(0, (room.phase - 1000) / 2500)) : 0;
+  const animalVisible = isAnimal && room.phase >= 1000 && animalName;
+
+  // Boss door → specific animal based on door index
+  const renderBossAnimal = () => {
+    if (room.doorIdx === 1) return <TigerEmerging progress={monsterProgress} />;
+    if (room.doorIdx === 3) return <ParrotDescending progress={monsterProgress} />;
+    if (room.doorIdx === 6) return <BeaverEmerging progress={monsterProgress} />;
+    // fallback
+    return <TigerEmerging progress={monsterProgress} />;
+  };
+
   return (
     <>
       <RoomCameraSetup />
       <color attach="background" args={[isChest ? "#03060f" : "#0a0604"]} />
-      {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss} />}
-      {monsterVisible && <Monster progress={monsterProgress} visible />}
+      {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss || isAnimal} />}
+      {monsterVisible && renderBossAnimal()}
+      {animalVisible && animalName && <RandomAnimal name={animalName} />}
       {chestVisible && <Chest pos={[0, 0, -5]} reveal={chestReveal} />}
       {/* marker for player spot */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>

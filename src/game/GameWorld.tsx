@@ -189,13 +189,35 @@ function WallMesh({ w, color, highlight, onRemove }: { w: WallSegment; color: st
   );
 }
 
+function RoofMesh({ r, onRemove }: { r: RoofSegment; onRemove: () => void }) {
+  const w = Math.abs(r.bx - r.ax);
+  const d = Math.abs(r.bz - r.az);
+  const cx = (r.ax + r.bx) / 2;
+  const cz = (r.az + r.bz) / 2;
+  const color = r.style === "ton" ? "#b91c1c" : "#7f1d1d";
+  return (
+    <group position={[cx, WALL_HEIGHT, cz]} onContextMenu={(e) => { e.stopPropagation(); onRemove(); }}>
+      {/* Sloped pyramid-style roof: a flat slab + a low ridge for visual */}
+      <mesh castShadow receiveShadow position={[0, 0.18, 0]}>
+        <boxGeometry args={[w + 0.4, 0.3, d + 0.4]} />
+        <meshStandardMaterial color={color} roughness={r.style === "ton" ? 0.4 : 0.85} metalness={r.style === "ton" ? 0.5 : 0.05} />
+      </mesh>
+      <mesh castShadow position={[0, 0.55, 0]}>
+        <boxGeometry args={[w + 0.1, 0.2, d * 0.25]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
 function PlotAndPlacement({
-  placed, walls, wallColor, wallMode, wallPickA,
-  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove,
+  placed, walls, roofs, wallColor, wallMode, wallPickA, roofMode, roofPicks,
+  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
   const half = (GRID * CELL) / 2;
+  const buildMode = wallMode || roofMode;
 
   const rotatedFootprint = (it: CatalogItem) => {
     const swap = rotation % 2 === 1;
@@ -203,13 +225,13 @@ function PlotAndPlacement({
   };
 
   const handleMove = (e: any) => {
-    if (!selected || wallMode) return;
+    if (!selected || buildMode) return;
     const p = e.point as THREE.Vector3;
     const gx = Math.floor(p.x + half);
     const gz = Math.floor(p.z + half);
     setHover({ x: gx, z: gz });
   };
-  const handleClick = () => { if (!wallMode && selected && hover) onPlace(hover.x, hover.z); };
+  const handleClick = () => { if (!buildMode && selected && hover) onPlace(hover.x, hover.z); };
 
   return (
     <group>
@@ -248,6 +270,11 @@ function PlotAndPlacement({
         <WallMesh key={w.id} w={w} color={wallColor} onRemove={() => onWallRemove(w.id)} />
       ))}
 
+      {/* Roofs (auto-built across 4 pillars) */}
+      {roofs.map((r) => (
+        <RoofMesh key={r.id} r={r} onRemove={() => onRoofRemove(r.id)} />
+      ))}
+
       {/* Placed items */}
       {placed.map((p) => {
         const it = getItem(p.itemId);
@@ -257,9 +284,11 @@ function PlotAndPlacement({
         const fd = swap ? it.w : it.d;
         const wx = p.x - half + fw / 2;
         const wz = p.z - half + fd / 2;
-        // Mái nhà nằm trên đỉnh tường
+        // Legacy mái nhà (đã đặt từ trước) vẫn nằm trên đỉnh tường
         const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0);
-        const isSelectedPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
+        const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
+        const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);
+        const isPickedPillar = isWallPickPillar || isRoofPickPillar;
         return (
           <group
             key={p.id}
@@ -267,26 +296,26 @@ function PlotAndPlacement({
             rotation={[0, (p.rotation * Math.PI) / 2, 0]}
             onContextMenu={(e) => {
               e.stopPropagation();
-              if (!wallMode) onRemove(p.id);
+              if (!buildMode) onRemove(p.id);
             }}
             onClick={(e) => {
-              if (wallMode && p.itemId === "pillar") {
+              if (buildMode && p.itemId === "pillar") {
                 e.stopPropagation();
                 onPillarClick(p.id);
               }
             }}
           >
             <ItemModel item={it} />
-            {isSelectedPillar && (
+            {isPickedPillar && (
               <mesh position={[0, 2.5, 0]}>
                 <torusGeometry args={[0.6, 0.08, 8, 24]} />
-                <meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1} />
+                <meshStandardMaterial color={roofMode ? "#60a5fa" : "#fde047"} emissive={roofMode ? "#3b82f6" : "#fbbf24"} emissiveIntensity={1} />
               </mesh>
             )}
-            {wallMode && p.itemId === "pillar" && !isSelectedPillar && (
+            {buildMode && p.itemId === "pillar" && !isPickedPillar && (
               <mesh position={[0, 5.3, 0]}>
                 <sphereGeometry args={[0.18, 12, 12]} />
-                <meshStandardMaterial color="#22c55e" emissive="#16a34a" emissiveIntensity={0.8} />
+                <meshStandardMaterial color={roofMode ? "#60a5fa" : "#22c55e"} emissive={roofMode ? "#2563eb" : "#16a34a"} emissiveIntensity={0.8} />
               </mesh>
             )}
           </group>
@@ -294,7 +323,7 @@ function PlotAndPlacement({
       })}
 
       {/* Ghost */}
-      {!wallMode && selected && hover && (() => {
+      {!buildMode && selected && hover && (() => {
         const { w: fw, d: fd } = rotatedFootprint(selected);
         const wx = hover.x - half + fw / 2;
         const wz = hover.z - half + fd / 2;

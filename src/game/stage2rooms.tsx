@@ -238,6 +238,8 @@ export function PirateRoomScene({ phase, chestVisible, chestOpened }: { phase: n
       <PirateShip pos={[-2, 0.6, -14]} />
       <PirateShip pos={[5, 0.6, -22]} />
       <PirateChest visible={chestVisible} opened={chestOpened} />
+      <PirateCharacter pos={[0, 0.1, -3]} />
+
       {/* much brighter sun lit scene */}
       <ambientLight intensity={1.4} color="#dbeaf2" />
       <hemisphereLight args={["#eaf4fc", "#1a2a36", 1.0]} />

@@ -1,5 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, SoftShadows } from "@react-three/drei";
+import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";

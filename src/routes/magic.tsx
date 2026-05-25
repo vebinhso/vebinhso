@@ -1642,6 +1642,75 @@ function MagicPage() {
           `}</style>
         </div>
       )}
+
+      {/* AREA SELECTION OVERLAY — shown before stage starts */}
+      {selectedArea === null && (
+        <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "Creepster, serif", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
+              🗺️ Bản đồ Ma Thuật
+            </h1>
+            <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>
+          </div>
+          <div className="flex flex-wrap gap-6 justify-center px-4">
+            {/* Khu vực 1 */}
+            <button
+              onClick={() => pickArea(1)}
+              className="group relative w-72 h-80 rounded-3xl overflow-hidden border-4 border-amber-400 transition-transform hover:scale-105 cursor-pointer"
+              style={{
+                background: "linear-gradient(180deg, #3a1a05 0%, #1a0805 100%)",
+                boxShadow: "0 0 32px rgba(255,140,40,0.6), inset 0 0 32px rgba(0,0,0,0.6)",
+              }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
+                <div className="text-7xl">🏚️</div>
+                <div className="text-2xl font-black text-amber-200">Khu vực 1</div>
+                <div className="text-xs font-bold text-amber-100/80 text-center">Hành lang ma quái · 10 cửa<br/>Dành cho người mới bắt đầu</div>
+                <div className="mt-2 px-4 py-1 rounded-full bg-amber-500 text-black text-xs font-black uppercase tracking-wider">Bắt buộc</div>
+              </div>
+            </button>
+            {/* Khu vực 2 */}
+            <button
+              onClick={() => pickArea(2)}
+              disabled={!stage2Unlocked}
+              className="group relative w-72 h-80 rounded-3xl overflow-hidden border-4 transition-transform hover:scale-105 cursor-pointer disabled:cursor-not-allowed disabled:hover:scale-100"
+              style={{
+                background: stage2Unlocked
+                  ? "linear-gradient(180deg, #1a0530 0%, #050010 100%)"
+                  : "linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)",
+                borderColor: stage2Unlocked ? "#a060ff" : "#444",
+                boxShadow: stage2Unlocked ? "0 0 32px rgba(160,80,255,0.6), inset 0 0 32px rgba(0,0,0,0.6)" : "inset 0 0 32px rgba(0,0,0,0.8)",
+                opacity: stage2Unlocked ? 1 : 0.55,
+              }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
+                <div className="text-7xl">{stage2Unlocked ? "🏰" : "🔒"}</div>
+                <div className="text-2xl font-black" style={{ color: stage2Unlocked ? "#d8b0ff" : "#888" }}>Khu vực 2</div>
+                <div className="text-xs font-bold text-center" style={{ color: stage2Unlocked ? "rgba(216,176,255,0.8)" : "#666" }}>
+                  Lâu đài phù thủy · 5 phòng<br/>
+                  {stage2Unlocked ? "Phòng cướp biển, hồ thần, phù thủy..." : "Hoàn thành Khu vực 1 để mở khóa"}
+                </div>
+                {stage2Unlocked && (
+                  <div className="mt-2 px-4 py-1 rounded-full bg-purple-500 text-white text-xs font-black uppercase tracking-wider">Đã mở khóa</div>
+                )}
+              </div>
+            </button>
+          </div>
+          <Link to="/play" className="toy-button !text-sm">← Về chọn map</Link>
+          <div className="text-xs text-amber-100/60 italic">💡 Bạn có thể chơi lại bất cứ khu vực nào đã mở khóa</div>
+        </div>
+      )}
+
+      {/* "Back to area selection" button — visible during gameplay */}
+      {selectedArea !== null && (
+        <button
+          onClick={() => setSelectedArea(null)}
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-30 toy-button !text-xs"
+        >
+          🗺️ Đổi khu vực
+        </button>
+      )}
     </div>
   );
 }
+

@@ -1565,7 +1565,7 @@ function MagicPage() {
 
 
       {/* Creepy intro overlay */}
-      {intro < 2 && (
+      {intro < 2 && selectedArea === 1 && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center select-none"
           style={{ background: "radial-gradient(ellipse at center, #1a0a0a 0%, #050000 70%, #000 100%)" }}

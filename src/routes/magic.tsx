@@ -19,7 +19,7 @@ export const Route = createFileRoute("/magic")({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Nosifer&family=Creepster&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Pirata+One&family=Special+Elite&display=swap",
       },
     ],
   }),
@@ -924,6 +924,16 @@ function MagicPage() {
     saveGame({ ...g, money: g.money + n });
   };
 
+  // Cộng / reset số câu hỏi trả lời đúng (DÙNG CHUNG với map nhà)
+  const bumpQuestion = (isCorrect: boolean) => {
+    const g = loadGame();
+    if (isCorrect) {
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
+    } else {
+      saveGame({ ...g, answerStreak: 0 });
+    }
+  };
+
   // room phase ticker
   useEffect(() => {
     if (!room) return;
@@ -1035,6 +1045,7 @@ function MagicPage() {
     const isCorrect = i === animalQuiz.q.answer;
     const reward = isCorrect ? animalQuiz.q.reward : 0;
     if (reward) addCoins(reward);
+    bumpQuestion(isCorrect);
     const nextCorrect = animalQuiz.correct + (isCorrect ? 1 : 0);
     const nextIdx = animalQuiz.idx + 1;
     if (nextIdx >= animalQuiz.total) {
@@ -1200,6 +1211,7 @@ function MagicPage() {
     if (!ghostQuiz) return;
     const correct = i === ghostQuiz.answer;
     if (correct) addCoins(20);
+    bumpQuestion(correct);
     setGhostQuiz(null);
   };
 
@@ -1222,6 +1234,7 @@ function MagicPage() {
   const answerQuiz5 = (i: number) => {
     if (!quiz5) return;
     const isCorrect = i === quiz5.q.answer;
+    bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
     if (nextIdx >= 5) {

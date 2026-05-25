@@ -823,7 +823,7 @@ function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalNa
       <color attach="background" args={[isChest ? "#03060f" : "#0a0604"]} />
       {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss || isAnimal} />}
       {monsterVisible && renderBossAnimal()}
-      {animalVisible && animalName && <RandomAnimal name={animalName} />}
+      {animalVisible && animalName && <RandomAnimal name={animalName} progress={animalProgress} />}
       {chestVisible && <Chest pos={[0, 0, -5]} reveal={chestReveal} />}
       {/* marker for player spot */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>

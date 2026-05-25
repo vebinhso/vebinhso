@@ -162,7 +162,13 @@ function GamePage() {
   };
 
   const removeWall = (id: string) => {
-    setState({ ...state, walls: state.walls.filter((w) => w.id !== id) });
+    const w = state.walls.find((x) => x.id === id);
+    const refundNW = w?.value ?? 0;
+    setState({
+      ...state,
+      walls: state.walls.filter((x) => x.id !== id),
+      netWorth: Math.max(0, state.netWorth - refundNW),
+    });
     flash("🧹 Đã gỡ tường");
   };
 

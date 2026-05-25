@@ -162,7 +162,13 @@ function GamePage() {
   };
 
   const removeWall = (id: string) => {
-    setState({ ...state, walls: state.walls.filter((w) => w.id !== id) });
+    const w = state.walls.find((x) => x.id === id);
+    const refundNW = w?.value ?? 0;
+    setState({
+      ...state,
+      walls: state.walls.filter((x) => x.id !== id),
+      netWorth: Math.max(0, state.netWorth - refundNW),
+    });
     flash("🧹 Đã gỡ tường");
   };
 
@@ -197,16 +203,24 @@ function GamePage() {
       setWallPickA(null);
       return;
     }
+    const brickUnit = getItem("brick_pack");
+    const concreteUnit = getItem("concrete");
+    const wallValue = Math.round(
+      (brickUnit ? (brickUnit.price / (brickUnit.qty ?? 10)) * cost.bricks : 0) +
+      (concreteUnit ? (concreteUnit.price / (concreteUnit.qty ?? 1)) * cost.concrete : 0)
+    );
     const seg: WallSegment = {
       id: `w-${Date.now()}`,
       ax, az, bx, bz,
       color: state.wallColor,
+      value: wallValue,
     };
     setState({
       ...state,
       bricks: state.bricks - cost.bricks,
       concrete: state.concrete - cost.concrete,
       walls: [...state.walls, seg],
+      netWorth: state.netWorth + wallValue,
     });
     setWallPickA(null);
     flash(`🧱 Xây tường ${cost.length}m × ${WALL_HEIGHT}m — tốn ${cost.bricks} gạch + ${cost.concrete} bê tông.`, 2500);
@@ -314,7 +328,7 @@ function GamePage() {
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">
         <div className="text-xs font-black text-center">CẤP {level} → CẤP {lvlInfo.next}</div>
         <div className="text-[10px] font-bold text-muted-foreground">
-          💰 {state.money}/{lvlInfo.moneyNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
+          🏠 {state.netWorth}/{lvlInfo.netWorthNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
         </div>
       </div>
 

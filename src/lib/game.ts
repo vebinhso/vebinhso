@@ -16,6 +16,7 @@ export type WallSegment = {
   bx: number;
   bz: number;
   color: string;
+  value?: number; // giá trị vật liệu đã dùng, cộng vào tài sản ròng
 };
 
 export type GameState = {
@@ -71,12 +72,22 @@ export function saveGame(s: GameState) {
   localStorage.setItem(k, JSON.stringify(s));
 }
 
-const LEVEL_MIN_MONEY = [0, 200, 500, 900, 1400, 2000, 2700, 3500, 4500, 6000, 8000];
+// Theo "BẢNG CHI TIẾT TRÒ CHƠI" — ngưỡng TÀI SẢN RÒNG (🏠) + tổng câu hỏi để lên cấp
+const LEVEL_MIN_NETWORTH = [
+  0, 700, 1200, 1700, 2200, 2700, 3200, 3400, 3800, 4000, 4150,
+  4300, 5000, 5800, 6200, 7200, 8500, 10000, 12200, 14200, 17200,
+  18000, 19200, 20200,
+];
+const LEVEL_MIN_QUESTIONS = [
+  0, 50, 100, 150, 200, 250, 300, 400, 500, 600, 700,
+  850, 1000, 1200, 1400, 1500, 1800, 2000, 2200, 2400, 2700,
+  3000, 3300, 3600,
+];
 
 export function computeLevel(s: GameState): number {
   let lvl = 0;
-  for (let i = 1; i < LEVEL_MIN_MONEY.length; i++) {
-    if (s.money >= LEVEL_MIN_MONEY[i] && s.correctAnswers >= i * 10) {
+  for (let i = 1; i < LEVEL_MIN_NETWORTH.length; i++) {
+    if (s.netWorth >= LEVEL_MIN_NETWORTH[i] && s.correctAnswers >= LEVEL_MIN_QUESTIONS[i]) {
       lvl = i;
     } else break;
   }
@@ -85,12 +96,12 @@ export function computeLevel(s: GameState): number {
 
 export function nextLevelInfo(s: GameState) {
   const lvl = computeLevel(s);
-  const next = Math.min(lvl + 1, LEVEL_MIN_MONEY.length - 1);
+  const next = Math.min(lvl + 1, LEVEL_MIN_NETWORTH.length - 1);
   return {
     current: lvl,
     next,
-    moneyNeeded: LEVEL_MIN_MONEY[next] ?? null,
-    questionsNeeded: next * 10,
+    netWorthNeeded: LEVEL_MIN_NETWORTH[next] ?? null,
+    questionsNeeded: LEVEL_MIN_QUESTIONS[next] ?? null,
   };
 }
 

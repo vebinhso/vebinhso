@@ -1649,6 +1649,25 @@ function MagicPage() {
       )}
       <style>{`@keyframes lightFlash { 0%,100%{opacity:0;} 10%,30%{opacity:1;} 20%{opacity:0.3;} 50%{opacity:0;} }`}</style>
 
+      {/* Animal encounter quiz (door=2 câu, corridor tiger=5 câu) */}
+      {animalQuiz && (
+        <div className="absolute inset-x-0 bottom-0 z-40 p-4">
+          <div className="max-w-2xl mx-auto glass-card p-4">
+            <div className="flex items-center justify-between mb-2 text-xs font-black">
+              <span>{animalQuiz.source === "corridor" ? "🐯 Hổ tấn công! Trả lời để thoát" : "🐾 Gặp thú lạ — trả lời câu hỏi"}</span>
+              <span>Câu {animalQuiz.idx + 1}/{animalQuiz.total} · ✅ {animalQuiz.correct}</span>
+            </div>
+            <p className="font-black text-base mb-3">❓ {animalQuiz.q.q}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {animalQuiz.q.options.map((opt, i) => (
+                <button key={i} onClick={() => answerAnimalQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
+              ))}
+            </div>
+            <p className="text-xs font-bold mt-2 opacity-70">Mỗi câu đúng +{animalQuiz.q.reward}đ</p>
+          </div>
+        </div>
+      )}
+
       {/* Ghost collision quiz */}
       {ghostQuiz && (
         <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">

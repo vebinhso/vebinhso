@@ -1,5 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, SoftShadows } from "@react-three/drei";
+import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
@@ -355,9 +356,9 @@ export default function GameWorld(props: Props) {
 
   return (
     <Canvas shadows="soft" camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
+      {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
+      <color attach="background" args={["#87ceeb"]} />
       <SoftShadows size={25} samples={16} focus={0.5} />
-      <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
-      <Environment preset="park" background={false} environmentIntensity={0.6} />
       <ambientLight intensity={0.35} />
       <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.35]} />
       <directionalLight
@@ -374,11 +375,16 @@ export default function GameWorld(props: Props) {
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
       />
-      <Clouds material={THREE.MeshBasicMaterial}>
-        <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.55} />
-        <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
-        <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
-      </Clouds>
+      {/* Async assets (Sky/Environment/Clouds) get their own boundary so a slow HDRI never blanks the scene */}
+      <Suspense fallback={null}>
+        <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
+        <Environment preset="park" background={false} environmentIntensity={0.6} />
+        <Clouds material={THREE.MeshBasicMaterial}>
+          <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.55} />
+          <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
+          <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
+        </Clouds>
+      </Suspense>
       <Character controlsRef={controlsRef} />
       <PlotAndPlacement {...props} />
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />

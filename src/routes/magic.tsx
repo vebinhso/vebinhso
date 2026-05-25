@@ -823,7 +823,7 @@ function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalNa
       <color attach="background" args={[isChest ? "#03060f" : "#0a0604"]} />
       {isChest ? <StarRoom /> : <DungeonRoom withMonster={isBoss || isAnimal} />}
       {monsterVisible && renderBossAnimal()}
-      {animalVisible && animalName && <RandomAnimal name={animalName} />}
+      {animalVisible && animalName && <RandomAnimal name={animalName} progress={animalProgress} />}
       {chestVisible && <Chest pos={[0, 0, -5]} reveal={chestReveal} />}
       {/* marker for player spot */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, -2]}>
@@ -834,6 +834,118 @@ function RoomScene({ room, animalName }: { room: RoomState; animalName: AnimalNa
   );
 }
 
+
+
+// ============ Game complete overlay (Stage 2 done): glowing Anton text + fireworks ============
+function Firework({ side, delay }: { side: "left" | "right"; delay: number }) {
+  // Random palette per spark cluster
+  const colors = ["#fde047", "#ef4444", "#22d3ee", "#a855f7", "#10b981", "#fb923c", "#ec4899"];
+  const sparks = Array.from({ length: 14 }).map((_, i) => {
+    const angle = (i / 14) * Math.PI * 2;
+    const dist = 70 + Math.random() * 60;
+    return {
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      d: delay + Math.random() * 0.2,
+    };
+  });
+  const left = side === "left" ? `${10 + Math.random() * 18}%` : "auto";
+  const right = side === "right" ? `${10 + Math.random() * 18}%` : "auto";
+  const top = `${20 + Math.random() * 35}%`;
+  return (
+    <div style={{ position: "absolute", left, right, top, width: 0, height: 0 }}>
+      {sparks.map((s, i) => (
+        <div
+          key={i}
+          className="fw-spark"
+          style={{
+            color: s.color,
+            background: s.color,
+            left: 0,
+            top: 0,
+            animation: `fwBurst 1.6s ease-out ${s.d}s infinite`,
+            transform: `translate(${s.x}px, ${s.y}px)`,
+          }}
+        />
+      ))}
+      {/* central flash */}
+      <div
+        className="fw-spark"
+        style={{
+          color: "#fffbe6",
+          background: "#fffbe6",
+          width: 18,
+          height: 18,
+          animation: `fwBurst 1.6s ease-out ${delay}s infinite`,
+        }}
+      />
+    </div>
+  );
+}
+
+function GameCompleteOverlay({ elapsed }: { elapsed: number }) {
+  const showButton = elapsed >= 10;
+  // Generate 8 fireworks (4 each side) staggered
+  const fireworks = Array.from({ length: 10 }).map((_, i) => ({
+    side: (i % 2 === 0 ? "left" : "right") as "left" | "right",
+    delay: (i * 0.35) % 2.2,
+    key: i,
+  }));
+  return (
+    <div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: "radial-gradient(ellipse at center, #1a0033 0%, #000 80%)" }}
+    >
+      {/* Fireworks */}
+      {fireworks.map((f) => (
+        <Firework key={f.key} side={f.side} delay={f.delay} />
+      ))}
+
+      {/* Glowing title */}
+      <h1
+        style={{
+          fontFamily: "'Anton', sans-serif",
+          fontSize: "clamp(2.4rem, 7vw, 6rem)",
+          color: "#fffbe6",
+          letterSpacing: "0.06em",
+          textAlign: "center",
+          lineHeight: 1.05,
+          padding: "0 24px",
+          animation: "glowPulse 1.6s ease-in-out infinite",
+          zIndex: 2,
+        }}
+      >
+        CHÚC MỪNG BẠN ĐÃ<br />HOÀN THÀNH TRÒ CHƠI!
+      </h1>
+
+      {/* Countdown / button */}
+      <div className="mt-10 z-10">
+        {showButton ? (
+          <Link
+            to="/"
+            className="toy-button toy-button-primary !text-lg px-8 py-4"
+            style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em" }}
+          >
+            🏠 VỀ TRANG CHỦ
+          </Link>
+        ) : (
+          <div
+            style={{
+              fontFamily: "'Anton', sans-serif",
+              color: "#fde047",
+              fontSize: "1.4rem",
+              letterSpacing: "0.1em",
+              textShadow: "0 0 12px #fb923c",
+            }}
+          >
+            {Math.max(0, Math.ceil(10 - elapsed))}s...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ============ MAIN ============
 type Stage = 1 | "transition" | 2;
@@ -880,6 +992,8 @@ function MagicPage() {
   const [s2Near, setS2Near] = useState<number | null>(null);
   const [s2Doors, setS2Doors] = useState<S2DoorState[]>(Array(5).fill("closed"));
   const [s2Modal, setS2Modal] = useState<null | { title: string; text: string; finished?: boolean }>(null);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [completeElapsed, setCompleteElapsed] = useState(0);
   const [s2Inv, setS2Inv] = useState<{ shield: boolean; potion: number }>({ shield: false, potion: 0 });
   const [room5Open, setRoom5Open] = useState(false);
   const [s2Room, setS2Room] = useState<S2Room | null>(null);
@@ -1232,7 +1346,9 @@ function MagicPage() {
     }, 1600);
   };
   const s2ExitStars = () => {
-    s2ClearAndExit(3, "🕷️ Phòng mạng nhện", "Bạn rời căn phòng tối đầy mạng nhện.");
+    setS2Doors((d) => { const n = [...d]; n[3] = "cleared"; return n; });
+    setS2Room(null);
+    setGameComplete(true);
   };
   const answerGhostQuiz = (i: number) => {
     if (!ghostQuiz) return;
@@ -1281,7 +1397,9 @@ function MagicPage() {
       setRoom5ChestOpened(false);
       setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
       setS2Room(null);
-      setS2Modal({ title: "📜 Cửa 1 — Hoàn thành", text: `Đúng ${correct}/5 câu. +${reward} đồng. Stage 2 hoàn thành!`, finished: true });
+      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+      setS2Room(null);
+      setGameComplete(true);
     }, 1600);
   };
 
@@ -1296,7 +1414,7 @@ function MagicPage() {
       setWitch(null);
       setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
       setS2Room(null);
-      setS2Modal({ title: "🏆 Hạ gục phù thủy!", text: "+100 đồng. Stage 2 hoàn thành!", finished: true });
+      setGameComplete(true);
       return;
     }
     const nextWave = witch.wave + 1;
@@ -1312,6 +1430,14 @@ function MagicPage() {
   // chest fully revealed after 5s reveal
   const chestReady = room?.outcome.kind === "chest" && room.phase >= 7000;
   const emptyReady = room?.outcome.kind === "empty" && room.phase >= 1500;
+
+  // Stage 2 completion celebration — auto count up to 10s, then show "Về trang chủ" button
+  useEffect(() => {
+    if (!gameComplete) { setCompleteElapsed(0); return; }
+    const start = Date.now();
+    const t = setInterval(() => setCompleteElapsed((Date.now() - start) / 1000), 100);
+    return () => clearInterval(t);
+  }, [gameComplete]);
 
   const exitSeconds = exitDeadline ? Math.max(0, Math.ceil((exitDeadline - exitNow) / 1000)) : 0;
 
@@ -1333,6 +1459,7 @@ function MagicPage() {
       setS2Room(null); setS2Modal(null); setRoom5Open(false); setWitch(null);
       setPirateChestOpened(false); setRoom5ChestOpened(false); setGhostQuiz(null);
       s2SpawnRef.current = null;
+      setGameComplete(false);
       setStage(2);
     }
     setSelectedArea(a);
@@ -1493,6 +1620,9 @@ function MagicPage() {
           🛡️
         </button>
       )}
+
+      {/* ===== STAGE 2 GAME COMPLETE CELEBRATION ===== */}
+      {gameComplete && <GameCompleteOverlay elapsed={completeElapsed} />}
 
 
       {/* controls hint */}

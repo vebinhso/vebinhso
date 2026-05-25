@@ -899,7 +899,7 @@ function MagicPage() {
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
     if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
-    if (intro === 3) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
+    if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
   useEffect(() => {

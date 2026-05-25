@@ -1,6 +1,31 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useGLTF } from "@react-three/drei";
+
+const PIRATE_MODEL_URL = "/models/pirate.glb";
+useGLTF.preload(PIRATE_MODEL_URL);
+
+function PirateCharacter({ pos = [0, 0.1, -3] as [number, number, number] }) {
+  const ref = useRef<THREE.Group>(null!);
+  const { scene } = useGLTF(PIRATE_MODEL_URL) as any;
+  const cloned = useMemo(() => {
+    const s = scene.clone(true);
+    s.traverse((o: any) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    return s;
+  }, [scene]);
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.position.y = pos[1] + Math.sin(performance.now() / 700) * 0.04;
+      ref.current.rotation.y = Math.sin(performance.now() / 1800) * 0.25;
+    }
+  });
+  return (
+    <group ref={ref} position={pos} scale={1.2}>
+      <primitive object={cloned} />
+    </group>
+  );
+}
 
 export const S2_ROOM_W = 10;
 export const S2_ROOM_D = 12;
@@ -213,6 +238,8 @@ export function PirateRoomScene({ phase, chestVisible, chestOpened }: { phase: n
       <PirateShip pos={[-2, 0.6, -14]} />
       <PirateShip pos={[5, 0.6, -22]} />
       <PirateChest visible={chestVisible} opened={chestOpened} />
+      <PirateCharacter pos={[0, 0.1, -3]} />
+
       {/* much brighter sun lit scene */}
       <ambientLight intensity={1.4} color="#dbeaf2" />
       <hemisphereLight args={["#eaf4fc", "#1a2a36", 1.0]} />

@@ -401,9 +401,10 @@ function PlotAndPlacement({
   return (
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[400, 400]} />
+        <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
+      <Neighborhood />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />

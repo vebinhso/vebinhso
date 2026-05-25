@@ -4,7 +4,9 @@ import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 
 const PIRATE_MODEL_URL = "/models/pirate.glb";
+const PIRATE_SHIP_MODEL_URL = "/models/ship-pirate-large.glb";
 useGLTF.preload(PIRATE_MODEL_URL);
+useGLTF.preload(PIRATE_SHIP_MODEL_URL);
 
 function PirateCharacter({ pos = [0, 0.1, -3] as [number, number, number] }) {
   const ref = useRef<THREE.Group>(null!);
@@ -133,6 +135,17 @@ function AnimatedSea({ tex }: { tex: any }) {
 
 function PirateShip({ pos }: { pos: [number, number, number] }) {
   const ref = useRef<THREE.Group>(null!);
+  const { scene } = useGLTF(PIRATE_SHIP_MODEL_URL) as any;
+  const cloned = useMemo(() => {
+    const s = scene.clone(true);
+    s.traverse((o: any) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    return s;
+  }, [scene]);
   useFrame(() => {
     if (ref.current) {
       ref.current.position.y = pos[1] + Math.sin(performance.now() / 1000) * 0.08;
@@ -140,19 +153,8 @@ function PirateShip({ pos }: { pos: [number, number, number] }) {
     }
   });
   return (
-    <group ref={ref} position={pos} rotation={[0, 0.4, 0]}>
-      <mesh><boxGeometry args={[3.2, 0.9, 1.4]} /><meshStandardMaterial color="#3a230f" roughness={0.85} /></mesh>
-      <mesh position={[1.6, 0.1, 0]} rotation={[0, 0, -0.3]}><boxGeometry args={[1, 0.7, 1.4]} /><meshStandardMaterial color="#3a230f" /></mesh>
-      <mesh position={[-1.6, 0.1, 0]} rotation={[0, 0, 0.3]}><boxGeometry args={[1, 0.7, 1.4]} /><meshStandardMaterial color="#3a230f" /></mesh>
-      <mesh position={[0, 0.5, 0]}><boxGeometry args={[3.2, 0.05, 1.3]} /><meshStandardMaterial color="#8a6334" /></mesh>
-      {[-0.9, 0.2, 1.1].map((x, i) => (
-        <group key={i} position={[x, 0.5, 0]}>
-          <mesh position={[0, 1.4, 0]}><cylinderGeometry args={[0.05, 0.06, 2.8, 10]} /><meshStandardMaterial color="#2a1a0a" /></mesh>
-          <mesh position={[0, 1.7, 0]}><boxGeometry args={[0.9, 0.7, 0.02]} /><meshStandardMaterial color="#f0e0b8" side={THREE.DoubleSide} /></mesh>
-          <mesh position={[0, 2.5, 0]}><boxGeometry args={[0.7, 0.5, 0.02]} /><meshStandardMaterial color="#d8c8a8" side={THREE.DoubleSide} /></mesh>
-        </group>
-      ))}
-      <mesh position={[0.2, 3.3, 0]}><planeGeometry args={[0.5, 0.3]} /><meshStandardMaterial color="#111" side={THREE.DoubleSide} /></mesh>
+    <group ref={ref} position={pos} rotation={[0, 0.4, 0]} scale={1.2}>
+      <primitive object={cloned} />
     </group>
   );
 }

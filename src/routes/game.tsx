@@ -343,6 +343,7 @@ function GamePage() {
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar");
   const canEnterWallMode = pillarsPlaced.length >= 2;
+  const canEnterRoofMode = pillarsPlaced.length >= 4;
 
   return (
     <div className="fixed inset-0 bg-sky-300 overflow-hidden select-none">
@@ -350,9 +351,12 @@ function GamePage() {
         <GameWorld
           placed={state.placed}
           walls={state.walls}
+          roofs={state.roofs}
           wallColor={state.wallColor}
           wallMode={wallMode}
           wallPickA={wallPickA}
+          roofMode={roofMode}
+          roofPicks={roofPicks}
           selectedItemId={selected}
           rotation={rotation}
           onRotate={() => setRotation((r) => (r + 1) % 4)}
@@ -360,6 +364,7 @@ function GamePage() {
           onRemove={handleRemove}
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
+          onRoofRemove={removeRoof}
         />
       </Suspense>
 
@@ -371,7 +376,7 @@ function GamePage() {
             <div className="font-black">{user.username} <span className="text-xs text-orange-700">#{user.id}</span></div>
             <div className="font-bold text-yellow-700">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
             <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu • 🔥 streak {state.answerStreak}</div>
-            <div className="text-xs font-bold text-stone-700">🧱 Gạch: {state.bricks} • 🪣 Bê tông: {state.concrete}</div>
+            <div className="text-xs font-bold text-stone-700">🧱 Gạch: {state.bricks} • 🪣 Bê tông: {state.concrete} • 🏠 Mái ngói: {state.roofTiles} • 🟥 Mái tôn: {state.roofTilesTon}</div>
           </div>
         </div>
 
@@ -387,12 +392,42 @@ function GamePage() {
               }
               setWallMode((w) => !w);
               setWallPickA(null);
+              setRoofMode(false);
+              setRoofPicks([]);
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
           >
             {wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
           </button>
+          <button
+            onClick={() => {
+              if (!canEnterRoofMode) {
+                flash("Đặt ít nhất 4 cột bê tông trước khi xây mái nhà.");
+                return;
+              }
+              setRoofMode((r) => !r);
+              setRoofPicks([]);
+              setWallMode(false);
+              setWallPickA(null);
+              setSelected(null);
+            }}
+            className={`toy-button !text-sm !py-2 !px-4 ${roofMode ? "toy-button-green" : ""}`}
+          >
+            {roofMode ? `✅ Mái ${roofStyle === "ton" ? "tôn" : "ngói"} (${roofPicks.length}/4)` : "🏠 XÂY MÁI NHÀ"}
+          </button>
+          {roofMode && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => setRoofStyle("tile")}
+                className={`toy-button !text-[10px] !py-1 !px-2 ${roofStyle === "tile" ? "toy-button-primary !text-[10px] !py-1 !px-2" : ""}`}
+              >Ngói</button>
+              <button
+                onClick={() => setRoofStyle("ton")}
+                className={`toy-button !text-[10px] !py-1 !px-2 ${roofStyle === "ton" ? "toy-button-primary !text-[10px] !py-1 !px-2" : ""}`}
+              >Tôn</button>
+            </div>
+          )}
           {state.ownedPalettes.length > 0 && (
             <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3" style={{ background: state.wallColor }}>
               🎨 Đổi màu tường
@@ -400,6 +435,7 @@ function GamePage() {
           )}
         </div>
       </div>
+
 
       {/* Level progress */}
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">

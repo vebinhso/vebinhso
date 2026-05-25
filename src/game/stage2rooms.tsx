@@ -142,10 +142,34 @@ function PirateShip({ pos }: { pos: [number, number, number] }) {
       if (o.isMesh) {
         o.castShadow = true;
         o.receiveShadow = true;
+        // Recolor materials to match the reference: red hull, dark sails, wood deck
+        const mat = o.material?.clone?.();
+        if (mat) {
+          const name = (o.name || "").toLowerCase();
+          const matName = (o.material?.name || "").toLowerCase();
+          const tag = name + " " + matName;
+          if (/sail|flag|cloth/.test(tag)) {
+            mat.color = new THREE.Color("#1a1a1a");
+          } else if (/mast|pole|wood|deck|plank|floor|board/.test(tag)) {
+            mat.color = new THREE.Color("#6b4423");
+          } else if (/rope|string/.test(tag)) {
+            mat.color = new THREE.Color("#c9a36b");
+          } else if (/metal|iron|cannon|anchor/.test(tag)) {
+            mat.color = new THREE.Color("#444444");
+          } else {
+            // Hull / default → vivid red
+            mat.color = new THREE.Color("#c0392b");
+          }
+          if ("roughness" in mat) mat.roughness = 0.75;
+          if ("metalness" in mat) mat.metalness = 0.05;
+          if ("emissive" in mat) mat.emissive = new THREE.Color("#1a0a05");
+          o.material = mat;
+        }
       }
     });
     return s;
   }, [scene]);
+
   useFrame(() => {
     if (ref.current) {
       ref.current.position.y = pos[1] + Math.sin(performance.now() / 1000) * 0.08;

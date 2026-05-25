@@ -42,7 +42,7 @@ const DOOR_OUTCOMES: DoorKind[] = [
   { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },   // 7 — beaver
   { kind: "animal" },                                            // 8 — random animal (2 câu)
   { kind: "chest", reward: 10 },                                 // 9
-  { kind: "exit" },                                              // 10
+  { kind: "animal" },                                            // 10 — random animal (cửa cuối, hoàn thành mới mở lối thoát)
 ];
 
 const CORRIDOR_LEN = 60;

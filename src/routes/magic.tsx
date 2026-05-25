@@ -1391,6 +1391,7 @@ function MagicPage() {
                active={!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz}
                onNearDoor={setS2Near}
                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5 && !animalQuiz) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
+               spawnRef={s2SpawnRef}
              />
              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
             </>

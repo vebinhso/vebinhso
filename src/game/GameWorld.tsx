@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
-import type { PlacedItem, WallSegment } from "@/lib/game";
+import type { PlacedItem, WallSegment, RoofSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;
@@ -14,9 +14,12 @@ const PATH = 3;
 type Props = {
   placed: PlacedItem[];
   walls: WallSegment[];
+  roofs: RoofSegment[];
   wallColor: string;
   wallMode: boolean;
   wallPickA: string | null;
+  roofMode: boolean;
+  roofPicks: string[];
   selectedItemId: string | null;
   rotation: number;
   onRotate: () => void;
@@ -24,6 +27,7 @@ type Props = {
   onRemove: (id: string) => void;
   onPillarClick: (placedId: string) => void;
   onWallRemove: (id: string) => void;
+  onRoofRemove: (id: string) => void;
 };
 
 function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {

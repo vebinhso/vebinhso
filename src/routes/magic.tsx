@@ -29,19 +29,20 @@ type DoorKind =
   | { kind: "empty" }
   | { kind: "chest"; reward: number }
   | { kind: "boss"; level: 1 | 2 | 3; hp: number; bullets: number; perHit: number }
+  | { kind: "animal" } // random animal — answer 2 questions to clear
   | { kind: "exit" };
 
 const DOOR_OUTCOMES: DoorKind[] = [
-  { kind: "empty" },
-  { kind: "boss", level: 1, hp: 100, bullets: 10, perHit: 10 },
-  { kind: "chest", reward: 20 },
-  { kind: "boss", level: 2, hp: 100, bullets: 5, perHit: 20 },
-  { kind: "chest", reward: 30 },
-  { kind: "empty" },
-  { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },
-  { kind: "empty" },
-  { kind: "chest", reward: 10 },
-  { kind: "exit" },
+  { kind: "animal" },                                            // 1 — random animal (2 câu)
+  { kind: "boss", level: 1, hp: 100, bullets: 10, perHit: 10 },  // 2 — tiger
+  { kind: "chest", reward: 20 },                                 // 3
+  { kind: "boss", level: 2, hp: 100, bullets: 5, perHit: 20 },   // 4 — parrot
+  { kind: "chest", reward: 30 },                                 // 5
+  { kind: "animal" },                                            // 6 — random animal (2 câu)
+  { kind: "boss", level: 3, hp: 100, bullets: 5, perHit: 20 },   // 7 — beaver
+  { kind: "animal" },                                            // 8 — random animal (2 câu)
+  { kind: "chest", reward: 10 },                                 // 9
+  { kind: "exit" },                                              // 10
 ];
 
 const CORRIDOR_LEN = 60;

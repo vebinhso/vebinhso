@@ -976,11 +976,24 @@ function MagicPage() {
     return () => clearTimeout(t);
   }, [stage, transStart]);
 
+  // current animal name for animal-kind rooms (random pick once on entry)
+  const [currentAnimal, setCurrentAnimal] = useState<AnimalName | null>(null);
+
+  // mini-quiz for animal encounters: 2 questions for animal doors, 5 for corridor tigers
+  const [animalQuiz, setAnimalQuiz] = useState<null | {
+    q: Question;
+    idx: number;
+    total: number;
+    correct: number;
+    source: "door" | "corridor" | "s2";
+    doorIdx?: number;
+  }>(null);
+
   // open door = enter room (or trigger exit for door 10)
   useEffect(() => {
     if (stage !== 1) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && intro === 2) {
+      if (e.key.toLowerCase() === "e" && near != null && doors[near] === "closed" && !modal && !boss && !room && !animalQuiz && intro === 2) {
         const outcome = DOOR_OUTCOMES[near];
         setDoors((d) => { const n = [...d]; n[near] = "open"; return n; });
         if (outcome.kind === "exit") {
@@ -991,12 +1004,60 @@ function MagicPage() {
           return;
         }
         if (document.exitPointerLock) document.exitPointerLock();
+        if (outcome.kind === "animal") {
+          setCurrentAnimal(pickRandomAnimal(Date.now() + near));
+        } else {
+          setCurrentAnimal(null);
+        }
         setRoom({ doorIdx: near, outcome, phase: 0 });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [near, doors, modal, boss, room, intro, stage]);
+  }, [near, doors, modal, boss, room, intro, stage, animalQuiz]);
+
+  // Auto-trigger 2-question quiz once the animal in an animal-kind room is fully revealed
+  useEffect(() => {
+    if (!room || room.outcome.kind !== "animal" || animalQuiz) return;
+    if (room.phase >= 3500) {
+      setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 2, correct: 0, source: "door", doorIdx: room.doorIdx });
+    }
+  }, [room, animalQuiz]);
+
+  const onTigerHit = () => {
+    if (animalQuiz || modal || boss || room) return;
+    if (document.exitPointerLock) document.exitPointerLock();
+    setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 5, correct: 0, source: "corridor" });
+  };
+
+  const answerAnimalQuiz = (i: number) => {
+    if (!animalQuiz) return;
+    const isCorrect = i === animalQuiz.q.answer;
+    const reward = isCorrect ? animalQuiz.q.reward : 0;
+    if (reward) addCoins(reward);
+    const nextCorrect = animalQuiz.correct + (isCorrect ? 1 : 0);
+    const nextIdx = animalQuiz.idx + 1;
+    if (nextIdx >= animalQuiz.total) {
+      const src = animalQuiz.source;
+      const dIdx = animalQuiz.doorIdx;
+      setAnimalQuiz(null);
+      if (src === "door" && dIdx != null) {
+        setDoors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+        setRoom(null);
+        setCurrentAnimal(null);
+        setModal({ kind: "chest", text: `🐾 Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời căn phòng có chú vật ngộ nghĩnh!` });
+      } else if (src === "s2" && dIdx != null) {
+        setS2Doors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+        setS2Room(null);
+        setCurrentAnimal(null);
+        setS2Modal({ title: "🐾 Phòng động vật", text: `Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời khỏi căn phòng có thú lạ.` });
+      }
+      // corridor: just continue playing
+      return;
+    }
+    setAnimalQuiz({ ...animalQuiz, q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+  };
+
 
   // Stage 2: open door (E key) — open a per-room scene
   useEffect(() => {

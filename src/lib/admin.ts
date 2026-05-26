@@ -165,7 +165,7 @@ export async function updatePlayerGame(userId: string, patch: Record<string, any
   };
   const dbPatch: Record<string, any> = {};
   for (const [k, v] of Object.entries(patch)) dbPatch[map[k] || k] = v;
-  await supabase.from("game_state").update(dbPatch).eq("user_id", userId);
+  await supabase.from("game_state").update(dbPatch as any).eq("user_id", userId);
 }
 
 export async function resetPasswordRandom(_userId: string): Promise<string | null> {

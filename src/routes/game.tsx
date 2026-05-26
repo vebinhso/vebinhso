@@ -15,7 +15,7 @@ import {
   type RoofSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
-import { randomQuestion, type Question } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 
@@ -33,6 +33,7 @@ function GamePage() {
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
 
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);
@@ -55,6 +56,10 @@ function GamePage() {
     }
     setUser(u);
     setState(loadGame());
+    // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
+    loadQuestionsFromDB("rural")
+      .then(() => setQuestionsReady(true))
+      .catch(() => setQuestionsReady(true));
   }, [navigate]);
 
   useEffect(() => {
@@ -310,6 +315,10 @@ function GamePage() {
   };
 
   const openQuestion = () => {
+    if (!questionsReady) {
+      flash("⏳ Đang tải câu hỏi...");
+      return;
+    }
     setQuestion(randomQuestion());
     setQuestionResult(null);
   };

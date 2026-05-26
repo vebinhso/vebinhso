@@ -94,7 +94,7 @@ function AdminPage() {
               </p>
             </div>
             <div className="text-xs font-bold text-muted-foreground">
-              ⚠️ Lưu cục bộ (LocalStorage)
+              ☁️ Câu hỏi lưu trên DB dùng chung · Một số cấu hình khác lưu cục bộ
             </div>
           </div>
 

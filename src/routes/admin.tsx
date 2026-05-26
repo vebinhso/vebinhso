@@ -409,6 +409,8 @@ function emptyQuestionDraft(): AdminQuestion {
     maps: ["all"],
     reward: 10,
     imageUrl: "",
+    enabled: true,
+    priority: 0,
   };
 }
 

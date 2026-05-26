@@ -387,34 +387,87 @@ function AdminsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
 }
 
 /* ===================== QUESTIONS ===================== */
-function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
-  const list: AdminQuestion[] = cfg.questions.length > 0
-    ? cfg.questions
-    : DEFAULT_QUESTIONS.map((q, i) => ({ ...q, id: "default-" + i }));
-
-  const [draft, setDraft] = useState<AdminQuestion>({
-    id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "",
-  });
+function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  const [list, setList] = useState<AdminQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const emptyDraft: AdminQuestion = { id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "" };
+  const [draft, setDraft] = useState<AdminQuestion>(emptyDraft);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState("");
   const [importing, setImporting] = useState(false);
 
-  function persist(next: AdminQuestion[], action: string) {
-    onChange({ ...cfg, questions: next }, action);
+  async function reload() {
+    setLoading(true);
+    try {
+      const data = await fetchQuestions();
+      setList(data);
+    } catch (e: any) {
+      alert("Lỗi tải câu hỏi: " + (e?.message || e));
+    } finally {
+      setLoading(false);
+    }
   }
-  function add() {
-    if (!draft.q.trim() || draft.options.some(o => !o.trim())) return alert("Nhập đủ câu hỏi và 4 đáp án");
-    const id = "q-" + Date.now();
-    persist([...list, { ...draft, id }], `Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
-    setDraft({ id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "" });
+  useEffect(() => { reload(); }, []);
+
+  function validateDraft(): boolean {
+    if (!draft.q.trim() || draft.options.some((o) => !o.trim())) {
+      alert("Nhập đủ câu hỏi và 4 đáp án");
+      return false;
+    }
+    return true;
   }
-  function remove(id: string) {
+
+  async function add() {
+    if (!validateDraft()) return;
+    setBusy(true);
+    try {
+      await createQuestion(draft);
+      pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
+      setDraft(emptyDraft);
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi thêm câu hỏi: " + (e?.message || e));
+    } finally { setBusy(false); }
+  }
+
+  function startEdit(q: AdminQuestion) {
+    setEditingId(q.id);
+    setDraft({ ...q, options: [...q.options] });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function cancelEdit() {
+    setEditingId(null);
+    setDraft(emptyDraft);
+  }
+  async function saveEdit() {
+    if (!editingId) return;
+    if (!validateDraft()) return;
+    setBusy(true);
+    try {
+      await updateQuestion(editingId, draft);
+      pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
+      setEditingId(null);
+      setDraft(emptyDraft);
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi cập nhật: " + (e?.message || e));
+    } finally { setBusy(false); }
+  }
+
+  async function remove(id: string) {
     if (!confirm("Xoá câu hỏi này?")) return;
-    persist(list.filter((q) => q.id !== id), `Xoá câu hỏi ${id}`);
+    setBusy(true);
+    try {
+      await deleteQuestion(id);
+      pushAdminLog(`Xoá câu hỏi ${id}`);
+      if (editingId === id) cancelEdit();
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi xoá: " + (e?.message || e));
+    } finally { setBusy(false); }
   }
-  function resetDefault() {
-    if (!confirm("Đặt lại toàn bộ câu hỏi về mặc định?")) return;
-    onChange({ ...cfg, questions: [] }, "Reset câu hỏi về mặc định");
-  }
+
   function exportJson() {
     const blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -422,11 +475,11 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
     a.href = url; a.download = "questions.json"; a.click();
     URL.revokeObjectURL(url);
   }
+
   async function importFromSheet() {
     if (!sheetUrl.trim()) return;
     setImporting(true);
     try {
-      // Convert /edit URL to CSV export
       let csvUrl = sheetUrl.trim();
       const m = csvUrl.match(/\/d\/([\w-]+)/);
       if (m) {
@@ -439,7 +492,6 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
       if (!res.ok) throw new Error("Không tải được sheet (sheet cần Public).");
       const text = await res.text();
       const rows = text.split(/\r?\n/).filter(Boolean).map((row) => {
-        // simple CSV: split by comma, support "quoted,values"
         const cells: string[] = []; let cur = ""; let q = false;
         for (let i = 0; i < row.length; i++) {
           const ch = row[i];
@@ -452,9 +504,8 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
       });
       const header = rows.shift();
       if (!header) throw new Error("Sheet rỗng");
-      // Expected columns: question, optA, optB, optC, optD, answer(1-4), reward, imageUrl(optional)
-      const parsed: AdminQuestion[] = rows.map((r, i) => ({
-        id: "imp-" + Date.now() + "-" + i,
+      const parsed: AdminQuestion[] = rows.map((r) => ({
+        id: "",
         q: r[0] || "",
         options: [r[1] || "", r[2] || "", r[3] || "", r[4] || ""],
         answer: Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1)),
@@ -462,9 +513,14 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
         imageUrl: r[7] || "",
       })).filter((q) => q.q && q.options.every(Boolean));
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
-      persist([...list, ...parsed], `Import ${parsed.length} câu từ Google Sheet`);
-      alert(`Đã import ${parsed.length} câu hỏi`);
+      let ok = 0;
+      for (const q of parsed) {
+        try { await createQuestion(q); ok++; } catch { /* skip */ }
+      }
+      pushAdminLog(`Import ${ok} câu từ Google Sheet`);
+      alert(`Đã import ${ok}/${parsed.length} câu hỏi`);
       setSheetUrl("");
+      await reload();
     } catch (e: any) {
       alert("Lỗi: " + (e?.message || e));
     } finally { setImporting(false); }
@@ -473,10 +529,9 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
   return (
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length})</h2>
+        <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length}){loading && " — đang tải..."}</h2>
         <div className="flex gap-2">
           <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
-          <button onClick={resetDefault} className="toy-button text-sm bg-gray-500">↺ Mặc định</button>
         </div>
       </div>
 
@@ -493,9 +548,11 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
         </div>
       </div>
 
-      {/* New question form */}
+      {/* New / edit question form */}
       <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-3 mb-4">
-        <div className="font-black mb-2">➕ Thêm câu hỏi mới</div>
+        <div className="font-black mb-2">
+          {editingId ? "✏️ Đang sửa câu hỏi" : "➕ Thêm câu hỏi mới"}
+        </div>
         <input value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })}
           placeholder="Nội dung câu hỏi (text)" className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-2 font-bold" />
         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -516,7 +573,14 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
           <input value={draft.imageUrl || ""} onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
             placeholder="Link ảnh đáp án (tùy chọn)" className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
         </div>
-        <button onClick={add} className="toy-button text-sm">+ Thêm câu hỏi</button>
+        {editingId ? (
+          <div className="flex gap-2">
+            <button onClick={saveEdit} disabled={busy} className="toy-button text-sm bg-green-500">💾 Lưu thay đổi</button>
+            <button onClick={cancelEdit} disabled={busy} className="toy-button text-sm bg-gray-500">✕ Hủy</button>
+          </div>
+        ) : (
+          <button onClick={add} disabled={busy} className="toy-button text-sm">+ Thêm câu hỏi</button>
+        )}
       </div>
 
       <ul className="grid gap-2 max-h-[55vh] overflow-y-auto">
@@ -530,7 +594,10 @@ function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Adm
               </div>
               <div className="text-xs font-bold text-orange-600 mt-1">+{q.reward} xu</div>
             </div>
-            <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline">Xoá</button>
+            <div className="flex flex-col gap-1">
+              <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">✏️ Sửa</button>
+              <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline text-sm">Xoá</button>
+            </div>
           </li>
         ))}
       </ul>

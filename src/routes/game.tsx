@@ -15,7 +15,7 @@ import {
   type RoofSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
-import { randomQuestion, type Question } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 

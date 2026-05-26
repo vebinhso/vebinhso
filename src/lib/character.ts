@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { getCurrentUser } from "./auth";
 
 export type Outfit = {
@@ -21,28 +22,56 @@ const DEFAULT: Outfit = {
   accent: "#fcd34d",
 };
 
-const PREFIX = "vebinhso_outfit_";
+const LS_PREFIX = "vebinhso_outfit_cache_";
 
-function key() {
-  const u = getCurrentUser();
-  return u ? PREFIX + u.id : null;
-}
+let CACHE: Outfit | null = null;
+let CACHE_UID: string | null = null;
+
+function localKey(uid: string) { return LS_PREFIX + uid; }
 
 export function loadOutfit(): Outfit | null {
-  const k = key();
-  if (!k || typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(k);
-    return raw ? { ...DEFAULT, ...JSON.parse(raw) } : null;
-  } catch {
-    return null;
+  const u = getCurrentUser();
+  if (!u) return null;
+  if (CACHE_UID !== u.id) {
+    CACHE_UID = u.id;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(localKey(u.id));
+        CACHE = raw ? { ...DEFAULT, ...JSON.parse(raw) } : null;
+      } catch { CACHE = null; }
+    }
+    // async refresh
+    supabase.from("character_outfit").select("outfit").eq("user_id", u.id).maybeSingle()
+      .then(({ data }) => {
+        if (data?.outfit && typeof data.outfit === "object") {
+          const next = { ...DEFAULT, ...(data.outfit as Outfit) };
+          // Only adopt DB value if no local outfit (avoid overwriting unsaved changes)
+          if (!CACHE) {
+            CACHE = next;
+            if (typeof window !== "undefined") {
+              localStorage.setItem(localKey(u.id), JSON.stringify(next));
+              window.dispatchEvent(new Event("outfit-change"));
+            }
+          }
+        }
+      }, () => {});
   }
+  return CACHE;
 }
 
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
 export function saveOutfit(o: Outfit) {
-  const k = key();
-  if (!k) return;
-  localStorage.setItem(k, JSON.stringify(o));
+  const u = getCurrentUser();
+  if (!u) return;
+  CACHE = o;
+  CACHE_UID = u.id;
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(localKey(u.id), JSON.stringify(o)); } catch { /* noop */ }
+  }
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    supabase.from("character_outfit").upsert({ user_id: u.id, outfit: o as any }).then(() => {}, () => {});
+  }, 500);
 }
 
 export const DEFAULT_OUTFIT = DEFAULT;

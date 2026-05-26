@@ -1,97 +1,124 @@
-import { getAccounts, getCurrentUser, type Account } from "./auth";
+// Friends — Supabase-backed with sync cache.
+import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser, type Account } from "./auth";
 
 export type Friendship = {
-  requester_id: number;
-  receiver_id: number;
+  user_id: string;
+  friend_id: string;
   status: "pending" | "accepted";
-  created_at: number;
+  created_at: string;
 };
 
-const KEY = "vebinhso_friendships";
+// Caches
+let PROFILES: Account[] = [];
+let FRIENDSHIPS: Friendship[] = [];
+let CACHE_UID: string | null = null;
 
-function read(): Friendship[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
+async function refresh(uid: string) {
+  const [profilesRes, friendsRes] = await Promise.all([
+    supabase.from("profiles").select("user_id, username, email, created_at"),
+    supabase.from("friends").select("*"),
+  ]);
+  PROFILES = (profilesRes.data || []).map((p: any) => ({
+    id: p.user_id,
+    username: p.username,
+    email: p.email || "",
+    createdAt: p.created_at,
+  }));
+  FRIENDSHIPS = (friendsRes.data || []).map((f: any) => ({
+    user_id: f.user_id, friend_id: f.friend_id, status: f.status, created_at: f.created_at,
+  }));
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("friends-change"));
 }
-function write(list: Friendship[]) { localStorage.setItem(KEY, JSON.stringify(list)); }
+
+function ensureCache() {
+  const u = getCurrentUser();
+  if (!u) return;
+  if (CACHE_UID !== u.id) {
+    CACHE_UID = u.id;
+    refresh(u.id).catch(() => { /* noop */ });
+  }
+}
 
 export function findUser(query: string): Account | null {
+  ensureCache();
   const q = query.trim().toLowerCase();
   if (!q) return null;
-  const accounts = getAccounts();
-  return (
-    accounts.find(
-      (a) => a.username.toLowerCase() === q || String(a.id) === q,
-    ) || null
-  );
+  return PROFILES.find((a) => a.username.toLowerCase() === q || a.id === q) || null;
 }
 
-/** Tìm chỉ theo username (đúng tuyệt đối, không phân biệt hoa thường). */
 export function findUserByName(username: string): Account | null {
+  ensureCache();
   const u = username.trim().toLowerCase();
   if (!u) return null;
-  return getAccounts().find((a) => a.username.toLowerCase() === u) || null;
+  return PROFILES.find((a) => a.username.toLowerCase() === u) || null;
 }
 
-export function getFriendship(a: number, b: number): Friendship | null {
-  return (
-    read().find(
-      (f) =>
-        (f.requester_id === a && f.receiver_id === b) ||
-        (f.requester_id === b && f.receiver_id === a),
-    ) || null
-  );
+export function getFriendship(a: string, b: string): Friendship | null {
+  ensureCache();
+  return FRIENDSHIPS.find(
+    (f) => (f.user_id === a && f.friend_id === b) || (f.user_id === b && f.friend_id === a),
+  ) || null;
 }
 
-export function sendRequest(myId: number, friendId: number): { ok: boolean; msg: string } {
+export async function sendRequestAsync(myId: string, friendId: string): Promise<{ ok: boolean; msg: string }> {
   if (myId === friendId) return { ok: false, msg: "Không thể tự kết bạn với chính mình." };
-  const list = read();
-  const existing = list.find(
-    (f) =>
-      (f.requester_id === myId && f.receiver_id === friendId) ||
-      (f.requester_id === friendId && f.receiver_id === myId),
-  );
-  if (existing) {
-    if (existing.status === "accepted") return { ok: false, msg: "Hai bạn đã là bạn bè." };
-    existing.status = "accepted";
-    write(list);
-    return { ok: true, msg: "Đã kết bạn thành công!" };
-  }
-  // Khớp đúng cả tên + ID => kết bạn ngay lập tức
-  list.push({ requester_id: myId, receiver_id: friendId, status: "accepted", created_at: Date.now() });
-  write(list);
+  const existing = getFriendship(myId, friendId);
+  if (existing?.status === "accepted") return { ok: false, msg: "Hai bạn đã là bạn bè." };
+  // Auto-accept (simple model)
+  const { error } = await supabase.from("friends").upsert({
+    user_id: myId, friend_id: friendId, status: "accepted",
+  });
+  if (error) return { ok: false, msg: error.message };
+  await refresh(myId);
   return { ok: true, msg: "Đã kết bạn thành công!" };
 }
 
-export function acceptRequest(myId: number, requesterId: number) {
-  const list = read();
-  const f = list.find(
-    (x) => x.requester_id === requesterId && x.receiver_id === myId && x.status === "pending",
-  );
-  if (f) { f.status = "accepted"; write(list); }
+// Legacy sync wrapper (fire-and-forget)
+export function sendRequest(myId: string, friendId: string): { ok: boolean; msg: string } {
+  void sendRequestAsync(myId, friendId);
+  return { ok: true, msg: "Đang gửi yêu cầu..." };
 }
 
-export function declineRequest(myId: number, requesterId: number) {
-  const list = read().filter(
-    (x) => !(x.requester_id === requesterId && x.receiver_id === myId && x.status === "pending"),
-  );
-  write(list);
+export async function acceptRequest(myId: string, requesterId: string) {
+  await supabase.from("friends").update({ status: "accepted" })
+    .eq("user_id", requesterId).eq("friend_id", myId);
+  await refresh(myId);
 }
 
-export function listFriends(myId: number): Account[] {
-  const accounts = getAccounts();
-  const ids = read()
-    .filter((f) => f.status === "accepted" && (f.requester_id === myId || f.receiver_id === myId))
-    .map((f) => (f.requester_id === myId ? f.receiver_id : f.requester_id));
-  return accounts.filter((a) => ids.includes(a.id));
+export async function declineRequest(myId: string, requesterId: string) {
+  await supabase.from("friends").delete()
+    .eq("user_id", requesterId).eq("friend_id", myId);
+  await refresh(myId);
 }
 
-export function listIncomingRequests(myId: number): { from: Account; created_at: number }[] {
-  const accounts = getAccounts();
-  return read()
-    .filter((f) => f.status === "pending" && f.receiver_id === myId)
-    .map((f) => ({ from: accounts.find((a) => a.id === f.requester_id)!, created_at: f.created_at }))
-    .filter((x) => !!x.from);
+export function listFriends(myId: string): Account[] {
+  ensureCache();
+  const ids = FRIENDSHIPS
+    .filter((f) => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
+    .map((f) => (f.user_id === myId ? f.friend_id : f.user_id));
+  return PROFILES.filter((a) => ids.includes(a.id));
+}
+
+export function listIncomingRequests(myId: string): { from: Account; created_at: number }[] {
+  ensureCache();
+  return FRIENDSHIPS
+    .filter((f) => f.status === "pending" && f.friend_id === myId)
+    .map((f) => {
+      const from = PROFILES.find((a) => a.id === f.user_id);
+      return from ? { from, created_at: new Date(f.created_at).getTime() } : null;
+    })
+    .filter((x): x is { from: Account; created_at: number } => x !== null);
 }
 
 export function me(): Account | null { return getCurrentUser(); }
+
+export function getAllProfiles(): Account[] {
+  ensureCache();
+  return PROFILES;
+}
+
+export function refreshFriendsCache() {
+  const u = getCurrentUser();
+  if (u) refresh(u.id).catch(() => { /* noop */ });
+}

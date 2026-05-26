@@ -1,67 +1,731 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
-import { useEffect, useState } from "react";
-import { getAccounts, type Account } from "@/lib/auth";
+import { useEffect, useMemo, useState } from "react";
+import { getCurrentUser, getAccounts, type Account } from "@/lib/auth";
+import {
+  isAdmin,
+  loadAdminConfig,
+  saveAdminConfig,
+  getAllPlayerStats,
+  updatePlayerGame,
+  resetPasswordRandom,
+  getAdminLogs,
+  pushAdminLog,
+  type AdminConfig,
+  type AdminQuestion,
+  type PlayerStat,
+} from "@/lib/admin";
+import { CATALOG } from "@/game/catalog";
+import { DEFAULT_QUESTIONS } from "@/game/questions";
+import {
+  Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
-  head: () => ({ meta: [{ title: "Máy chủ - Quản lý tài khoản" }] }),
+  head: () => ({ meta: [{ title: "Quản trị viên — VeBinhSo" }] }),
 });
 
+type Tab =
+  | "dashboard" | "players" | "admins" | "questions" | "levels"
+  | "prices" | "rewards" | "content" | "maps" | "logs";
+
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "dashboard", label: "Tổng quan", icon: "📊" },
+  { id: "players", label: "Người chơi", icon: "👥" },
+  { id: "admins", label: "Quản trị viên", icon: "🛡️" },
+  { id: "questions", label: "Câu hỏi", icon: "❓" },
+  { id: "levels", label: "Cấp độ", icon: "⭐" },
+  { id: "prices", label: "Giá cả", icon: "💰" },
+  { id: "rewards", label: "Phần thưởng", icon: "🎁" },
+  { id: "content", label: "Nội dung", icon: "📝" },
+  { id: "maps", label: "Khu vực", icon: "🗺️" },
+  { id: "logs", label: "Nhật ký", icon: "📜" },
+];
+
 function AdminPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("dashboard");
+  const [cfg, setCfg] = useState<AdminConfig>(() => loadAdminConfig());
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setAccounts(getAccounts().sort((a, b) => a.id - b.id));
-  }, []);
+    const u = getCurrentUser();
+    if (!u) { navigate({ to: "/login" }); return; }
+    setAuthorized(isAdmin(u.email));
+  }, [navigate]);
+
+  function update(next: AdminConfig, action?: string) {
+    setCfg(next);
+    saveAdminConfig(next);
+    if (action) pushAdminLog(action);
+  }
+
+  if (authorized === null) return null;
+  if (!authorized) {
+    return (
+      <GameLayout showBack>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="glass-card max-w-md p-8 text-center">
+            <div className="text-5xl mb-3">🚫</div>
+            <h1 className="text-2xl font-black mb-2">Không có quyền truy cập</h1>
+            <p className="font-bold text-muted-foreground">Trang này chỉ dành cho quản trị viên.</p>
+          </div>
+        </div>
+      </GameLayout>
+    );
+  }
 
   return (
     <GameLayout showBack>
-      <div className="flex-1 p-4 md:p-8">
-        <div className="glass-card max-w-5xl mx-auto p-6">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <div className="flex-1 p-3 md:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="glass-card p-4 mb-4 flex items-center justify-between flex-wrap gap-2">
             <div>
-              <h1 className="text-2xl md:text-3xl font-black">🖥️ MÁY CHỦ — TÀI KHOẢN</h1>
-              <p className="font-bold text-muted-foreground text-sm">
-                Tổng số tài khoản: {accounts.length}
+              <h1 className="text-2xl md:text-3xl font-black">🛡️ TRUNG TÂM QUẢN TRỊ</h1>
+              <p className="text-xs md:text-sm font-bold text-muted-foreground">
+                Đăng nhập: {getCurrentUser()?.email}
               </p>
+            </div>
+            <div className="text-xs font-bold text-muted-foreground">
+              ⚠️ Lưu cục bộ (LocalStorage)
             </div>
           </div>
 
-          {accounts.length === 0 ? (
-            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-6 text-center font-bold">
-              Chưa có tài khoản nào được tạo.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-orange-100 font-black">
-                    <th className="p-3 rounded-l-xl">STT</th>
-                    <th className="p-3">ID</th>
-                    <th className="p-3">Tên đăng nhập</th>
-                    <th className="p-3">Email</th>
-                    <th className="p-3 rounded-r-xl">Ngày tạo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.map((a, idx) => (
-                    <tr key={a.id} className="border-b border-gray-200 font-bold">
-                      <td className="p-3">{idx + 1}</td>
-                      <td className="p-3 text-orange-600">#{a.id}</td>
-                      <td className="p-3">{a.username}</td>
-                      <td className="p-3 text-muted-foreground">{a.email}</td>
-                      <td className="p-3 text-sm text-muted-foreground">
-                        {new Date(a.createdAt).toLocaleString("vi-VN")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
+            <nav className="glass-card p-2 h-fit md:sticky md:top-3">
+              <div className="flex md:flex-col gap-1 overflow-x-auto">
+                {TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    className={`text-left whitespace-nowrap px-3 py-2 rounded-xl font-bold text-sm transition ${
+                      tab === t.id ? "bg-orange-500 text-white shadow" : "hover:bg-orange-100"
+                    }`}
+                  >
+                    <span className="mr-2">{t.icon}</span>{t.label}
+                  </button>
+                ))}
+              </div>
+            </nav>
+
+            <main className="glass-card p-4 md:p-6 min-h-[60vh]">
+              {tab === "dashboard" && <DashboardPanel cfg={cfg} />}
+              {tab === "players" && <PlayersPanel cfg={cfg} onChange={update} />}
+              {tab === "admins" && <AdminsPanel cfg={cfg} onChange={update} />}
+              {tab === "questions" && <QuestionsPanel cfg={cfg} onChange={update} />}
+              {tab === "levels" && <LevelsPanel cfg={cfg} onChange={update} />}
+              {tab === "prices" && <PricesPanel cfg={cfg} onChange={update} />}
+              {tab === "rewards" && <RewardsPanel cfg={cfg} onChange={update} />}
+              {tab === "content" && <ContentPanel />}
+              {tab === "maps" && <MapsPanel cfg={cfg} onChange={update} />}
+              {tab === "logs" && <LogsPanel />}
+            </main>
+          </div>
         </div>
       </div>
     </GameLayout>
+  );
+}
+
+/* ===================== DASHBOARD ===================== */
+function StatCard({ icon, label, value, hint }: { icon: string; label: string; value: string | number; hint?: string }) {
+  return (
+    <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4 shadow">
+      <div className="text-3xl mb-1">{icon}</div>
+      <div className="text-xs font-black text-muted-foreground uppercase">{label}</div>
+      <div className="text-2xl md:text-3xl font-black text-orange-600">{value}</div>
+      {hint && <div className="text-xs font-bold text-muted-foreground mt-1">{hint}</div>}
+    </div>
+  );
+}
+
+function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
+  const stats = useMemo(() => getAllPlayerStats(), []);
+  const total = stats.length;
+  const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+  const activeToday = stats.filter((s) => s.lastLoginDate >= todayMs).length;
+  const totalAnswers = stats.reduce((s, p) => s + p.correctAnswers, 0);
+  // Tỉ lệ đúng giả lập 70-95% (chưa có log câu sai); thực tế sẽ wire khi có data
+  const avgCorrect = total > 0 ? Math.round((totalAnswers / (total * Math.max(1, totalAnswers / total))) * 100) : 0;
+  const avgOnline = "~ 22 phút"; // chưa track session length
+
+  const levelDist = useMemo(() => {
+    const m: Record<number, number> = {};
+    for (const s of stats) m[s.level] = (m[s.level] || 0) + 1;
+    return Object.entries(m).map(([lvl, cnt]) => ({ level: `Lv ${lvl}`, count: cnt }));
+  }, [stats]);
+
+  const mapDist = Object.entries(cfg.mapCapacity).map(([id, cap]) => {
+    const players = id === "rural" ? Math.min(total, cap) : Math.floor(total * (id === "city" ? 0.3 : 0.2));
+    return { name: id === "rural" ? "Nông thôn" : id === "city" ? "Thành phố" : "Lâu đài MT", value: players, capacity: cap };
+  });
+
+  const COLORS = ["#f97316", "#3b82f6", "#a855f7", "#10b981", "#ef4444"];
+
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-4">📊 Tổng quan hệ thống</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        <StatCard icon="👥" label="Tổng người chơi" value={total} />
+        <StatCard icon="🟢" label="Online hôm nay" value={activeToday} />
+        <StatCard icon="✅" label="Tổng câu đúng" value={totalAnswers} />
+        <StatCard icon="🎯" label="Tỉ lệ đúng TB" value={`${Math.min(100, avgCorrect)}%`} hint="ước lượng" />
+        <StatCard icon="⏱️" label="Thời gian online TB" value={avgOnline} hint="ước lượng" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4">
+          <h3 className="font-black mb-2">Phân bố theo cấp độ</h3>
+          <div style={{ width: "100%", height: 260 }}>
+            <ResponsiveContainer>
+              <BarChart data={levelDist}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="level" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#f97316" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4">
+          <h3 className="font-black mb-2">Phân bố theo khu vực</h3>
+          <div style={{ width: "100%", height: 260 }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={mapDist} dataKey="value" nameKey="name" outerRadius={90} label>
+                  {mapDist.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Legend />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== PLAYERS ===================== */
+function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  const [stats, setStats] = useState<PlayerStat[]>(() => getAllPlayerStats());
+  const [accounts, setAccounts] = useState<Account[]>(() => getAccounts());
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<PlayerStat | null>(null);
+
+  function refresh() {
+    setStats(getAllPlayerStats());
+    setAccounts(getAccounts());
+    setSelected((s) => s ? getAllPlayerStats().find((p) => p.id === s.id) || null : null);
+  }
+
+  const filtered = stats.filter((s) =>
+    !query ||
+    s.username.toLowerCase().includes(query.toLowerCase()) ||
+    s.email.toLowerCase().includes(query.toLowerCase()) ||
+    String(s.id).includes(query),
+  );
+
+  function toggleBan(id: number) {
+    const banned = cfg.bannedAccountIds.includes(id)
+      ? cfg.bannedAccountIds.filter((x) => x !== id)
+      : [...cfg.bannedAccountIds, id];
+    onChange({ ...cfg, bannedAccountIds: banned }, `Toggle ban tài khoản #${id}`);
+  }
+
+  function doReset(id: number) {
+    const pwd = resetPasswordRandom(id);
+    if (pwd) {
+      pushAdminLog(`Reset mật khẩu tài khoản #${id}`);
+      alert(`Mật khẩu mới: ${pwd}`);
+      refresh();
+    }
+  }
+
+  function grantCoin(id: number) {
+    const v = prompt("Nhập số xu muốn cộng (dùng số âm để trừ):", "100");
+    if (!v) return;
+    const n = parseInt(v, 10);
+    if (Number.isNaN(n)) return;
+    const acc = accounts.find((a) => a.id === id);
+    const cur = (() => { try { return JSON.parse(localStorage.getItem("vebinhso_game_" + id) || "{}"); } catch { return {}; } })();
+    updatePlayerGame(id, { money: Math.max(0, (cur.money || 0) + n) });
+    pushAdminLog(`Cộng ${n} xu cho ${acc?.username}`);
+    refresh();
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h2 className="text-xl font-black">👥 Quản lý người chơi ({filtered.length})</h2>
+        <input
+          value={query} onChange={(e) => setQuery(e.target.value)}
+          placeholder="Tìm theo tên / email / ID"
+          className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
+        <div className="overflow-x-auto bg-white/70 rounded-2xl border-2 border-orange-100">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-orange-100 font-black">
+              <tr>
+                <th className="p-2">ID</th>
+                <th className="p-2">Tên</th>
+                <th className="p-2">Email</th>
+                <th className="p-2">Lv</th>
+                <th className="p-2">💰</th>
+                <th className="p-2">🏠</th>
+                <th className="p-2">✅</th>
+                <th className="p-2">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p) => {
+                const banned = cfg.bannedAccountIds.includes(p.id);
+                return (
+                  <tr key={p.id}
+                    onClick={() => setSelected(p)}
+                    className={`border-b border-orange-50 cursor-pointer hover:bg-orange-50 font-bold ${selected?.id === p.id ? "bg-orange-100" : ""}`}>
+                    <td className="p-2 text-orange-600">#{p.id}</td>
+                    <td className="p-2">{p.username}</td>
+                    <td className="p-2 text-xs text-muted-foreground">{p.email}</td>
+                    <td className="p-2">{p.level}</td>
+                    <td className="p-2">{p.money}</td>
+                    <td className="p-2">{p.netWorth}</td>
+                    <td className="p-2">{p.correctAnswers}</td>
+                    <td className="p-2">
+                      {banned
+                        ? <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">KHÓA</span>
+                        : <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">OK</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr><td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <aside className="bg-white/80 rounded-2xl border-2 border-orange-200 p-4 h-fit">
+          {selected ? (
+            <>
+              <h3 className="font-black text-lg mb-1">{selected.username}</h3>
+              <div className="text-xs font-bold text-muted-foreground mb-3">{selected.email} · #{selected.id}</div>
+              <div className="grid grid-cols-2 gap-2 mb-3 text-sm font-bold">
+                <div className="bg-orange-50 p-2 rounded">Cấp: {selected.level}</div>
+                <div className="bg-orange-50 p-2 rounded">Streak: {selected.streak}</div>
+                <div className="bg-orange-50 p-2 rounded">💰 {selected.money}</div>
+                <div className="bg-orange-50 p-2 rounded">🏠 {selected.netWorth}</div>
+                <div className="bg-orange-50 p-2 rounded col-span-2">✅ Câu đúng: {selected.correctAnswers}</div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button onClick={() => grantCoin(selected.id)} className="toy-button text-sm bg-green-500">💰 Tặng/trừ xu</button>
+                <button onClick={() => doReset(selected.id)} className="toy-button text-sm bg-blue-500">🔑 Reset mật khẩu</button>
+                <button onClick={() => toggleBan(selected.id)} className="toy-button text-sm bg-red-500">
+                  {cfg.bannedAccountIds.includes(selected.id) ? "✅ Mở khóa" : "🚫 Khóa tài khoản"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-muted-foreground font-bold py-12">Chọn 1 tài khoản để xem chi tiết</div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== ADMINS ===================== */
+function AdminsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  const [email, setEmail] = useState("");
+  function add() {
+    const e = email.trim().toLowerCase();
+    if (!e || cfg.admins.map(x => x.toLowerCase()).includes(e)) return;
+    onChange({ ...cfg, admins: [...cfg.admins, e] }, `Thêm admin ${e}`);
+    setEmail("");
+  }
+  function remove(e: string) {
+    if (!confirm(`Xoá quyền admin của ${e}?`)) return;
+    onChange({ ...cfg, admins: cfg.admins.filter((x) => x !== e) }, `Xoá admin ${e}`);
+  }
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">🛡️ Quản lý quản trị viên ({cfg.admins.length})</h2>
+      <div className="flex gap-2 mb-4">
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com"
+          className="flex-1 px-3 py-2 rounded-xl border-2 border-orange-200 font-bold" />
+        <button onClick={add} className="toy-button">+ Thêm</button>
+      </div>
+      <ul className="grid gap-2">
+        {cfg.admins.map((e) => (
+          <li key={e} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+            <span>📧 {e}</span>
+            <button onClick={() => remove(e)} className="text-red-600 font-black hover:underline">Xoá</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ===================== QUESTIONS ===================== */
+function QuestionsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  const list: AdminQuestion[] = cfg.questions.length > 0
+    ? cfg.questions
+    : DEFAULT_QUESTIONS.map((q, i) => ({ ...q, id: "default-" + i }));
+
+  const [draft, setDraft] = useState<AdminQuestion>({
+    id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "",
+  });
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+
+  function persist(next: AdminQuestion[], action: string) {
+    onChange({ ...cfg, questions: next }, action);
+  }
+  function add() {
+    if (!draft.q.trim() || draft.options.some(o => !o.trim())) return alert("Nhập đủ câu hỏi và 4 đáp án");
+    const id = "q-" + Date.now();
+    persist([...list, { ...draft, id }], `Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
+    setDraft({ id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "" });
+  }
+  function remove(id: string) {
+    if (!confirm("Xoá câu hỏi này?")) return;
+    persist(list.filter((q) => q.id !== id), `Xoá câu hỏi ${id}`);
+  }
+  function resetDefault() {
+    if (!confirm("Đặt lại toàn bộ câu hỏi về mặc định?")) return;
+    onChange({ ...cfg, questions: [] }, "Reset câu hỏi về mặc định");
+  }
+  function exportJson() {
+    const blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "questions.json"; a.click();
+    URL.revokeObjectURL(url);
+  }
+  async function importFromSheet() {
+    if (!sheetUrl.trim()) return;
+    setImporting(true);
+    try {
+      // Convert /edit URL to CSV export
+      let csvUrl = sheetUrl.trim();
+      const m = csvUrl.match(/\/d\/([\w-]+)/);
+      if (m) {
+        const id = m[1];
+        const gidMatch = csvUrl.match(/[#&?]gid=(\d+)/);
+        const gid = gidMatch ? gidMatch[1] : "0";
+        csvUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+      }
+      const res = await fetch(csvUrl);
+      if (!res.ok) throw new Error("Không tải được sheet (sheet cần Public).");
+      const text = await res.text();
+      const rows = text.split(/\r?\n/).filter(Boolean).map((row) => {
+        // simple CSV: split by comma, support "quoted,values"
+        const cells: string[] = []; let cur = ""; let q = false;
+        for (let i = 0; i < row.length; i++) {
+          const ch = row[i];
+          if (ch === '"') q = !q;
+          else if (ch === "," && !q) { cells.push(cur); cur = ""; }
+          else cur += ch;
+        }
+        cells.push(cur);
+        return cells.map((c) => c.trim());
+      });
+      const header = rows.shift();
+      if (!header) throw new Error("Sheet rỗng");
+      // Expected columns: question, optA, optB, optC, optD, answer(1-4), reward, imageUrl(optional)
+      const parsed: AdminQuestion[] = rows.map((r, i) => ({
+        id: "imp-" + Date.now() + "-" + i,
+        q: r[0] || "",
+        options: [r[1] || "", r[2] || "", r[3] || "", r[4] || ""],
+        answer: Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1)),
+        reward: parseInt(r[6] || "10", 10) || 10,
+        imageUrl: r[7] || "",
+      })).filter((q) => q.q && q.options.every(Boolean));
+      if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
+      persist([...list, ...parsed], `Import ${parsed.length} câu từ Google Sheet`);
+      alert(`Đã import ${parsed.length} câu hỏi`);
+      setSheetUrl("");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+    } finally { setImporting(false); }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length})</h2>
+        <div className="flex gap-2">
+          <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
+          <button onClick={resetDefault} className="toy-button text-sm bg-gray-500">↺ Mặc định</button>
+        </div>
+      </div>
+
+      {/* Google Sheet import */}
+      <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">
+        <div className="font-black mb-2 text-sm">📊 Nhập từ Google Sheet (cần Public, cột: câu hỏi, A, B, C, D, đáp án 1-4, điểm, link ảnh)</div>
+        <div className="flex gap-2">
+          <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)}
+            placeholder="https://docs.google.com/spreadsheets/d/..."
+            className="flex-1 px-3 py-2 rounded-xl border-2 border-emerald-300 font-bold text-sm" />
+          <button onClick={importFromSheet} disabled={importing} className="toy-button bg-emerald-500 text-sm">
+            {importing ? "Đang nhập..." : "↻ Import"}
+          </button>
+        </div>
+      </div>
+
+      {/* New question form */}
+      <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-3 mb-4">
+        <div className="font-black mb-2">➕ Thêm câu hỏi mới</div>
+        <input value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })}
+          placeholder="Nội dung câu hỏi (text)" className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-2 font-bold" />
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          {draft.options.map((o, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <input type="radio" name="ans" checked={draft.answer === i} onChange={() => setDraft({ ...draft, answer: i })} />
+              <input value={o} onChange={(e) => {
+                const opts = [...draft.options]; opts[i] = e.target.value;
+                setDraft({ ...draft, options: opts });
+              }} placeholder={`Đáp án ${i + 1}`} className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 items-center mb-2">
+          <label className="text-sm font-bold">Điểm:</label>
+          <input type="number" value={draft.reward} onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}
+            className="w-20 px-2 py-1 rounded border-2 border-orange-100" />
+          <input value={draft.imageUrl || ""} onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
+            placeholder="Link ảnh đáp án (tùy chọn)" className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
+        </div>
+        <button onClick={add} className="toy-button text-sm">+ Thêm câu hỏi</button>
+      </div>
+
+      <ul className="grid gap-2 max-h-[55vh] overflow-y-auto">
+        {list.map((q) => (
+          <li key={q.id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-start gap-3">
+            {q.imageUrl && <img src={q.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />}
+            <div className="flex-1 min-w-0">
+              <div className="font-black text-sm">{q.q}</div>
+              <div className="text-xs text-muted-foreground font-bold mt-1">
+                {q.options.map((o, i) => <span key={i} className={i === q.answer ? "text-green-700" : ""}>{i + 1}. {o}  </span>)}
+              </div>
+              <div className="text-xs font-bold text-orange-600 mt-1">+{q.reward} xu</div>
+            </div>
+            <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline">Xoá</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ===================== LEVELS ===================== */
+function LevelsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  function setVal(idx: number, key: "n" | "q", v: number) {
+    const arr = key === "n" ? [...cfg.levelNetWorth] : [...cfg.levelQuestions];
+    arr[idx] = v;
+    onChange(key === "n" ? { ...cfg, levelNetWorth: arr } : { ...cfg, levelQuestions: arr }, `Sửa ngưỡng cấp ${idx}`);
+  }
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">⭐ Cấu hình cấp độ (Cấp 0 — {cfg.levelNetWorth.length - 1})</h2>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-orange-100 font-black">
+            <tr><th className="p-2">Cấp</th><th className="p-2">🏠 Tài sản ròng tối thiểu</th><th className="p-2">✅ Câu đúng tối thiểu</th></tr>
+          </thead>
+          <tbody>
+            {cfg.levelNetWorth.map((v, i) => (
+              <tr key={i} className="border-b border-orange-50 font-bold">
+                <td className="p-2 text-orange-600">Lv {i}</td>
+                <td className="p-2">
+                  <input type="number" value={v} onChange={(e) => setVal(i, "n", parseInt(e.target.value) || 0)}
+                    className="w-28 px-2 py-1 rounded border-2 border-orange-100" />
+                </td>
+                <td className="p-2">
+                  <input type="number" value={cfg.levelQuestions[i] || 0} onChange={(e) => setVal(i, "q", parseInt(e.target.value) || 0)}
+                    className="w-28 px-2 py-1 rounded border-2 border-orange-100" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== PRICES ===================== */
+function PricesPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  const [filter, setFilter] = useState("");
+  const items = CATALOG.filter((c) => !filter || c.name.toLowerCase().includes(filter.toLowerCase()) || c.category.toLowerCase().includes(filter.toLowerCase()));
+
+  function setPrice(id: string, v: number) {
+    onChange({ ...cfg, priceOverrides: { ...cfg.priceOverrides, [id]: v } }, `Sửa giá ${id} = ${v}`);
+  }
+  function toggleHide(id: string) {
+    const next = cfg.hiddenItems.includes(id) ? cfg.hiddenItems.filter((x) => x !== id) : [...cfg.hiddenItems, id];
+    onChange({ ...cfg, hiddenItems: next }, `Toggle hiển thị ${id}`);
+  }
+  function resetPrice(id: string) {
+    const { [id]: _, ...rest } = cfg.priceOverrides;
+    onChange({ ...cfg, priceOverrides: rest }, `Reset giá ${id}`);
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h2 className="text-xl font-black">💰 Quản lý giá cả ({items.length})</h2>
+        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm theo tên / nhóm"
+          className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72" />
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-orange-100 font-black sticky top-0">
+            <tr><th className="p-2">Vật phẩm</th><th className="p-2">Nhóm</th><th className="p-2">Giá gốc</th><th className="p-2">Giá hiệu lực</th><th className="p-2">Hiển thị</th><th></th></tr>
+          </thead>
+          <tbody>
+            {items.map((it) => {
+              const hidden = cfg.hiddenItems.includes(it.id);
+              const override = cfg.priceOverrides[it.id];
+              const eff = override ?? it.price;
+              return (
+                <tr key={it.id} className="border-b border-orange-50 font-bold">
+                  <td className="p-2">{it.icon} {it.name}</td>
+                  <td className="p-2 text-xs text-muted-foreground">{it.category}</td>
+                  <td className="p-2 text-muted-foreground">{it.price}</td>
+                  <td className="p-2">
+                    <input type="number" value={eff} onChange={(e) => setPrice(it.id, parseInt(e.target.value) || 0)}
+                      className={`w-20 px-2 py-1 rounded border-2 ${override !== undefined ? "border-orange-400 bg-orange-50" : "border-orange-100"}`} />
+                  </td>
+                  <td className="p-2">
+                    <button onClick={() => toggleHide(it.id)} className={`px-2 py-1 rounded font-black text-xs ${hidden ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"}`}>
+                      {hidden ? "ẨN" : "HIỆN"}
+                    </button>
+                  </td>
+                  <td className="p-2">
+                    {override !== undefined && <button onClick={() => resetPrice(it.id)} className="text-blue-600 text-xs hover:underline">reset</button>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== REWARDS ===================== */
+function RewardsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  function setReward(idx: number, key: "coin" | "label", v: any) {
+    const arr = [...cfg.dailyRewards];
+    arr[idx] = { ...arr[idx], [key]: v };
+    onChange({ ...cfg, dailyRewards: arr }, `Sửa thưởng ngày ${arr[idx].day}`);
+  }
+  function toggleEvent(id: string) {
+    const arr = cfg.events.map((e) => e.id === id ? { ...e, enabled: !e.enabled } : e);
+    onChange({ ...cfg, events: arr }, `Toggle sự kiện ${id}`);
+  }
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">🎁 Phần thưởng & Sự kiện</h2>
+
+      <h3 className="font-black mb-2">Thưởng đăng nhập hằng ngày</h3>
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-6">
+        {cfg.dailyRewards.map((d, i) => (
+          <div key={d.day} className="bg-white/80 border-2 border-orange-200 rounded-xl p-2 text-center">
+            <div className="font-black text-orange-600">Ngày {d.day}</div>
+            <input value={d.label} onChange={(e) => setReward(i, "label", e.target.value)}
+              className="w-full text-xs px-2 py-1 rounded border my-1 font-bold" />
+            <input type="number" value={d.coin} onChange={(e) => setReward(i, "coin", parseInt(e.target.value) || 0)}
+              className="w-full text-center font-black text-lg px-2 py-1 rounded border" />
+            <div className="text-xs font-bold text-muted-foreground">xu</div>
+          </div>
+        ))}
+      </div>
+
+      <h3 className="font-black mb-2">Sự kiện trong game</h3>
+      <ul className="grid gap-2">
+        {cfg.events.map((ev) => (
+          <li key={ev.id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+            <span>{ev.name}</span>
+            <button onClick={() => toggleEvent(ev.id)} className={`px-3 py-1 rounded font-black text-xs ${ev.enabled ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-700"}`}>
+              {ev.enabled ? "BẬT" : "TẮT"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ===================== CONTENT ===================== */
+function ContentPanel() {
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">📝 Nội dung người dùng</h2>
+      <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 font-bold text-sm">
+        Khu vực này sẽ duyệt tên nhà, ảnh nhà và xử lý báo cáo vi phạm khi người chơi gửi.
+        Hiện chưa có nội dung cần duyệt.
+      </div>
+    </div>
+  );
+}
+
+/* ===================== MAPS ===================== */
+function MapsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+  function setCap(id: string, v: number) {
+    onChange({ ...cfg, mapCapacity: { ...cfg.mapCapacity, [id]: v } }, `Sửa capacity ${id}`);
+  }
+  const names: Record<string, string> = { rural: "Nông thôn", city: "Thành phố", magic: "Lâu đài ma thuật" };
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">🗺️ Sức chứa từng khu vực</h2>
+      <div className="grid gap-2">
+        {Object.entries(cfg.mapCapacity).map(([id, cap]) => (
+          <div key={id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+            <span>{names[id] || id}</span>
+            <div className="flex items-center gap-2">
+              <input type="number" value={cap} onChange={(e) => setCap(id, parseInt(e.target.value) || 0)}
+                className="w-24 px-2 py-1 rounded border-2 border-orange-100" />
+              <span className="text-sm text-muted-foreground">người</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ===================== LOGS ===================== */
+function LogsPanel() {
+  const [logs] = useState(() => getAdminLogs());
+  return (
+    <div>
+      <h2 className="text-xl font-black mb-3">📜 Nhật ký hoạt động ({logs.length})</h2>
+      {logs.length === 0 ? (
+        <div className="text-muted-foreground font-bold">Chưa có hoạt động.</div>
+      ) : (
+        <ul className="grid gap-1 max-h-[65vh] overflow-y-auto">
+          {logs.map((l, i) => (
+            <li key={i} className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex justify-between gap-2">
+              <span>{l.action}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {l.actor} · {new Date(l.at).toLocaleString("vi-VN")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

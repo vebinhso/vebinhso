@@ -189,7 +189,7 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
     .select("*")
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data || []).map((row: any) => {
+  const rows = (data || []).map((row: any) => {
     const rawChoices = Array.isArray(row.choices) ? row.choices : [];
     const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
       typeof c === "string"
@@ -211,8 +211,20 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
       reward: row.reward ?? 10,
       imageUrl: row.image_url ?? "",
       category: row.category ?? "",
+      enabled: row.enabled ?? true,
+      priority: row.priority ?? 0,
+      _createdAt: row.created_at ?? "",
     };
   });
+  // Sort: priority>0 first by priority asc, then priority=0 by created_at asc
+  rows.sort((a: any, b: any) => {
+    const ap = a.priority > 0 ? 0 : 1;
+    const bp = b.priority > 0 ? 0 : 1;
+    if (ap !== bp) return ap - bp;
+    if (a.priority > 0 && b.priority > 0) return a.priority - b.priority;
+    return (a._createdAt || "").localeCompare(b._createdAt || "");
+  });
+  return rows.map(({ _createdAt: _c, ...r }: any) => r);
 }
 
 function toDbRow(q: AdminQuestion) {
@@ -225,6 +237,8 @@ function toDbRow(q: AdminQuestion) {
     reward: q.reward ?? 10,
     image_url: q.imageUrl || null,
     category: q.category || null,
+    enabled: q.enabled ?? true,
+    priority: q.priority ?? 0,
   };
 }
 
@@ -250,6 +264,8 @@ export async function createQuestion(q: AdminQuestion): Promise<AdminQuestion> {
     reward: (data as any).reward ?? 10,
     imageUrl: (data as any).image_url ?? "",
     category: (data as any).category ?? "",
+    enabled: (data as any).enabled ?? true,
+    priority: (data as any).priority ?? 0,
   };
 }
 
@@ -263,5 +279,42 @@ export async function updateQuestion(id: string, q: AdminQuestion): Promise<void
 
 export async function deleteQuestion(id: string): Promise<void> {
   const { error } = await supabase.from("questions_bank").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function toggleQuestionEnabled(id: string, enabled: boolean): Promise<void> {
+  const { error } = await supabase.from("questions_bank").update({ enabled } as any).eq("id", id);
+  if (error) throw error;
+}
+
+export async function setQuestionPriority(id: string, priority: number): Promise<void> {
+  const { error } = await supabase.from("questions_bank").update({ priority } as any).eq("id", id);
+  if (error) throw error;
+}
+
+export async function reorderPriority(orderedIds: string[]): Promise<void> {
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error } = await supabase
+      .from("questions_bank")
+      .update({ priority: i + 1 } as any)
+      .eq("id", orderedIds[i]);
+    if (error) throw error;
+  }
+}
+
+export async function getPriorityMode(): Promise<boolean> {
+  const { data } = await supabase
+    .from("admin_config")
+    .select("value")
+    .eq("key", "priority_mode")
+    .maybeSingle();
+  const v = (data as any)?.value;
+  return !!(v && v.enabled);
+}
+
+export async function setPriorityMode(enabled: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("admin_config")
+    .upsert({ key: "priority_mode", value: { enabled } as any, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
   if (error) throw error;
 }

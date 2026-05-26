@@ -16,6 +16,11 @@ import {
   createQuestion,
   updateQuestion,
   deleteQuestion,
+  toggleQuestionEnabled,
+  setQuestionPriority,
+  reorderPriority,
+  getPriorityMode,
+  setPriorityMode,
   type AdminConfig,
   type AdminQuestion,
   type PlayerStat,
@@ -409,6 +414,8 @@ function emptyQuestionDraft(): AdminQuestion {
     maps: ["all"],
     reward: 10,
     imageUrl: "",
+    enabled: true,
+    priority: 0,
   };
 }
 
@@ -420,12 +427,15 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState("");
   const [importing, setImporting] = useState(false);
+  const [priorityModeOn, setPriorityModeOn] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
 
   async function reload() {
     setLoading(true);
     try {
-      const data = await fetchQuestions();
+      const [data, mode] = await Promise.all([fetchQuestions(), getPriorityMode()]);
       setList(data);
+      setPriorityModeOn(mode);
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -433,6 +443,51 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function togglePriorityMode() {
+    const next = !priorityModeOn;
+    setPriorityModeOn(next);
+    try { await setPriorityMode(next); pushAdminLog(`Chế độ ưu tiên: ${next ? "BẬT" : "TẮT"}`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setPriorityModeOn(!next); }
+  }
+
+  async function toggleEnabled(q: AdminQuestion) {
+    const next = !q.enabled;
+    setList((cur) => cur.map((x) => x.id === q.id ? { ...x, enabled: next } : x));
+    try { await toggleQuestionEnabled(q.id, next); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
+  async function addToPriority(q: AdminQuestion) {
+    const maxP = list.reduce((m, x) => Math.max(m, x.priority || 0), 0);
+    const priorityCount = list.filter((x) => (x.priority || 0) > 0).length;
+    if (priorityCount >= 30) {
+      if (!confirm(`Zone ưu tiên đã có ${priorityCount} câu (khuyến nghị ≤30). Vẫn thêm?`)) return;
+    }
+    try { await setQuestionPriority(q.id, maxP + 1); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+  async function removeFromPriority(q: AdminQuestion) {
+    try { await setQuestionPriority(q.id, 0); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+  async function handleDrop(targetId: string) {
+    if (!dragId || dragId === targetId) { setDragId(null); return; }
+    const priorityList = list.filter((x) => (x.priority || 0) > 0);
+    const fromIdx = priorityList.findIndex((x) => x.id === dragId);
+    const toIdx = priorityList.findIndex((x) => x.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) { setDragId(null); return; }
+    const reordered = [...priorityList];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    setDragId(null);
+    try { await reorderPriority(reordered.map((x) => x.id)); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+
 
   function validateDraft(): boolean {
     if (!draft.q.trim()) { alert("Nhập nội dung câu hỏi"); return false; }
@@ -590,6 +645,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           maps: ["all"],
           reward: parseInt(r[6] || "10", 10) || 10,
           imageUrl: r[7] || "",
+          enabled: true,
+          priority: 0,
         };
       }).filter((q) => q.q && q.options.every((o) => o.text));
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
@@ -618,6 +675,26 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
         </div>
       </div>
+
+      {/* Priority mode master toggle */}
+      <div className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="font-black text-lg">🎯 Chế độ ưu tiên</div>
+            <div className="text-xs font-bold text-muted-foreground mt-0.5">
+              {priorityModeOn
+                ? `🟢 ĐANG BẬT — game sẽ ưu tiên ${list.filter((x) => (x.priority || 0) > 0).length} câu trong zone`
+                : "⚪ ĐANG TẮT — game random toàn bộ câu hỏi"}
+            </div>
+          </div>
+          <button onClick={togglePriorityMode}
+            className={`toy-button text-sm ${priorityModeOn ? "bg-amber-500" : "bg-gray-500"}`}>
+            {priorityModeOn ? "Tắt chế độ" : "Bật chế độ"}
+          </button>
+        </div>
+      </div>
+
+
 
       {/* Google Sheet import */}
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">
@@ -701,12 +778,26 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         )}
       </div>
 
-      <ul className="grid gap-2 max-h-[55vh] overflow-y-auto">
-        {list.map((q) => (
-          <li key={q.id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-start gap-3">
+      {(() => {
+        const priorityList = list.filter((x) => (x.priority || 0) > 0);
+        const normalList = list.filter((x) => (x.priority || 0) === 0);
+
+        const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
+          <li
+            key={q.id}
+            draggable={opts.inPriority}
+            onDragStart={opts.inPriority ? () => setDragId(q.id) : undefined}
+            onDragOver={opts.inPriority ? (e) => e.preventDefault() : undefined}
+            onDrop={opts.inPriority ? () => handleDrop(q.id) : undefined}
+            className={`bg-white/80 border-2 rounded-xl p-3 flex items-start gap-3 ${q.enabled ? "border-orange-100" : "border-gray-200 opacity-50"} ${opts.inPriority ? "cursor-grab" : ""} ${dragId === q.id ? "ring-2 ring-amber-400" : ""}`}
+          >
+            {opts.inPriority && <span className="text-gray-400 font-black select-none" title="Kéo để sắp xếp">⋮⋮</span>}
             {q.imageUrl && <img src={q.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />}
             <div className="flex-1 min-w-0">
-              <div className="font-black text-sm">{q.q}</div>
+              <div className="font-black text-sm">
+                {opts.inPriority && <span className="text-amber-600 mr-1">#{q.priority}</span>}
+                {q.q}
+              </div>
               <div className="text-xs font-bold mt-1 flex flex-wrap gap-x-3 gap-y-1">
                 {q.options.map((o, i) => {
                   const correct = (q.correctIndexes || []).includes(i);
@@ -725,13 +816,52 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 items-end">
+              <button
+                onClick={() => toggleEnabled(q)}
+                className={`text-xs font-black px-2 py-0.5 rounded ${q.enabled ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`}
+                title="Bật/tắt câu này"
+              >
+                {q.enabled ? "● Đang dùng" : "○ Đã ẩn"}
+              </button>
+              {opts.inPriority ? (
+                <button onClick={() => removeFromPriority(q)} className="text-amber-700 font-black hover:underline text-xs">➖ Bỏ ưu tiên</button>
+              ) : (
+                <button onClick={() => addToPriority(q)} className="text-amber-600 font-black hover:underline text-xs">⭐ Vào ưu tiên</button>
+              )}
               <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">✏️ Sửa</button>
               <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline text-sm">Xoá</button>
             </div>
           </li>
-        ))}
-      </ul>
+        );
+
+        return (
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <section>
+              <div className="font-black mb-2 text-amber-700">
+                ⭐ Zone ưu tiên ({priorityList.length} câu)
+                {priorityList.length > 30 && <span className="ml-2 text-red-600 text-xs">⚠️ Đã vượt 30 câu khuyến nghị</span>}
+              </div>
+              {priorityList.length === 0 ? (
+                <div className="text-sm font-bold text-muted-foreground italic bg-amber-50 border-2 border-dashed border-amber-200 rounded-xl p-3">
+                  Chưa có câu nào. Nhấn "⭐ Vào ưu tiên" ở danh sách dưới để thêm.
+                </div>
+              ) : (
+                <ul className="grid gap-2">
+                  {priorityList.map((q) => renderRow(q, { inPriority: true }))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <div className="font-black mb-2">📋 Tất cả câu hỏi ({normalList.length})</div>
+              <ul className="grid gap-2">
+                {normalList.map((q) => renderRow(q, { inPriority: false }))}
+              </ul>
+            </section>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -1,49 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useMemo, useState } from "react";
-import { getAccounts, getCurrentUser } from "@/lib/auth";
-import { listFriends } from "@/lib/friends";
+import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/ranking")({ component: Ranking });
 
 type Tab = "money" | "level" | "friends";
 
-const LEVEL_MIN = [0, 200, 500, 900, 1400, 2000, 2700, 3500, 4500, 6000, 8000];
-function levelOf(money: number, correct: number) {
-  let lvl = 0;
-  for (let i = 1; i < LEVEL_MIN.length; i++) {
-    if (money >= LEVEL_MIN[i] && correct >= i * 10) lvl = i; else break;
-  }
-  return lvl;
-}
+type Row = { id: string; name: string; money: number; level: number; friends: number };
 
-function readGame(uid: number): { money: number; correct: number } {
-  if (typeof window === "undefined") return { money: 0, correct: 0 };
-  try {
-    const raw = localStorage.getItem("vebinhso_game_" + uid);
-    if (!raw) return { money: 0, correct: 0 };
-    const g = JSON.parse(raw);
-    return { money: g.money ?? 0, correct: g.correctAnswers ?? 0 };
-  } catch { return { money: 0, correct: 0 }; }
+async function fetchRanking(): Promise<Row[]> {
+  const [profiles, games, friends] = await Promise.all([
+    supabase.from("profiles").select("user_id, username"),
+    supabase.from("game_state").select("user_id, money, level"),
+    supabase.from("friends").select("user_id, friend_id, status"),
+  ]);
+  const gMap = new Map<string, any>();
+  (games.data || []).forEach((g: any) => gMap.set(g.user_id, g));
+  const friendCount = new Map<string, number>();
+  (friends.data || []).forEach((f: any) => {
+    if (f.status !== "accepted") return;
+    friendCount.set(f.user_id, (friendCount.get(f.user_id) || 0) + 1);
+    friendCount.set(f.friend_id, (friendCount.get(f.friend_id) || 0) + 1);
+  });
+  return (profiles.data || []).map((p: any) => {
+    const g = gMap.get(p.user_id) || {};
+    return {
+      id: p.user_id,
+      name: p.username,
+      money: g.money || 0,
+      level: g.level || 0,
+      friends: friendCount.get(p.user_id) || 0,
+    };
+  });
 }
 
 function Ranking() {
   const [tab, setTab] = useState<Tab>("money");
   const me = getCurrentUser();
-
-  const rows = useMemo(() => {
-    const accs = getAccounts();
-    return accs.map((a) => {
-      const g = readGame(a.id);
-      return {
-        id: a.id,
-        name: a.username,
-        money: g.money,
-        level: levelOf(g.money, g.correct),
-        friends: listFriends(a.id).length,
-      };
-    });
-  }, []);
+  const { data: rows = [], isLoading } = useQuery({ queryKey: ["ranking"], queryFn: fetchRanking });
 
   const sorted = useMemo(() => {
     const arr = [...rows];
@@ -56,7 +53,7 @@ function Ranking() {
   const badge = (rank: number) =>
     rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank <= 10 ? "🏅" : "🐾";
 
-  const valueOf = (r: typeof sorted[number]) =>
+  const valueOf = (r: Row) =>
     tab === "money" ? `💰 ${r.money.toLocaleString()}đ`
       : tab === "level" ? `⭐ Cấp ${r.level}`
       : `🫂 ${r.friends} bạn`;
@@ -79,10 +76,11 @@ function Ranking() {
             <TabBtn id="friends" label="🫂 Bạn bè" />
           </div>
           <div className="flex flex-col gap-2">
-            {sorted.length === 0 && (
-              <p className="text-center text-sm font-bold text-muted-foreground italic">
-                Chưa có người chơi nào.
-              </p>
+            {isLoading && (
+              <p className="text-center text-sm font-bold text-muted-foreground italic">Đang tải...</p>
+            )}
+            {!isLoading && sorted.length === 0 && (
+              <p className="text-center text-sm font-bold text-muted-foreground italic">Chưa có người chơi nào.</p>
             )}
             {sorted.map((p, i) => {
               const rank = i + 1;

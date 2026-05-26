@@ -1,11 +1,14 @@
+import { loadAdminConfig } from "@/lib/admin";
+
 export type Question = {
   q: string;
   options: string[];
   answer: number; // index
   reward: number;
+  imageUrl?: string;
 };
 
-export const QUESTIONS: Question[] = [
+export const DEFAULT_QUESTIONS: Question[] = [
   { q: "Thủ đô Việt Nam là?", options: ["Hà Nội", "TP.HCM", "Đà Nẵng", "Huế"], answer: 0, reward: 15 },
   { q: "1 + 2 × 3 = ?", options: ["9", "7", "6", "8"], answer: 1, reward: 10 },
   { q: "Nước nào có hình chữ S?", options: ["Lào", "Thái Lan", "Việt Nam", "Campuchia"], answer: 2, reward: 15 },
@@ -20,6 +23,23 @@ export const QUESTIONS: Question[] = [
   { q: "12 × 12 = ?", options: ["124", "144", "121", "132"], answer: 1, reward: 15 },
 ];
 
+export function getQuestions(): Question[] {
+  try {
+    const custom = loadAdminConfig().questions;
+    if (custom && custom.length > 0) return custom as Question[];
+  } catch { /* noop */ }
+  return DEFAULT_QUESTIONS;
+}
+
+// Giữ tương thích — đọc động từ getter
+export const QUESTIONS: Question[] = new Proxy([] as Question[], {
+  get(_t, prop) {
+    const arr = getQuestions();
+    return (arr as any)[prop];
+  },
+}) as Question[];
+
 export function randomQuestion(): Question {
-  return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  const arr = getQuestions();
+  return arr[Math.floor(Math.random() * arr.length)];
 }

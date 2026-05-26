@@ -353,8 +353,8 @@ function Neighborhood() {
           );
         }
       }
-      if (i > 800) break;
     }
+    if (i > 800) break;
   }
   // Vỉa hè / đường nhỏ chạy quanh khu trung tâm để có cảm giác phố
   return (
@@ -520,7 +520,7 @@ export default function GameWorld(props: Props) {
   }, [props]);
 
   return (
-    <Canvas shadows="soft" camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
+    <Canvas shadows="soft" camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
       {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
       <color attach="background" args={["#87ceeb"]} />
       <SoftShadows size={25} samples={16} focus={0.5} />
@@ -553,14 +553,14 @@ export default function GameWorld(props: Props) {
       <Character controlsRef={controlsRef} />
       <PlotAndPlacement {...props} />
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
-      <fog attach="fog" args={["#dbeafe", 60, 180]} />
+      <fog attach="fog" args={["#dbeafe", 90, 280]} />
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
         minDistance={4}
-        maxDistance={28}
+        maxDistance={45}
         maxPolarAngle={Math.PI / 2 - 0.05}
       />
     </Canvas>

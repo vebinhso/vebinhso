@@ -26,7 +26,7 @@ export const DEFAULT_QUESTIONS: Question[] = [
 export function getQuestions(): Question[] {
   try {
     const custom = loadAdminConfig().questions;
-    if (custom && custom.length > 0) return custom as Question[];
+    if (custom && custom.length > 0) return custom as unknown as Question[];
   } catch { /* noop */ }
   return DEFAULT_QUESTIONS;
 }

@@ -17,8 +17,14 @@ export const DEFAULT_ADMIN_EMAILS = [
   "student250729@ptnk.edu.vn",
 ];
 
-export type AdminQuestion = Question & {
+export type AdminQuestionOption = { text: string; imageUrl?: string };
+export type AdminQuestion = {
   id: string;
+  q: string;
+  options: AdminQuestionOption[];
+  correctIndexes: number[];
+  maps: string[];
+  reward: number;
   imageUrl?: string;
   category?: string;
 };

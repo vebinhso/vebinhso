@@ -33,6 +33,7 @@ function GamePage() {
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
 
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);

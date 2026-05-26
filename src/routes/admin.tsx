@@ -676,6 +676,23 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
       </div>
 
+      {/* Priority mode master toggle */}
+      <div className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="font-black text-lg">🎯 Chế độ ưu tiên</div>
+            <div className="text-xs font-bold text-muted-foreground mt-0.5">
+              {priorityModeOn
+                ? `🟢 ĐANG BẬT — game sẽ ưu tiên ${list.filter((x) => (x.priority || 0) > 0).length} câu trong zone`
+                : "⚪ ĐANG TẮT — game random toàn bộ câu hỏi"}
+            </div>
+          </div>
+          <button onClick={togglePriorityMode}
+            className={`toy-button text-sm ${priorityModeOn ? "bg-amber-500" : "bg-gray-500"}`}>
+            {priorityModeOn ? "Tắt chế độ" : "Bật chế độ"}
+          </button>
+        </div>
+
       {/* Google Sheet import */}
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">
         <div className="font-black mb-2 text-sm">📊 Nhập từ Google Sheet (Public, cột: câu hỏi, A, B, C, D, đáp án đúng 1-4, điểm, link ảnh) — sẽ gán map "Tất cả"</div>

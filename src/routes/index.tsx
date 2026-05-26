@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
+import { isAdmin } from "@/lib/admin";
 import {
   findUserByName,
   sendRequest,
@@ -93,6 +94,9 @@ function Home() {
           <Link to="/shop" className="toy-button text-sm">🛒 CỬA HÀNG</Link>
           <Link to="/ranking" className="toy-button text-sm">📊 XẾP HẠNG</Link>
           <Link to="/tutorial" className="toy-button text-sm">📖 HƯỚNG DẪN</Link>
+          {isAdmin(user.email) && (
+            <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white">🛡️ ADMIN</Link>
+          )}
           <button onClick={handleLogout} className="toy-button text-sm">🚪 ĐĂNG XUẤT</button>
         </div>
       </header>

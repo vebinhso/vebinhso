@@ -315,6 +315,10 @@ function GamePage() {
   };
 
   const openQuestion = () => {
+    if (!questionsReady) {
+      flash("⏳ Đang tải câu hỏi...");
+      return;
+    }
     setQuestion(randomQuestion());
     setQuestionResult(null);
   };

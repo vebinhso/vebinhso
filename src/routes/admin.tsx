@@ -21,7 +21,7 @@ import {
   type PlayerStat,
 } from "@/lib/admin";
 import { CATALOG } from "@/game/catalog";
-import { DEFAULT_QUESTIONS } from "@/game/questions";
+
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,

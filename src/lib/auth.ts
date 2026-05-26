@@ -146,22 +146,15 @@ export function getLoginAt(): number {
   return Date.now();
 }
 
-// ===== Legacy shims to keep older modules compiling =====
-export function getAccounts(): Account[] {
-  // Cached profiles list filled by friends.ts
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require("./friends");
-    return typeof mod.getAllProfiles === "function" ? mod.getAllProfiles() : [];
-  } catch { return []; }
-}
-export function setCurrentUser(_a: Account | null) {
-  if (_a === null) void signOut();
-}
+// ===== Legacy shims =====
+let LEGACY_PROFILES: Account[] = [];
+export function _setLegacyProfiles(list: Account[]) { LEGACY_PROFILES = list; }
+export function getAccounts(): Account[] { return LEGACY_PROFILES; }
+export function setCurrentUser(a: Account | null) { if (a === null) void signOut(); }
 export function findAccount(_id: string, _pwd: string): Account | null { return null; }
 export function createPendingRegistration(_o: { username: string; email: string; password: string }) {
   return { token: "", expiresAt: 0 };
 }
 export function verifyRegistration(_t: string): { ok: false; reason: string } {
-  return { ok: false, reason: "Hệ thống đã chuyển sang đăng nhập mới." };
+  return { ok: false, reason: "Hệ thống đã chuyển sang đăng nhập mới — vui lòng đăng ký lại." };
 }

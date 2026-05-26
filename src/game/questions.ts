@@ -1,11 +1,15 @@
-import { loadAdminConfig } from "@/lib/admin";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Question = {
   q: string;
   options: string[];
-  answer: number; // index
+  answer: number; // index (first correct)
   reward: number;
   imageUrl?: string;
+  // Extended (for future use)
+  correctIndexes?: number[];
+  optionImages?: string[];
+  maps?: string[];
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [
@@ -23,12 +27,54 @@ export const DEFAULT_QUESTIONS: Question[] = [
   { q: "12 × 12 = ?", options: ["124", "144", "121", "132"], answer: 1, reward: 15 },
 ];
 
-export function getQuestions(): Question[] {
+let QUESTION_CACHE: Question[] = [];
+
+export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
   try {
-    const custom = loadAdminConfig().questions;
-    if (custom && custom.length > 0) return custom as unknown as Question[];
-  } catch { /* noop */ }
+    const { data, error } = await supabase
+      .from("questions_bank")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .range(0, 4999);
+    if (error) throw error;
+    const rows = data ?? [];
+    const mapped: Question[] = rows.map((row: any) => {
+      const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
+      const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
+      const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
+      const correctIndexes: number[] = Array.isArray(row.correct_indexes) && row.correct_indexes.length > 0
+        ? row.correct_indexes
+        : (typeof row.answer_index === "number" ? [row.answer_index] : [0]);
+      const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
+      return {
+        q: row.text ?? "",
+        options,
+        answer: correctIndexes[0] ?? 0,
+        reward: row.reward ?? 10,
+        imageUrl: row.image_url ?? undefined,
+        correctIndexes,
+        optionImages,
+        maps,
+      };
+    });
+    const filtered = map
+      ? mapped.filter((q) => (q.maps ?? ["all"]).includes(map) || (q.maps ?? ["all"]).includes("all"))
+      : mapped;
+    QUESTION_CACHE = filtered;
+    return filtered;
+  } catch (e) {
+    console.error("[questions] loadQuestionsFromDB failed", e);
+    return QUESTION_CACHE;
+  }
+}
+
+export function getQuestions(): Question[] {
+  if (QUESTION_CACHE.length > 0) return QUESTION_CACHE;
   return DEFAULT_QUESTIONS;
+}
+
+export function hasLoadedQuestions(): boolean {
+  return QUESTION_CACHE.length > 0;
 }
 
 // Giữ tương thích — đọc động từ getter

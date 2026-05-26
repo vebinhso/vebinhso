@@ -656,8 +656,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                   <button onClick={() => removeOption(i)} disabled={draft.options.length <= 2}
                     className="text-red-600 font-black text-lg px-1 disabled:opacity-30" title="Xoá đáp án">🗑</button>
                 </div>
-                <input value={o.imageUrl || ""} onChange={(e) => setOptionImage(i, e.target.value)}
-                  placeholder="Link ảnh đáp án (tùy chọn)" className="mt-1 w-full px-2 py-1 rounded border border-orange-100 text-xs" />
+                <div className="mt-1">
+                  <ImageUploadField value={o.imageUrl || ""} onChange={(url) => setOptionImage(i, url)} label="ảnh đáp án" />
+                </div>
               </div>
             );
           })}

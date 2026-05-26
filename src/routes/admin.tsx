@@ -21,6 +21,7 @@ import {
   type PlayerStat,
 } from "@/lib/admin";
 import { CATALOG } from "@/game/catalog";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
@@ -655,8 +656,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                   <button onClick={() => removeOption(i)} disabled={draft.options.length <= 2}
                     className="text-red-600 font-black text-lg px-1 disabled:opacity-30" title="Xoá đáp án">🗑</button>
                 </div>
-                <input value={o.imageUrl || ""} onChange={(e) => setOptionImage(i, e.target.value)}
-                  placeholder="Link ảnh đáp án (tùy chọn)" className="mt-1 w-full px-2 py-1 rounded border border-orange-100 text-xs" />
+                <div className="mt-1">
+                  <ImageUploadField value={o.imageUrl || ""} onChange={(url) => setOptionImage(i, url)} label="ảnh đáp án" />
+                </div>
               </div>
             );
           })}
@@ -684,8 +686,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           <label className="text-sm font-bold">Điểm:</label>
           <input type="number" value={draft.reward} onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}
             className="w-20 px-2 py-1 rounded border-2 border-orange-100" />
-          <input value={draft.imageUrl || ""} onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
-            placeholder="Link ảnh câu hỏi (tùy chọn)" className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
+        </div>
+        <div className="mb-3">
+          <div className="text-sm font-bold mb-1">🖼️ Ảnh câu hỏi (tùy chọn):</div>
+          <ImageUploadField value={draft.imageUrl || ""} onChange={(url) => setDraft({ ...draft, imageUrl: url })} label="ảnh câu hỏi" />
         </div>
         {editingId ? (
           <div className="flex gap-2">

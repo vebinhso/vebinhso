@@ -1,81 +1,89 @@
-# Trang Admin Quản Lý Game
 
-## Tổng quan
-Xây dựng một trang admin riêng tại `/admin` với nhiều tab quản lý. Chỉ 8 email được phép truy cập (hard-coded allowlist). Dữ liệu hiện đang lưu trong `localStorage` per-account (xem `src/lib/game.ts`, `src/lib/auth.ts`), nên admin sẽ:
-- Đọc/ghi cấu hình toàn cục qua localStorage key chung (`vebinhso_admin_config`)
-- Đọc danh sách tài khoản local (đã có sẵn ở `getAccounts()`)
-- Cho phép chỉnh thông số game (giá, phần thưởng, level threshold, câu hỏi) → các route player sẽ đọc config này thay vì hằng số cứng
+## Mục tiêu
+Chuyển dự án từ lưu trữ localStorage sang Supabase (Lovable Cloud) để dữ liệu đồng bộ giữa các thiết bị, cho phép xếp hạng/admin chính xác và bảo mật bằng RLS.
 
-## Cấu trúc trang `/admin`
-Sidebar dọc với các mục:
+## 1. Authentication
+- Bật **Supabase Auth**: email/password + Google (qua `lovable.auth.signInWithOAuth`).
+- Tự động xác nhận email **TẮT** (user phải verify email).
+- Xoá flow `verifyRegistration` / `pending accounts` cũ trong `src/lib/auth.ts`.
+- Viết lại `src/routes/login.tsx`, `src/routes/verify.tsx` dùng Supabase Auth.
+- Thêm `onAuthStateChange` listener ở `__root.tsx` để invalidate cache.
+- Lưu ý: **tài khoản cũ trong localStorage sẽ không tự chuyển** — người chơi phải đăng ký lại.
 
-1. **Dashboard** — thống kê tổng quan
-   - Tổng người chơi, đang online hôm nay
-   - Tổng câu trả lời, tỉ lệ đúng TB
-   - Thời gian online TB/ngày
-   - Biểu đồ phân bố theo level + theo map (Recharts)
+## 2. Schema database
 
-2. **Người chơi** — bảng tài khoản
-   - Tìm kiếm theo username/email/ID
-   - Xem chi tiết: level, 💰, 🏠, số câu đúng, streak, inventory
-   - Hành động: khóa/mở, reset mật khẩu (random + show), tặng tiền, sửa số liệu
-   - Hiển thị ID cứng (#1, #2, ...) đã có sẵn
+```text
+profiles              (user_id PK→auth.users, username unique, display_name, avatar, created_at)
+user_roles            (user_id, role app_role enum: admin/moderator/user) — chống privilege escalation
+game_state            (user_id PK, money, net_worth, correct_answers, answer_streak,
+                       level, bricks, concrete, roof_tiles, roof_tiles_ton,
+                       wall_color, owned_palettes jsonb, updated_at)
+placed_items          (id, user_id, item_id, x, z, rotation)
+walls                 (id, user_id, ax, az, bx, bz, color, value)
+roofs                 (id, user_id, ax, az, bx, bz, style, value)
+character_outfit      (user_id PK, outfit jsonb)
+pets                  (id, user_id, pet_id, name, level, xp, equipped)
+friends               (user_id, friend_id, status, created_at)  -- composite PK
+messages              (id, from_user, to_user, content, created_at) -- realtime
+login_streaks         (user_id PK, total_days, current_streak, last_login_date)
+questions_bank        (id, text, choices jsonb, answer_index, image_url, category)
+admin_config          (key PK, value jsonb)  -- prices, levels, rewards overrides
+```
 
-3. **Admin** — quản lý quyền admin
-   - Hiển thị 8 email mặc định
-   - Thêm/xóa admin (lưu vào config)
+- **Hàm `has_role(uuid, app_role)`** SECURITY DEFINER để dùng trong RLS (tránh đệ quy).
+- **Trigger `handle_new_user`** tự tạo `profiles` + `game_state` rỗng khi signup.
+- **Trigger `update_updated_at`** cho mọi bảng có `updated_at`.
 
-4. **Câu hỏi** — thư viện câu hỏi
-   - Liệt kê toàn bộ câu hỏi từ `src/game/questions.ts` (đã chuyển sang config động)
-   - Thêm câu hỏi: text + 4 lựa chọn + đáp án + reward + (tùy chọn) URL hình ảnh đáp án
-   - Sửa/Xóa từng câu
-   - Import từ Google Sheets (paste URL → fetch CSV public)
-   - Export ra JSON
+## 3. RLS policies
+- `profiles`: SELECT cho tất cả authenticated (để xem ranking), UPDATE chỉ chủ sở hữu.
+- `game_state`, `placed_items`, `walls`, `roofs`, `character_outfit`, `pets`, `login_streaks`: SELECT cho authenticated (để ranking/leaderboard); INSERT/UPDATE/DELETE chỉ owner. Admin có thể UPDATE tất cả qua `has_role(auth.uid(),'admin')`.
+- `friends`, `messages`: chỉ các bên liên quan đọc/ghi.
+- `questions_bank`, `admin_config`: SELECT cho tất cả; INSERT/UPDATE/DELETE chỉ admin.
+- `user_roles`: SELECT chính mình; INSERT/UPDATE/DELETE chỉ admin.
 
-5. **Cấp độ (Levels)** — chỉnh ngưỡng netWorth & câu hỏi cho từng cấp
+## 4. Refactor code — đọc/ghi từ DB
 
-6. **Giá cả** — quản lý giá shop (vật liệu, đồ nội thất, quyền năng, pet)
-   - Bật/tắt hiển thị từng item ở shop
+| File hiện tại | Thay đổi |
+|---|---|
+| `src/lib/auth.ts` | Bỏ logic localStorage, dùng `supabase.auth`. Giữ helper `getCurrentUser()` đọc từ session. |
+| `src/lib/game.ts` | `loadGame()` / `saveGame()` async, đọc/ghi `game_state` qua server fn. Debounce save (~500ms). |
+| `src/lib/character.ts` | `loadOutfit/saveOutfit` async qua `character_outfit`. |
+| `src/lib/friends.ts` | Đọc/ghi bảng `friends`. |
+| `src/game/questions.ts` | Đọc từ `questions_bank`. |
+| `src/lib/admin.ts` | `isAdmin()` qua `has_role`; config qua `admin_config`. |
+| `src/routes/ranking.tsx` | Query `profiles + game_state` thay vì duyệt localStorage. |
+| `src/routes/chat.tsx` | Realtime channel cho `messages`. |
+| Các route GameWorld/magic | Dùng React Query để load state, mutation để save. |
 
-7. **Phần thưởng** — daily reward + sự kiện
-   - Cấu hình phần thưởng đăng nhập hằng ngày
-   - Bật/tắt sự kiện (thời tiết, festival)
+- Server functions trong `src/lib/*.functions.ts`:
+  - `getGameState`, `saveGameState`
+  - `getLeaderboard`
+  - `saveOutfit`, `getOutfit`
+  - `listFriends`, `addFriend`, `removeFriend`
+  - `adminListPlayers`, `adminUpdatePlayer`, `adminResetPassword` (dùng `supabaseAdmin`)
+  - `adminListQuestions`, `adminUpsertQuestion`, `adminDeleteQuestion`
+- Wire `attachSupabaseAuth` trong `src/start.ts` nếu chưa có.
 
-8. **Nội dung người dùng** — duyệt tên nhà, ảnh nhà, xử lý báo cáo
+## 5. Migration dữ liệu cũ
+- Một **banner một lần** ở Home: nếu phát hiện dữ liệu cũ trong localStorage, gợi ý người chơi đăng ký tài khoản mới và **tự động đẩy** game state + outfit + walls + placed items + roofs từ localStorage lên DB sau khi login lần đầu.
+- Sau migration thành công → xoá key localStorage để tránh duplicate.
 
-9. **Phân bố map** — capacity từng map, cảnh báo quá tải
+## 6. Admin
+- Bảng `user_roles` + seed 8 email allowlist hardcode hiện tại làm admin **sau khi họ signup lần đầu** (qua một edge case trong trigger `handle_new_user`: nếu email ∈ allowlist → INSERT role admin).
+- `src/routes/admin.tsx` query qua server fn admin (dùng service role), không truy cập trực tiếp từ client.
 
-10. **Log hệ thống** — lịch sử admin actions
+## 7. Phạm vi NGOÀI plan này (làm sau)
+- Báo cáo vi phạm, log hệ thống chi tiết, thông số sự kiện thời tiết/festival.
+- Chuyển 3D state realtime giữa người chơi (multiplayer thật).
 
-## Thay đổi kỹ thuật
+## Thứ tự thực thi
+1. Tạo migration SQL (bảng + enum + function + trigger + RLS) — chờ user approve.
+2. Bật Google OAuth + email auth.
+3. Viết server functions + refactor `auth.ts`, `game.ts`, `character.ts`, `friends.ts`.
+4. Cập nhật route `login`, `verify`, `ranking`, `chat`, `admin`, GameWorld, magic.
+5. Thêm migration banner localStorage → DB.
+6. Test toàn bộ flow: signup → play → save → ranking → admin.
 
-### File mới
-- `src/lib/admin.ts` — allowlist email, helper `isAdmin()`, load/save admin config
-- `src/lib/adminConfig.ts` — schema cho config động (questions, prices, rewards, levels, flags) + default values
-- `src/lib/adminStats.ts` — đọc toàn bộ localStorage game state, tính thống kê
-- `src/routes/admin.tsx` — đổi thành layout với sidebar + outlet **HOẶC** giữ trang đơn với tabs (Tabs component)
-- `src/components/admin/*` — các panel: Dashboard, Players, Questions, Prices, Rewards, Levels, AdminUsers, Content, MapBalance, Logs
-
-### File sửa
-- `src/routes/login.tsx` / nav: thêm nút "Admin" khi user thuộc allowlist
-- `src/game/questions.ts`: đổi `QUESTIONS` thành getter đọc từ adminConfig (fallback default)
-- `src/lib/game.ts`: `LEVEL_MIN_NETWORTH` / `LEVEL_MIN_QUESTIONS` đọc từ adminConfig
-- `src/game/catalog.ts`: giá đọc từ adminConfig override
-- `src/components/GameLayout.tsx`: thêm link Admin trong menu nếu `isAdmin()`
-
-### Bảo mật
-- Frontend-only check (vì hệ thống auth hiện là localStorage). `requireAdmin()` redirect `/` nếu email không thuộc allowlist.
-- Lưu ý cho user: đây là phòng thủ client-side; sẽ cần Lovable Cloud + RLS để bảo mật thực sự sau này.
-
-## Phạm vi lần này
-Đây là phạm vi LỚN. Tôi sẽ build trong 1 lượt với cấu trúc đầy đủ nhưng một số panel sẽ ở mức MVP (giao diện + đọc/ghi config cơ bản), ưu tiên:
-- Dashboard ✅ đầy đủ với chart
-- Người chơi ✅ đầy đủ CRUD
-- Admin ✅ allowlist + thêm/xóa
-- Câu hỏi ✅ CRUD + import Google Sheet CSV
-- Giá cả ✅ chỉnh + toggle
-- Cấp độ ✅ chỉnh ngưỡng
-- Phần thưởng ✅ chỉnh daily
-- Nội dung / Map balance / Logs: khung UI, dữ liệu mẫu
-
-Sau khi xong, bạn có thể yêu cầu hoàn thiện sâu từng phần.
+## Cảnh báo
+- Đây là refactor lớn (~15-20 file). Sau khi migrate, **dữ liệu localStorage cũ trên thiết bị hiện tại vẫn còn** nhưng game sẽ đọc từ DB.
+- Mỗi câu trả lời đúng / mỗi lần đặt vật phẩm sẽ tạo 1 request lên DB (có debounce). Cần internet để chơi.

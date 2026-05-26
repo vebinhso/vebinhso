@@ -56,6 +56,10 @@ function GamePage() {
     }
     setUser(u);
     setState(loadGame());
+    // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
+    loadQuestionsFromDB("rural")
+      .then(() => setQuestionsReady(true))
+      .catch(() => setQuestionsReady(true));
   }, [navigate]);
 
   useEffect(() => {

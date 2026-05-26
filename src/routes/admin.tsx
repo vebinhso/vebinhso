@@ -592,6 +592,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           maps: ["all"],
           reward: parseInt(r[6] || "10", 10) || 10,
           imageUrl: r[7] || "",
+          enabled: true,
+          priority: 0,
         };
       }).filter((q) => q.q && q.options.every((o) => o.text));
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");

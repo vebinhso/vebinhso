@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useAuthSync } from "@/hooks/use-auth-sync";
 
 import appCss from "../styles.css?url";
 
@@ -117,7 +118,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthSyncBridge />
       <Outlet />
     </QueryClientProvider>
   );
+}
+
+function AuthSyncBridge() {
+  useAuthSync();
+  return null;
 }

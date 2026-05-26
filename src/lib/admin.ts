@@ -27,6 +27,8 @@ export type AdminQuestion = {
   reward: number;
   imageUrl?: string;
   category?: string;
+  enabled: boolean;
+  priority: number;
 };
 
 export type DailyReward = { day: number; coin: number; label: string };

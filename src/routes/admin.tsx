@@ -427,12 +427,15 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState("");
   const [importing, setImporting] = useState(false);
+  const [priorityModeOn, setPriorityModeOn] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
 
   async function reload() {
     setLoading(true);
     try {
-      const data = await fetchQuestions();
+      const [data, mode] = await Promise.all([fetchQuestions(), getPriorityMode()]);
       setList(data);
+      setPriorityModeOn(mode);
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -440,6 +443,51 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function togglePriorityMode() {
+    const next = !priorityModeOn;
+    setPriorityModeOn(next);
+    try { await setPriorityMode(next); pushAdminLog(`Chế độ ưu tiên: ${next ? "BẬT" : "TẮT"}`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setPriorityModeOn(!next); }
+  }
+
+  async function toggleEnabled(q: AdminQuestion) {
+    const next = !q.enabled;
+    setList((cur) => cur.map((x) => x.id === q.id ? { ...x, enabled: next } : x));
+    try { await toggleQuestionEnabled(q.id, next); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
+  async function addToPriority(q: AdminQuestion) {
+    const maxP = list.reduce((m, x) => Math.max(m, x.priority || 0), 0);
+    const priorityCount = list.filter((x) => (x.priority || 0) > 0).length;
+    if (priorityCount >= 30) {
+      if (!confirm(`Zone ưu tiên đã có ${priorityCount} câu (khuyến nghị ≤30). Vẫn thêm?`)) return;
+    }
+    try { await setQuestionPriority(q.id, maxP + 1); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+  async function removeFromPriority(q: AdminQuestion) {
+    try { await setQuestionPriority(q.id, 0); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+  async function handleDrop(targetId: string) {
+    if (!dragId || dragId === targetId) { setDragId(null); return; }
+    const priorityList = list.filter((x) => (x.priority || 0) > 0);
+    const fromIdx = priorityList.findIndex((x) => x.id === dragId);
+    const toIdx = priorityList.findIndex((x) => x.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) { setDragId(null); return; }
+    const reordered = [...priorityList];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    setDragId(null);
+    try { await reorderPriority(reordered.map((x) => x.id)); await reload(); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
+
 
   function validateDraft(): boolean {
     if (!draft.q.trim()) { alert("Nhập nội dung câu hỏi"); return false; }

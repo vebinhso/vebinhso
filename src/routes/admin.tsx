@@ -212,15 +212,18 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
 
 /* ===================== PLAYERS ===================== */
 function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
-  const [stats, setStats] = useState<PlayerStat[]>(() => getAllPlayerStats());
-  const [accounts, setAccounts] = useState<Account[]>(() => getAccounts());
+  const [stats, setStats] = useState<PlayerStat[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<PlayerStat | null>(null);
 
-  function refresh() {
-    setStats(getAllPlayerStats());
-    setAccounts(getAccounts());
-    setSelected((s) => s ? getAllPlayerStats().find((p) => p.id === s.id) || null : null);
+  useEffect(() => { refresh(); }, []);
+
+  async function refresh() {
+    const fresh = await refreshPlayerStats();
+    setStats(fresh);
+    setAccounts(fresh.map((s) => ({ id: s.id, username: s.username, email: s.email, createdAt: "" })));
+    setSelected((s) => s ? fresh.find((p) => p.id === s.id) || null : null);
   }
 
   const filtered = stats.filter((s) =>
@@ -230,30 +233,32 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
     String(s.id).includes(query),
   );
 
-  function toggleBan(id: number) {
+  function toggleBan(id: string) {
     const banned = cfg.bannedAccountIds.includes(id)
       ? cfg.bannedAccountIds.filter((x) => x !== id)
       : [...cfg.bannedAccountIds, id];
     onChange({ ...cfg, bannedAccountIds: banned }, `Toggle ban tài khoản #${id}`);
   }
 
-  function doReset(id: number) {
-    const pwd = resetPasswordRandom(id);
+  async function doReset(id: string) {
+    const pwd = await resetPasswordRandom(id);
     if (pwd) {
       pushAdminLog(`Reset mật khẩu tài khoản #${id}`);
       alert(`Mật khẩu mới: ${pwd}`);
       refresh();
+    } else {
+      alert("Reset mật khẩu cần yêu cầu người dùng dùng chức năng 'Quên mật khẩu' để nhận email khôi phục.");
     }
   }
 
-  function grantCoin(id: number) {
+  async function grantCoin(id: string) {
     const v = prompt("Nhập số xu muốn cộng (dùng số âm để trừ):", "100");
     if (!v) return;
     const n = parseInt(v, 10);
     if (Number.isNaN(n)) return;
     const acc = accounts.find((a) => a.id === id);
-    const cur = (() => { try { return JSON.parse(localStorage.getItem("vebinhso_game_" + id) || "{}"); } catch { return {}; } })();
-    updatePlayerGame(id, { money: Math.max(0, (cur.money || 0) + n) });
+    const current = stats.find((s) => s.id === id)?.money || 0;
+    await updatePlayerGame(id, { money: Math.max(0, current + n) });
     pushAdminLog(`Cộng ${n} xu cho ${acc?.username}`);
     refresh();
   }

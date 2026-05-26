@@ -145,3 +145,23 @@ export function getLoginStreak(_uid: string): LoginStreak {
 export function getLoginAt(): number {
   return Date.now();
 }
+
+// ===== Legacy shims to keep older modules compiling =====
+export function getAccounts(): Account[] {
+  // Cached profiles list filled by friends.ts
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require("./friends");
+    return typeof mod.getAllProfiles === "function" ? mod.getAllProfiles() : [];
+  } catch { return []; }
+}
+export function setCurrentUser(_a: Account | null) {
+  if (_a === null) void signOut();
+}
+export function findAccount(_id: string, _pwd: string): Account | null { return null; }
+export function createPendingRegistration(_o: { username: string; email: string; password: string }) {
+  return { token: "", expiresAt: 0 };
+}
+export function verifyRegistration(_t: string): { ok: false; reason: string } {
+  return { ok: false, reason: "Hệ thống đã chuyển sang đăng nhập mới." };
+}

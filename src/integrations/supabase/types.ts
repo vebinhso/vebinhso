@@ -270,9 +270,11 @@ export type Database = {
           choices: Json
           correct_indexes: Json
           created_at: string
+          enabled: boolean
           id: string
           image_url: string | null
           maps: Json
+          priority: number
           reward: number
           text: string
           updated_at: string
@@ -283,9 +285,11 @@ export type Database = {
           choices?: Json
           correct_indexes?: Json
           created_at?: string
+          enabled?: boolean
           id?: string
           image_url?: string | null
           maps?: Json
+          priority?: number
           reward?: number
           text: string
           updated_at?: string
@@ -296,9 +300,11 @@ export type Database = {
           choices?: Json
           correct_indexes?: Json
           created_at?: string
+          enabled?: boolean
           id?: string
           image_url?: string | null
           maps?: Json
+          priority?: number
           reward?: number
           text?: string
           updated_at?: string

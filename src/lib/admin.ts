@@ -17,8 +17,14 @@ export const DEFAULT_ADMIN_EMAILS = [
   "student250729@ptnk.edu.vn",
 ];
 
-export type AdminQuestion = Question & {
+export type AdminQuestionOption = { text: string; imageUrl?: string };
+export type AdminQuestion = {
   id: string;
+  q: string;
+  options: AdminQuestionOption[];
+  correctIndexes: number[];
+  maps: string[];
+  reward: number;
   imageUrl?: string;
   category?: string;
 };
@@ -181,22 +187,39 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
     .select("*")
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    q: row.text,
-    options: Array.isArray(row.choices) ? row.choices : [],
-    answer: row.answer_index ?? 0,
-    reward: row.reward ?? 10,
-    imageUrl: row.image_url ?? "",
-    category: row.category ?? "",
-  }));
+  return (data || []).map((row: any) => {
+    const rawChoices = Array.isArray(row.choices) ? row.choices : [];
+    const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
+      typeof c === "string"
+        ? { text: c, imageUrl: "" }
+        : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
+    );
+    const correctIndexes: number[] = Array.isArray(row.correct_indexes) && row.correct_indexes.length > 0
+      ? (row.correct_indexes as number[])
+      : [row.answer_index ?? 0];
+    const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0
+      ? (row.maps as string[])
+      : ["all"];
+    return {
+      id: row.id,
+      q: row.text,
+      options,
+      correctIndexes,
+      maps,
+      reward: row.reward ?? 10,
+      imageUrl: row.image_url ?? "",
+      category: row.category ?? "",
+    };
+  });
 }
 
 function toDbRow(q: AdminQuestion) {
   return {
     text: q.q,
     choices: q.options as any,
-    answer_index: q.answer,
+    answer_index: q.correctIndexes?.[0] ?? 0,
+    correct_indexes: q.correctIndexes as any,
+    maps: (q.maps && q.maps.length > 0 ? q.maps : ["all"]) as any,
     reward: q.reward ?? 10,
     image_url: q.imageUrl || null,
     category: q.category || null,
@@ -210,14 +233,21 @@ export async function createQuestion(q: AdminQuestion): Promise<AdminQuestion> {
     .select()
     .single();
   if (error) throw error;
+  const rawChoices = Array.isArray((data as any).choices) ? (data as any).choices : [];
+  const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
+    typeof c === "string"
+      ? { text: c, imageUrl: "" }
+      : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
+  );
   return {
-    id: data.id,
-    q: data.text,
-    options: Array.isArray(data.choices) ? (data.choices as any) : [],
-    answer: data.answer_index ?? 0,
+    id: (data as any).id,
+    q: (data as any).text,
+    options,
+    correctIndexes: Array.isArray((data as any).correct_indexes) ? (data as any).correct_indexes : [(data as any).answer_index ?? 0],
+    maps: Array.isArray((data as any).maps) ? (data as any).maps : ["all"],
     reward: (data as any).reward ?? 10,
-    imageUrl: data.image_url ?? "",
-    category: data.category ?? "",
+    imageUrl: (data as any).image_url ?? "",
+    category: (data as any).category ?? "",
   };
 }
 

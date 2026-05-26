@@ -268,9 +268,11 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          correct_indexes: Json
           created_at: string
           id: string
           image_url: string | null
+          maps: Json
           reward: number
           text: string
           updated_at: string
@@ -279,9 +281,11 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          correct_indexes?: Json
           created_at?: string
           id?: string
           image_url?: string | null
+          maps?: Json
           reward?: number
           text: string
           updated_at?: string
@@ -290,9 +294,11 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          correct_indexes?: Json
           created_at?: string
           id?: string
           image_url?: string | null
+          maps?: Json
           reward?: number
           text?: string
           updated_at?: string

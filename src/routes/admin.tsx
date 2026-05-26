@@ -94,7 +94,7 @@ function AdminPage() {
               </p>
             </div>
             <div className="text-xs font-bold text-muted-foreground">
-              ⚠️ Lưu cục bộ (LocalStorage)
+              ☁️ Câu hỏi lưu trên DB dùng chung · Một số cấu hình khác lưu cục bộ
             </div>
           </div>
 
@@ -387,12 +387,35 @@ function AdminsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
 }
 
 /* ===================== QUESTIONS ===================== */
+const MAP_OPTIONS: { id: string; label: string }[] = [
+  { id: "all", label: "Tất cả" },
+  { id: "rural", label: "Nông thôn" },
+  { id: "city", label: "Thành phố" },
+  { id: "magic", label: "Lâu đài ma thuật" },
+];
+
+function emptyQuestionDraft(): AdminQuestion {
+  return {
+    id: "",
+    q: "",
+    options: [
+      { text: "", imageUrl: "" },
+      { text: "", imageUrl: "" },
+      { text: "", imageUrl: "" },
+      { text: "", imageUrl: "" },
+    ],
+    correctIndexes: [0],
+    maps: ["all"],
+    reward: 10,
+    imageUrl: "",
+  };
+}
+
 function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
   const [list, setList] = useState<AdminQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const emptyDraft: AdminQuestion = { id: "", q: "", options: ["", "", "", ""], answer: 0, reward: 10, imageUrl: "" };
-  const [draft, setDraft] = useState<AdminQuestion>(emptyDraft);
+  const [draft, setDraft] = useState<AdminQuestion>(emptyQuestionDraft());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sheetUrl, setSheetUrl] = useState("");
   const [importing, setImporting] = useState(false);
@@ -411,11 +434,53 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   useEffect(() => { reload(); }, []);
 
   function validateDraft(): boolean {
-    if (!draft.q.trim() || draft.options.some((o) => !o.trim())) {
-      alert("Nhập đủ câu hỏi và 4 đáp án");
-      return false;
+    if (!draft.q.trim()) { alert("Nhập nội dung câu hỏi"); return false; }
+    const filled = draft.options.filter((o) => (o.text || "").trim());
+    if (filled.length < 2) { alert("Cần ít nhất 2 đáp án có nội dung"); return false; }
+    if (!draft.correctIndexes || draft.correctIndexes.length === 0) {
+      alert("Tick ít nhất 1 đáp án đúng"); return false;
     }
+    // Loại các index nằm ngoài
+    const valid = draft.correctIndexes.filter((i) => i >= 0 && i < draft.options.length);
+    if (valid.length === 0) { alert("Tick ít nhất 1 đáp án đúng"); return false; }
     return true;
+  }
+
+  function setOptionText(i: number, text: string) {
+    const opts = [...draft.options];
+    opts[i] = { ...opts[i], text };
+    setDraft({ ...draft, options: opts });
+  }
+  function setOptionImage(i: number, imageUrl: string) {
+    const opts = [...draft.options];
+    opts[i] = { ...opts[i], imageUrl };
+    setDraft({ ...draft, options: opts });
+  }
+  function addOption() {
+    if (draft.options.length >= 6) return;
+    setDraft({ ...draft, options: [...draft.options, { text: "", imageUrl: "" }] });
+  }
+  function removeOption(i: number) {
+    if (draft.options.length <= 2) return;
+    const opts = draft.options.filter((_, idx) => idx !== i);
+    // remap correctIndexes
+    const ci = draft.correctIndexes
+      .filter((idx) => idx !== i)
+      .map((idx) => (idx > i ? idx - 1 : idx));
+    setDraft({ ...draft, options: opts, correctIndexes: ci.length ? ci : [0] });
+  }
+  function toggleCorrect(i: number) {
+    const has = draft.correctIndexes.includes(i);
+    const ci = has ? draft.correctIndexes.filter((x) => x !== i) : [...draft.correctIndexes, i].sort((a, b) => a - b);
+    setDraft({ ...draft, correctIndexes: ci });
+  }
+  function toggleMap(id: string) {
+    if (id === "all") { setDraft({ ...draft, maps: ["all"] }); return; }
+    let next = draft.maps.filter((m) => m !== "all");
+    if (next.includes(id)) next = next.filter((m) => m !== id);
+    else next = [...next, id];
+    if (next.length === 0) next = ["all"];
+    setDraft({ ...draft, maps: next });
   }
 
   async function add() {
@@ -424,7 +489,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     try {
       await createQuestion(draft);
       pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
-      setDraft(emptyDraft);
+      setDraft(emptyQuestionDraft());
       await reload();
     } catch (e: any) {
       alert("Lỗi thêm câu hỏi: " + (e?.message || e));
@@ -433,12 +498,17 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
 
   function startEdit(q: AdminQuestion) {
     setEditingId(q.id);
-    setDraft({ ...q, options: [...q.options] });
+    setDraft({
+      ...q,
+      options: q.options.map((o) => ({ text: o.text || "", imageUrl: o.imageUrl || "" })),
+      correctIndexes: [...(q.correctIndexes || [])],
+      maps: [...(q.maps && q.maps.length ? q.maps : ["all"])],
+    });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function cancelEdit() {
     setEditingId(null);
-    setDraft(emptyDraft);
+    setDraft(emptyQuestionDraft());
   }
   async function saveEdit() {
     if (!editingId) return;
@@ -448,7 +518,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       await updateQuestion(editingId, draft);
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
-      setDraft(emptyDraft);
+      setDraft(emptyQuestionDraft());
       await reload();
     } catch (e: any) {
       alert("Lỗi cập nhật: " + (e?.message || e));
@@ -504,14 +574,23 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       });
       const header = rows.shift();
       if (!header) throw new Error("Sheet rỗng");
-      const parsed: AdminQuestion[] = rows.map((r) => ({
-        id: "",
-        q: r[0] || "",
-        options: [r[1] || "", r[2] || "", r[3] || "", r[4] || ""],
-        answer: Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1)),
-        reward: parseInt(r[6] || "10", 10) || 10,
-        imageUrl: r[7] || "",
-      })).filter((q) => q.q && q.options.every(Boolean));
+      const parsed: AdminQuestion[] = rows.map((r) => {
+        const ans = Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1));
+        return {
+          id: "",
+          q: r[0] || "",
+          options: [
+            { text: r[1] || "", imageUrl: "" },
+            { text: r[2] || "", imageUrl: "" },
+            { text: r[3] || "", imageUrl: "" },
+            { text: r[4] || "", imageUrl: "" },
+          ],
+          correctIndexes: [ans],
+          maps: ["all"],
+          reward: parseInt(r[6] || "10", 10) || 10,
+          imageUrl: r[7] || "",
+        };
+      }).filter((q) => q.q && q.options.every((o) => o.text));
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
@@ -526,6 +605,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     } finally { setImporting(false); }
   }
 
+  function mapLabel(id: string) {
+    return MAP_OPTIONS.find((m) => m.id === id)?.label || id;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -537,7 +620,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
 
       {/* Google Sheet import */}
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">
-        <div className="font-black mb-2 text-sm">📊 Nhập từ Google Sheet (cần Public, cột: câu hỏi, A, B, C, D, đáp án 1-4, điểm, link ảnh)</div>
+        <div className="font-black mb-2 text-sm">📊 Nhập từ Google Sheet (Public, cột: câu hỏi, A, B, C, D, đáp án đúng 1-4, điểm, link ảnh) — sẽ gán map "Tất cả"</div>
         <div className="flex gap-2">
           <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)}
             placeholder="https://docs.google.com/spreadsheets/d/..."
@@ -554,24 +637,55 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           {editingId ? "✏️ Đang sửa câu hỏi" : "➕ Thêm câu hỏi mới"}
         </div>
         <input value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })}
-          placeholder="Nội dung câu hỏi (text)" className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-2 font-bold" />
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          {draft.options.map((o, i) => (
-            <div key={i} className="flex items-center gap-1">
-              <input type="radio" name="ans" checked={draft.answer === i} onChange={() => setDraft({ ...draft, answer: i })} />
-              <input value={o} onChange={(e) => {
-                const opts = [...draft.options]; opts[i] = e.target.value;
-                setDraft({ ...draft, options: opts });
-              }} placeholder={`Đáp án ${i + 1}`} className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
-            </div>
-          ))}
+          placeholder="Nội dung câu hỏi (text)" className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-3 font-bold" />
+
+        {/* Options list (2-6) */}
+        <div className="space-y-2 mb-3">
+          {draft.options.map((o, i) => {
+            const isCorrect = draft.correctIndexes.includes(i);
+            return (
+              <div key={i} className={`rounded-xl p-2 border-2 transition ${isCorrect ? "bg-green-50 border-green-500" : "bg-white border-orange-100"}`}>
+                <div className="flex items-center gap-2">
+                  <label className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded-lg font-black text-sm ${isCorrect ? "bg-green-500 text-white" : "bg-gray-100"}`}>
+                    <input type="checkbox" className="w-5 h-5 accent-green-600" checked={isCorrect} onChange={() => toggleCorrect(i)} />
+                    {isCorrect ? "✓ Đúng" : "Đúng?"}
+                  </label>
+                  <input value={o.text} onChange={(e) => setOptionText(i, e.target.value)}
+                    placeholder={`Đáp án ${i + 1}`} className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm font-bold" />
+                  <button onClick={() => removeOption(i)} disabled={draft.options.length <= 2}
+                    className="text-red-600 font-black text-lg px-1 disabled:opacity-30" title="Xoá đáp án">🗑</button>
+                </div>
+                <input value={o.imageUrl || ""} onChange={(e) => setOptionImage(i, e.target.value)}
+                  placeholder="Link ảnh đáp án (tùy chọn)" className="mt-1 w-full px-2 py-1 rounded border border-orange-100 text-xs" />
+              </div>
+            );
+          })}
         </div>
-        <div className="flex gap-2 items-center mb-2">
+        <button onClick={addOption} disabled={draft.options.length >= 6}
+          className="toy-button text-xs bg-orange-400 mb-3 disabled:opacity-40">➕ Thêm đáp án ({draft.options.length}/6)</button>
+
+        {/* Maps */}
+        <div className="mb-3">
+          <div className="text-sm font-black mb-1">🗺️ Áp dụng cho map:</div>
+          <div className="flex flex-wrap gap-2">
+            {MAP_OPTIONS.map((m) => {
+              const active = draft.maps.includes(m.id);
+              return (
+                <label key={m.id} className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 cursor-pointer text-sm font-bold ${active ? "bg-blue-500 text-white border-blue-600" : "bg-white border-blue-200"}`}>
+                  <input type="checkbox" className="w-4 h-4" checked={active} onChange={() => toggleMap(m.id)} />
+                  {m.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex gap-2 items-center mb-2 flex-wrap">
           <label className="text-sm font-bold">Điểm:</label>
           <input type="number" value={draft.reward} onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}
             className="w-20 px-2 py-1 rounded border-2 border-orange-100" />
           <input value={draft.imageUrl || ""} onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
-            placeholder="Link ảnh đáp án (tùy chọn)" className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
+            placeholder="Link ảnh câu hỏi (tùy chọn)" className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm" />
         </div>
         {editingId ? (
           <div className="flex gap-2">
@@ -589,10 +703,23 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             {q.imageUrl && <img src={q.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />}
             <div className="flex-1 min-w-0">
               <div className="font-black text-sm">{q.q}</div>
-              <div className="text-xs text-muted-foreground font-bold mt-1">
-                {q.options.map((o, i) => <span key={i} className={i === q.answer ? "text-green-700" : ""}>{i + 1}. {o}  </span>)}
+              <div className="text-xs font-bold mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {q.options.map((o, i) => {
+                  const correct = (q.correctIndexes || []).includes(i);
+                  return (
+                    <span key={i} className={`inline-flex items-center gap-1 ${correct ? "text-green-700 font-black" : "text-muted-foreground"}`}>
+                      {correct && "✓"} {i + 1}. {o.text}
+                      {o.imageUrl && <img src={o.imageUrl} alt="" className="w-6 h-6 object-cover rounded inline-block" />}
+                    </span>
+                  );
+                })}
               </div>
-              <div className="text-xs font-bold text-orange-600 mt-1">+{q.reward} xu</div>
+              <div className="text-xs font-bold mt-1 flex items-center gap-2 flex-wrap">
+                <span className="text-orange-600">+{q.reward} xu</span>
+                {(q.maps || ["all"]).map((m) => (
+                  <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>
+                ))}
+              </div>
             </div>
             <div className="flex flex-col gap-1">
               <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">✏️ Sửa</button>

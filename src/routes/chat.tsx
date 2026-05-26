@@ -6,12 +6,12 @@ import { listFriends } from "@/lib/friends";
 
 export const Route = createFileRoute("/chat")({ component: Chat });
 
-type Msg = { from: number; text: string; at: number };
+type Msg = { from: string; text: string; at: number };
 
 const KEY = "vebinhso_chat_threads";
 
-function threadKey(a: number, b: number) {
-  return [a, b].sort((x, y) => x - y).join("-");
+function threadKey(a: string, b: string) {
+  return [a, b].sort().join("-");
 }
 function readAll(): Record<string, Msg[]> {
   if (typeof window === "undefined") return {};
@@ -23,7 +23,7 @@ function Chat() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [friends, setFriends] = useState<Account[]>([]);
-  const [activeId, setActiveId] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [all, setAll] = useState<Record<string, Msg[]>>({});
 

@@ -120,7 +120,7 @@ function Utilities() {
     setAnswerStreak(g.answerStreak || 0);
   }, []);
 
-  const userId = getCurrentUser()?.id ?? 0;
+  const userId = getCurrentUser()?.id ?? "";
   const [claimTick, setClaimTick] = useState(0);
 
   const loginStreak = userId ? getLoginStreak(userId) : { currentStreak: 0, totalDays: 0, lastLoginDate: 0 };

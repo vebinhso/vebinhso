@@ -17,7 +17,6 @@ export function currentPeriodKey(period: Period, level?: number): string {
     return `D-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   }
   if (period === "weekly") {
-    // ISO-ish week key
     const first = new Date(d.getFullYear(), 0, 1);
     const week = Math.ceil(((d.getTime() - first.getTime()) / 86400000 + first.getDay() + 1) / 7);
     return `W-${d.getFullYear()}-${week}`;
@@ -25,16 +24,15 @@ export function currentPeriodKey(period: Period, level?: number): string {
   return `L-${level ?? 0}`;
 }
 
-export function isClaimed(userId: number, claimKey: string, period: Period, level?: number): boolean {
-  const map = read()[String(userId)] || {};
+export function isClaimed(userId: string, claimKey: string, period: Period, level?: number): boolean {
+  const map = read()[userId] || {};
   return map[claimKey] === currentPeriodKey(period, level);
 }
 
-export function setClaimed(userId: number, claimKey: string, period: Period, level?: number) {
+export function setClaimed(userId: string, claimKey: string, period: Period, level?: number) {
   const all = read();
-  const key = String(userId);
-  const map = all[key] || {};
+  const map = all[userId] || {};
   map[claimKey] = currentPeriodKey(period, level);
-  all[key] = map;
+  all[userId] = map;
   write(all);
 }

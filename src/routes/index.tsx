@@ -33,7 +33,7 @@ function Home() {
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");
 
-  const refreshFriends = (uid: number) => {
+  const refreshFriends = (uid: string) => {
     setFriends(listFriends(uid));
     setIncoming(listIncomingRequests(uid));
   };

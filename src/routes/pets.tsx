@@ -62,19 +62,19 @@ const POWERS: Power[] = RAW.map((p) => ({
 type Inventory = Record<number, number>; // powerId -> qty owned
 type ActiveMap = Record<number, number>; // powerId -> expiresAt epoch (or -1 vĩnh viễn)
 
-function ownKey(uid: number) { return `vebinhso_powers_${uid}`; }
-function activeKey(uid: number) { return `vebinhso_powers_active_${uid}`; }
+function ownKey(uid: string) { return `vebinhso_powers_${uid}`; }
+function activeKey(uid: string) { return `vebinhso_powers_active_${uid}`; }
 
-function loadInv(uid: number): Inventory {
+function loadInv(uid: string): Inventory {
   try { return JSON.parse(localStorage.getItem(ownKey(uid)) || "{}"); } catch { return {}; }
 }
-function saveInv(uid: number, inv: Inventory) {
+function saveInv(uid: string, inv: Inventory) {
   localStorage.setItem(ownKey(uid), JSON.stringify(inv));
 }
-function loadActive(uid: number): ActiveMap {
+function loadActive(uid: string): ActiveMap {
   try { return JSON.parse(localStorage.getItem(activeKey(uid)) || "{}"); } catch { return {}; }
 }
-function saveActive(uid: number, a: ActiveMap) {
+function saveActive(uid: string, a: ActiveMap) {
   localStorage.setItem(activeKey(uid), JSON.stringify(a));
 }
 
@@ -177,7 +177,7 @@ function PowerCard({
 
 function Powers() {
   const user = getCurrentUser();
-  const uid = user?.id ?? 0;
+  const uid = user?.id ?? "";
   const [inv, setInv] = useState<Inventory>({});
   const [active, setActive] = useState<ActiveMap>({});
   const [money, setMoney] = useState(0);

@@ -1,5 +1,6 @@
-// Admin allowlist, dynamic config & helpers
-import { getCurrentUser, getAccounts } from "./auth";
+// Admin allowlist, dynamic config & helpers — Supabase-backed
+import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUser } from "./auth";
 import type { Question } from "@/game/questions";
 
 const CONFIG_KEY = "vebinhso_admin_config";
@@ -18,22 +19,22 @@ export const DEFAULT_ADMIN_EMAILS = [
 
 export type AdminQuestion = Question & {
   id: string;
-  imageUrl?: string; // ảnh cho đáp án (nếu có)
+  imageUrl?: string;
   category?: string;
 };
 
 export type DailyReward = { day: number; coin: number; label: string };
 
 export type AdminConfig = {
-  admins: string[]; // emails (lowercased)
-  questions: AdminQuestion[]; // null/empty => dùng default
-  priceOverrides: Record<string, number>; // itemId -> price
-  hiddenItems: string[]; // itemId bị ẩn khỏi shop
+  admins: string[];
+  questions: AdminQuestion[];
+  priceOverrides: Record<string, number>;
+  hiddenItems: string[];
   levelNetWorth: number[];
   levelQuestions: number[];
   dailyRewards: DailyReward[];
   events: { id: string; name: string; enabled: boolean }[];
-  bannedAccountIds: number[];
+  bannedAccountIds: string[];
   mapCapacity: Record<string, number>;
   flags: Record<string, boolean>;
 };
@@ -86,7 +87,7 @@ export function isAdmin(email?: string | null): boolean {
   return loadAdminConfig().admins.map((x) => x.toLowerCase()).includes(e);
 }
 
-// ===== Activity log =====
+// ===== Activity log (local) =====
 export type AdminLog = { at: number; actor: string; action: string };
 export function getAdminLogs(): AdminLog[] {
   if (typeof window === "undefined") return [];
@@ -98,9 +99,9 @@ export function pushAdminLog(action: string) {
   localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0, 200)));
 }
 
-// ===== Stats =====
+// ===== Stats (Supabase) =====
 export type PlayerStat = {
-  id: number;
+  id: string;        // user_id UUID
   username: string;
   email: string;
   level: number;
@@ -111,57 +112,64 @@ export type PlayerStat = {
   lastLoginDate: number;
 };
 
-export function getAllPlayerStats(): PlayerStat[] {
-  if (typeof window === "undefined") return [];
-  const accounts = getAccounts();
-  const streakMap: Record<string, { totalDays: number; currentStreak: number; lastLoginDate: number }> = (() => {
-    try { return JSON.parse(localStorage.getItem("vebinhso_login_streak") || "{}"); } catch { return {}; }
-  })();
-  const cfg = loadAdminConfig();
+let STATS_CACHE: PlayerStat[] = [];
 
-  return accounts.map((a) => {
-    let game: any = {};
-    try {
-      const raw = localStorage.getItem("vebinhso_game_" + a.id);
-      if (raw) game = JSON.parse(raw);
-    } catch { /* noop */ }
-    const netWorth = game.netWorth || 0;
-    const correct = game.correctAnswers || 0;
-    let lvl = 0;
-    for (let i = 1; i < cfg.levelNetWorth.length; i++) {
-      if (netWorth >= cfg.levelNetWorth[i] && correct >= cfg.levelQuestions[i]) lvl = i;
-      else break;
+/** Fetch all player stats from Supabase. */
+export async function refreshPlayerStats(): Promise<PlayerStat[]> {
+  const [profiles, games, streaks] = await Promise.all([
+    supabase.from("profiles").select("user_id, username, email"),
+    supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level"),
+    supabase.from("login_streaks").select("user_id, current_streak, last_login_date"),
+  ]);
+  const gMap = new Map<string, any>();
+  (games.data || []).forEach((g: any) => gMap.set(g.user_id, g));
+  const sMap = new Map<string, any>();
+  (streaks.data || []).forEach((s: any) => sMap.set(s.user_id, s));
+  const cfg = loadAdminConfig();
+  STATS_CACHE = (profiles.data || []).map((p: any) => {
+    const g = gMap.get(p.user_id) || {};
+    const s = sMap.get(p.user_id) || {};
+    const netWorth = g.net_worth || 0;
+    const correct = g.correct_answers || 0;
+    let lvl = g.level || 0;
+    if (!lvl) {
+      for (let i = 1; i < cfg.levelNetWorth.length; i++) {
+        if (netWorth >= cfg.levelNetWorth[i] && correct >= cfg.levelQuestions[i]) lvl = i;
+        else break;
+      }
     }
-    const s = streakMap[String(a.id)] || { totalDays: 0, currentStreak: 0, lastLoginDate: 0 };
     return {
-      id: a.id,
-      username: a.username,
-      email: a.email,
+      id: p.user_id,
+      username: p.username,
+      email: p.email || "",
       level: lvl,
-      money: game.money || 0,
+      money: g.money || 0,
       netWorth,
       correctAnswers: correct,
-      streak: s.currentStreak || 0,
-      lastLoginDate: s.lastLoginDate || 0,
+      streak: s.current_streak || 0,
+      lastLoginDate: s.last_login_date ? new Date(s.last_login_date).getTime() : 0,
     };
   });
+  return STATS_CACHE;
 }
 
-export function updatePlayerGame(accountId: number, patch: Record<string, any>) {
-  const key = "vebinhso_game_" + accountId;
-  let cur: any = {};
-  try { cur = JSON.parse(localStorage.getItem(key) || "{}"); } catch { /* noop */ }
-  localStorage.setItem(key, JSON.stringify({ ...cur, ...patch }));
+export function getAllPlayerStats(): PlayerStat[] {
+  return STATS_CACHE;
 }
 
-export function resetPasswordRandom(accountId: number): string | null {
-  try {
-    const accounts = getAccounts();
-    const idx = accounts.findIndex((a) => a.id === accountId);
-    if (idx < 0) return null;
-    const newPwd = Math.random().toString(36).slice(-8);
-    accounts[idx].password = newPwd;
-    localStorage.setItem("vebinhso_accounts", JSON.stringify(accounts));
-    return newPwd;
-  } catch { return null; }
+export async function updatePlayerGame(userId: string, patch: Record<string, any>) {
+  // Convert camelCase to snake_case for DB
+  const map: Record<string, string> = {
+    money: "money", netWorth: "net_worth", correctAnswers: "correct_answers",
+    level: "level", bricks: "bricks", concrete: "concrete",
+  };
+  const dbPatch: Record<string, any> = {};
+  for (const [k, v] of Object.entries(patch)) dbPatch[map[k] || k] = v;
+  await supabase.from("game_state").update(dbPatch as any).eq("user_id", userId);
+}
+
+export async function resetPasswordRandom(_userId: string): Promise<string | null> {
+  // Password reset through Supabase requires admin API (service role).
+  // From client-side admin panel, prompt user to use the "forgot password" flow.
+  return null;
 }

@@ -778,12 +778,26 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         )}
       </div>
 
-      <ul className="grid gap-2 max-h-[55vh] overflow-y-auto">
-        {list.map((q) => (
-          <li key={q.id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-start gap-3">
+      {(() => {
+        const priorityList = list.filter((x) => (x.priority || 0) > 0);
+        const normalList = list.filter((x) => (x.priority || 0) === 0);
+
+        const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
+          <li
+            key={q.id}
+            draggable={opts.inPriority}
+            onDragStart={opts.inPriority ? () => setDragId(q.id) : undefined}
+            onDragOver={opts.inPriority ? (e) => e.preventDefault() : undefined}
+            onDrop={opts.inPriority ? () => handleDrop(q.id) : undefined}
+            className={`bg-white/80 border-2 rounded-xl p-3 flex items-start gap-3 ${q.enabled ? "border-orange-100" : "border-gray-200 opacity-50"} ${opts.inPriority ? "cursor-grab" : ""} ${dragId === q.id ? "ring-2 ring-amber-400" : ""}`}
+          >
+            {opts.inPriority && <span className="text-gray-400 font-black select-none" title="Kéo để sắp xếp">⋮⋮</span>}
             {q.imageUrl && <img src={q.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />}
             <div className="flex-1 min-w-0">
-              <div className="font-black text-sm">{q.q}</div>
+              <div className="font-black text-sm">
+                {opts.inPriority && <span className="text-amber-600 mr-1">#{q.priority}</span>}
+                {q.q}
+              </div>
               <div className="text-xs font-bold mt-1 flex flex-wrap gap-x-3 gap-y-1">
                 {q.options.map((o, i) => {
                   const correct = (q.correctIndexes || []).includes(i);
@@ -802,13 +816,52 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 items-end">
+              <button
+                onClick={() => toggleEnabled(q)}
+                className={`text-xs font-black px-2 py-0.5 rounded ${q.enabled ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`}
+                title="Bật/tắt câu này"
+              >
+                {q.enabled ? "● Đang dùng" : "○ Đã ẩn"}
+              </button>
+              {opts.inPriority ? (
+                <button onClick={() => removeFromPriority(q)} className="text-amber-700 font-black hover:underline text-xs">➖ Bỏ ưu tiên</button>
+              ) : (
+                <button onClick={() => addToPriority(q)} className="text-amber-600 font-black hover:underline text-xs">⭐ Vào ưu tiên</button>
+              )}
               <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">✏️ Sửa</button>
               <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline text-sm">Xoá</button>
             </div>
           </li>
-        ))}
-      </ul>
+        );
+
+        return (
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <section>
+              <div className="font-black mb-2 text-amber-700">
+                ⭐ Zone ưu tiên ({priorityList.length} câu)
+                {priorityList.length > 30 && <span className="ml-2 text-red-600 text-xs">⚠️ Đã vượt 30 câu khuyến nghị</span>}
+              </div>
+              {priorityList.length === 0 ? (
+                <div className="text-sm font-bold text-muted-foreground italic bg-amber-50 border-2 border-dashed border-amber-200 rounded-xl p-3">
+                  Chưa có câu nào. Nhấn "⭐ Vào ưu tiên" ở danh sách dưới để thêm.
+                </div>
+              ) : (
+                <ul className="grid gap-2">
+                  {priorityList.map((q) => renderRow(q, { inPriority: true }))}
+                </ul>
+              )}
+            </section>
+
+            <section>
+              <div className="font-black mb-2">📋 Tất cả câu hỏi ({normalList.length})</div>
+              <ul className="grid gap-2">
+                {normalList.map((q) => renderRow(q, { inPriority: false }))}
+              </ul>
+            </section>
+          </div>
+        );
+      })()}
     </div>
   );
 }

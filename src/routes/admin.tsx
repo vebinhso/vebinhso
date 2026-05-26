@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useMemo, useState } from "react";
-import { getCurrentUser, getAccounts, type Account } from "@/lib/auth";
+import { getCurrentUser, type Account } from "@/lib/auth";
 import {
   isAdmin,
   loadAdminConfig,
   saveAdminConfig,
   getAllPlayerStats,
+  refreshPlayerStats,
   updatePlayerGame,
   resetPasswordRandom,
   getAdminLogs,
@@ -142,6 +143,7 @@ function StatCard({ icon, label, value, hint }: { icon: string; label: string; v
 }
 
 function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
+  useEffect(() => { refreshPlayerStats().catch(() => {}); }, []);
   const stats = useMemo(() => getAllPlayerStats(), []);
   const total = stats.length;
   const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();

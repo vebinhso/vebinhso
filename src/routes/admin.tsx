@@ -21,6 +21,7 @@ import {
   type PlayerStat,
 } from "@/lib/admin";
 import { CATALOG } from "@/game/catalog";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,

@@ -271,6 +271,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          reward: number
           text: string
           updated_at: string
         }
@@ -281,6 +282,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          reward?: number
           text: string
           updated_at?: string
         }
@@ -291,6 +293,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          reward?: number
           text?: string
           updated_at?: string
         }

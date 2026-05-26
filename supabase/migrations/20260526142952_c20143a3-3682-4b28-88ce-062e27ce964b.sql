@@ -1,0 +1,1 @@
+ALTER TABLE public.questions_bank ADD COLUMN IF NOT EXISTS reward integer NOT NULL DEFAULT 10;

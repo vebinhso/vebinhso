@@ -45,7 +45,7 @@ function GoogleButton() {
   const [busy, setBusy] = useState(false);
   const handle = async () => {
     setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth/callback` });
     if (r.error) {
       setBusy(false);
       alert("Lỗi đăng nhập Google: " + (r.error.message || "không rõ"));

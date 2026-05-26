@@ -173,3 +173,63 @@ export async function resetPasswordRandom(_userId: string): Promise<string | nul
   // From client-side admin panel, prompt user to use the "forgot password" flow.
   return null;
 }
+
+// ===== Questions Bank (Supabase) =====
+export async function fetchQuestions(): Promise<AdminQuestion[]> {
+  const { data, error } = await supabase
+    .from("questions_bank")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    q: row.text,
+    options: Array.isArray(row.choices) ? row.choices : [],
+    answer: row.answer_index ?? 0,
+    reward: row.reward ?? 10,
+    imageUrl: row.image_url ?? "",
+    category: row.category ?? "",
+  }));
+}
+
+function toDbRow(q: AdminQuestion) {
+  return {
+    text: q.q,
+    choices: q.options as any,
+    answer_index: q.answer,
+    reward: q.reward ?? 10,
+    image_url: q.imageUrl || null,
+    category: q.category || null,
+  };
+}
+
+export async function createQuestion(q: AdminQuestion): Promise<AdminQuestion> {
+  const { data, error } = await supabase
+    .from("questions_bank")
+    .insert(toDbRow(q) as any)
+    .select()
+    .single();
+  if (error) throw error;
+  return {
+    id: data.id,
+    q: data.text,
+    options: Array.isArray(data.choices) ? (data.choices as any) : [],
+    answer: data.answer_index ?? 0,
+    reward: (data as any).reward ?? 10,
+    imageUrl: data.image_url ?? "",
+    category: data.category ?? "",
+  };
+}
+
+export async function updateQuestion(id: string, q: AdminQuestion): Promise<void> {
+  const { error } = await supabase
+    .from("questions_bank")
+    .update(toDbRow(q) as any)
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  const { error } = await supabase.from("questions_bank").delete().eq("id", id);
+  if (error) throw error;
+}

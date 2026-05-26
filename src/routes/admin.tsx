@@ -692,6 +692,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             {priorityModeOn ? "Tắt chế độ" : "Bật chế độ"}
           </button>
         </div>
+      </div>
+
+
 
       {/* Google Sheet import */}
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">

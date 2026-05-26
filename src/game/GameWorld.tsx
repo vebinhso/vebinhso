@@ -520,7 +520,7 @@ export default function GameWorld(props: Props) {
   }, [props]);
 
   return (
-    <Canvas shadows="soft" camera={{ position: [0, 12, 18], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
+    <Canvas shadows="soft" camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
       {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
       <color attach="background" args={["#87ceeb"]} />
       <SoftShadows size={25} samples={16} focus={0.5} />

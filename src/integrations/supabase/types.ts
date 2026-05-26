@@ -14,16 +14,397 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      character_outfit: {
+        Row: {
+          outfit: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          outfit?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          outfit?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friends: {
+        Row: {
+          created_at: string
+          friend_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      game_state: {
+        Row: {
+          answer_streak: number
+          banned: boolean
+          bricks: number
+          concrete: number
+          correct_answers: number
+          level: number
+          money: number
+          net_worth: number
+          owned_palettes: Json
+          roof_tiles: number
+          roof_tiles_ton: number
+          updated_at: string
+          user_id: string
+          wall_color: string
+        }
+        Insert: {
+          answer_streak?: number
+          banned?: boolean
+          bricks?: number
+          concrete?: number
+          correct_answers?: number
+          level?: number
+          money?: number
+          net_worth?: number
+          owned_palettes?: Json
+          roof_tiles?: number
+          roof_tiles_ton?: number
+          updated_at?: string
+          user_id: string
+          wall_color?: string
+        }
+        Update: {
+          answer_streak?: number
+          banned?: boolean
+          bricks?: number
+          concrete?: number
+          correct_answers?: number
+          level?: number
+          money?: number
+          net_worth?: number
+          owned_palettes?: Json
+          roof_tiles?: number
+          roof_tiles_ton?: number
+          updated_at?: string
+          user_id?: string
+          wall_color?: string
+        }
+        Relationships: []
+      }
+      login_streaks: {
+        Row: {
+          current_streak: number
+          last_login_date: string | null
+          total_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          last_login_date?: string | null
+          total_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          last_login_date?: string | null
+          total_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          from_user: string
+          id: string
+          to_user: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          from_user: string
+          id?: string
+          to_user: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          from_user?: string
+          id?: string
+          to_user?: string
+        }
+        Relationships: []
+      }
+      pets: {
+        Row: {
+          created_at: string
+          equipped: boolean
+          id: string
+          level: number
+          name: string | null
+          pet_id: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          equipped?: boolean
+          id?: string
+          level?: number
+          name?: string | null
+          pet_id: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          equipped?: boolean
+          id?: string
+          level?: number
+          name?: string | null
+          pet_id?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      placed_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          rotation: number
+          user_id: string
+          x: number
+          z: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          rotation?: number
+          user_id: string
+          x: number
+          z: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          rotation?: number
+          user_id?: string
+          x?: number
+          z?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      questions_bank: {
+        Row: {
+          answer_index: number
+          category: string | null
+          choices: Json
+          created_at: string
+          id: string
+          image_url: string | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          answer_index?: number
+          category?: string | null
+          choices?: Json
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          answer_index?: number
+          category?: string | null
+          choices?: Json
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roofs: {
+        Row: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          created_at: string
+          id: string
+          style: Database["public"]["Enums"]["roof_style"]
+          user_id: string
+          value: number
+        }
+        Insert: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          created_at?: string
+          id?: string
+          style?: Database["public"]["Enums"]["roof_style"]
+          user_id: string
+          value?: number
+        }
+        Update: {
+          ax?: number
+          az?: number
+          bx?: number
+          bz?: number
+          created_at?: string
+          id?: string
+          style?: Database["public"]["Enums"]["roof_style"]
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      walls: {
+        Row: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          color: string
+          created_at: string
+          id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          color?: string
+          created_at?: string
+          id?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          ax?: number
+          az?: number
+          bx?: number
+          bz?: number
+          color?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      roof_style: "tile" | "ton"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +531,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      roof_style: ["tile", "ton"],
+    },
   },
 } as const

@@ -70,6 +70,13 @@ function GamePage() {
   const isUndoingRef = useRef(false);
   const lastStateRef = useRef<GameState | null>(null);
 
+  // Pickups (coins + bombs scattered around the house)
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
+  // Boom modal: 2 sequential questions
+  const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
+  const [boomResult, setBoomResult] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();

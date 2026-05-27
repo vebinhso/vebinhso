@@ -1415,19 +1415,23 @@ function MagicPage() {
   };
 
   const [quiz5, setQuiz5] = useState<null | { q: Question; idx: number; correct: number }>(null);
-  const answerQuiz5 = (i: number) => {
-    if (!quiz5) return;
-    const isCorrect = i === quiz5.q.answer;
+  const answerQuiz5 = (picked: number[]) => {
+    if (!quiz5 || quiz5Result) return;
+    const correctIdx = quiz5.q.correctIndexes ?? [quiz5.q.answer];
+    const isCorrect = arraysEqualSet(picked, correctIdx);
     bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
-    if (nextIdx >= 5) {
-      setQuiz5(null);
-      // Show chest, player must press "Mở rương"
-      (window as any).__room5correct = nextCorrect;
-      return;
-    }
-    setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    setQuiz5Result(isCorrect ? "✅ Chính xác!" : `❌ Sai rồi! Đáp án đúng: ${correctLettersOf(quiz5.q)}`);
+    setTimeout(() => {
+      setQuiz5Result(null);
+      if (nextIdx >= 5) {
+        setQuiz5(null);
+        (window as any).__room5correct = nextCorrect;
+        return;
+      }
+      setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    }, 1100);
   };
   const openRoom5Chest = () => {
     const correct = (window as any).__room5correct ?? 0;

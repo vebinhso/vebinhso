@@ -18,7 +18,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 

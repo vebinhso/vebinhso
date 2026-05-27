@@ -43,7 +43,17 @@ type Props = {
   onPickup?: (p: Pickup) => void;
   showAdminMarkers?: boolean;
   sparkles?: { id: string; x: number; z: number; at: number }[];
+  onPlayerPos?: (x: number, z: number) => void;
 };
+
+// Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
+const SOLID_ITEMS = new Set<string>([
+  "sofa", "bed", "singlebed", "bunkbed", "fridge", "fridge3", "tv", "tvstand",
+  "stove", "toilet", "lamp", "wardrobe", "table", "roundtable", "desk",
+  "bookshelf", "aircon", "vanity", "bathtub", "shower", "washer", "lavabo",
+  "sink", "hood", "microwave", "oven", "dishwasher", "ricecooker", "fishpond",
+  "pool", "pethouse", "teaset", "fence", "gate", "gardenlamp", "mailbox", "pillar",
+]);
 
 function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
   const ref = useRef<THREE.Group>(null!);

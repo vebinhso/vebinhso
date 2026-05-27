@@ -44,7 +44,7 @@ type Props = {
   showAdminMarkers?: boolean;
 };
 
-function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRefObject<any>; activeFloor: number }) {
+function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);

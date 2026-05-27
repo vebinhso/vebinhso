@@ -112,6 +112,11 @@ function GamePage() {
     if (state) saveGame(state);
   }, [state]);
 
+  // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode
+  useEffect(() => {
+    if (selected !== "door") setDoorHint(false);
+  }, [selected]);
+
   // Track history (snapshot previous state on every change, except undo)
   useEffect(() => {
     if (!state) return;

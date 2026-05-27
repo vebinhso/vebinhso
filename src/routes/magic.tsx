@@ -982,6 +982,7 @@ function MagicPage() {
   const [room, setRoom] = useState<RoomState | null>(null);
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
+  const [bossResult, setBossResult] = useState<string | null>(null);
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
 
@@ -1298,7 +1299,7 @@ function MagicPage() {
   };
 
   const answerBoss = (picked: number[]) => {
-    if (!boss || !boss.question) return;
+    if (!boss || !boss.question || bossResult) return;
     const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
       ? boss.question.correctIndexes
       : [boss.question.answer];
@@ -1306,20 +1307,35 @@ function MagicPage() {
     const b = [...picked].sort().join(",");
     const correct = a === b;
     const g = loadGame();
+    const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
     if (correct) {
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
       const newHp = Math.max(0, boss.hp - boss.perHit);
       const newBullets = boss.bulletsLeft - 1;
+      setBossResult("✅ Chính xác! Bắn trúng boss!");
       if (newHp <= 0) {
-        addCoins(boss.maxHp);
-        setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${boss.level}! +${boss.maxHp} đồng` });
+        const maxHp = boss.maxHp;
+        const level = boss.level;
+        setTimeout(() => {
+          setBoss(null);
+          setBossResult(null);
+          addCoins(maxHp);
+          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${maxHp} đồng` });
+        }, 1200);
         return;
       }
-      setBoss({ ...boss, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() });
+      setTimeout(() => {
+        setBossResult(null);
+        setBoss((prev) => prev ? { ...prev, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() } : prev);
+      }, 1200);
     } else {
       saveGame({ ...g, answerStreak: 0 });
       const nb = Math.max(0, boss.bulletsLeft - 1);
-      setBoss({ ...boss, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() });
+      setBossResult(`❌ Sai rồi! Đáp án đúng: ${correctLetters}`);
+      setTimeout(() => {
+        setBossResult(null);
+        setBoss((prev) => prev ? { ...prev, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() } : prev);
+      }, 1200);
     }
   };
 
@@ -1807,7 +1823,12 @@ function MagicPage() {
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
             </div>
-            <QuestionView question={boss.question} onAnswer={answerBoss} compact />
+            <QuestionView question={boss.question} onAnswer={answerBoss} compact disabled={!!bossResult} />
+            {bossResult && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${bossResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {bossResult}
+              </div>
+            )}
             <p className="text-xs font-bold mt-2 opacity-70">
               Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
             </p>

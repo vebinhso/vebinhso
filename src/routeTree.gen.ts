@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PetsRouteImport } from './routes/pets'
@@ -40,6 +41,11 @@ const TutorialRoute = TutorialRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RankingRoute = RankingRouteImport.update({
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/pets': typeof PetsRoute
   '/play': typeof PlayRoute
   '/ranking': typeof RankingRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/pets'
     | '/play'
     | '/ranking'
+    | '/reset-password'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/pets'
     | '/play'
     | '/ranking'
+    | '/reset-password'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/pets'
     | '/play'
     | '/ranking'
+    | '/reset-password'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   PetsRoute: typeof PetsRoute
   PlayRoute: typeof PlayRoute
   RankingRoute: typeof RankingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ShopRoute: typeof ShopRoute
   TutorialRoute: typeof TutorialRoute
   VerifyRoute: typeof VerifyRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ranking': {
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   PetsRoute: PetsRoute,
   PlayRoute: PlayRoute,
   RankingRoute: RankingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ShopRoute: ShopRoute,
   TutorialRoute: TutorialRoute,
   VerifyRoute: VerifyRoute,

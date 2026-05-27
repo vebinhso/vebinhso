@@ -116,7 +116,7 @@ function Home() {
               {user.username}
               <button onClick={() => { setRenameVal(user.username); setRenameOpen(true); }} className="text-sm opacity-60 hover:opacity-100 transition" title="Đổi tên">✏️</button>
             </h1>
-            <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
+            {isAdmin(user.email) && <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>}
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>

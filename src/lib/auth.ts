@@ -1,6 +1,7 @@
 // Supabase-backed auth — keeps a synchronous `getCurrentUser()` for legacy callers
 // by maintaining an in-memory cache hydrated from `supabase.auth` + `profiles`.
 import { supabase } from "@/integrations/supabase/client";
+import { loadGame, saveGame } from "./game";
 
 export type Account = {
   id: string; // auth.users.id (UUID)

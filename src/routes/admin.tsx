@@ -40,7 +40,7 @@ export const Route = createFileRoute("/admin")({
 
 type Tab =
   | "dashboard" | "players" | "admins" | "questions" | "levels"
-  | "prices" | "rewards" | "content" | "maps" | "logs";
+  | "prices" | "rewards" | "content" | "maps" | "pickups" | "logs";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "dashboard", label: "Tổng quan", icon: "📊" },
@@ -52,6 +52,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "rewards", label: "Phần thưởng", icon: "🎁" },
   { id: "content", label: "Nội dung", icon: "📝" },
   { id: "maps", label: "Khu vực", icon: "🗺️" },
+  { id: "pickups", label: "Vật phẩm map", icon: "🪙" },
   { id: "logs", label: "Nhật ký", icon: "📜" },
 ];
 
@@ -131,6 +132,7 @@ function AdminPage() {
               {tab === "rewards" && <RewardsPanel cfg={cfg} onChange={update} />}
               {tab === "content" && <ContentPanel />}
               {tab === "maps" && <MapsPanel cfg={cfg} onChange={update} />}
+              {tab === "pickups" && <PickupsPanel />}
               {tab === "logs" && <LogsPanel />}
             </main>
           </div>

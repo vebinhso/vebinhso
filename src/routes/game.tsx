@@ -25,6 +25,7 @@ import { QuestionView } from "@/game/QuestionView";
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
+import { generateBasePickups, loadPickupExtras, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -69,6 +70,13 @@ function GamePage() {
   const isUndoingRef = useRef(false);
   const lastStateRef = useRef<GameState | null>(null);
 
+  // Pickups (coins + bombs scattered around the house)
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
+  // Boom modal: 2 sequential questions
+  const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
+  const [boomResult, setBoomResult] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();
@@ -82,6 +90,12 @@ function GamePage() {
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))
       .catch(() => setQuestionsReady(true));
+    // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
+    setCollectedIds(loadCollected(u.id));
+    const base = generateBasePickups();
+    loadPickupExtras()
+      .then((extras) => setPickups([...base, ...extras]))
+      .catch(() => setPickups(base));
   }, [navigate]);
 
   useEffect(() => {
@@ -497,6 +511,59 @@ function GamePage() {
     }, 1200);
   };
 
+  // ===== Pickups (xu + boom) =====
+  const markCollected = (id: string) => {
+    if (!user) return;
+    setCollectedIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      saveCollected(user.id, next);
+      return next;
+    });
+  };
+  const handlePickup = (p: Pickup) => {
+    if (collectedIds.has(p.id)) return;
+    markCollected(p.id);
+    if (p.kind === "coin") {
+      setState((s) => (s ? { ...s, money: s.money + 1 } : s));
+      playSfx("rightHouse", { duck: true });
+      flash("🪙 +1đ", 800);
+    } else {
+      // Boom: mở modal trả lời 2 câu hỏi
+      playSfx("wrongHouse", { duck: true });
+      if (!questionsReady) {
+        flash("💣 Đạp trúng boom! (chưa có câu hỏi)", 1500);
+        return;
+      }
+      setBoom({ qIdx: 0, q: randomQuestion(), gained: 0, answered: [] });
+      setBoomResult(null);
+    }
+  };
+  const handleBoomAnswer = (picked: number[]) => {
+    if (!boom || boomResult) return;
+    const q = boom.q;
+    const correctSet = q.correctIndexes && q.correctIndexes.length > 0 ? q.correctIndexes : [q.answer];
+    const ok = [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    const delta = ok ? 10 : -5;
+    const gained = boom.gained + delta;
+    setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
+    playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
+    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ`);
+    setTimeout(() => {
+      if (boom.qIdx === 0) {
+        setBoom({ qIdx: 1, q: randomQuestion(), gained, answered: [...boom.answered, ok ? 1 : 0] });
+        setBoomResult(null);
+      } else {
+        const total = gained;
+        flash(`💣 Hết boom! Tổng: ${total >= 0 ? "+" : ""}${total}đ`, 2000);
+        setBoom(null);
+        setBoomResult(null);
+      }
+    }, 1200);
+  };
+  const closeBoom = () => { setBoom(null); setBoomResult(null); };
+
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng
   const WALL_LEVEL_REQ = [0, 3, 10, 18];
@@ -562,6 +629,10 @@ function GamePage() {
             flash("🧹 Đã gỡ sàn");
           }}
           activeFloor={activeFloor}
+          pickups={pickups}
+          collectedIds={collectedIds}
+          onPickup={handlePickup}
+          showAdminMarkers={isAdmin(user.email)}
         />
       </Suspense>
 
@@ -714,6 +785,9 @@ function GamePage() {
           ? `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`
           : "🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}
       </div>
+      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
+        🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
+      </div>
 
       {selected && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
@@ -835,6 +909,24 @@ function GamePage() {
             <QuestionView question={question} onAnswer={handleAnswer} disabled={!!questionResult} />
             {questionResult && (
               <div className="mt-4 text-center font-black text-xl md:text-2xl">{questionResult}</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Boom modal — 2 câu hỏi liên tiếp, +10/-5 mỗi câu */}
+      {boom && (
+        <div className="absolute inset-0 bg-black/70 z-40 flex items-center justify-center p-3 md:p-6">
+          <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-red-500">
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <div className="text-base md:text-lg font-black text-red-700 animate-pulse">
+                💣 BẠN ĐÃ ĐẠP TRÚNG BOOM! Câu {boom.qIdx + 1}/2 (✅ +10đ • ❌ −5đ)
+              </div>
+              <button onClick={closeBoom} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖</button>
+            </div>
+            <QuestionView question={boom.q} onAnswer={handleBoomAnswer} disabled={!!boomResult} />
+            {boomResult && (
+              <div className="mt-4 text-center font-black text-xl md:text-2xl">{boomResult}</div>
             )}
           </div>
         </div>

@@ -44,7 +44,7 @@ type Props = {
   showAdminMarkers?: boolean;
 };
 
-function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRefObject<any>; activeFloor: number }) {
+function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);
@@ -119,6 +119,21 @@ function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRef
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
     ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 
+    // Va chạm pickup (chỉ ở tầng trệt)
+    if (activeFloor === 0 && pickups && onPickup) {
+      const px = ref.current.position.x;
+      const pz = ref.current.position.z;
+      for (const p of pickups) {
+        if (collectedIds && collectedIds.has(p.id)) continue;
+        const dx = px - p.x;
+        const dz = pz - p.z;
+        if (dx * dx + dz * dz < 0.7 * 0.7) {
+          onPickup(p);
+          break;
+        }
+      }
+    }
+
     if (controlsRef.current) {
       const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.0, ref.current.position.z);
       controlsRef.current.target.lerp(t, 0.18);
@@ -186,6 +201,39 @@ function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRef
     </group>
   );
 }
+
+
+function Pickup3D({ p, collected, showAdmin }: { p: Pickup; collected: boolean; showAdmin: boolean }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 2.5; });
+  if (collected) return null;
+  if (p.kind === "coin") {
+    return (
+      <mesh ref={ref} position={[p.x, 0.45, p.z]} castShadow>
+        <cylinderGeometry args={[0.28, 0.28, 0.08, 20]} />
+        <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.75} roughness={0.25} />
+      </mesh>
+    );
+  }
+  if (!showAdmin) return null;
+  return (
+    <mesh position={[p.x, 0.35, p.z]}>
+      <sphereGeometry args={[0.28, 12, 12]} />
+      <meshStandardMaterial color="#dc2626" emissive="#7f1d1d" emissiveIntensity={0.6} transparent opacity={0.55} />
+    </mesh>
+  );
+}
+
+function PickupsField({ pickups, collectedIds, showAdminMarkers }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean }) {
+  return (
+    <group>
+      {pickups.map((p) => (
+        <Pickup3D key={p.id} p={p} collected={collectedIds.has(p.id)} showAdmin={showAdminMarkers} />
+      ))}
+    </group>
+  );
+}
+
 
 
 function isRoof(id: string) {
@@ -645,8 +693,11 @@ export default function GameWorld(props: Props) {
           <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
         </Clouds>
       </Suspense>
-      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} />
+      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} />
       <PlotAndPlacement {...props} />
+      {props.pickups && props.pickups.length > 0 && (
+        <PickupsField pickups={props.pickups} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} />
+      )}
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />
       <OrbitControls

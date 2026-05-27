@@ -136,6 +136,19 @@ function GamePage() {
     return () => clearInterval(t);
   }, []);
 
+  // Bật BGM map nhà; tắt khi rời route.
+  useEffect(() => {
+    setBgm("house");
+    return () => { stopLoopSfx("rain"); stopLoopSfx("tornado"); };
+  }, []);
+
+  // Loop âm thanh mưa / lốc xoáy theo quyền năng đang kích hoạt.
+  useEffect(() => {
+    if (activePowers.includes(1)) startLoopSfx("rain"); else stopLoopSfx("rain");
+    if (activePowers.includes(2)) startLoopSfx("tornado"); else stopLoopSfx("tornado");
+  }, [activePowers]);
+
+
   if (!mounted || !user || !state) return null;
 
 

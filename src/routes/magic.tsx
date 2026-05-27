@@ -964,6 +964,7 @@ type MagicSave = {
   s2Inv: { shield: boolean; potion: number };
   coins: number;
   stage2Unlocked?: boolean;
+  selectedArea?: 1 | 2 | null;
 };
 function loadMagic(): MagicSave | null {
   if (typeof window === "undefined") return null;

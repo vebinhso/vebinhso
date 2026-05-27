@@ -11,6 +11,8 @@ import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from "@/game/stage2";
 import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
 import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, CorridorTigers, pickRandomAnimal, type AnimalName } from "@/game/PetModels";
+import { setBgm, playSfx } from "@/lib/audio";
+
 
 export const Route = createFileRoute("/magic")({
   component: MagicPage,
@@ -1041,6 +1043,12 @@ function MagicPage() {
     if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
+  // Bật nhạc ma mị sau khi intro "KHU VỰC" đã hiện xong; áp dụng cho cả 2 khu vực.
+  useEffect(() => {
+    if (intro >= 3) setBgm("magic");
+  }, [intro]);
+
+
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
     setOutfit(loadOutfit() || DEFAULT_OUTFIT);
@@ -1080,7 +1088,9 @@ function MagicPage() {
     } else {
       saveGame({ ...g, answerStreak: 0 });
     }
+    playSfx(isCorrect ? "monsterHit" : "wrongGame", { duck: true });
   };
+
 
   // room phase ticker
   useEffect(() => {

@@ -4,14 +4,17 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useAuthSync } from "@/hooks/use-auth-sync";
 import { useEffect } from "react";
 import { startSessionTracker } from "@/lib/session";
+import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
 
 import appCss from "../styles.css?url";
+
 
 function NotFoundComponent() {
   return (
@@ -121,6 +124,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
+      <AudioBridge />
       <Outlet />
     </QueryClientProvider>
   );
@@ -134,3 +138,30 @@ function AuthSyncBridge() {
   }, []);
   return null;
 }
+
+function AudioBridge() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    unlockAudioOnUserGesture();
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      // chỉ kêu khi click vào nút bấm / link bấm được, tránh ồn ào khi chọn vùng đặt đồ
+      const btn = t.closest("button, a, [role='button']");
+      if (!btn) return;
+      // bỏ qua nút bị disabled
+      if (btn instanceof HTMLButtonElement && btn.disabled) return;
+      playSfx("click");
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+  useEffect(() => {
+    // /game tự set "house"; /magic tự set "magic" sau intro.
+    if (pathname.startsWith("/game")) return;
+    if (pathname.startsWith("/magic")) return;
+    setBgm("home");
+  }, [pathname]);
+  return null;
+}
+

@@ -506,11 +506,14 @@ function GamePage() {
           placed={state.placed}
           walls={state.walls}
           roofs={state.roofs}
+          floors={state.floors}
           wallColor={state.wallColor}
           wallMode={wallMode}
           wallPickA={wallPickA}
           roofMode={roofMode}
           roofPicks={roofPicks}
+          floorMode={floorMode}
+          floorPicks={floorPicks}
           selectedItemId={selected}
           rotation={rotation}
           onRotate={() => setRotation((r) => (r + 1) % 4)}
@@ -519,6 +522,16 @@ function GamePage() {
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
           onRoofRemove={removeRoof}
+          onFloorRemove={(id) => {
+            const f = state.floors.find((x) => x.id === id);
+            const refund = f?.value ?? 0;
+            setState({
+              ...state,
+              floors: state.floors.filter((x) => x.id !== id),
+              netWorth: Math.max(0, state.netWorth - refund),
+            });
+            flash("🧹 Đã gỡ sàn");
+          }}
           activeFloor={activeFloor}
         />
       </Suspense>

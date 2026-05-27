@@ -1102,6 +1102,7 @@ function MagicPage() {
         door: room.doorIdx,
         hp: o.hp, maxHp: o.hp,
         level: o.level, bulletsLeft: o.bullets, perHit: o.perHit,
+        correct: 0,
         question: randomQuestion(),
       });
     }

@@ -50,6 +50,9 @@ function GamePage() {
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);
 
+  // Multi-floor
+  const [activeFloor, setActiveFloor] = useState(0);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();

@@ -15,6 +15,7 @@ import {
   type PlacedItem,
   type WallSegment,
   type RoofSegment,
+  type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
@@ -49,6 +50,10 @@ function GamePage() {
   const [roofMode, setRoofMode] = useState(false);
   const [roofPicks, setRoofPicks] = useState<string[]>([]);
   const [roofStyle, setRoofStyle] = useState<"tile" | "ton">("tile");
+
+  // Floor-build flow (pick 4 pillars defining a rectangle)
+  const [floorMode, setFloorMode] = useState(false);
+  const [floorPicks, setFloorPicks] = useState<string[]>([]);
 
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -278,6 +283,45 @@ function GamePage() {
     const clicked = state.placed.find((p) => p.id === placedId);
     if (!clicked || (clicked.floor ?? 0) !== activeFloor) return;
 
+    if (floorMode) {
+      if (floorPicks.includes(placedId)) {
+        setFloorPicks(floorPicks.filter((x) => x !== placedId));
+        return;
+      }
+      const next = [...floorPicks, placedId];
+      if (next.length < 4) {
+        setFloorPicks(next);
+        flash(`Đã chọn ${next.length}/4 cột trụ cho sàn.`);
+        return;
+      }
+      const corners = next
+        .map((id) => state.placed.find((p) => p.id === id))
+        .filter(Boolean) as PlacedItem[];
+      const xs = corners.map((p) => p.x - 10 + 0.5);
+      const zs = corners.map((p) => p.z - 10 + 0.5);
+      const ax = Math.min(...xs), bx = Math.max(...xs);
+      const az = Math.min(...zs), bz = Math.max(...zs);
+      const w = Math.max(1, Math.round(bx - ax));
+      const d = Math.max(1, Math.round(bz - az));
+      const tilesNeeded = w * d;
+      if (state.concrete < tilesNeeded) {
+        flash(`❌ Thiếu bê tông! Cần ${tilesNeeded} xô (đang có ${state.concrete}).`, 3000);
+        setFloorPicks([]);
+        return;
+      }
+      const value = tilesNeeded * 4;
+      const seg: FloorSegment = { id: `f-${Date.now()}`, ax, az, bx, bz, value, floor: activeFloor };
+      setState({
+        ...state,
+        concrete: state.concrete - tilesNeeded,
+        floors: [...state.floors, seg],
+        netWorth: state.netWorth + value,
+      });
+      setFloorPicks([]);
+      flash(`🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.`, 2500);
+      return;
+    }
+
     if (roofMode) {
       // Toggle pick: deselect if already chosen
       if (roofPicks.includes(placedId)) {
@@ -432,6 +476,8 @@ function GamePage() {
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   const canEnterWallMode = pillarsPlaced.length >= 2;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
+  const canEnterFloorMode = pillarsPlaced.length >= 4;
+  const floorOnThisFloor = state.floors.some((f) => (f.floor ?? 0) === activeFloor);
 
   const canAccessFloor = (f: number) => {
     if (f <= 0) return true;
@@ -536,6 +582,8 @@ function GamePage() {
               setWallPickA(null);
               setRoofMode(false);
               setRoofPicks([]);
+              setFloorMode(false);
+              setFloorPicks([]);
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
@@ -544,6 +592,28 @@ function GamePage() {
           </button>
           <button
             onClick={() => {
+              if (!canEnterFloorMode) {
+                flash("Đặt ít nhất 4 cột bê tông trước khi xây sàn.");
+                return;
+              }
+              setFloorMode((f) => !f);
+              setFloorPicks([]);
+              setWallMode(false);
+              setWallPickA(null);
+              setRoofMode(false);
+              setRoofPicks([]);
+              setSelected(null);
+            }}
+            className={`toy-button !text-sm !py-2 !px-4 ${floorMode ? "toy-button-green" : ""}`}
+          >
+            {floorMode ? `✅ Đang xây sàn (${floorPicks.length}/4)` : "🟫 XÂY SÀN"}
+          </button>
+          <button
+            onClick={() => {
+              if (!floorOnThisFloor) {
+                flash("Phải xây SÀN trước khi lợp mái cho tầng này.", 2500);
+                return;
+              }
               if (!canEnterRoofMode) {
                 flash("Đặt ít nhất 4 cột bê tông trước khi xây mái nhà.");
                 return;
@@ -552,6 +622,8 @@ function GamePage() {
               setRoofPicks([]);
               setWallMode(false);
               setWallPickA(null);
+              setFloorMode(false);
+              setFloorPicks([]);
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${roofMode ? "toy-button-green" : ""}`}

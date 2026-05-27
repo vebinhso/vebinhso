@@ -818,7 +818,7 @@ export default function GameWorld(props: Props) {
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
-      <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
+      <ContactShadows position={[0, 0.03, 0]} opacity={0.4} scale={50} blur={2.2} far={12} resolution={512} frames={1} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />
       <OrbitControls
         ref={controlsRef}

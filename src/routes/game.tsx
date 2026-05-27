@@ -38,6 +38,7 @@ function GamePage() {
   
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
 
   // Wall-build flow

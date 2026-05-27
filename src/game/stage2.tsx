@@ -29,24 +29,67 @@ const HALF = 2.5;
 
 type Rect = { xmin: number; xmax: number; zmin: number; zmax: number };
 export const S2_SEGMENTS: Rect[] = [
+  // ===== main path =====
   { xmin: -HALF, xmax: HALF, zmin: -10, zmax: 2.5 },     // A
   { xmin: -HALF, xmax: 32.5, zmin: -12.5, zmax: -7.5 },  // B
   { xmin: 27.5, xmax: 32.5, zmin: -32.5, zmax: -7.5 },   // C
   { xmin: 27.5, xmax: 47.5, zmin: -32.5, zmax: -27.5 },  // D
+  // ===== maze decoy branches (dead ends) =====
+  { xmin: -12, xmax: -HALF, zmin: -7, zmax: -3 },        // E — west off A
+  { xmin: 12.5, xmax: 17.5, zmin: -22, zmax: -12.5 },    // F — south off B
+  { xmin: 15.5, xmax: 20.5, zmin: -7.5, zmax: -2 },      // G — north off B
+  { xmin: 20, xmax: 27.5, zmin: -27, zmax: -22 },        // H — west off C
+  { xmin: 37.5, xmax: 42.5, zmin: -40, zmax: -32.5 },    // I — south off D
+  { xmin: 27.5, xmax: 32.5, zmin: -42, zmax: -32.5 },    // J — south extension past C/D
 ];
 
 // Walls = [x1, z1, x2, z2]
 const WALLS: Array<[number, number, number, number]> = [
-  [-HALF, 2.5, HALF, 2.5],
-  [-HALF, 2.5, -HALF, -12.5],
-  [HALF, 2.5, HALF, -7.5],
-  [HALF, -7.5, 32.5, -7.5],
-  [32.5, -7.5, 32.5, -27.5],
-  [-HALF, -12.5, 27.5, -12.5],
-  [27.5, -12.5, 27.5, -32.5],
-  [27.5, -32.5, 47.5, -32.5],
-  [47.5, -32.5, 47.5, -27.5],
-  [32.5, -27.5, 47.5, -27.5],
+  [-HALF, 2.5, HALF, 2.5],                  // A north
+  // A west wall, gap for E
+  [-HALF, 2.5, -HALF, -3],
+  [-HALF, -7, -HALF, -12.5],
+  [HALF, 2.5, HALF, -7.5],                  // A east
+  // B north wall, gap for G
+  [HALF, -7.5, 15.5, -7.5],
+  [20.5, -7.5, 32.5, -7.5],
+  [32.5, -7.5, 32.5, -27.5],                // C east
+  // B south wall, gap for F
+  [-HALF, -12.5, 12.5, -12.5],
+  [17.5, -12.5, 27.5, -12.5],
+  // C west wall, gap for H
+  [27.5, -12.5, 27.5, -22],
+  [27.5, -27, 27.5, -32.5],
+  // D south wall, gaps for J and I
+  [32.5, -32.5, 37.5, -32.5],
+  [42.5, -32.5, 47.5, -32.5],
+  [47.5, -32.5, 47.5, -27.5],               // D east
+  [32.5, -27.5, 47.5, -27.5],               // D north
+
+  // ===== decoy E (west off A) =====
+  [-12, -3, -HALF, -3],
+  [-12, -7, -HALF, -7],
+  [-12, -7, -12, -3],
+  // ===== decoy F (south off B) =====
+  [12.5, -22, 12.5, -12.5],
+  [17.5, -22, 17.5, -12.5],
+  [12.5, -22, 17.5, -22],
+  // ===== decoy G (north off B) =====
+  [15.5, -7.5, 15.5, -2],
+  [20.5, -7.5, 20.5, -2],
+  [15.5, -2, 20.5, -2],
+  // ===== decoy H (west off C) =====
+  [20, -22, 27.5, -22],
+  [20, -27, 27.5, -27],
+  [20, -27, 20, -22],
+  // ===== decoy I (south off D) =====
+  [37.5, -40, 37.5, -32.5],
+  [42.5, -40, 42.5, -32.5],
+  [37.5, -40, 42.5, -40],
+  // ===== decoy J (south extension past C/D) =====
+  [27.5, -42, 27.5, -32.5],
+  [32.5, -42, 32.5, -32.5],
+  [27.5, -42, 32.5, -42],
 ];
 
 // 5 doors. yaw = how the door faces (which way the door's front normal points, into corridor).

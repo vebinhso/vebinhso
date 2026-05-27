@@ -855,6 +855,46 @@ function GamePage() {
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 
+      {/* HUD: cửa & đèn — góc dưới phải */}
+      {(() => {
+        // Tính có cửa nào gần nhân vật không (chỉ tầng trệt, cự ly ≤ 2.2m)
+        const nearDoor = state.placed.some((p) => {
+          if (p.itemId !== "door") return false;
+          if ((p.floor ?? 0) !== 0) return false;
+          const it = getItem(p.itemId);
+          if (!it) return false;
+          const swap = p.rotation % 2 === 1;
+          const fw = swap ? it.d : it.w;
+          const fd = swap ? it.w : it.d;
+          const cx = p.x - 10 + fw / 2;
+          const cz = p.z - 10 + fd / 2;
+          const dx = playerPos.x - cx;
+          const dz = playerPos.z - cz;
+          return dx * dx + dz * dz < 2.2 * 2.2;
+        });
+        const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
+        return (
+          <div className="absolute bottom-3 right-3 flex flex-col gap-2 pointer-events-auto z-30">
+            {hasAnyDoor && nearDoor && (
+              <button
+                onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}
+                className={`toy-button !text-sm !py-2 !px-4 ${wt.doorsOpen ? "toy-button-green" : "toy-button-primary"}`}
+                title="Mở/đóng tất cả cửa nhà cùng lúc"
+              >
+                {wt.doorsOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
+              </button>
+            )}
+            <button
+              onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
+              className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
+              title="Bật/tắt tất cả đèn"
+            >
+              {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
+            </button>
+          </div>
+        );
+      })()}
+
       {selected && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
           <span className="text-2xl">{getItem(selected)?.icon}</span>

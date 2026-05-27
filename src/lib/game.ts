@@ -27,6 +27,13 @@ export type RoofSegment = {
   floor?: number;
 };
 
+export type FloorSegment = {
+  id: string;
+  ax: number; az: number; bx: number; bz: number;
+  value: number;
+  floor: number;
+};
+
 export type GameState = {
   money: number;
   netWorth: number;
@@ -42,6 +49,7 @@ export type GameState = {
   roofTiles: number;
   roofTilesTon: number;
   roofs: RoofSegment[];
+  floors: FloorSegment[];
 };
 
 const DEFAULT: GameState = {
@@ -59,6 +67,7 @@ const DEFAULT: GameState = {
   roofTiles: 0,
   roofTilesTon: 0,
   roofs: [],
+  floors: [],
 };
 
 // In-memory cache per session.
@@ -71,8 +80,11 @@ function loadCacheFromLocal(uid: string) {
   if (typeof window === "undefined") return;
   try {
     const raw = localStorage.getItem(LS_PREFIX + uid);
-    if (raw) CACHE = { ...DEFAULT, ...JSON.parse(raw) };
-    else CACHE = { ...DEFAULT };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.floors)) parsed.floors = [];
+      CACHE = { ...DEFAULT, ...parsed };
+    } else CACHE = { ...DEFAULT };
   } catch { CACHE = { ...DEFAULT }; }
 }
 function persistLocal(uid: string) {

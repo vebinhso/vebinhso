@@ -638,6 +638,7 @@ function GamePage() {
           collectedIds={collectedIds}
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
+          sparkles={sparkles}
         />
       </Suspense>
 

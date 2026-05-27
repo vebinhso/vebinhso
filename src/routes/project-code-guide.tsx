@@ -926,7 +926,109 @@ function ProjectCodeGuidePage() {
           </section>
 
 
-          <h2 className="text-2xl font-black mb-3">2. 📁 Toàn bộ file source</h2>
+          <section className="mb-8">
+            <h2 className="text-2xl font-black mb-3">
+              2. 📂 FILES — Giải thích chi tiết từng file
+            </h2>
+            <p className="text-sm text-muted-foreground font-bold mb-3">
+              Mỗi file được phân tích: Nhiệm vụ • Vai trò • Giải thích code • Mối liên hệ • Exports tự trích • Imports • File nào đang dùng nó.
+            </p>
+            <input
+              type="text"
+              value={fileQuery}
+              onChange={(e) => setFileQuery(e.target.value)}
+              placeholder="🔍 Lọc theo path / nhiệm vụ / vai trò..."
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold mb-3"
+            />
+            <div className="text-sm font-bold text-muted-foreground mb-2">
+              Hiển thị {filteredMetas.length} / {fileMetas.length} file
+            </div>
+            <div className="overflow-x-auto rounded-2xl border-2 border-gray-200 max-h-[80vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-900 text-white sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-black w-10">#</th>
+                    <th className="px-3 py-2 text-left font-black w-64">File</th>
+                    <th className="px-3 py-2 text-left font-black">Nhiệm vụ</th>
+                    <th className="px-3 py-2 text-left font-black">Vai trò</th>
+                    <th className="px-3 py-2 text-left font-black">Giải thích code</th>
+                    <th className="px-3 py-2 text-left font-black">Mối liên hệ</th>
+                    <th className="px-3 py-2 text-left font-black">Exports</th>
+                    <th className="px-3 py-2 text-left font-black">Imports</th>
+                    <th className="px-3 py-2 text-left font-black">Được dùng bởi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMetas.map((m, i) => (
+                    <tr key={m.path} className="border-t border-gray-200 align-top hover:bg-orange-50/40">
+                      <td className="px-3 py-3 font-bold text-muted-foreground">{i + 1}</td>
+                      <td className="px-3 py-3">
+                        <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-[11px] font-bold break-all">
+                          {m.path}
+                        </code>
+                        <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                          {m.lines} dòng • {(m.bytes / 1024).toFixed(1)} KB
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 font-medium text-gray-700 min-w-[200px]">{m.detail.task}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[120px]">{m.detail.role}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[240px]">{m.detail.codeExplain}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[200px]">{m.detail.relations}</td>
+                      <td className="px-3 py-3 min-w-[140px]">
+                        {m.exports.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {m.exports.slice(0, 12).map((e) => (
+                              <code key={e} className="inline-block px-1.5 py-0.5 rounded bg-emerald-900 text-emerald-200 font-mono text-[10px]">
+                                {e}
+                              </code>
+                            ))}
+                            {m.exports.length > 12 && (
+                              <span className="text-[10px] text-muted-foreground">+{m.exports.length - 12}</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 min-w-[180px]">
+                        {m.imports.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">—</span>
+                        ) : (
+                          <ul className="space-y-0.5">
+                            {m.imports.slice(0, 10).map((im) => (
+                              <li key={im} className="text-[10px] font-mono text-blue-700 break-all">{im}</li>
+                            ))}
+                            {m.imports.length > 10 && (
+                              <li className="text-[10px] text-muted-foreground">+{m.imports.length - 10} more</li>
+                            )}
+                          </ul>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 min-w-[180px]">
+                        {m.usedBy.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">Chưa ai import</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {m.usedBy.slice(0, 8).map((u) => (
+                              <code key={u} className="inline-block px-1.5 py-0.5 rounded bg-gray-900 text-amber-300 font-mono text-[10px]">
+                                {u.replace(/^src\//, "")}
+                              </code>
+                            ))}
+                            {m.usedBy.length > 8 && (
+                              <span className="text-[10px] text-muted-foreground">+{m.usedBy.length - 8}</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <h2 className="text-2xl font-black mb-3">3. 📁 Toàn bộ file source</h2>
+
 
           <input
             type="text"

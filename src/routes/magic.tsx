@@ -983,6 +983,17 @@ function MagicPage() {
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
   const [bossResult, setBossResult] = useState<string | null>(null);
+  const [witchResult, setWitchResult] = useState<string | null>(null);
+  const [quiz5Result, setQuiz5Result] = useState<string | null>(null);
+  const arraysEqualSet = (a: number[], b: number[]) => {
+    if (a.length !== b.length) return false;
+    const sa = [...a].sort(); const sb = [...b].sort();
+    return sa.every((v, i) => v === sb[i]);
+  };
+  const correctLettersOf = (q: Question) => {
+    const idxs = q.correctIndexes ?? [q.answer];
+    return idxs.map((i) => String.fromCharCode(65 + i)).join(", ");
+  };
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
 
@@ -1404,19 +1415,23 @@ function MagicPage() {
   };
 
   const [quiz5, setQuiz5] = useState<null | { q: Question; idx: number; correct: number }>(null);
-  const answerQuiz5 = (i: number) => {
-    if (!quiz5) return;
-    const isCorrect = i === quiz5.q.answer;
+  const answerQuiz5 = (picked: number[]) => {
+    if (!quiz5 || quiz5Result) return;
+    const correctIdx = quiz5.q.correctIndexes ?? [quiz5.q.answer];
+    const isCorrect = arraysEqualSet(picked, correctIdx);
     bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
-    if (nextIdx >= 5) {
-      setQuiz5(null);
-      // Show chest, player must press "Mở rương"
-      (window as any).__room5correct = nextCorrect;
-      return;
-    }
-    setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    setQuiz5Result(isCorrect ? "✅ Chính xác!" : `❌ Sai rồi! Đáp án đúng: ${correctLettersOf(quiz5.q)}`);
+    setTimeout(() => {
+      setQuiz5Result(null);
+      if (nextIdx >= 5) {
+        setQuiz5(null);
+        (window as any).__room5correct = nextCorrect;
+        return;
+      }
+      setQuiz5({ q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    }, 1100);
   };
   const openRoom5Chest = () => {
     const correct = (window as any).__room5correct ?? 0;
@@ -1433,28 +1448,39 @@ function MagicPage() {
     }, 1600);
   };
 
-  const answerWitch = (i: number) => {
-    if (!witch || !witch.question) return;
-    const isCorrect = i === witch.question.answer;
+  const answerWitch = (picked: number[]) => {
+    if (!witch || !witch.question || witchResult) return;
+    const q = witch.question;
+    const correctIdx = q.correctIndexes ?? [q.answer];
+    const isCorrect = arraysEqualSet(picked, correctIdx);
     bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);
+    setWitchResult(isCorrect ? "✅ Chính xác! −20 HP phù thủy!" : `❌ Sai rồi! Đáp án đúng: ${correctLettersOf(q)}`);
     if (newHp <= 0) {
-      addCoins(100);
-      setWitch(null);
-      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-      setS2Room(null);
-      setGameComplete(true);
+      setTimeout(() => {
+        setWitchResult(null);
+        addCoins(100);
+        setWitch(null);
+        setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+        setS2Room(null);
+        setGameComplete(true);
+      }, 1100);
       return;
     }
     const nextWave = witch.wave + 1;
     if (nextWave > 5) {
-      // 5 waves done, boss still alive
-      setWitch(null);
-      setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
+      setTimeout(() => {
+        setWitchResult(null);
+        setWitch(null);
+        setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
+      }, 1100);
       return;
     }
-    setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });
+    setTimeout(() => {
+      setWitchResult(null);
+      setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });
+    }, 1100);
   };
 
   // chest fully revealed after 5s reveal
@@ -1788,12 +1814,12 @@ function MagicPage() {
               <p className="font-black text-center py-4">⚡ Phù thủy đang phóng tia sét... {s2Inv.shield ? "🛡️ Khiên giảm sát thương!" : "Không có khiên — chịu sát thương đầy đủ!"}</p>
             ) : witch.question ? (
               <>
-                <p className="font-black text-base mb-3">❓ {witch.question.q}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {witch.question.options.map((opt, i) => (
-                    <button key={i} onClick={() => answerWitch(i)} className="toy-button !text-sm py-2">{opt}</button>
-                  ))}
-                </div>
+                <QuestionView question={witch.question} onAnswer={answerWitch} compact disabled={!!witchResult} />
+                {witchResult && (
+                  <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${witchResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    {witchResult}
+                  </div>
+                )}
                 <p className="text-xs font-bold mt-2 opacity-70">Đáp đúng → −20 HP phù thủy ({witch.correct}/5 câu đúng)</p>
               </>
             ) : null}
@@ -1809,12 +1835,12 @@ function MagicPage() {
               <span>📜 Cửa 1 — Câu {quiz5.idx + 1}/5</span>
               <span>✅ Đúng: {quiz5.correct}</span>
             </div>
-            <p className="font-black text-base mb-3">❓ {quiz5.q.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {quiz5.q.options.map((opt, i) => (
-                <button key={i} onClick={() => answerQuiz5(i)} className="toy-button !text-sm py-2">{opt}</button>
-              ))}
-            </div>
+            <QuestionView question={quiz5.q} onAnswer={answerQuiz5} compact disabled={!!quiz5Result} />
+            {quiz5Result && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${quiz5Result.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {quiz5Result}
+              </div>
+            )}
           </div>
         </div>
       )}

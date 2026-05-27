@@ -148,8 +148,9 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
             const swap = p.rotation % 2 === 1;
             const fw = swap ? it.d : it.w;
             const fd = swap ? it.w : it.d;
-            const cx = p.x - 10 + fw / 2;
-            const cz = p.z - 10 + fd / 2;
+            const hasAngle = typeof p.angleRad === "number";
+            const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+            const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
             if (Math.abs(nx - cx) < fw / 2 + R && Math.abs(nz - cz) < fd / 2 + R) return true;
           }
         }

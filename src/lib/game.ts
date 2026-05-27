@@ -11,6 +11,8 @@ export type PlacedItem = {
   floor?: number;
   /** Y-offset (đơn vị: mét) khi item được đặt chồng lên 1 surface */
   stackY?: number;
+  /** Góc xoay tùy ý (radian) — dùng cho cửa sổ snap vào tường xéo. Khi có giá trị này, override rotation*π/2. */
+  angleRad?: number;
 };
 
 export type WallSegment = {

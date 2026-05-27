@@ -708,8 +708,11 @@ function PlotAndPlacement({
         const swap = p.rotation % 2 === 1;
         const fw = swap ? it.d : it.w;
         const fd = swap ? it.w : it.d;
-        const wx = p.x - half + fw / 2;
-        const wz = p.z - half + fd / 2;
+        const hasAngle = typeof p.angleRad === "number";
+        // Khi cửa sổ snap vào tường xéo: (p.x, p.z) lưu thẳng tọa độ TÂM (đã +10 để vẫn nằm trong hệ lưới).
+        // Lúc render thì không cộng thêm fw/2, fd/2 nữa.
+        const wx = hasAngle ? p.x - half : p.x - half + fw / 2;
+        const wz = hasAngle ? p.z - half : p.z - half + fd / 2;
         const pFloor = p.floor ?? 0;
         const floorOffset = pFloor * WALL_HEIGHT;
         const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0) + (p.stackY ?? 0);
@@ -718,11 +721,12 @@ function PlotAndPlacement({
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);
         const isFloorPickPillar = floorMode && p.itemId === "pillar" && floorPicks.includes(p.id);
         const isPickedPillar = isWallPickPillar || isRoofPickPillar || isFloorPickPillar;
+        const rotY = hasAngle ? (p.angleRad as number) : (p.rotation * Math.PI) / 2;
         return (
           <group
             key={p.id}
             position={[wx, yOffset + floorOffset, wz]}
-            rotation={[0, (p.rotation * Math.PI) / 2, 0]}
+            rotation={[0, rotY, 0]}
             onContextMenu={(e) => {
               e.stopPropagation();
               if (!buildMode && !isOtherFloor) onRemove(p.id);

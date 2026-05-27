@@ -239,15 +239,49 @@ function GamePage() {
     const fd = swap ? it.w : it.d;
     if (x < 0 || z < 0 || x + fw > 20 || z + fd > 20) return;
 
-    // Cửa sổ: chỉ cho phép đặt nếu nằm trên 1 tường (kiểm tra khoảng cách điểm tới đoạn tường)
+    // Cửa sổ: snap vào TƯỜNG GẦN NHẤT bất kể hướng (ngang/dọc/xéo).
+    //  - Tìm điểm chiếu của tâm click lên từng đoạn tường, lấy đoạn gần nhất (≤ 0.8m).
+    //  - Lưu (x, z) = tâm cửa sổ (+10 để vẫn nằm trong hệ lưới), kèm angleRad = góc tường.
     if (it.id === "window") {
-      const cx = x + fw / 2 - 10;
-      const cz = z + fd / 2 - 10;
-      const ok = state.walls.some((w) => pointOnSegment(cx, cz, w, 0.6));
-      if (!ok) {
+      const cx0 = x + fw / 2 - 10;
+      const cz0 = z + fd / 2 - 10;
+      let best: { d2: number; cx: number; cz: number; ang: number } | null = null;
+      for (const w of state.walls) {
+        if ((w.floor ?? 0) !== activeFloor) continue;
+        const dx = w.bx - w.ax, dz = w.bz - w.az;
+        const len2 = dx * dx + dz * dz;
+        if (len2 === 0) continue;
+        let t = ((cx0 - w.ax) * dx + (cz0 - w.az) * dz) / len2;
+        t = Math.max(0, Math.min(1, t));
+        const px = w.ax + t * dx;
+        const pz = w.az + t * dz;
+        const d2 = (cx0 - px) ** 2 + (cz0 - pz) ** 2;
+        if (!best || d2 < best.d2) {
+          best = { d2, cx: px, cz: pz, ang: Math.atan2(dx, dz) };
+        }
+      }
+      if (!best || best.d2 > 0.8 * 0.8) {
         flash("🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé.");
         return;
       }
+      if (state.money < it.price) return;
+      const placedWin: PlacedItem = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        itemId: it.id,
+        x: best.cx + 10,
+        z: best.cz + 10,
+        rotation: 0,
+        floor: activeFloor,
+        angleRad: best.ang,
+      };
+      setState({
+        ...state,
+        money: state.money - it.price,
+        netWorth: state.netWorth + it.price,
+        placed: [...state.placed, placedWin],
+      });
+      playSfx("place");
+      return;
     }
 
     // Tìm các item bị chồng lấn footprint
@@ -664,6 +698,7 @@ function GamePage() {
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
+          onPlayerPos={(x, z) => setPlayerPos({ x, z })}
         />
       </Suspense>
 
@@ -819,6 +854,46 @@ function GamePage() {
       <div className="absolute bottom-14 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
+
+      {/* HUD: cửa & đèn — góc dưới phải */}
+      {(() => {
+        // Tính có cửa nào gần nhân vật không (chỉ tầng trệt, cự ly ≤ 2.2m)
+        const nearDoor = state.placed.some((p) => {
+          if (p.itemId !== "door") return false;
+          if ((p.floor ?? 0) !== 0) return false;
+          const it = getItem(p.itemId);
+          if (!it) return false;
+          const swap = p.rotation % 2 === 1;
+          const fw = swap ? it.d : it.w;
+          const fd = swap ? it.w : it.d;
+          const cx = p.x - 10 + fw / 2;
+          const cz = p.z - 10 + fd / 2;
+          const dx = playerPos.x - cx;
+          const dz = playerPos.z - cz;
+          return dx * dx + dz * dz < 2.2 * 2.2;
+        });
+        const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
+        return (
+          <div className="absolute bottom-3 right-3 flex flex-col gap-2 pointer-events-auto z-30">
+            {hasAnyDoor && nearDoor && (
+              <button
+                onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}
+                className={`toy-button !text-sm !py-2 !px-4 ${wt.doorsOpen ? "toy-button-green" : "toy-button-primary"}`}
+                title="Mở/đóng tất cả cửa nhà cùng lúc"
+              >
+                {wt.doorsOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
+              </button>
+            )}
+            <button
+              onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
+              className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
+              title="Bật/tắt tất cả đèn"
+            >
+              {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
+            </button>
+          </div>
+        );
+      })()}
 
       {selected && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">

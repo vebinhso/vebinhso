@@ -259,7 +259,9 @@ function GamePage() {
       netWorth: state.netWorth + it.price,
       placed: [...state.placed, placed],
     });
+    playSfx("place");
   };
+
 
   const handleRemove = (id: string) => {
     const p = state.placed.find((x) => x.id === id);

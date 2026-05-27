@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAudioSettings, setMasterVolume, setMuted } from "@/lib/audio";
+import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 
 export function SettingsPanel() {
   const [open, setOpen] = useState(false);

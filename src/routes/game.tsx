@@ -433,6 +433,7 @@ function GamePage() {
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
           onRoofRemove={removeRoof}
+          activeFloor={activeFloor}
         />
       </Suspense>
 
@@ -452,6 +453,26 @@ function GamePage() {
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
           <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+
+          {/* Chọn tầng */}
+          <div className="glass-card px-2 py-1.5 flex items-center gap-1">
+            <span className="text-[10px] font-black text-stone-700 mr-1">TẦNG:</span>
+            {Array.from({ length: MAX_FLOOR + 1 }, (_, f) => {
+              const accessible = canAccessFloor(f);
+              const active = activeFloor === f;
+              return (
+                <button
+                  key={f}
+                  onClick={() => tryGoFloor(f)}
+                  className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
+                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp mái tầng ${f - 1} trước`}
+                >
+                  {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
+                </button>
+              );
+            })}
+          </div>
+
           <button
             onClick={() => {
               if (!canEnterWallMode) {

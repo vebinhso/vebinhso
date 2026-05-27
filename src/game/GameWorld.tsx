@@ -509,7 +509,7 @@ function NeighborTree({ seed }: { seed: number }) {
   );
 }
 
-function Neighborhood() {
+const Neighborhood = memo(function Neighborhood() {
   // Mảnh trung tâm (mảnh đất người chơi) cần được chừa lại.
   // half mảnh + đường = 11 ô; thêm một dải an toàn nhỏ.
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12

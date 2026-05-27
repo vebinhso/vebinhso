@@ -109,8 +109,44 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     const moving = move.lengthSq() > 0;
     if (moving) {
       move.normalize().multiplyScalar(speed * dt);
-      ref.current.position.x += move.x;
-      ref.current.position.z += move.z;
+      const blocked = (nx: number, nz: number) => {
+        if (collision !== "block" || activeFloor !== 0) return false;
+        const R = 0.35; // player radius
+        // walls
+        if (walls) {
+          for (const w of walls) {
+            if ((w.floor ?? 0) !== 0) continue;
+            const dx = w.bx - w.ax, dz = w.bz - w.az;
+            const len2 = dx * dx + dz * dz;
+            if (len2 === 0) continue;
+            let t = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
+            t = Math.max(0, Math.min(1, t));
+            const cx = w.ax + t * dx, cz = w.az + t * dz;
+            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) return true;
+          }
+        }
+        // placed solid items
+        if (placed) {
+          for (const p of placed) {
+            if ((p.floor ?? 0) !== 0) continue;
+            if (p.itemId === "door" && doorsOpen) continue;
+            if (p.itemId !== "door" && !SOLID_ITEMS.has(p.itemId)) continue;
+            const it = getItem(p.itemId);
+            if (!it) continue;
+            const swap = p.rotation % 2 === 1;
+            const fw = swap ? it.d : it.w;
+            const fd = swap ? it.w : it.d;
+            const cx = p.x - 10 + fw / 2;
+            const cz = p.z - 10 + fd / 2;
+            if (Math.abs(nx - cx) < fw / 2 + R && Math.abs(nz - cz) < fd / 2 + R) return true;
+          }
+        }
+        return false;
+      };
+      const cx0 = ref.current.position.x, cz0 = ref.current.position.z;
+      const tx = cx0 + move.x, tz = cz0 + move.z;
+      if (!blocked(tx, cz0)) ref.current.position.x = tx;
+      if (!blocked(ref.current.position.x, tz)) ref.current.position.z = tz;
       ref.current.rotation.y = Math.atan2(move.x, move.z);
       walkPhase.current += dt * 10;
     } else {

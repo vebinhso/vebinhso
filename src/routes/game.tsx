@@ -73,6 +73,8 @@ function GamePage() {
   // Pickups (coins + bombs scattered around the house)
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
+  // Hiệu ứng lấp lánh khi dẫm trúng xu
+  const [sparkles, setSparkles] = useState<{ id: string; x: number; z: number; at: number }[]>([]);
   // Boom modal: 2 sequential questions
   const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);

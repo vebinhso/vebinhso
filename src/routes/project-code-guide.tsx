@@ -260,15 +260,24 @@ function ProjectCodeGuidePage() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-black mb-3">
-              1. 🪝 HOOKS — Danh sách & Mục đích
+              1. 🪝 HOOKS — Chi tiết từng custom hook
             </h2>
+            <p className="text-sm text-muted-foreground font-bold mb-3">
+              Mỗi hook được tách thành: Nhiệm vụ • Giải thích code • Mối liên hệ • Phụ thuộc • Trả về • Khi nào chạy • Nơi sử dụng.
+            </p>
             <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
               <table className="w-full text-sm">
                 <thead className="bg-gray-900 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-black w-10">#</th>
-                    <th className="px-3 py-2 text-left font-black">Hook</th>
-                    <th className="px-3 py-2 text-left font-black">Mục đích</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Hook</th>
+                    <th className="px-3 py-2 text-left font-black">Nhiệm vụ</th>
+                    <th className="px-3 py-2 text-left font-black">Giải thích code</th>
+                    <th className="px-3 py-2 text-left font-black">Mối liên hệ</th>
+                    <th className="px-3 py-2 text-left font-black">Phụ thuộc</th>
+                    <th className="px-3 py-2 text-left font-black">Trả về</th>
+                    <th className="px-3 py-2 text-left font-black">Khi nào chạy</th>
+                    <th className="px-3 py-2 text-left font-black">File liên quan</th>
                     <th className="px-3 py-2 text-left font-black">Nơi sử dụng</th>
                   </tr>
                 </thead>
@@ -280,12 +289,38 @@ function ProjectCodeGuidePage() {
                         <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-xs font-bold">
                           {h.name}
                         </code>
-                        <div className="text-[11px] text-muted-foreground font-mono mt-1">
+                        <div className="text-[11px] text-muted-foreground font-mono mt-1 break-all">
                           {h.definedIn.replace(/^\//, "")}
                         </div>
                       </td>
-                      <td className="px-3 py-3 font-medium text-gray-700">{h.purpose}</td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 font-medium text-gray-700 min-w-[200px]">{h.detail.task}</td>
+                      <td className="px-3 py-3 text-gray-700 min-w-[260px] whitespace-pre-wrap">{h.detail.codeExplain}</td>
+                      <td className="px-3 py-3 text-gray-700 min-w-[220px]">{h.detail.relations}</td>
+                      <td className="px-3 py-3 min-w-[160px]">
+                        {h.detail.deps.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">—</span>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-0.5">
+                            {h.detail.deps.map((d) => (
+                              <li key={d} className="text-[12px] font-mono text-gray-800">{d}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[140px]">{h.detail.returns}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[160px]">{h.detail.trigger}</td>
+                      <td className="px-3 py-3 min-w-[200px]">
+                        {h.detail.related.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">—</span>
+                        ) : (
+                          <ul className="space-y-0.5">
+                            {h.detail.related.map((r) => (
+                              <li key={r} className="text-[11px] font-mono text-blue-700 break-all">{r}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 min-w-[180px]">
                         {h.usedIn.length === 0 ? (
                           <span className="text-xs text-muted-foreground italic">Chưa dùng</span>
                         ) : (
@@ -305,7 +340,7 @@ function ProjectCodeGuidePage() {
                   ))}
                   {hookTable.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground font-bold">
+                      <td colSpan={10} className="px-3 py-6 text-center text-muted-foreground font-bold">
                         Chưa có custom hook nào.
                       </td>
                     </tr>
@@ -314,6 +349,7 @@ function ProjectCodeGuidePage() {
               </table>
             </div>
           </section>
+
 
           <h2 className="text-2xl font-black mb-3">2. 📁 Toàn bộ file source</h2>
 

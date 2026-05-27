@@ -56,7 +56,9 @@ const SOLID_ITEMS = new Set<string>([
   "pool", "pethouse", "teaset", "fence", "gate", "gardenlamp", "mailbox", "pillar",
 ]);
 
-function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
+function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, walls, placed, onPlayerPos }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void; walls?: WallSegment[]; placed?: PlacedItem[]; onPlayerPos?: (x: number, z: number) => void }) {
+  const { collision, doorsOpen } = useWorldToggles();
+  const lastReport = useRef(0);
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);

@@ -34,62 +34,117 @@ export const S2_SEGMENTS: Rect[] = [
   { xmin: -HALF, xmax: 32.5, zmin: -12.5, zmax: -7.5 },  // B
   { xmin: 27.5, xmax: 32.5, zmin: -32.5, zmax: -7.5 },   // C
   { xmin: 27.5, xmax: 47.5, zmin: -32.5, zmax: -27.5 },  // D
-  // ===== maze decoy branches (dead ends) =====
-  { xmin: -12, xmax: -HALF, zmin: -7, zmax: -3 },        // E — west off A
-  { xmin: 12.5, xmax: 17.5, zmin: -22, zmax: -12.5 },    // F — south off B
-  { xmin: 15.5, xmax: 20.5, zmin: -7.5, zmax: -2 },      // G — north off B
-  { xmin: 20, xmax: 27.5, zmin: -27, zmax: -22 },        // H — west off C
-  { xmin: 37.5, xmax: 42.5, zmin: -40, zmax: -32.5 },    // I — south off D
-  { xmin: 27.5, xmax: 32.5, zmin: -42, zmax: -32.5 },    // J — south extension past C/D
+  // ===== maze decoy branches — multi-turn dead ends =====
+  // E — west off A, then south, then west
+  { xmin: -12, xmax: 0,   zmin: -5,  zmax: -1 },         // E1 west arm
+  { xmin: -12, xmax: -7,  zmin: -15, zmax: -3 },         // E2 south turn
+  { xmin: -22, xmax: -9,  zmin: -15, zmax: -11 },        // E3 west turn (dead end)
+  // F — south off B, then east, then south
+  { xmin: 12,  xmax: 17,  zmin: -22, zmax: -10 },        // F1 south arm
+  { xmin: 12,  xmax: 25,  zmin: -22, zmax: -18 },        // F2 east turn
+  { xmin: 20,  xmax: 25,  zmin: -32, zmax: -20 },        // F3 south turn (dead end)
+  // G — north off B, then west, then north
+  { xmin: 15,  xmax: 20,  zmin: -12, zmax: 0 },          // G1 north arm
+  { xmin: 5,   xmax: 20,  zmin: -2,  zmax: 2 },          // G2 west turn
+  { xmin: 5,   xmax: 10,  zmin: 0,   zmax: 8 },          // G3 north turn (dead end)
+  // H — east off C, then north, then east
+  { xmin: 32,  xmax: 42,  zmin: -26, zmax: -22 },        // H1 east arm
+  { xmin: 37,  xmax: 42,  zmin: -23, zmax: -14 },        // H2 north turn
+  { xmin: 37,  xmax: 47,  zmin: -16, zmax: -12 },        // H3 east turn (dead end)
+  // I — south off D (east end), then west, then south
+  { xmin: 42,  xmax: 47,  zmin: -42, zmax: -31 },        // I1 south arm
+  { xmin: 33,  xmax: 43,  zmin: -42, zmax: -38 },        // I2 west turn
+  { xmin: 32,  xmax: 38,  zmin: -50, zmax: -41 },        // I3 south turn (dead end)
+  // J — south off C, then west, then south
+  { xmin: 27.5,xmax: 32.5,zmin: -42, zmax: -31 },        // J1 south arm
+  { xmin: 15,  xmax: 28,  zmin: -42, zmax: -38 },        // J2 west turn
+  { xmin: 15,  xmax: 20,  zmin: -50, zmax: -41 },        // J3 south turn (dead end)
 ];
 
 // Walls = [x1, z1, x2, z2]
 const WALLS: Array<[number, number, number, number]> = [
+  // ===== Main A =====
   [-HALF, 2.5, HALF, 2.5],                  // A north
-  // A west wall, gap for E
-  [-HALF, 2.5, -HALF, -3],
-  [-HALF, -7, -HALF, -12.5],
   [HALF, 2.5, HALF, -7.5],                  // A east
-  // B north wall, gap for G
-  [HALF, -7.5, 15.5, -7.5],
-  [20.5, -7.5, 32.5, -7.5],
-  [32.5, -7.5, 32.5, -27.5],                // C east
-  // B south wall, gap for F
-  [-HALF, -12.5, 12.5, -12.5],
-  [17.5, -12.5, 27.5, -12.5],
-  // C west wall, gap for H
-  [27.5, -12.5, 27.5, -22],
-  [27.5, -27, 27.5, -32.5],
-  // D south wall, gaps for J and I
-  [32.5, -32.5, 37.5, -32.5],
-  [42.5, -32.5, 47.5, -32.5],
-  [47.5, -32.5, 47.5, -27.5],               // D east
+  [-HALF, 2.5, -HALF, -1],                  // A west upper (above E1 opening)
+  [-HALF, -5, -HALF, -7.5],                 // A west lower (below E1 opening)
+  // ===== Main B =====
+  [HALF, -7.5, 15, -7.5],                   // B north (left of G1 opening)
+  [20, -7.5, 32.5, -7.5],                   // B north (right of G1 opening)
+  [-HALF, -12.5, 12, -12.5],                // B south (left of F1 opening)
+  [17, -12.5, 32.5, -12.5],                 // B south (right of F1 opening)
+  [32.5, -7.5, 32.5, -12.5],                // B east
+  [-HALF, -10, -HALF, -12.5],               // B west (below A)
+  // ===== Main C =====
+  [32.5, -12.5, 32.5, -22],                 // C east (above H1 opening)
+  [32.5, -26, 32.5, -27.5],                 // C east (below H1, above D)
+  [27.5, -12.5, 27.5, -27.5],               // C west
+  // C south fully open into J1
+  // ===== Main D =====
   [32.5, -27.5, 47.5, -27.5],               // D north
+  [32.5, -32.5, 42, -32.5],                 // D south (between J1 and I1 openings)
+  [47.5, -27.5, 47.5, -32.5],               // D east
 
-  // ===== decoy E (west off A) =====
-  [-12, -3, -HALF, -3],
-  [-12, -7, -HALF, -7],
-  [-12, -7, -12, -3],
-  // ===== decoy F (south off B) =====
-  [12.5, -22, 12.5, -12.5],
-  [17.5, -22, 17.5, -12.5],
-  [12.5, -22, 17.5, -22],
-  // ===== decoy G (north off B) =====
-  [15.5, -7.5, 15.5, -2],
-  [20.5, -7.5, 20.5, -2],
-  [15.5, -2, 20.5, -2],
-  // ===== decoy H (west off C) =====
-  [20, -22, 27.5, -22],
-  [20, -27, 27.5, -27],
-  [20, -27, 20, -22],
-  // ===== decoy I (south off D) =====
-  [37.5, -40, 37.5, -32.5],
-  [42.5, -40, 42.5, -32.5],
-  [37.5, -40, 42.5, -40],
-  // ===== decoy J (south extension past C/D) =====
-  [27.5, -42, 27.5, -32.5],
-  [32.5, -42, 32.5, -32.5],
-  [27.5, -42, 32.5, -42],
+  // ===== decoy E (west arm + south + west) =====
+  [-12, -1, 0, -1],                         // E1 N
+  [-12, -5, -7, -5],                        // E1 S (gap x[-7,0] for E2)
+  [-12, -3, -12, -1],                       // E1 W upper
+  [-9, -15, -7, -15],                       // E2 S (gap x[-12,-9] for E3)
+  [-7, -15, -7, -5],                        // E2 E
+  [-12, -11, -12, -3],                      // E2 W (gap x=-12 z[-15,-11] for E3)
+  [-22, -11, -9, -11],                      // E3 N
+  [-22, -15, -9, -15],                      // E3 S
+  [-22, -15, -22, -11],                     // E3 W
+  // ===== decoy F (south arm + east + south) =====
+  [17, -18, 17, -12.5],                     // F1 E
+  [12, -18, 12, -12.5],                     // F1 W
+  [17, -18, 25, -18],                       // F2 N (gap x[12,17] for F1)
+  [12, -22, 20, -22],                       // F2 S (gap x[20,25] for F3)
+  [25, -20, 25, -18],                       // F2 E
+  [20, -32, 25, -32],                       // F3 S
+  [25, -32, 25, -22],                       // F3 E
+  [20, -32, 20, -22],                       // F3 W
+  // ===== decoy G (north arm + west + north) =====
+  [20, -7.5, 20, -2],                       // G1 E
+  [15, -7.5, 15, -2],                       // G1 W
+  [10, 2, 20, 2],                           // G2 N (gap x[5,10] for G3)
+  [5, -2, 15, -2],                          // G2 S (gap x[15,20] for G1)
+  [20, 0, 20, 2],                           // G2 E
+  [5, -2, 5, 0],                            // G2 W
+  [5, 8, 10, 8],                            // G3 N
+  [10, 2, 10, 8],                           // G3 E
+  [5, 2, 5, 8],                             // G3 W
+  // ===== decoy H (east arm + north + east) =====
+  [32, -22, 37, -22],                       // H1 N (gap x[37,42] for H2)
+  [32, -26, 42, -26],                       // H1 S
+  [42, -26, 42, -23],                       // H1 E
+  [42, -22, 42, -16],                       // H2 E
+  [37, -23, 37, -16],                       // H2 W
+  [37, -12, 47, -12],                       // H3 N
+  [42, -16, 47, -16],                       // H3 S (gap x[37,42] for H2)
+  [47, -16, 47, -12],                       // H3 E
+  [37, -14, 37, -12],                       // H3 W
+  // ===== decoy I (south arm + west + south) =====
+  [43, -42, 47, -42],                       // I1 S (gap x[42,43] for I2)
+  [47, -42, 47, -32.5],                     // I1 E
+  [42, -38, 42, -32.5],                     // I1 W
+  [33, -38, 42, -38],                       // I2 N
+  [38, -42, 42, -42],                       // I2 S (gaps for I3 and I1)
+  [33, -41, 33, -38],                       // I2 W
+  [32, -41, 33, -41],                       // I3 N
+  [32, -50, 38, -50],                       // I3 S
+  [38, -50, 38, -42],                       // I3 E
+  [32, -50, 32, -41],                       // I3 W
+  // ===== decoy J (south arm + west + south) =====
+  [28, -42, 32.5, -42],                     // J1 S (gap x[27.5,28] for J2)
+  [32.5, -42, 32.5, -32.5],                 // J1 E
+  [27.5, -38, 27.5, -32.5],                 // J1 W
+  [15, -38, 27.5, -38],                     // J2 N
+  [20, -42, 27.5, -42],                     // J2 S (gaps for J3 and J1)
+  [15, -41, 15, -38],                       // J2 W
+  [15, -50, 20, -50],                       // J3 S
+  [20, -50, 20, -42],                       // J3 E
+  [15, -50, 15, -41],                       // J3 W
 ];
 
 // 5 doors. yaw = how the door faces (which way the door's front normal points, into corridor).

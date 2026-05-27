@@ -228,7 +228,8 @@ function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRem
   const d = Math.abs(f.bz - f.az);
   const cx = (f.ax + f.bx) / 2;
   const cz = (f.az + f.bz) / 2;
-  const baseY = (f.floor ?? 0) * WALL_HEIGHT;
+  // Sàn nằm trên đỉnh tường của tầng đó (như trần ngang phía trên), giống mái
+  const baseY = ((f.floor ?? 0) + 1) * WALL_HEIGHT;
   const opacity = dim ? 0.35 : 1;
   const THICK = 0.12;
   return (

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
-import type { PlacedItem, WallSegment, RoofSegment } from "@/lib/game";
+import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;

@@ -119,6 +119,21 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
     ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 
+    // Va chạm pickup (chỉ ở tầng trệt)
+    if (activeFloor === 0 && pickups && onPickup) {
+      const px = ref.current.position.x;
+      const pz = ref.current.position.z;
+      for (const p of pickups) {
+        if (collectedIds && collectedIds.has(p.id)) continue;
+        const dx = px - p.x;
+        const dz = pz - p.z;
+        if (dx * dx + dz * dz < 0.7 * 0.7) {
+          onPickup(p);
+          break;
+        }
+      }
+    }
+
     if (controlsRef.current) {
       const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.0, ref.current.position.z);
       controlsRef.current.target.lerp(t, 0.18);

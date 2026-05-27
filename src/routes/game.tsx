@@ -34,7 +34,7 @@ function GamePage() {
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
-  const [picked, setPicked] = useState<number[]>([]);
+  
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());

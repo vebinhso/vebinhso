@@ -46,6 +46,8 @@ function GamePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
+  const wt = useWorldToggles();
+  const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
 
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);

@@ -206,6 +206,7 @@ export type Database = {
       placed_items: {
         Row: {
           created_at: string
+          floor: number
           id: string
           item_id: string
           rotation: number
@@ -215,6 +216,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          floor?: number
           id?: string
           item_id: string
           rotation?: number
@@ -224,6 +226,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          floor?: number
           id?: string
           item_id?: string
           rotation?: number
@@ -318,6 +321,7 @@ export type Database = {
           bx: number
           bz: number
           created_at: string
+          floor: number
           id: string
           style: Database["public"]["Enums"]["roof_style"]
           user_id: string
@@ -329,6 +333,7 @@ export type Database = {
           bx: number
           bz: number
           created_at?: string
+          floor?: number
           id?: string
           style?: Database["public"]["Enums"]["roof_style"]
           user_id: string
@@ -340,6 +345,7 @@ export type Database = {
           bx?: number
           bz?: number
           created_at?: string
+          floor?: number
           id?: string
           style?: Database["public"]["Enums"]["roof_style"]
           user_id?: string
@@ -376,6 +382,7 @@ export type Database = {
           bz: number
           color: string
           created_at: string
+          floor: number
           id: string
           user_id: string
           value: number
@@ -387,6 +394,7 @@ export type Database = {
           bz: number
           color?: string
           created_at?: string
+          floor?: number
           id?: string
           user_id: string
           value?: number
@@ -398,6 +406,7 @@ export type Database = {
           bz?: number
           color?: string
           created_at?: string
+          floor?: number
           id?: string
           user_id?: string
           value?: number

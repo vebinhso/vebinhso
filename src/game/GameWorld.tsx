@@ -126,7 +126,15 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
             let t = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
             t = Math.max(0, Math.min(1, t));
             const cx = w.ax + t * dx, cz = w.az + t * dz;
-            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) return true;
+            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) {
+              // Cho phép đi qua nếu nằm trong lỗ khoét cửa
+              if (placed) {
+                const cuts = computeDoorCutouts(w, placed);
+                const tRaw = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
+                if (cuts.some((c) => tRaw >= c.t0 - 0.02 && tRaw <= c.t1 + 0.02)) continue;
+              }
+              return true;
+            }
           }
         }
         // placed solid items
@@ -364,7 +372,45 @@ function isRoof(id: string) {
   return id === "roof" || id === "roof_ton";
 }
 
-function WallMesh({ w, color, highlight, dim, onRemove }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void }) {
+const DOOR_CUT_HALF = 0.6;
+const DOOR_CUT_HEIGHT = 3;
+
+/** Tính các đoạn khoét trên 1 tường (theo t∈[0,1]) do các cánh cửa nằm áp tường tạo ra. */
+function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number; t1: number }[] {
+  const dx = w.bx - w.ax, dz = w.bz - w.az;
+  const len2 = dx * dx + dz * dz;
+  if (len2 === 0) return [];
+  const len = Math.sqrt(len2);
+  const wFloor = w.floor ?? 0;
+  const raw: { t0: number; t1: number }[] = [];
+  for (const p of placed) {
+    if (p.itemId !== "door") continue;
+    if ((p.floor ?? 0) !== wFloor) continue;
+    const it = getItem(p.itemId);
+    if (!it) continue;
+    const swap = p.rotation % 2 === 1;
+    const fw = swap ? it.d : it.w;
+    const fd = swap ? it.w : it.d;
+    const cx = p.x - 10 + fw / 2;
+    const cz = p.z - 10 + fd / 2;
+    const t = ((cx - w.ax) * dx + (cz - w.az) * dz) / len2;
+    if (t < -0.05 || t > 1.05) continue;
+    const px = w.ax + t * dx, pz = w.az + t * dz;
+    if (Math.hypot(cx - px, cz - pz) > 0.6) continue;
+    const halfT = DOOR_CUT_HALF / len;
+    raw.push({ t0: Math.max(0, t - halfT), t1: Math.min(1, t + halfT) });
+  }
+  raw.sort((a, b) => a.t0 - b.t0);
+  const merged: { t0: number; t1: number }[] = [];
+  for (const c of raw) {
+    const last = merged[merged.length - 1];
+    if (last && c.t0 <= last.t1) last.t1 = Math.max(last.t1, c.t1);
+    else merged.push({ ...c });
+  }
+  return merged;
+}
+
+function WallMesh({ w, color, highlight, dim, onRemove, placed }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[] }) {
   const dx = w.bx - w.ax;
   const dz = w.bz - w.az;
   const len = Math.hypot(dx, dz);
@@ -373,13 +419,41 @@ function WallMesh({ w, color, highlight, dim, onRemove }: { w: WallSegment; colo
   const cz = (w.az + w.bz) / 2;
   const baseY = (w.floor ?? 0) * WALL_HEIGHT;
   const opacity = dim ? 0.35 : 1;
+  const cuts = computeDoorCutouts(w, placed);
+  const lower: { center: number; length: number }[] = [];
+  let cursor = 0;
+  for (const c of cuts) {
+    if (c.t0 > cursor) lower.push({ center: ((cursor + c.t0) / 2 - 0.5) * len, length: (c.t0 - cursor) * len });
+    cursor = c.t1;
+  }
+  if (cursor < 1) lower.push({ center: ((cursor + 1) / 2 - 0.5) * len, length: (1 - cursor) * len });
+  const upperH = WALL_HEIGHT - DOOR_CUT_HEIGHT;
+  const mat = (key: string) => (
+    <meshStandardMaterial key={key} color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} transparent={dim} opacity={opacity} />
+  );
   return (
     <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
-      <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
-        <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
-        <meshStandardMaterial color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} transparent={dim} opacity={opacity} />
-      </mesh>
-      {/* Top concrete cap */}
+      {cuts.length === 0 ? (
+        <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
+          <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
+          {mat("m")}
+        </mesh>
+      ) : (
+        <>
+          {lower.map((s, i) => s.length > 0.01 && (
+            <mesh key={`lo-${i}`} castShadow receiveShadow position={[0, DOOR_CUT_HEIGHT / 2, s.center]}>
+              <boxGeometry args={[0.25, DOOR_CUT_HEIGHT, s.length]} />
+              {mat(`lo-m-${i}`)}
+            </mesh>
+          ))}
+          {upperH > 0 && (
+            <mesh castShadow receiveShadow position={[0, DOOR_CUT_HEIGHT + upperH / 2, 0]}>
+              <boxGeometry args={[0.25, upperH, len]} />
+              {mat("up")}
+            </mesh>
+          )}
+        </>
+      )}
       <mesh castShadow position={[0, WALL_HEIGHT + 0.06, 0]}>
         <boxGeometry args={[0.35, 0.12, len]} />
         <meshStandardMaterial color="#9ca3af" roughness={0.8} transparent={dim} opacity={opacity} />
@@ -682,6 +756,7 @@ function PlotAndPlacement({
           color={wallColor}
           dim={(w.floor ?? 0) !== activeFloor}
           onRemove={() => onWallRemove(w.id)}
+          placed={placed}
         />
       ))}
 

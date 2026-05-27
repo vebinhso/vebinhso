@@ -1823,7 +1823,12 @@ function MagicPage() {
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
             </div>
-            <QuestionView question={boss.question} onAnswer={answerBoss} compact />
+            <QuestionView question={boss.question} onAnswer={answerBoss} compact disabled={!!bossResult} />
+            {bossResult && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${bossResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {bossResult}
+              </div>
+            )}
             <p className="text-xs font-bold mt-2 opacity-70">
               Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
             </p>

@@ -125,13 +125,13 @@ async function refreshFromDB(uid: string) {
       wallColor: gs.data.wall_color ?? "#f5e6c8",
       ownedPalettes: Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [],
       placed: (items.data || []).map((r: any) => ({
-        id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation,
+        id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
       })),
       walls: (walls.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value,
+        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
       })),
       roofs: (roofs.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value,
+        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
       })),
     };
     persistLocal(uid);

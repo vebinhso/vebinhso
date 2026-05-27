@@ -841,19 +841,19 @@ function ProjectCodeGuidePage() {
               Mỗi hook được tách thành: Nhiệm vụ • Giải thích code • Mối liên hệ • Phụ thuộc • Trả về • Khi nào chạy • Nơi sử dụng.
             </p>
             <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-900 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-black w-10">#</th>
-                    <th className="px-3 py-2 text-left font-black w-56">Hook</th>
-                    <th className="px-3 py-2 text-left font-black">Nhiệm vụ</th>
-                    <th className="px-3 py-2 text-left font-black">Giải thích code</th>
-                    <th className="px-3 py-2 text-left font-black">Mối liên hệ</th>
-                    <th className="px-3 py-2 text-left font-black">Phụ thuộc</th>
-                    <th className="px-3 py-2 text-left font-black">Trả về</th>
-                    <th className="px-3 py-2 text-left font-black">Khi nào chạy</th>
-                    <th className="px-3 py-2 text-left font-black">File liên quan</th>
-                    <th className="px-3 py-2 text-left font-black">Nơi sử dụng</th>
+                    <th className="px-3 py-2 text-left font-black w-72">Hook</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Nhiệm vụ</th>
+                    <th className="px-3 py-2 text-left font-black w-64">Giải thích code</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Mối liên hệ</th>
+                    <th className="px-3 py-2 text-left font-black w-44">Phụ thuộc</th>
+                    <th className="px-3 py-2 text-left font-black w-40">Trả về</th>
+                    <th className="px-3 py-2 text-left font-black w-48">Khi nào chạy</th>
+                    <th className="px-3 py-2 text-left font-black w-56">File liên quan</th>
+                    <th className="px-3 py-2 text-left font-black w-52">Nơi sử dụng</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -864,38 +864,38 @@ function ProjectCodeGuidePage() {
                         <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-xs font-bold">
                           {h.name}
                         </code>
-                        <div className="text-[11px] text-muted-foreground font-mono mt-1 break-all">
+                        <div className="text-[11px] text-muted-foreground font-mono mt-1 break-all leading-relaxed">
                           {h.definedIn.replace(/^\//, "")}
                         </div>
                       </td>
-                      <td className="px-3 py-3 font-medium text-gray-700 min-w-[200px]">{h.detail.task}</td>
-                      <td className="px-3 py-3 text-gray-700 min-w-[260px] whitespace-pre-wrap">{h.detail.codeExplain}</td>
-                      <td className="px-3 py-3 text-gray-700 min-w-[220px]">{h.detail.relations}</td>
-                      <td className="px-3 py-3 min-w-[160px]">
+                      <td className="px-3 py-3 font-medium text-gray-700 whitespace-normal break-words leading-relaxed">{h.detail.task}</td>
+                      <td className="px-3 py-3 text-gray-700 whitespace-pre-wrap break-words leading-relaxed">{h.detail.codeExplain}</td>
+                      <td className="px-3 py-3 text-gray-700 whitespace-normal break-words leading-relaxed">{h.detail.relations}</td>
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {h.detail.deps.length === 0 ? (
                           <span className="text-xs text-muted-foreground italic">—</span>
                         ) : (
                           <ul className="list-disc pl-4 space-y-0.5">
                             {h.detail.deps.map((d) => (
-                              <li key={d} className="text-[12px] font-mono text-gray-800">{d}</li>
+                              <li key={d} className="text-[12px] font-mono text-gray-800 break-words leading-relaxed">{d}</li>
                             ))}
                           </ul>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[140px]">{h.detail.returns}</td>
-                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[160px]">{h.detail.trigger}</td>
-                      <td className="px-3 py-3 min-w-[200px]">
+                      <td className="px-3 py-3 text-[12px] text-gray-700 whitespace-normal break-words leading-relaxed">{h.detail.returns}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 whitespace-normal break-words leading-relaxed">{h.detail.trigger}</td>
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {h.detail.related.length === 0 ? (
                           <span className="text-xs text-muted-foreground italic">—</span>
                         ) : (
                           <ul className="space-y-0.5">
                             {h.detail.related.map((r) => (
-                              <li key={r} className="text-[11px] font-mono text-blue-700 break-all">{r}</li>
+                              <li key={r} className="text-[11px] font-mono text-blue-700 break-all leading-relaxed">{r}</li>
                             ))}
                           </ul>
                         )}
                       </td>
-                      <td className="px-3 py-3 min-w-[180px]">
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {h.usedIn.length === 0 ? (
                           <span className="text-xs text-muted-foreground italic">Chưa dùng</span>
                         ) : (
@@ -944,18 +944,18 @@ function ProjectCodeGuidePage() {
               Hiển thị {filteredMetas.length} / {fileMetas.length} file
             </div>
             <div className="overflow-x-auto rounded-2xl border-2 border-gray-200 max-h-[80vh] overflow-y-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" style={{ tableLayout: "auto" }}>
                 <thead className="bg-gray-900 text-white sticky top-0">
                   <tr>
                     <th className="px-3 py-2 text-left font-black w-10">#</th>
-                    <th className="px-3 py-2 text-left font-black w-64">File</th>
-                    <th className="px-3 py-2 text-left font-black">Nhiệm vụ</th>
-                    <th className="px-3 py-2 text-left font-black">Vai trò</th>
-                    <th className="px-3 py-2 text-left font-black">Giải thích code</th>
-                    <th className="px-3 py-2 text-left font-black">Mối liên hệ</th>
-                    <th className="px-3 py-2 text-left font-black">Exports</th>
-                    <th className="px-3 py-2 text-left font-black">Imports</th>
-                    <th className="px-3 py-2 text-left font-black">Được dùng bởi</th>
+                    <th className="px-3 py-2 text-left font-black w-80">File</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Nhiệm vụ</th>
+                    <th className="px-3 py-2 text-left font-black w-40">Vai trò</th>
+                    <th className="px-3 py-2 text-left font-black w-64">Giải thích code</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Mối liên hệ</th>
+                    <th className="px-3 py-2 text-left font-black w-44">Exports</th>
+                    <th className="px-3 py-2 text-left font-black w-52">Imports</th>
+                    <th className="px-3 py-2 text-left font-black w-52">Được dùng bởi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -963,18 +963,18 @@ function ProjectCodeGuidePage() {
                     <tr key={m.path} className="border-t border-gray-200 align-top hover:bg-orange-50/40">
                       <td className="px-3 py-3 font-bold text-muted-foreground">{i + 1}</td>
                       <td className="px-3 py-3">
-                        <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-[11px] font-bold break-all">
+                        <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-[11px] font-bold break-all leading-relaxed">
                           {m.path}
                         </code>
-                        <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                        <div className="text-[10px] text-muted-foreground font-mono mt-1 leading-relaxed">
                           {m.lines} dòng • {(m.bytes / 1024).toFixed(1)} KB
                         </div>
                       </td>
-                      <td className="px-3 py-3 font-medium text-gray-700 min-w-[200px]">{m.detail.task}</td>
-                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[120px]">{m.detail.role}</td>
-                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[240px]">{m.detail.codeExplain}</td>
-                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[200px]">{m.detail.relations}</td>
-                      <td className="px-3 py-3 min-w-[140px]">
+                      <td className="px-3 py-3 font-medium text-gray-700 whitespace-normal break-words leading-relaxed">{m.detail.task}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 whitespace-normal break-words leading-relaxed">{m.detail.role}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 whitespace-normal break-words leading-relaxed">{m.detail.codeExplain}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 whitespace-normal break-words leading-relaxed">{m.detail.relations}</td>
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {m.exports.length === 0 ? (
                           <span className="text-[11px] text-muted-foreground italic">—</span>
                         ) : (
@@ -990,13 +990,13 @@ function ProjectCodeGuidePage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-3 py-3 min-w-[180px]">
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {m.imports.length === 0 ? (
                           <span className="text-[11px] text-muted-foreground italic">—</span>
                         ) : (
                           <ul className="space-y-0.5">
                             {m.imports.slice(0, 10).map((im) => (
-                              <li key={im} className="text-[10px] font-mono text-blue-700 break-all">{im}</li>
+                              <li key={im} className="text-[10px] font-mono text-blue-700 break-all leading-relaxed">{im}</li>
                             ))}
                             {m.imports.length > 10 && (
                               <li className="text-[10px] text-muted-foreground">+{m.imports.length - 10} more</li>
@@ -1004,7 +1004,7 @@ function ProjectCodeGuidePage() {
                           </ul>
                         )}
                       </td>
-                      <td className="px-3 py-3 min-w-[180px]">
+                      <td className="px-3 py-3 whitespace-normal break-words">
                         {m.usedBy.length === 0 ? (
                           <span className="text-[11px] text-muted-foreground italic">Chưa ai import</span>
                         ) : (

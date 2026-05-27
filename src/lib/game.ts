@@ -9,6 +9,8 @@ export type PlacedItem = {
   z: number;
   rotation: number;
   floor?: number;
+  /** Y-offset (đơn vị: mét) khi item được đặt chồng lên 1 surface */
+  stackY?: number;
 };
 
 export type WallSegment = {

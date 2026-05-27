@@ -27,7 +27,7 @@ import {
 } from "@/lib/admin";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
-import { generateBasePickups, loadPickupConfig, savePickupConfig, type Pickup, type PickupKind, type PickupConfig } from "@/lib/worldPickups";
+import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";
 
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,

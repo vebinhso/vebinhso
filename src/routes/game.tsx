@@ -236,7 +236,6 @@ function GamePage() {
   };
 
   const handlePlace = (x: number, z: number) => {
-  const handlePlace = (x: number, z: number) => {
     // Chế độ DỊCH CHUYỂN: cập nhật vị trí item đang chỉnh, không tạo item mới
     if (editingId && moveMode && state) {
       const target = state.placed.find((p) => p.id === editingId);

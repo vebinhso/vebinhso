@@ -123,6 +123,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
 }
 
 function Register({ setView }: { setView: (v: View) => void }) {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -140,7 +141,9 @@ function Register({ setView }: { setView: (v: View) => void }) {
     setBusy(true);
     try {
       await signUpWithPassword({ email: email.trim(), password, username: username.trim() });
-      setSuccess(`Đã gửi email xác nhận tới ${email.trim()}. Vui lòng kiểm tra hộp thư và bấm vào liên kết để kích hoạt.`);
+      // Confirm email đã tắt → đăng nhập luôn rồi vào game
+      await signInWithPassword(email.trim(), password);
+      navigate({ to: "/" });
     } catch (e: any) {
       setError(e?.message || "Đăng ký thất bại");
     } finally { setBusy(false); }

@@ -1141,9 +1141,11 @@ function MagicPage() {
       const now = Date.now();
       setExitNow(now);
       if (now >= exitDeadline) {
-        // timed out — close back wall, player must complete a door again to retry
-        setExitOpen(false);
-        setExitDeadline(null);
+        // Hết 20s mà chưa ra → -5đ và đếm lại 20s mới (loop)
+        setCoins((c) => Math.max(0, c - 5));
+        const g = loadGame();
+        saveGame({ ...g, money: Math.max(0, g.money - 5) });
+        setExitDeadline(now + 20000);
       }
     }, 100);
     return () => clearInterval(id);

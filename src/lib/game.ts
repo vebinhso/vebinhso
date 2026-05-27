@@ -159,19 +159,19 @@ async function flushToDB(uid: string) {
   await supabase.from("placed_items").delete().eq("user_id", uid);
   if (CACHE.placed.length) {
     await supabase.from("placed_items").insert(
-      CACHE.placed.map((p) => ({ user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation })),
+      CACHE.placed.map((p) => ({ user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0 })),
     );
   }
   await supabase.from("walls").delete().eq("user_id", uid);
   if (CACHE.walls.length) {
     await supabase.from("walls").insert(
-      CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0 })),
+      CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0, floor: w.floor ?? 0 })),
     );
   }
   await supabase.from("roofs").delete().eq("user_id", uid);
   if (CACHE.roofs.length) {
     await supabase.from("roofs").insert(
-      CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value })),
+      CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
     );
   }
 }

@@ -1338,35 +1338,34 @@ function MagicPage() {
     const correct = a === b;
     const g = loadGame();
     const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
+    const NEED = 5;
     if (correct) {
+      const newCorrect = boss.correct + 1;
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
-      const newHp = Math.max(0, boss.hp - boss.perHit);
-      const newBullets = boss.bulletsLeft - 1;
-      setBossResult("✅ Chính xác! Bắn trúng boss!");
-      if (newHp <= 0) {
-        const maxHp = boss.maxHp;
+      setBossResult(`✅ Chính xác! (${newCorrect}/${NEED} câu đúng)`);
+      if (newCorrect >= NEED) {
+        const reward = boss.maxHp;
         const level = boss.level;
         setBoss(null);
         setBossResult(null);
-        setBossDefeated({ level, reward: maxHp });
+        setBossDefeated({ level, reward });
         setTimeout(() => {
           setBossDefeated(null);
-          addCoins(maxHp);
-          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${maxHp} đồng` });
+          addCoins(reward);
+          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${reward} đồng` });
         }, 1200);
         return;
       }
       setTimeout(() => {
         setBossResult(null);
-        setBoss((prev) => prev ? { ...prev, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() } : prev);
+        setBoss((prev) => prev ? { ...prev, correct: newCorrect, hp: Math.max(0, prev.maxHp - prev.maxHp * (newCorrect / NEED)), question: randomQuestion() } : prev);
       }, 1200);
     } else {
       saveGame({ ...g, answerStreak: 0 });
-      const nb = Math.max(0, boss.bulletsLeft - 1);
       setBossResult(`❌ Sai rồi! Đáp án đúng: ${correctLetters}`);
       setTimeout(() => {
         setBossResult(null);
-        setBoss((prev) => prev ? { ...prev, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() } : prev);
+        setBoss((prev) => prev ? { ...prev, question: randomQuestion() } : prev);
       }, 1200);
     }
   };

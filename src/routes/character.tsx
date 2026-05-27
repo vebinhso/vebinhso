@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/character";
 import { generateOutfit } from "@/lib/ai.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 

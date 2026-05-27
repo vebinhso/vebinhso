@@ -511,6 +511,59 @@ function GamePage() {
     }, 1200);
   };
 
+  // ===== Pickups (xu + boom) =====
+  const markCollected = (id: string) => {
+    if (!user) return;
+    setCollectedIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      saveCollected(user.id, next);
+      return next;
+    });
+  };
+  const handlePickup = (p: Pickup) => {
+    if (collectedIds.has(p.id)) return;
+    markCollected(p.id);
+    if (p.kind === "coin") {
+      setState((s) => (s ? { ...s, money: s.money + 1 } : s));
+      playSfx("rightHouse", { duck: true });
+      flash("🪙 +1đ", 800);
+    } else {
+      // Boom: mở modal trả lời 2 câu hỏi
+      playSfx("wrongHouse", { duck: true });
+      if (!questionsReady) {
+        flash("💣 Đạp trúng boom! (chưa có câu hỏi)", 1500);
+        return;
+      }
+      setBoom({ qIdx: 0, q: randomQuestion(), gained: 0, answered: [] });
+      setBoomResult(null);
+    }
+  };
+  const handleBoomAnswer = (picked: number[]) => {
+    if (!boom || boomResult) return;
+    const q = boom.q;
+    const correctSet = q.correctIndexes && q.correctIndexes.length > 0 ? q.correctIndexes : [q.answer];
+    const ok = [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    const delta = ok ? 10 : -5;
+    const gained = boom.gained + delta;
+    setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
+    playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
+    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ`);
+    setTimeout(() => {
+      if (boom.qIdx === 0) {
+        setBoom({ qIdx: 1, q: randomQuestion(), gained, answered: [...boom.answered, ok ? 1 : 0] });
+        setBoomResult(null);
+      } else {
+        const total = gained;
+        flash(`💣 Hết boom! Tổng: ${total >= 0 ? "+" : ""}${total}đ`, 2000);
+        setBoom(null);
+        setBoomResult(null);
+      }
+    }, 1200);
+  };
+  const closeBoom = () => { setBoom(null); setBoomResult(null); };
+
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng
   const WALL_LEVEL_REQ = [0, 3, 10, 18];

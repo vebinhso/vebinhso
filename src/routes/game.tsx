@@ -730,6 +730,14 @@ function GamePage() {
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
           onPlayerPos={(x, z) => setPlayerPos({ x, z })}
+          onItemClick={(id) => {
+            const p = state.placed.find((q) => q.id === id);
+            if (!p) return;
+            if ((p.floor ?? 0) !== activeFloor) return;
+            setEditingId(id);
+            setMoveMode(false);
+          }}
+          editingId={editingId}
         />
       </Suspense>
 

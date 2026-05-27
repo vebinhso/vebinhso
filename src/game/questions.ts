@@ -125,7 +125,7 @@ function pickAvoidingRecent(pool: Question[]): Question {
   const avoidCount = Math.min(MAX_RECENT, pool.length - 1);
   const recentSlice = avoidCount > 0 ? RECENT_IDS.slice(-avoidCount) : [];
   let candidates = recentSlice.length > 0
-    ? pool.filter((q) => !recentSlice.includes(q.id))
+    ? pool.filter((q) => !(q.id && recentSlice.includes(q.id)))
     : pool;
   if (candidates.length === 0) candidates = pool;
   const pick = candidates[Math.floor(Math.random() * candidates.length)];

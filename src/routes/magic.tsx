@@ -1863,7 +1863,7 @@ function MagicPage() {
       )}
 
       {/* Boss question */}
-      {boss && boss.question && !bossDefeated && (
+      {boss && boss.question && !bossDefeated && !modal && (
         <div className="absolute inset-x-0 bottom-0 z-30 p-4">
           <div className="max-w-2xl mx-auto glass-card p-4">
             <div className="flex items-center justify-between mb-2 text-xs font-black">

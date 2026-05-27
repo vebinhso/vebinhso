@@ -267,8 +267,8 @@ function Ghost({ slot, initialDelay }: { slot: number; initialDelay: number }) {
       state.current = {
         pos: randomPointInSegment(),
         mode: (["wall", "floor", "ceiling"] as SpawnMode[])[Math.floor(Math.random() * 3)],
-        bornAt: now + 600 + Math.random() * 1200,
-        lifeMs: 6000 + Math.random() * 4000,
+        bornAt: now + 200 + Math.random() * 500,
+        lifeMs: 8000 + Math.random() * 4000,
       };
       return;
     }
@@ -323,10 +323,12 @@ function Stage2Ghosts() {
   return (
     <>
       <Ghost slot={0} initialDelay={0} />
-      <Ghost slot={1} initialDelay={1400} />
-      <Ghost slot={2} initialDelay={2800} />
-      <Ghost slot={3} initialDelay={4200} />
-      <Ghost slot={4} initialDelay={5600} />
+      <Ghost slot={1} initialDelay={1000} />
+      <Ghost slot={2} initialDelay={2000} />
+      <Ghost slot={3} initialDelay={3000} />
+      <Ghost slot={4} initialDelay={4000} />
+      <Ghost slot={5} initialDelay={5000} />
+      <Ghost slot={6} initialDelay={6000} />
     </>
   );
 }

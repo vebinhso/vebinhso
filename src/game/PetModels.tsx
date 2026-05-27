@@ -237,9 +237,9 @@ export function CorridorTigers({
   const check = (pos: THREE.Vector3) => {
     if (!active) return;
     const now = performance.now();
-    if (now - lastHit.current < 4000) return;
+    if (now - lastHit.current < 1200) return;
     const d2 = (camera.position.x - pos.x) ** 2 + (camera.position.z - pos.z) ** 2;
-    if (d2 < 1.6) {
+    if (d2 < 3.5) {
       lastHit.current = now;
       onHit();
     }

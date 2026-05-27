@@ -4,14 +4,17 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useAuthSync } from "@/hooks/use-auth-sync";
 import { useEffect } from "react";
 import { startSessionTracker } from "@/lib/session";
+import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
 
 import appCss from "../styles.css?url";
+
 
 function NotFoundComponent() {
   return (

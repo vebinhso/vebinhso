@@ -340,12 +340,14 @@ function GamePage() {
   const closeQuestion = () => {
     setQuestion(null);
     setQuestionResult(null);
-    setPicked([]);
   };
-  const gradeAnswer = (correctSet: number[], pickedSet: number[]) => {
-    if (!question) return;
+  const handleAnswer = (picked: number[]) => {
+    if (!question || questionResult) return;
+    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
+      ? question.correctIndexes
+      : [question.answer];
     const a = [...correctSet].sort().join(",");
-    const b = [...pickedSet].sort().join(",");
+    const b = [...picked].sort().join(",");
     const ok = a === b;
     let next: GameState;
     let resultText: string;
@@ -367,27 +369,7 @@ function GamePage() {
     setTimeout(() => {
       setQuestion(randomQuestion());
       setQuestionResult(null);
-      setPicked([]);
     }, 1200);
-  };
-  const answerQuestion = (idx: number) => {
-    if (!question || questionResult) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    const isMulti = correctSet.length > 1;
-    if (isMulti) {
-      setPicked((prev) => prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx]);
-      return;
-    }
-    gradeAnswer(correctSet, [idx]);
-  };
-  const confirmMultiAnswer = () => {
-    if (!question || questionResult || picked.length === 0) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    gradeAnswer(correctSet, picked);
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);

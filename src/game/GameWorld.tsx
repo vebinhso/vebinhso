@@ -7,7 +7,6 @@ import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
-import type { Pickup } from "@/lib/worldPickups";
 
 const GRID = 20;
 const CELL = 1;

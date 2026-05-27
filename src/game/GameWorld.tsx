@@ -148,8 +148,9 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
             const swap = p.rotation % 2 === 1;
             const fw = swap ? it.d : it.w;
             const fd = swap ? it.w : it.d;
-            const cx = p.x - 10 + fw / 2;
-            const cz = p.z - 10 + fd / 2;
+            const hasAngle = typeof p.angleRad === "number";
+            const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+            const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
             if (Math.abs(nx - cx) < fw / 2 + R && Math.abs(nz - cz) < fd / 2 + R) return true;
           }
         }
@@ -372,7 +373,7 @@ function isRoof(id: string) {
   return id === "roof" || id === "roof_ton";
 }
 
-const DOOR_CUT_HALF = 0.6;
+const DOOR_CUT_HALF = 0.5;
 const DOOR_CUT_HEIGHT = 3;
 
 /** Tính các đoạn khoét trên 1 tường (theo t∈[0,1]) do các cánh cửa nằm áp tường tạo ra. */
@@ -388,11 +389,13 @@ function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number;
     if ((p.floor ?? 0) !== wFloor) continue;
     const it = getItem(p.itemId);
     if (!it) continue;
+    const hasAngle = typeof p.angleRad === "number";
     const swap = p.rotation % 2 === 1;
     const fw = swap ? it.d : it.w;
     const fd = swap ? it.w : it.d;
-    const cx = p.x - 10 + fw / 2;
-    const cz = p.z - 10 + fd / 2;
+    // Cửa đã snap vào tường: (p.x, p.z) là tọa độ TÂM. Cửa cũ chưa snap: (p.x, p.z) là góc.
+    const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+    const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
     const t = ((cx - w.ax) * dx + (cz - w.az) * dz) / len2;
     if (t < -0.05 || t > 1.05) continue;
     const px = w.ax + t * dx, pz = w.az + t * dz;

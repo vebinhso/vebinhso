@@ -34,7 +34,7 @@ export const CATALOG: CatalogItem[] = [
   // Quy đổi: 1m dài × 5m cao = 10 viên gạch + 1 xô bê tông tươi
   { id: "brick_pack", name: "Gạch (10 viên)", category: "Vật liệu", price: 10, w: 1, d: 1, h: 0.5, color: "#c1440e", icon: "🧱", kind: "brick", qty: 10 },
   { id: "concrete", name: "Bê tông tươi (1 xô)", category: "Vật liệu", price: 4, w: 1, d: 1, h: 0.1, color: "#71717a", icon: "🪣", shape: "cylinder", kind: "concrete", qty: 1 },
-  { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 0.2, h: 3, color: "#8b4513", icon: "🚪" },
+  { id: "door", name: "Cửa chính", category: "Vật liệu", price: 30, w: 1, d: 0.25, h: 3, color: "#8b4513", icon: "🚪" },
   { id: "floor", name: "Gạch lát sàn", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.1, color: "#d4a574", icon: "🟫" },
   // Mái nhà: mua dồn kho "gạch mái nhà". Khi xây sẽ chọn 4 cột trụ → tự dựng mái theo diện tích (1m² = 1 gạch mái).
   { id: "roof", name: "Gạch mái ngói (10 miếng)", category: "Vật liệu", price: 50, w: 1, d: 1, h: 0.3, color: "#7f1d1d", icon: "🧱", kind: "rooftile", qty: 10, roofStyle: "tile" },

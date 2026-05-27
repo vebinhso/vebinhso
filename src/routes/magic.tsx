@@ -983,6 +983,7 @@ function MagicPage() {
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
   const [bossResult, setBossResult] = useState<string | null>(null);
+  const [bossDefeated, setBossDefeated] = useState<null | { level: 1 | 2 | 3; reward: number }>(null);
   const [witchResult, setWitchResult] = useState<string | null>(null);
   const [quiz5Result, setQuiz5Result] = useState<string | null>(null);
   const [animalResult, setAnimalResult] = useState<string | null>(null);
@@ -1344,9 +1345,11 @@ function MagicPage() {
       if (newHp <= 0) {
         const maxHp = boss.maxHp;
         const level = boss.level;
+        setBoss(null);
+        setBossResult(null);
+        setBossDefeated({ level, reward: maxHp });
         setTimeout(() => {
-          setBoss(null);
-          setBossResult(null);
+          setBossDefeated(null);
           addCoins(maxHp);
           setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${maxHp} đồng` });
         }, 1200);
@@ -1860,7 +1863,7 @@ function MagicPage() {
       )}
 
       {/* Boss question */}
-      {boss && boss.question && (
+      {boss && boss.question && !bossDefeated && (
         <div className="absolute inset-x-0 bottom-0 z-30 p-4">
           <div className="max-w-2xl mx-auto glass-card p-4">
             <div className="flex items-center justify-between mb-2 text-xs font-black">
@@ -1880,6 +1883,17 @@ function MagicPage() {
             <p className="text-xs font-bold mt-2 opacity-70">
               Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Boss defeated celebration */}
+      {bossDefeated && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <div className="glass-card px-8 py-6 text-center animate-bounce" style={{ background: "rgba(20,40,20,0.85)", border: "3px solid #22c55e", boxShadow: "0 0 32px rgba(34,197,94,0.7)" }}>
+            <div className="text-5xl mb-2">⚔️</div>
+            <div className="text-2xl font-black text-green-300" style={{ textShadow: "0 0 12px #22c55e" }}>ĐÃ HẠ GỤC BOSS!</div>
+            <div className="text-lg font-bold text-yellow-300 mt-2">+{bossDefeated.reward} đồng 🪙</div>
           </div>
         </div>
       )}

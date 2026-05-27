@@ -21,6 +21,7 @@ import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions 
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
+import { getActivePowerIds } from "@/lib/powers";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 

@@ -25,6 +25,7 @@ import { QuestionView } from "@/game/QuestionView";
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
+import { generateBasePickups, loadPickupExtras, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 

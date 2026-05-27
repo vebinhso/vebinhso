@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type Question = {
+  id?: string;
   q: string;
   options: string[];
   answer: number; // index (first correct)
@@ -31,6 +32,8 @@ export const DEFAULT_QUESTIONS: Question[] = [
 
 let QUESTION_CACHE: Question[] = [];
 let PRIORITY_MODE = false;
+let RECENT_IDS: string[] = [];
+const MAX_RECENT = 20;
 
 export async function loadPriorityMode(): Promise<boolean> {
   try {
@@ -71,6 +74,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
       return {
+        id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
         options,
         answer: correctIndexes[0] ?? 0,
@@ -88,6 +92,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       ? enabledOnly.filter((q) => (q.maps ?? ["all"]).includes(map) || (q.maps ?? ["all"]).includes("all"))
       : enabledOnly;
     QUESTION_CACHE = filtered;
+    RECENT_IDS = []; // reset khi đổi map/cache mới
     return filtered;
   } catch (e) {
     console.error("[questions] loadQuestionsFromDB failed", e);
@@ -112,13 +117,32 @@ export const QUESTIONS: Question[] = new Proxy([] as Question[], {
   },
 }) as Question[];
 
+function pickAvoidingRecent(pool: Question[]): Question {
+  if (pool.length === 0) {
+    const fallback = getQuestions();
+    return fallback[0] ?? DEFAULT_QUESTIONS[0];
+  }
+  const avoidCount = Math.min(MAX_RECENT, pool.length - 1);
+  const recentSlice = avoidCount > 0 ? RECENT_IDS.slice(-avoidCount) : [];
+  let candidates = recentSlice.length > 0
+    ? pool.filter((q) => !(q.id && recentSlice.includes(q.id)))
+    : pool;
+  if (candidates.length === 0) candidates = pool;
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  if (pick?.id) {
+    RECENT_IDS.push(pick.id);
+    if (RECENT_IDS.length > MAX_RECENT) RECENT_IDS = RECENT_IDS.slice(-MAX_RECENT);
+  }
+  return pick;
+}
+
 export function randomQuestion(): Question {
   const arr = getQuestions();
   if (PRIORITY_MODE) {
     const zone = arr.filter((q) => (q.priority ?? 0) > 0);
     if (zone.length > 0) {
-      return zone[Math.floor(Math.random() * zone.length)];
+      return pickAvoidingRecent(zone);
     }
   }
-  return arr[Math.floor(Math.random() * arr.length)];
+  return pickAvoidingRecent(arr);
 }

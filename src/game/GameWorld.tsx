@@ -172,44 +172,48 @@ function isRoof(id: string) {
   return id === "roof" || id === "roof_ton";
 }
 
-function WallMesh({ w, color, highlight, onRemove }: { w: WallSegment; color: string; highlight?: boolean; onRemove: () => void }) {
+function WallMesh({ w, color, highlight, dim, onRemove }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void }) {
   const dx = w.bx - w.ax;
   const dz = w.bz - w.az;
   const len = Math.hypot(dx, dz);
   const angle = Math.atan2(dx, dz);
   const cx = (w.ax + w.bx) / 2;
   const cz = (w.az + w.bz) / 2;
+  const baseY = (w.floor ?? 0) * WALL_HEIGHT;
+  const opacity = dim ? 0.35 : 1;
   return (
-    <group position={[cx, 0, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); onRemove(); }}>
+    <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
       <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
         <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
-        <meshStandardMaterial color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} />
+        <meshStandardMaterial color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} transparent={dim} opacity={opacity} />
       </mesh>
       {/* Top concrete cap */}
       <mesh castShadow position={[0, WALL_HEIGHT + 0.06, 0]}>
         <boxGeometry args={[0.35, 0.12, len]} />
-        <meshStandardMaterial color="#9ca3af" roughness={0.8} />
+        <meshStandardMaterial color="#9ca3af" roughness={0.8} transparent={dim} opacity={opacity} />
       </mesh>
     </group>
   );
 }
 
-function RoofMesh({ r, onRemove }: { r: RoofSegment; onRemove: () => void }) {
+function RoofMesh({ r, dim, onRemove }: { r: RoofSegment; dim?: boolean; onRemove: () => void }) {
   const w = Math.abs(r.bx - r.ax);
   const d = Math.abs(r.bz - r.az);
   const cx = (r.ax + r.bx) / 2;
   const cz = (r.az + r.bz) / 2;
   const color = r.style === "ton" ? "#b91c1c" : "#7f1d1d";
+  // Mái nằm trên đỉnh tường của tầng đó: baseY = (floor+1)*WALL_HEIGHT
+  const baseY = ((r.floor ?? 0) + 1) * WALL_HEIGHT;
+  const opacity = dim ? 0.35 : 1;
   return (
-    <group position={[cx, WALL_HEIGHT, cz]} onContextMenu={(e) => { e.stopPropagation(); onRemove(); }}>
-      {/* Sloped pyramid-style roof: a flat slab + a low ridge for visual */}
+    <group position={[cx, baseY, cz]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
       <mesh castShadow receiveShadow position={[0, 0.18, 0]}>
         <boxGeometry args={[w + 0.4, 0.3, d + 0.4]} />
-        <meshStandardMaterial color={color} roughness={r.style === "ton" ? 0.4 : 0.85} metalness={r.style === "ton" ? 0.5 : 0.05} />
+        <meshStandardMaterial color={color} roughness={r.style === "ton" ? 0.4 : 0.85} metalness={r.style === "ton" ? 0.5 : 0.05} transparent={dim} opacity={opacity} />
       </mesh>
       <mesh castShadow position={[0, 0.55, 0]}>
         <boxGeometry args={[w + 0.1, 0.2, d * 0.25]} />
-        <meshStandardMaterial color={color} roughness={0.7} />
+        <meshStandardMaterial color={color} roughness={0.7} transparent={dim} opacity={opacity} />
       </mesh>
     </group>
   );

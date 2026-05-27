@@ -474,7 +474,8 @@ function GamePage() {
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
-  const WALL_LEVEL_REQ = [3, 10, 18]; // tầng trệt, tầng 2, tầng 3
+  // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng
+  const WALL_LEVEL_REQ = [0, 3, 10, 18];
   const wallLevelReq = WALL_LEVEL_REQ[activeFloor] ?? 99;
   const meetsWallLevel = level >= wallLevelReq;
   const canEnterWallMode = pillarsPlaced.length >= 2 && meetsWallLevel;

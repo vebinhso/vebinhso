@@ -24,6 +24,7 @@ import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
+import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 

@@ -985,6 +985,8 @@ function MagicPage() {
   const [bossResult, setBossResult] = useState<string | null>(null);
   const [witchResult, setWitchResult] = useState<string | null>(null);
   const [quiz5Result, setQuiz5Result] = useState<string | null>(null);
+  const [animalResult, setAnimalResult] = useState<string | null>(null);
+  const [ghostResult, setGhostResult] = useState<string | null>(null);
   const arraysEqualSet = (a: number[], b: number[]) => {
     if (a.length !== b.length) return false;
     const sa = [...a].sort(); const sb = [...b].sort();
@@ -1194,33 +1196,40 @@ function MagicPage() {
     setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 5, correct: 0, source: "corridor" });
   };
 
-  const answerAnimalQuiz = (i: number) => {
-    if (!animalQuiz) return;
-    const isCorrect = i === animalQuiz.q.answer;
+  const answerAnimalQuiz = (picked: number[]) => {
+    if (!animalQuiz || animalResult) return;
+    const correctIdx = animalQuiz.q.correctIndexes ?? [animalQuiz.q.answer];
+    const isCorrect = arraysEqualSet(picked, correctIdx);
     const reward = isCorrect ? animalQuiz.q.reward : 0;
     if (reward) addCoins(reward);
     bumpQuestion(isCorrect);
+    setAnimalResult(isCorrect ? "✅ Đúng!" : "❌ Sai rồi!");
     const nextCorrect = animalQuiz.correct + (isCorrect ? 1 : 0);
     const nextIdx = animalQuiz.idx + 1;
     if (nextIdx >= animalQuiz.total) {
-      const src = animalQuiz.source;
-      const dIdx = animalQuiz.doorIdx;
-      setAnimalQuiz(null);
-      if (src === "door" && dIdx != null) {
-        setDoors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
-        setRoom(null);
-        setCurrentAnimal(null);
-        setModal({ kind: "chest", text: `🐾 Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời căn phòng có chú vật ngộ nghĩnh!` });
-      } else if (src === "s2" && dIdx != null) {
-        setS2Doors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
-        setS2Room(null);
-        setCurrentAnimal(null);
-        setS2Modal({ title: "🐾 Phòng động vật", text: `Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời khỏi căn phòng có thú lạ.` });
-      }
-      // corridor: just continue playing
+      setTimeout(() => {
+        setAnimalResult(null);
+        const src = animalQuiz.source;
+        const dIdx = animalQuiz.doorIdx;
+        setAnimalQuiz(null);
+        if (src === "door" && dIdx != null) {
+          setDoors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+          setRoom(null);
+          setCurrentAnimal(null);
+          setModal({ kind: "chest", text: `🐾 Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời căn phòng có chú vật ngộ nghĩnh!` });
+        } else if (src === "s2" && dIdx != null) {
+          setS2Doors((d) => { const n = [...d]; n[dIdx] = "cleared"; return n; });
+          setS2Room(null);
+          setCurrentAnimal(null);
+          setS2Modal({ title: "🐾 Phòng động vật", text: `Đúng ${nextCorrect}/${animalQuiz.total} câu. Bạn rời khỏi căn phòng có thú lạ.` });
+        }
+      }, 1100);
       return;
     }
-    setAnimalQuiz({ ...animalQuiz, q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    setTimeout(() => {
+      setAnimalResult(null);
+      setAnimalQuiz({ ...animalQuiz, q: randomQuestion(), idx: nextIdx, correct: nextCorrect });
+    }, 1100);
   };
 
 
@@ -1391,12 +1400,17 @@ function MagicPage() {
     setS2Room(null);
     setGameComplete(true);
   };
-  const answerGhostQuiz = (i: number) => {
-    if (!ghostQuiz) return;
-    const correct = i === ghostQuiz.answer;
+  const answerGhostQuiz = (picked: number[]) => {
+    if (!ghostQuiz || ghostResult) return;
+    const correctIdx = ghostQuiz.correctIndexes ?? [ghostQuiz.answer];
+    const correct = arraysEqualSet(picked, correctIdx);
     if (correct) addCoins(20);
     bumpQuestion(correct);
-    setGhostQuiz(null);
+    setGhostResult(correct ? "✅ Đúng!" : "❌ Sai rồi!");
+    setTimeout(() => {
+      setGhostResult(null);
+      setGhostQuiz(null);
+    }, 1100);
   };
 
   // Room 5 sub-door choices
@@ -1887,12 +1901,12 @@ function MagicPage() {
               <span>{animalQuiz.source === "corridor" ? "🐯 Hổ tấn công! Trả lời để thoát" : "🐾 Gặp thú lạ — trả lời câu hỏi"}</span>
               <span>Câu {animalQuiz.idx + 1}/{animalQuiz.total} · ✅ {animalQuiz.correct}</span>
             </div>
-            <p className="font-black text-base mb-3">❓ {animalQuiz.q.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {animalQuiz.q.options.map((opt, i) => (
-                <button key={i} onClick={() => answerAnimalQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
-              ))}
-            </div>
+            <QuestionView question={animalQuiz.q} onAnswer={answerAnimalQuiz} compact disabled={!!animalResult} />
+            {animalResult && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${animalResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {animalResult}
+              </div>
+            )}
             <p className="text-xs font-bold mt-2 opacity-70">Mỗi câu đúng +{animalQuiz.q.reward}đ</p>
           </div>
         </div>
@@ -1903,12 +1917,12 @@ function MagicPage() {
         <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
           <div className="glass-card max-w-md w-full p-5">
             <p className="text-lg font-black mb-3 text-center">👻 Bị ma tấn công! Trả lời nhanh (+20đ nếu đúng)</p>
-            <p className="font-black mb-3">❓ {ghostQuiz.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {ghostQuiz.options.map((opt, i) => (
-                <button key={i} onClick={() => answerGhostQuiz(i)} className="toy-button !text-sm py-2">{opt}</button>
-              ))}
-            </div>
+            <QuestionView question={ghostQuiz} onAnswer={answerGhostQuiz} compact disabled={!!ghostResult} />
+            {ghostResult && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${ghostResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {ghostResult}
+              </div>
+            )}
           </div>
         </div>
       )}

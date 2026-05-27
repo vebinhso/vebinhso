@@ -479,6 +479,16 @@ function PlotAndPlacement({
         />
       ))}
 
+      {/* Floors */}
+      {floors.map((f) => (
+        <FloorMesh
+          key={f.id}
+          f={f}
+          dim={(f.floor ?? 0) !== activeFloor}
+          onRemove={() => onFloorRemove(f.id)}
+        />
+      ))}
+
       {/* Roofs */}
       {roofs.map((r) => (
         <RoofMesh

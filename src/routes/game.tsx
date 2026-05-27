@@ -92,10 +92,9 @@ function GamePage() {
       .catch(() => setQuestionsReady(true));
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
-    const base = generateBasePickups();
-    loadPickupExtras()
-      .then((extras) => setPickups([...base, ...extras]))
-      .catch(() => setPickups(base));
+    loadPickupConfig()
+      .then((cfg) => setPickups(resolvePickups(cfg)))
+      .catch(() => setPickups([]));
   }, [navigate]);
 
   useEffect(() => {

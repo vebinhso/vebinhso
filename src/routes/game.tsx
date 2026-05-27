@@ -82,6 +82,10 @@ function GamePage() {
   const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
 
+  // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [moveMode, setMoveMode] = useState(false);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();
@@ -232,6 +236,33 @@ function GamePage() {
   };
 
   const handlePlace = (x: number, z: number) => {
+    // Chế độ DỊCH CHUYỂN: cập nhật vị trí item đang chỉnh, không tạo item mới
+    if (editingId && moveMode && state) {
+      const target = state.placed.find((p) => p.id === editingId);
+      if (target) {
+        const it = getItem(target.itemId);
+        if (it) {
+          const swap = target.rotation % 2 === 1;
+          const fw = swap ? it.d : it.w;
+          const fd = swap ? it.w : it.d;
+          // Đưa về dạng "center-based" (+10 để vẫn nằm trong hệ lưới [0..20])
+          const cx = x + fw / 2;
+          const cz = z + fd / 2;
+          // Chặn ra ngoài mảnh đất
+          const clX = Math.max(0, Math.min(20, cx));
+          const clZ = Math.max(0, Math.min(20, cz));
+          // Lưu angleRad (nếu chưa có thì derive từ rotation)
+          const angleRad = typeof target.angleRad === "number" ? target.angleRad : (target.rotation * Math.PI) / 2;
+          setState({
+            ...state,
+            placed: state.placed.map((p) => (p.id === editingId ? { ...p, x: clX, z: clZ, angleRad, rotation: 0 } : p)),
+          });
+          setMoveMode(false);
+          playSfx("place");
+        }
+      }
+      return;
+    }
     const it = selected ? getItem(selected) : null;
     if (!it || !state) return;
     const swap = rotation % 2 === 1;
@@ -699,6 +730,14 @@ function GamePage() {
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
           onPlayerPos={(x, z) => setPlayerPos({ x, z })}
+          onItemClick={(id) => {
+            const p = state.placed.find((q) => q.id === id);
+            if (!p) return;
+            if ((p.floor ?? 0) !== activeFloor) return;
+            setEditingId(id);
+            setMoveMode(false);
+          }}
+          editingId={editingId}
         />
       </Suspense>
 
@@ -902,6 +941,105 @@ function GamePage() {
           <button onClick={() => setSelected(null)} className="toy-button !text-xs !py-1 !px-3">Hủy</button>
         </div>
       )}
+
+      {/* Panel chỉnh xoay / dịch chuyển item đã đặt */}
+      {editingId && state && (() => {
+        const ed = state.placed.find((p) => p.id === editingId);
+        if (!ed) return null;
+        if ((ed.floor ?? 0) !== activeFloor) return null;
+        const it = getItem(ed.itemId);
+        if (!it) return null;
+        const angleDeg = Math.round(((typeof ed.angleRad === "number" ? ed.angleRad : (ed.rotation * Math.PI) / 2) * 180) / Math.PI);
+        const normDeg = ((angleDeg % 360) + 360) % 360;
+        const setAngle = (deg: number) => {
+          const rad = (deg * Math.PI) / 180;
+          setState({
+            ...state,
+            placed: state.placed.map((p) => {
+              if (p.id !== editingId) return p;
+              // Khi chuyển sang angleRad lần đầu, đổi (x,z) corner → center
+              if (typeof p.angleRad !== "number") {
+                const swap = p.rotation % 2 === 1;
+                const fw = swap ? it.d : it.w;
+                const fd = swap ? it.w : it.d;
+                return { ...p, angleRad: rad, rotation: 0, x: p.x + fw / 2, z: p.z + fd / 2 };
+              }
+              return { ...p, angleRad: rad };
+            }),
+          });
+        };
+        const nudge = (dx: number, dz: number) => {
+          setState({
+            ...state,
+            placed: state.placed.map((p) => {
+              if (p.id !== editingId) return p;
+              if (typeof p.angleRad !== "number") {
+                const swap = p.rotation % 2 === 1;
+                const fw = swap ? it.d : it.w;
+                const fd = swap ? it.w : it.d;
+                return {
+                  ...p,
+                  angleRad: (p.rotation * Math.PI) / 2,
+                  rotation: 0,
+                  x: Math.max(0, Math.min(20, p.x + fw / 2 + dx)),
+                  z: Math.max(0, Math.min(20, p.z + fd / 2 + dz)),
+                };
+              }
+              return { ...p, x: Math.max(0, Math.min(20, p.x + dx)), z: Math.max(0, Math.min(20, p.z + dz)) };
+            }),
+          });
+        };
+        return (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">{it.icon}</span>
+              <div className="text-sm font-black flex-1">Chỉnh: {it.name}</div>
+              <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">Xong</button>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-bold w-12">Xoay:</span>
+              <input
+                type="range"
+                min={0}
+                max={360}
+                step={1}
+                value={normDeg}
+                onChange={(e) => setAngle(Number(e.target.value))}
+                className="flex-1 accent-cyan-500"
+              />
+              <span className="text-xs font-black w-12 text-right">{normDeg}°</span>
+            </div>
+            <div className="flex items-center gap-1 mb-2 flex-wrap">
+              <button onClick={() => setAngle(normDeg - 15)} className="toy-button !text-xs !py-1 !px-2">↺ -15°</button>
+              <button onClick={() => setAngle(normDeg - 1)} className="toy-button !text-xs !py-1 !px-2">-1°</button>
+              <button onClick={() => setAngle(normDeg + 1)} className="toy-button !text-xs !py-1 !px-2">+1°</button>
+              <button onClick={() => setAngle(normDeg + 15)} className="toy-button !text-xs !py-1 !px-2">+15° ↻</button>
+              <button onClick={() => setAngle(0)} className="toy-button !text-xs !py-1 !px-2">0°</button>
+              <button onClick={() => setAngle(90)} className="toy-button !text-xs !py-1 !px-2">90°</button>
+              <button onClick={() => setAngle(180)} className="toy-button !text-xs !py-1 !px-2">180°</button>
+              <button onClick={() => setAngle(270)} className="toy-button !text-xs !py-1 !px-2">270°</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold w-12">Dịch:</span>
+              <div className="grid grid-cols-3 gap-1">
+                <span />
+                <button onClick={() => nudge(0, -0.5)} className="toy-button !text-xs !py-1 !px-2">↑</button>
+                <span />
+                <button onClick={() => nudge(-0.5, 0)} className="toy-button !text-xs !py-1 !px-2">←</button>
+                <button onClick={() => setMoveMode((m) => !m)} className={`toy-button !text-xs !py-1 !px-2 ${moveMode ? "toy-button-green" : ""}`}>📍</button>
+                <button onClick={() => nudge(0.5, 0)} className="toy-button !text-xs !py-1 !px-2">→</button>
+                <span />
+                <button onClick={() => nudge(0, 0.5)} className="toy-button !text-xs !py-1 !px-2">↓</button>
+                <span />
+              </div>
+              <div className="text-[10px] font-bold text-stone-600 flex-1">
+                {moveMode ? "🟢 Click ô mới trên mảnh đất để dời vật tới đó" : "Bấm 📍 rồi click ô trong mảnh để dời, hoặc dùng mũi tên (0.5m)"}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {toast && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 glass-card px-5 py-3 font-black text-base animate-bounce pointer-events-none z-40">

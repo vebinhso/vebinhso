@@ -45,6 +45,10 @@ type Props = {
   showAdminMarkers?: boolean;
   sparkles?: { id: string; x: number; z: number; at: number }[];
   onPlayerPos?: (x: number, z: number) => void;
+  /** Click vào item đã đặt (khi không ở build/place mode) để mở panel chỉnh xoay/di chuyển. */
+  onItemClick?: (id: string) => void;
+  /** id item đang được chỉnh — sẽ vẽ vòng highlight quanh nó. */
+  editingId?: string | null;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -597,7 +601,7 @@ function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
-  activeFloor,
+  activeFloor, onItemClick, editingId,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -732,13 +736,26 @@ function PlotAndPlacement({
               if (!buildMode && !isOtherFloor) onRemove(p.id);
             }}
             onClick={(e) => {
-              if (buildMode && p.itemId === "pillar" && !isOtherFloor) {
+              if (isOtherFloor) return;
+              if (buildMode && p.itemId === "pillar") {
                 e.stopPropagation();
                 onPillarClick(p.id);
+                return;
+              }
+              // Không ở build/place mode → mở panel chỉnh xoay/di chuyển
+              if (!buildMode && !selected && onItemClick) {
+                e.stopPropagation();
+                onItemClick(p.id);
               }
             }}
           >
             <ItemModel item={it} />
+            {editingId === p.id && !isOtherFloor && (
+              <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[Math.max(it.w, it.d) * 0.7, Math.max(it.w, it.d) * 0.85, 36]} />
+                <meshBasicMaterial color="#22d3ee" transparent opacity={0.85} side={THREE.DoubleSide} depthWrite={false} />
+              </mesh>
+            )}
             {isPickedPillar && !isOtherFloor && (
               <mesh position={[0, 2.5, 0]}>
                 <torusGeometry args={[0.6, 0.08, 8, 24]} />

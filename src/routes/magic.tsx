@@ -1869,7 +1869,7 @@ function MagicPage() {
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>👹 Boss cấp {boss.level}</span>
               <span>❤️ {boss.hp}/{boss.maxHp}</span>
-              <span>❄️ Đạn: {boss.bulletsLeft}/10</span>
+              <span>✅ {boss.correct}/5 câu đúng</span>
             </div>
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />

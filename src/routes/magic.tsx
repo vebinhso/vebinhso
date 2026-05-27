@@ -1814,12 +1814,12 @@ function MagicPage() {
               <p className="font-black text-center py-4">⚡ Phù thủy đang phóng tia sét... {s2Inv.shield ? "🛡️ Khiên giảm sát thương!" : "Không có khiên — chịu sát thương đầy đủ!"}</p>
             ) : witch.question ? (
               <>
-                <p className="font-black text-base mb-3">❓ {witch.question.q}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {witch.question.options.map((opt, i) => (
-                    <button key={i} onClick={() => answerWitch(i)} className="toy-button !text-sm py-2">{opt}</button>
-                  ))}
-                </div>
+                <QuestionView question={witch.question} onAnswer={answerWitch} compact disabled={!!witchResult} />
+                {witchResult && (
+                  <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${witchResult.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    {witchResult}
+                  </div>
+                )}
                 <p className="text-xs font-bold mt-2 opacity-70">Đáp đúng → −20 HP phù thủy ({witch.correct}/5 câu đúng)</p>
               </>
             ) : null}

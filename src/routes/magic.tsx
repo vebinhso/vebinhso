@@ -982,6 +982,7 @@ function MagicPage() {
   const [room, setRoom] = useState<RoomState | null>(null);
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
+  const [bossResult, setBossResult] = useState<string | null>(null);
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
 

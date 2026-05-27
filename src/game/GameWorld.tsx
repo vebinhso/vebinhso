@@ -32,6 +32,7 @@ type Props = {
   onPillarClick: (placedId: string) => void;
   onWallRemove: (id: string) => void;
   onRoofRemove: (id: string) => void;
+  activeFloor: number;
 };
 
 function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {

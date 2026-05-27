@@ -309,7 +309,7 @@ function GamePage() {
       ax, az, bx, bz,
       color: state.wallColor,
       value: wallValue,
-      floor: 0,
+      floor: activeFloor,
     };
     setState({
       ...state,

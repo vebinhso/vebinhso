@@ -527,9 +527,13 @@ function GamePage() {
     if (collectedIds.has(p.id)) return;
     markCollected(p.id);
     if (p.kind === "coin") {
-      setState((s) => (s ? { ...s, money: s.money + 1 } : s));
+      setState((s) => (s ? { ...s, money: s.money + 10 } : s));
       playSfx("rightHouse", { duck: true });
-      flash("🪙 +1đ", 800);
+      // Sparkle 1.1s
+      const sid = `s-${p.id}-${Date.now()}`;
+      setSparkles((arr) => [...arr, { id: sid, x: p.x, z: p.z, at: Date.now() }]);
+      setTimeout(() => setSparkles((arr) => arr.filter((s) => s.id !== sid)), 1100);
+      flash("✨ +10đ", 900);
     } else {
       // Boom: mở modal trả lời 2 câu hỏi
       playSfx("wrongHouse", { duck: true });

@@ -163,6 +163,7 @@ function GamePage() {
       x,
       z,
       rotation,
+      floor: 0,
     };
     setState({
       ...state,
@@ -246,6 +247,7 @@ function GamePage() {
         ax, az, bx, bz,
         style: roofStyle,
         value,
+        floor: 0,
       };
       setState({
         ...state,
@@ -297,6 +299,7 @@ function GamePage() {
       ax, az, bx, bz,
       color: state.wallColor,
       value: wallValue,
+      floor: 0,
     };
     setState({
       ...state,

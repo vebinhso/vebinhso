@@ -8,6 +8,7 @@ export type PlacedItem = {
   x: number;
   z: number;
   rotation: number;
+  floor?: number;
 };
 
 export type WallSegment = {
@@ -15,6 +16,7 @@ export type WallSegment = {
   ax: number; az: number; bx: number; bz: number;
   color: string;
   value?: number;
+  floor?: number;
 };
 
 export type RoofSegment = {
@@ -22,6 +24,7 @@ export type RoofSegment = {
   ax: number; az: number; bx: number; bz: number;
   style: "tile" | "ton";
   value: number;
+  floor?: number;
 };
 
 export type GameState = {
@@ -122,13 +125,13 @@ async function refreshFromDB(uid: string) {
       wallColor: gs.data.wall_color ?? "#f5e6c8",
       ownedPalettes: Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [],
       placed: (items.data || []).map((r: any) => ({
-        id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation,
+        id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
       })),
       walls: (walls.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value,
+        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
       })),
       roofs: (roofs.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value,
+        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
       })),
     };
     persistLocal(uid);
@@ -156,19 +159,19 @@ async function flushToDB(uid: string) {
   await supabase.from("placed_items").delete().eq("user_id", uid);
   if (CACHE.placed.length) {
     await supabase.from("placed_items").insert(
-      CACHE.placed.map((p) => ({ user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation })),
+      CACHE.placed.map((p) => ({ user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0 })),
     );
   }
   await supabase.from("walls").delete().eq("user_id", uid);
   if (CACHE.walls.length) {
     await supabase.from("walls").insert(
-      CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0 })),
+      CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0, floor: w.floor ?? 0 })),
     );
   }
   await supabase.from("roofs").delete().eq("user_id", uid);
   if (CACHE.roofs.length) {
     await supabase.from("roofs").insert(
-      CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value })),
+      CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
     );
   }
 }
@@ -233,3 +236,9 @@ export const WALL_PALETTES: { id: string; name: string; colors: string[] }[] = [
   { id: "nordic", name: "Bắc Âu", colors: ["#f8fafc", "#cbd5e1", "#64748b", "#334155", "#0f172a"] },
   { id: "tropic", name: "Nhiệt đới", colors: ["#fef9c3", "#fde047", "#22d3ee", "#0e7490", "#ef4444"] },
 ];
+
+export const MAX_FLOOR = 3;
+
+export function floorHasRoof(s: GameState, floor: number): boolean {
+  return s.roofs.some((r) => (r.floor ?? 0) === floor);
+}

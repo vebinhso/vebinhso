@@ -102,7 +102,10 @@ function Home() {
             {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
           </div>
           <div>
-            <h1 className="text-lg font-black leading-tight">{user.username}</h1>
+            <h1 className="text-lg font-black leading-tight flex items-center gap-2">
+              {user.username}
+              <button onClick={() => { setRenameVal(user.username); setRenameOpen(true); }} className="text-sm opacity-60 hover:opacity-100 transition" title="Đổi tên">✏️</button>
+            </h1>
             <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày

@@ -1012,6 +1012,14 @@ function MagicPage() {
   const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
   const s2SpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
 
+  const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
+  useEffect(() => {
+    loadQuestionsFromDB("magic")
+      .then(() => setQuestionsReady(true))
+      .catch(() => setQuestionsReady(true));
+  }, []);
+
+
   const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }

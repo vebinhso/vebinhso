@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type Question = {
+  id?: string;
   q: string;
   options: string[];
   answer: number; // index (first correct)
@@ -73,6 +74,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
       return {
+        id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
         options,
         answer: correctIndexes[0] ?? 0,

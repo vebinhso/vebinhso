@@ -470,6 +470,23 @@ function PlotAndPlacement({
       </mesh>
       <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, floorY + 0.02, 0]} />
 
+      {/* Rào cản 4 cạnh trên các tầng cao để nhân vật không bị té */}
+      {activeFloor > 0 && (
+        <group position={[0, floorY, 0]}>
+          {[
+            { p: [0, 0.5, -half] as [number, number, number], s: [GRID, 1, 0.15] as [number, number, number] },
+            { p: [0, 0.5, half] as [number, number, number], s: [GRID, 1, 0.15] as [number, number, number] },
+            { p: [-half, 0.5, 0] as [number, number, number], s: [0.15, 1, GRID] as [number, number, number] },
+            { p: [half, 0.5, 0] as [number, number, number], s: [0.15, 1, GRID] as [number, number, number] },
+          ].map((r, i) => (
+            <mesh key={i} position={r.p} castShadow>
+              <boxGeometry args={r.s} />
+              <meshStandardMaterial color="#fde68a" roughness={0.7} />
+            </mesh>
+          ))}
+        </group>
+      )}
+
       {/* 4 cột mốc trắng — chỉ ở tầng trệt */}
       {[-half, half].map((x) =>
         [-half, half].map((z) => (

@@ -1486,14 +1486,6 @@ function MagicPage() {
       return;
     }
     const nextWave = witch.wave + 1;
-    if (nextWave > 5) {
-      setTimeout(() => {
-        setWitchResult(null);
-        setWitch(null);
-        setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
-      }, 1100);
-      return;
-    }
     setTimeout(() => {
       setWitchResult(null);
       setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });

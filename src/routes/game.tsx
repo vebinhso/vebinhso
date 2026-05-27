@@ -82,6 +82,10 @@ function GamePage() {
   const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
 
+  // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [moveMode, setMoveMode] = useState(false);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();

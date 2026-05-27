@@ -328,6 +328,7 @@ function GamePage() {
         placed: [...state.placed, placedSnap],
       });
       playSfx("place");
+      setDoorHint(false);
       return;
     }
 

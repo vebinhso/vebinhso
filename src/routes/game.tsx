@@ -389,9 +389,29 @@ function GamePage() {
     gradeAnswer(correctSet, picked);
   };
 
-  const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar");
+  const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   const canEnterWallMode = pillarsPlaced.length >= 2;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
+
+  const canAccessFloor = (f: number) => {
+    if (f <= 0) return true;
+    for (let i = 0; i < f; i++) {
+      if (!floorHasRoof(state, i)) return false;
+    }
+    return true;
+  };
+  const tryGoFloor = (f: number) => {
+    if (f === activeFloor) return;
+    if (!canAccessFloor(f)) {
+      flash(`🏠 Hãy lợp mái tầng dưới trước khi lên tầng ${f}!`, 2200);
+      return;
+    }
+    setActiveFloor(f);
+    setSelected(null);
+    setWallMode(false); setWallPickA(null);
+    setRoofMode(false); setRoofPicks([]);
+  };
+  const floorLabel = (f: number) => (f === 0 ? "Trệt" : String(f));
 
   return (
     <div className="fixed inset-0 bg-sky-300 overflow-hidden select-none">

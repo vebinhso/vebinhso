@@ -1,6 +1,7 @@
 // Models 3D chi tiết, PBR (metalness/roughness) — hướng tả thực cartoon
 import * as THREE from "three";
 import type { CatalogItem } from "./catalog";
+import { useWorldToggles } from "@/lib/world-toggles";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -237,6 +238,7 @@ export function Toilet() {
 }
 
 export function Lamp() {
+  const { lightsOn } = useWorldToggles();
   return (
     <group>
       <mesh castShadow position={[0, 1.5, 0]}>
@@ -245,9 +247,9 @@ export function Lamp() {
       </mesh>
       <mesh position={[0, 3.05, 0]}>
         <sphereGeometry args={[0.28, 18, 18]} />
-        <MStd color="#fde047" emissive="#fbbf24" emissiveIntensity={1.4} />
+        <MStd color={lightsOn ? "#fde047" : "#9ca3af"} emissive={lightsOn ? "#fbbf24" : "#000000"} emissiveIntensity={lightsOn ? 1.4 : 0} />
       </mesh>
-      <pointLight position={[0, 3, 0]} intensity={0.6} distance={7} color="#fef08a" />
+      {lightsOn && <pointLight position={[0, 3, 0]} intensity={0.6} distance={7} color="#fef08a" />}
     </group>
   );
 }
@@ -262,20 +264,25 @@ export function Wall({ h = 3 }) {
 }
 
 export function Door() {
+  const { doorsOpen } = useWorldToggles();
+  // Bản lề ở mép trái (x = -0.5). Group ngoài xoay quanh bản lề.
+  const open = doorsOpen ? -Math.PI / 2 : 0;
   return (
-    <group>
-      <mesh castShadow position={[0, 1.5, 0]}>
-        <boxGeometry args={[1, 3, 0.18]} />
-        <MStd color="#8b4513" roughness={0.7} />
-      </mesh>
-      <mesh position={[0.3, 1.5, 0.12]}>
-        <sphereGeometry args={[0.07, 14, 14]} />
-        <MStd color="#fbbf24" metalness={0.9} roughness={0.2} />
-      </mesh>
-      <mesh position={[0, 2, 0.1]}>
-        <boxGeometry args={[0.7, 0.4, 0.02]} />
-        <MStd color="#bae6fd" metalness={0.6} roughness={0.1} />
-      </mesh>
+    <group position={[-0.5, 0, 0]} rotation={[0, open, 0]}>
+      <group position={[0.5, 0, 0]}>
+        <mesh castShadow position={[0, 1.5, 0]}>
+          <boxGeometry args={[1, 3, 0.18]} />
+          <MStd color="#8b4513" roughness={0.7} />
+        </mesh>
+        <mesh position={[0.3, 1.5, 0.12]}>
+          <sphereGeometry args={[0.07, 14, 14]} />
+          <MStd color="#fbbf24" metalness={0.9} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 2, 0.1]}>
+          <boxGeometry args={[0.7, 0.4, 0.02]} />
+          <MStd color="#bae6fd" metalness={0.6} roughness={0.1} />
+        </mesh>
+      </group>
     </group>
   );
 }
@@ -873,6 +880,7 @@ export function FishPond() {
 }
 
 export function GardenLamp() {
+  const { lightsOn } = useWorldToggles();
   return (
     <group>
       <mesh castShadow position={[0, 0.7, 0]}>
@@ -881,9 +889,9 @@ export function GardenLamp() {
       </mesh>
       <mesh position={[0, 1.55, 0]}>
         <sphereGeometry args={[0.22, 14, 14]} />
-        <MStd color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} />
+        <MStd color={lightsOn ? "#fde047" : "#9ca3af"} emissive={lightsOn ? "#fbbf24" : "#000000"} emissiveIntensity={lightsOn ? 1.5 : 0} />
       </mesh>
-      <pointLight position={[0, 1.55, 0]} intensity={0.4} distance={5} color="#fef08a" />
+      {lightsOn && <pointLight position={[0, 1.55, 0]} intensity={0.4} distance={5} color="#fef08a" />}
     </group>
   );
 }

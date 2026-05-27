@@ -8,6 +8,7 @@ import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
+import { useWorldToggles } from "@/lib/world-toggles";
 
 const GRID = 20;
 const CELL = 1;
@@ -43,9 +44,21 @@ type Props = {
   onPickup?: (p: Pickup) => void;
   showAdminMarkers?: boolean;
   sparkles?: { id: string; x: number; z: number; at: number }[];
+  onPlayerPos?: (x: number, z: number) => void;
 };
 
-function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
+// Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
+const SOLID_ITEMS = new Set<string>([
+  "sofa", "bed", "singlebed", "bunkbed", "fridge", "fridge3", "tv", "tvstand",
+  "stove", "toilet", "lamp", "wardrobe", "table", "roundtable", "desk",
+  "bookshelf", "aircon", "vanity", "bathtub", "shower", "washer", "lavabo",
+  "sink", "hood", "microwave", "oven", "dishwasher", "ricecooker", "fishpond",
+  "pool", "pethouse", "teaset", "fence", "gate", "gardenlamp", "mailbox", "pillar",
+]);
+
+function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, walls, placed, onPlayerPos }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void; walls?: WallSegment[]; placed?: PlacedItem[]; onPlayerPos?: (x: number, z: number) => void }) {
+  const { collision, doorsOpen } = useWorldToggles();
+  const lastReport = useRef(0);
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);
@@ -96,8 +109,44 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }
     const moving = move.lengthSq() > 0;
     if (moving) {
       move.normalize().multiplyScalar(speed * dt);
-      ref.current.position.x += move.x;
-      ref.current.position.z += move.z;
+      const blocked = (nx: number, nz: number) => {
+        if (collision !== "block" || activeFloor !== 0) return false;
+        const R = 0.35; // player radius
+        // walls
+        if (walls) {
+          for (const w of walls) {
+            if ((w.floor ?? 0) !== 0) continue;
+            const dx = w.bx - w.ax, dz = w.bz - w.az;
+            const len2 = dx * dx + dz * dz;
+            if (len2 === 0) continue;
+            let t = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
+            t = Math.max(0, Math.min(1, t));
+            const cx = w.ax + t * dx, cz = w.az + t * dz;
+            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) return true;
+          }
+        }
+        // placed solid items
+        if (placed) {
+          for (const p of placed) {
+            if ((p.floor ?? 0) !== 0) continue;
+            if (p.itemId === "door" && doorsOpen) continue;
+            if (p.itemId !== "door" && !SOLID_ITEMS.has(p.itemId)) continue;
+            const it = getItem(p.itemId);
+            if (!it) continue;
+            const swap = p.rotation % 2 === 1;
+            const fw = swap ? it.d : it.w;
+            const fd = swap ? it.w : it.d;
+            const cx = p.x - 10 + fw / 2;
+            const cz = p.z - 10 + fd / 2;
+            if (Math.abs(nx - cx) < fw / 2 + R && Math.abs(nz - cz) < fd / 2 + R) return true;
+          }
+        }
+        return false;
+      };
+      const cx0 = ref.current.position.x, cz0 = ref.current.position.z;
+      const tx = cx0 + move.x, tz = cz0 + move.z;
+      if (!blocked(tx, cz0)) ref.current.position.x = tx;
+      if (!blocked(ref.current.position.x, tz)) ref.current.position.z = tz;
       ref.current.rotation.y = Math.atan2(move.x, move.z);
       walkPhase.current += dt * 10;
     } else {
@@ -139,6 +188,14 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }
       const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.0, ref.current.position.z);
       controlsRef.current.target.lerp(t, 0.18);
       controlsRef.current.update();
+    }
+    // Báo vị trí ra ngoài (throttle ~10Hz) để HUD xác định gần cửa
+    if (onPlayerPos) {
+      const now = performance.now();
+      if (now - lastReport.current > 100) {
+        lastReport.current = now;
+        onPlayerPos(ref.current.position.x, ref.current.position.z);
+      }
     }
   });
 
@@ -746,7 +803,7 @@ export default function GameWorld(props: Props) {
           <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
         </Clouds>
       </Suspense>
-      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} />
+      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} walls={props.walls} placed={props.placed} onPlayerPos={props.onPlayerPos} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />

@@ -24,6 +24,7 @@ import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
+import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 
@@ -45,6 +46,8 @@ function GamePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
+  const wt = useWorldToggles();
+  const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
 
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);

@@ -200,6 +200,65 @@ function ProjectCodeGuidePage() {
             </button>
           </div>
 
+          <section className="mb-8">
+            <h2 className="text-2xl font-black mb-3">
+              1. 🪝 HOOKS — Danh sách & Mục đích
+            </h2>
+            <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-900 text-white">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-black w-10">#</th>
+                    <th className="px-3 py-2 text-left font-black">Hook</th>
+                    <th className="px-3 py-2 text-left font-black">Mục đích</th>
+                    <th className="px-3 py-2 text-left font-black">Nơi sử dụng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hookTable.map((h, i) => (
+                    <tr key={h.name} className="border-t border-gray-200 align-top">
+                      <td className="px-3 py-3 font-bold text-muted-foreground">{i + 1}</td>
+                      <td className="px-3 py-3">
+                        <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-xs font-bold">
+                          {h.name}
+                        </code>
+                        <div className="text-[11px] text-muted-foreground font-mono mt-1">
+                          {h.definedIn.replace(/^\//, "")}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 font-medium text-gray-700">{h.purpose}</td>
+                      <td className="px-3 py-3">
+                        {h.usedIn.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">Chưa dùng</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {h.usedIn.map((u) => (
+                              <code
+                                key={u}
+                                className="inline-block px-2 py-0.5 rounded bg-gray-900 text-amber-300 font-mono text-[11px]"
+                              >
+                                {u.replace(/^\/src\//, "").replace(/\.(tsx?|jsx?)$/, "")}
+                              </code>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {hookTable.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground font-bold">
+                        Chưa có custom hook nào.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <h2 className="text-2xl font-black mb-3">2. 📁 Toàn bộ file source</h2>
+
           <input
             type="text"
             value={query}

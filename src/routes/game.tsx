@@ -581,7 +581,7 @@ function GamePage() {
                   key={f}
                   onClick={() => tryGoFloor(f)}
                   className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
-                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp mái tầng ${f - 1} trước`}
+                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp sàn tầng ${f - 1} trước`}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
                 </button>
@@ -591,6 +591,10 @@ function GamePage() {
 
           <button
             onClick={() => {
+              if (!meetsWallLevel) {
+                flash(`🔒 Cần đạt CẤP ${wallLevelReq} để xây tường ở tầng ${floorLabel(activeFloor)}.`, 2400);
+                return;
+              }
               if (!canEnterWallMode) {
                 flash("Đặt ít nhất 2 cột bê tông trước khi xây tường.");
                 return;
@@ -603,9 +607,10 @@ function GamePage() {
               setFloorPicks([]);
               setSelected(null);
             }}
-            className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
+            className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""} ${!meetsWallLevel ? "opacity-70" : ""}`}
+            title={!meetsWallLevel ? `Cần CẤP ${wallLevelReq} để xây tường tầng ${floorLabel(activeFloor)}` : ""}
           >
-            {wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
+            {!meetsWallLevel ? `🔒 XÂY TƯỜNG (CẤP ${wallLevelReq})` : wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
           </button>
           <button
             onClick={() => {

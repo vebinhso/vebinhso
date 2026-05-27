@@ -601,7 +601,7 @@ function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
-  activeFloor,
+  activeFloor, onItemClick, editingId,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;

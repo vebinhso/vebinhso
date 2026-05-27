@@ -15,6 +15,7 @@ import {
   type PlacedItem,
   type WallSegment,
   type RoofSegment,
+  type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";

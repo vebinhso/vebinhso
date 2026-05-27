@@ -1299,7 +1299,7 @@ function MagicPage() {
   };
 
   const answerBoss = (picked: number[]) => {
-    if (!boss || !boss.question) return;
+    if (!boss || !boss.question || bossResult) return;
     const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
       ? boss.question.correctIndexes
       : [boss.question.answer];
@@ -1307,20 +1307,35 @@ function MagicPage() {
     const b = [...picked].sort().join(",");
     const correct = a === b;
     const g = loadGame();
+    const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
     if (correct) {
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
       const newHp = Math.max(0, boss.hp - boss.perHit);
       const newBullets = boss.bulletsLeft - 1;
+      setBossResult("✅ Chính xác! Bắn trúng boss!");
       if (newHp <= 0) {
-        addCoins(boss.maxHp);
-        setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${boss.level}! +${boss.maxHp} đồng` });
+        const maxHp = boss.maxHp;
+        const level = boss.level;
+        setTimeout(() => {
+          setBoss(null);
+          setBossResult(null);
+          addCoins(maxHp);
+          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${maxHp} đồng` });
+        }, 1200);
         return;
       }
-      setBoss({ ...boss, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() });
+      setTimeout(() => {
+        setBossResult(null);
+        setBoss((prev) => prev ? { ...prev, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() } : prev);
+      }, 1200);
     } else {
       saveGame({ ...g, answerStreak: 0 });
       const nb = Math.max(0, boss.bulletsLeft - 1);
-      setBoss({ ...boss, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() });
+      setBossResult(`❌ Sai rồi! Đáp án đúng: ${correctLetters}`);
+      setTimeout(() => {
+        setBossResult(null);
+        setBoss((prev) => prev ? { ...prev, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() } : prev);
+      }, 1200);
     }
   };
 

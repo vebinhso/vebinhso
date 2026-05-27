@@ -1835,12 +1835,12 @@ function MagicPage() {
               <span>📜 Cửa 1 — Câu {quiz5.idx + 1}/5</span>
               <span>✅ Đúng: {quiz5.correct}</span>
             </div>
-            <p className="font-black text-base mb-3">❓ {quiz5.q.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {quiz5.q.options.map((opt, i) => (
-                <button key={i} onClick={() => answerQuiz5(i)} className="toy-button !text-sm py-2">{opt}</button>
-              ))}
-            </div>
+            <QuestionView question={quiz5.q} onAnswer={answerQuiz5} compact disabled={!!quiz5Result} />
+            {quiz5Result && (
+              <div className={`mt-2 p-2 rounded-lg text-center font-black text-sm ${quiz5Result.startsWith("✅") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {quiz5Result}
+              </div>
+            )}
           </div>
         </div>
       )}

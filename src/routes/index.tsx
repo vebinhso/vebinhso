@@ -29,6 +29,8 @@ function Home() {
 
   const [friends, setFriends] = useState<Account[]>([]);
   const [incoming, setIncoming] = useState<{ from: Account; created_at: number }[]>([]);
+  const [showAllFriends, setShowAllFriends] = useState(false);
+  const [showAllIncoming, setShowAllIncoming] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");

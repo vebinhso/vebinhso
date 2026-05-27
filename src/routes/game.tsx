@@ -170,11 +170,13 @@ function GamePage() {
     const kind = it.kind ?? "place";
     if (kind === "brick") {
       setState({ ...state, money: state.money - it.price, bricks: state.bricks + (it.qty ?? 10) });
+      playSfx("purchase", { duck: true });
       flash(`🧱 +${it.qty ?? 10} viên gạch vào kho`);
       return;
     }
     if (kind === "concrete") {
       setState({ ...state, money: state.money - it.price, concrete: state.concrete + (it.qty ?? 1) });
+      playSfx("purchase", { duck: true });
       flash(`🪣 +${it.qty ?? 1} xô bê tông tươi vào kho`);
       return;
     }
@@ -187,18 +189,20 @@ function GamePage() {
         roofTiles: style === "tile" ? state.roofTiles + qty : state.roofTiles,
         roofTilesTon: style === "ton" ? state.roofTilesTon + qty : state.roofTilesTon,
       });
+      playSfx("purchase", { duck: true });
       flash(`🏠 +${qty} gạch mái ${style === "ton" ? "tôn" : "ngói"} vào kho`);
       return;
     }
     if (kind === "palette") {
       if (!state.ownedPalettes.length) {
-        // mua lần đầu: trừ tiền & mở tất cả palette
         setState({ ...state, money: state.money - it.price, ownedPalettes: WALL_PALETTES.map((p) => p.id) });
+        playSfx("purchase", { duck: true });
       }
       setPaletteOpen(true);
       setShopOpen(false);
       return;
     }
+
     // Cửa sổ: phải có ít nhất 1 tường để gắn
     if (it.id === "window" && state.walls.length === 0) {
       flash("⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");

@@ -474,7 +474,10 @@ function GamePage() {
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
-  const canEnterWallMode = pillarsPlaced.length >= 2;
+  const WALL_LEVEL_REQ = [3, 10, 18]; // tầng trệt, tầng 2, tầng 3
+  const wallLevelReq = WALL_LEVEL_REQ[activeFloor] ?? 99;
+  const meetsWallLevel = level >= wallLevelReq;
+  const canEnterWallMode = pillarsPlaced.length >= 2 && meetsWallLevel;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
   const canEnterFloorMode = pillarsPlaced.length >= 4;
   const floorOnThisFloor = state.floors.some((f) => (f.floor ?? 0) === activeFloor);
@@ -482,14 +485,15 @@ function GamePage() {
   const canAccessFloor = (f: number) => {
     if (f <= 0) return true;
     for (let i = 0; i < f; i++) {
-      if (!floorHasRoof(state, i)) return false;
+      // Chỉ cần lợp sàn tầng dưới (không cần mái)
+      if (!state.floors.some((fl) => (fl.floor ?? 0) === i)) return false;
     }
     return true;
   };
   const tryGoFloor = (f: number) => {
     if (f === activeFloor) return;
     if (!canAccessFloor(f)) {
-      flash(`🏠 Hãy lợp mái tầng dưới trước khi lên tầng ${f}!`, 2200);
+      flash(`🏗️ Hãy lợp sàn tầng dưới trước khi lên tầng ${f}!`, 2200);
       return;
     }
     setActiveFloor(f);
@@ -577,7 +581,7 @@ function GamePage() {
                   key={f}
                   onClick={() => tryGoFloor(f)}
                   className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
-                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp mái tầng ${f - 1} trước`}
+                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp sàn tầng ${f - 1} trước`}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
                 </button>
@@ -587,6 +591,10 @@ function GamePage() {
 
           <button
             onClick={() => {
+              if (!meetsWallLevel) {
+                flash(`🔒 Cần đạt CẤP ${wallLevelReq} để xây tường ở tầng ${floorLabel(activeFloor)}.`, 2400);
+                return;
+              }
               if (!canEnterWallMode) {
                 flash("Đặt ít nhất 2 cột bê tông trước khi xây tường.");
                 return;
@@ -599,9 +607,10 @@ function GamePage() {
               setFloorPicks([]);
               setSelected(null);
             }}
-            className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
+            className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""} ${!meetsWallLevel ? "opacity-70" : ""}`}
+            title={!meetsWallLevel ? `Cần CẤP ${wallLevelReq} để xây tường tầng ${floorLabel(activeFloor)}` : ""}
           >
-            {wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
+            {!meetsWallLevel ? `🔒 XÂY TƯỜNG (CẤP ${wallLevelReq})` : wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
           </button>
           <button
             onClick={() => {

@@ -132,6 +132,7 @@ function AdminPage() {
               {tab === "rewards" && <RewardsPanel cfg={cfg} onChange={update} />}
               {tab === "content" && <ContentPanel />}
               {tab === "maps" && <MapsPanel cfg={cfg} onChange={update} />}
+              {tab === "pickups" && <PickupsPanel />}
               {tab === "logs" && <LogsPanel />}
             </main>
           </div>

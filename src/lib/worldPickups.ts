@@ -42,25 +42,50 @@ export function generateBasePickups(seed = BASE_SEED): Pickup[] {
   return out;
 }
 
-// ===== Extras (admin manual placements) =====
+// ===== Config (admin-managed full layout) =====
+// admin_config.value shape: { override: boolean, items: Pickup[] }
+//  - override=false → map = base sinh sẵn + items (thêm thủ công)
+//  - override=true  → map = items (admin quản lý TOÀN BỘ vị trí xu+boom)
 const EXTRAS_KEY = "world_pickups_extras";
 
-export async function loadPickupExtras(): Promise<Pickup[]> {
+export type PickupConfig = { override: boolean; items: Pickup[] };
+
+function sanitize(arr: any[]): Pickup[] {
+  return (arr || []).filter(
+    (p: any) => p && (p.kind === "coin" || p.kind === "bomb") && isFinite(p.x) && isFinite(p.z),
+  );
+}
+
+export async function loadPickupConfig(): Promise<PickupConfig> {
   const { data } = await supabase
     .from("admin_config")
     .select("value")
     .eq("key", EXTRAS_KEY)
     .maybeSingle();
-  if (!data) return [];
-  const v = data.value as any;
-  const items = Array.isArray(v) ? v : Array.isArray(v?.items) ? v.items : [];
-  return items.filter((p: any) => p && (p.kind === "coin" || p.kind === "bomb"));
+  const v: any = data?.value;
+  if (!v) return { override: false, items: [] };
+  if (Array.isArray(v)) return { override: false, items: sanitize(v) };
+  return { override: !!v.override, items: sanitize(v.items) };
 }
 
-export async function savePickupExtras(items: Pickup[]) {
+export async function savePickupConfig(cfg: PickupConfig) {
   await supabase
     .from("admin_config")
-    .upsert({ key: EXTRAS_KEY, value: items as any });
+    .upsert({ key: EXTRAS_KEY, value: cfg as any });
+}
+
+// Resolve final list of pickups for the game world
+export function resolvePickups(cfg: PickupConfig): Pickup[] {
+  return cfg.override ? cfg.items : [...generateBasePickups(), ...cfg.items];
+}
+
+// Backward-compat
+export async function loadPickupExtras(): Promise<Pickup[]> {
+  return (await loadPickupConfig()).items;
+}
+export async function savePickupExtras(items: Pickup[]) {
+  const cur = await loadPickupConfig();
+  await savePickupConfig({ override: cur.override, items });
 }
 
 // ===== Collected (per user, localStorage) =====

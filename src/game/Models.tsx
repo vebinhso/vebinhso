@@ -880,6 +880,7 @@ export function FishPond() {
 }
 
 export function GardenLamp() {
+  const { lightsOn } = useWorldToggles();
   return (
     <group>
       <mesh castShadow position={[0, 0.7, 0]}>
@@ -888,9 +889,9 @@ export function GardenLamp() {
       </mesh>
       <mesh position={[0, 1.55, 0]}>
         <sphereGeometry args={[0.22, 14, 14]} />
-        <MStd color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} />
+        <MStd color={lightsOn ? "#fde047" : "#9ca3af"} emissive={lightsOn ? "#fbbf24" : "#000000"} emissiveIntensity={lightsOn ? 1.5 : 0} />
       </mesh>
-      <pointLight position={[0, 1.55, 0]} intensity={0.4} distance={5} color="#fef08a" />
+      {lightsOn && <pointLight position={[0, 1.55, 0]} intensity={0.4} distance={5} color="#fef08a" />}
     </group>
   );
 }

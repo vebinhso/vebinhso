@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
 import { ItemModel } from "./Models";
-import type { PlacedItem, WallSegment, RoofSegment } from "@/lib/game";
+import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 
 const GRID = 20;
@@ -19,11 +19,14 @@ type Props = {
   placed: PlacedItem[];
   walls: WallSegment[];
   roofs: RoofSegment[];
+  floors: FloorSegment[];
   wallColor: string;
   wallMode: boolean;
   wallPickA: string | null;
   roofMode: boolean;
   roofPicks: string[];
+  floorMode: boolean;
+  floorPicks: string[];
   selectedItemId: string | null;
   rotation: number;
   onRotate: () => void;
@@ -32,6 +35,7 @@ type Props = {
   onPillarClick: (placedId: string) => void;
   onWallRemove: (id: string) => void;
   onRoofRemove: (id: string) => void;
+  onFloorRemove: (id: string) => void;
   activeFloor: number;
 };
 
@@ -219,6 +223,30 @@ function RoofMesh({ r, dim, onRemove }: { r: RoofSegment; dim?: boolean; onRemov
   );
 }
 
+function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRemove: () => void }) {
+  const w = Math.abs(f.bx - f.ax);
+  const d = Math.abs(f.bz - f.az);
+  const cx = (f.ax + f.bx) / 2;
+  const cz = (f.az + f.bz) / 2;
+  const baseY = (f.floor ?? 0) * WALL_HEIGHT;
+  const opacity = dim ? 0.35 : 1;
+  const THICK = 0.12;
+  return (
+    <group position={[cx, baseY, cz]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
+      {/* slab bê tông */}
+      <mesh receiveShadow castShadow position={[0, -THICK / 2 + 0.005, 0]}>
+        <boxGeometry args={[w + 0.2, THICK, d + 0.2]} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.95} metalness={0.02} transparent={dim} opacity={opacity} />
+      </mesh>
+      {/* viền nhẹ trên mặt sàn */}
+      <mesh position={[0, 0.011, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[w + 0.18, d + 0.18]} />
+        <meshStandardMaterial color="#94a3b8" roughness={0.9} transparent opacity={dim ? 0.2 : 0.45} />
+      </mesh>
+    </group>
+  );
+}
+
 // ---------------- Neighborhood (vùng xung quanh mảnh đất) ----------------
 // Sinh deterministic dựa trên seed lưới để tạo cảm giác "thành phố nhỏ"
 // với nhiều mô hình nhà 3D đủ hình thù + đồng cỏ xanh xen kẽ.
@@ -381,14 +409,15 @@ function Neighborhood() {
 }
 
 function PlotAndPlacement({
-  placed, walls, roofs, wallColor, wallMode, wallPickA, roofMode, roofPicks,
-  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove,
+  placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
+  floorMode, floorPicks,
+  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
   const half = (GRID * CELL) / 2;
-  const buildMode = wallMode || roofMode;
+  const buildMode = wallMode || roofMode || floorMode;
   const floorY = activeFloor * WALL_HEIGHT;
 
   const rotatedFootprint = (it: CatalogItem) => {
@@ -450,6 +479,16 @@ function PlotAndPlacement({
         />
       ))}
 
+      {/* Floors */}
+      {floors.map((f) => (
+        <FloorMesh
+          key={f.id}
+          f={f}
+          dim={(f.floor ?? 0) !== activeFloor}
+          onRemove={() => onFloorRemove(f.id)}
+        />
+      ))}
+
       {/* Roofs */}
       {roofs.map((r) => (
         <RoofMesh
@@ -475,7 +514,8 @@ function PlotAndPlacement({
         const isOtherFloor = pFloor !== activeFloor;
         const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);
-        const isPickedPillar = isWallPickPillar || isRoofPickPillar;
+        const isFloorPickPillar = floorMode && p.itemId === "pillar" && floorPicks.includes(p.id);
+        const isPickedPillar = isWallPickPillar || isRoofPickPillar || isFloorPickPillar;
         return (
           <group
             key={p.id}

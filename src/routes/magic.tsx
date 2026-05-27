@@ -1297,9 +1297,14 @@ function MagicPage() {
     exitRoom(true);
   };
 
-  const answerBoss = (idx: number) => {
+  const answerBoss = (picked: number[]) => {
     if (!boss || !boss.question) return;
-    const correct = idx === boss.question.answer;
+    const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
+      ? boss.question.correctIndexes
+      : [boss.question.answer];
+    const a = [...correctSet].sort().join(",");
+    const b = [...picked].sort().join(",");
+    const correct = a === b;
     const g = loadGame();
     if (correct) {
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });

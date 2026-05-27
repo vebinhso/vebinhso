@@ -23,8 +23,10 @@ import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
+import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
+
 
 function GamePage() {
   const navigate = useNavigate();

@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
-import { randomQuestion, type Question } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from "@/game/stage2";
@@ -1011,6 +1011,14 @@ function MagicPage() {
   const [selectedArea, setSelectedArea] = useState<1 | 2 | null>(null);
   const corridorSpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
   const s2SpawnRef = useRef<{ x: number; z: number; lookX: number; lookZ: number } | null>(null);
+
+  const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
+  useEffect(() => {
+    loadQuestionsFromDB("magic")
+      .then(() => setQuestionsReady(true))
+      .catch(() => setQuestionsReady(true));
+  }, []);
+
 
   const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
   useEffect(() => {

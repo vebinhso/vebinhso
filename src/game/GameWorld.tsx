@@ -749,7 +749,7 @@ export default function GameWorld(props: Props) {
       <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
-        <PickupsField pickups={props.pickups} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} />
+        <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />

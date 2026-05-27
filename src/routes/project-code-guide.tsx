@@ -765,7 +765,21 @@ function ProjectCodeGuidePage() {
   );
   const markdown = useMemo(() => buildMarkdown(allFiles), [allFiles]);
   const hookTable = useMemo(() => buildHookTable(allFiles), [allFiles]);
+  const fileMetas = useMemo(() => buildFileMeta(allFiles), [allFiles]);
   const [query, setQuery] = useState("");
+  const [fileQuery, setFileQuery] = useState("");
+
+  const filteredMetas = useMemo(() => {
+    if (!fileQuery.trim()) return fileMetas;
+    const q = fileQuery.toLowerCase();
+    return fileMetas.filter(
+      (m) =>
+        m.path.toLowerCase().includes(q) ||
+        m.detail.task.toLowerCase().includes(q) ||
+        m.detail.role.toLowerCase().includes(q),
+    );
+  }, [fileMetas, fileQuery]);
+
 
   const paths = useMemo(
     () =>

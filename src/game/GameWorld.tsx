@@ -203,6 +203,39 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }
 }
 
 
+function Pickup3D({ p, collected, showAdmin }: { p: Pickup; collected: boolean; showAdmin: boolean }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 2.5; });
+  if (collected) return null;
+  if (p.kind === "coin") {
+    return (
+      <mesh ref={ref} position={[p.x, 0.45, p.z]} castShadow>
+        <cylinderGeometry args={[0.28, 0.28, 0.08, 20]} />
+        <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.75} roughness={0.25} />
+      </mesh>
+    );
+  }
+  if (!showAdmin) return null;
+  return (
+    <mesh position={[p.x, 0.35, p.z]}>
+      <sphereGeometry args={[0.28, 12, 12]} />
+      <meshStandardMaterial color="#dc2626" emissive="#7f1d1d" emissiveIntensity={0.6} transparent opacity={0.55} />
+    </mesh>
+  );
+}
+
+function PickupsField({ pickups, collectedIds, showAdminMarkers }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean }) {
+  return (
+    <group>
+      {pickups.map((p) => (
+        <Pickup3D key={p.id} p={p} collected={collectedIds.has(p.id)} showAdmin={showAdminMarkers} />
+      ))}
+    </group>
+  );
+}
+
+
+
 function isRoof(id: string) {
   return id === "roof" || id === "roof_ton";
 }

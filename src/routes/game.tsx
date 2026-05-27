@@ -216,6 +216,10 @@ function GamePage() {
 
   // Build wall between 2 pillars, or build roof from 4 pillars
   const onPillarClick = (placedId: string) => {
+    // Chỉ cho phép thao tác với cột thuộc tầng đang chọn
+    const clicked = state.placed.find((p) => p.id === placedId);
+    if (!clicked || (clicked.floor ?? 0) !== activeFloor) return;
+
     if (roofMode) {
       // Toggle pick: deselect if already chosen
       if (roofPicks.includes(placedId)) {

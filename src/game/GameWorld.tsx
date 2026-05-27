@@ -794,8 +794,8 @@ export default function GameWorld(props: Props) {
         position={[25, 35, 18]}
         intensity={2}
         color="#fff5e1"
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-left={-30}
         shadow-camera-right={30}
         shadow-camera-top={30}

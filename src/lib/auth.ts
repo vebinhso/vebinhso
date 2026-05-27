@@ -94,6 +94,7 @@ export async function hydrateFromSession(): Promise<Account | null> {
     avatarUrl: (profile as any)?.avatar_url ?? null,
   };
   setCurrentUserCache(acc);
+  try { recordLoginDay(acc.id); } catch {}
   return acc;
 }
 

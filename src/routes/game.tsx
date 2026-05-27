@@ -610,6 +610,10 @@ function GamePage() {
           </button>
           <button
             onClick={() => {
+              if (!floorOnThisFloor) {
+                flash("Phải xây SÀN trước khi lợp mái cho tầng này.", 2500);
+                return;
+              }
               if (!canEnterRoofMode) {
                 flash("Đặt ít nhất 4 cột bê tông trước khi xây mái nhà.");
                 return;
@@ -618,6 +622,8 @@ function GamePage() {
               setRoofPicks([]);
               setWallMode(false);
               setWallPickA(null);
+              setFloorMode(false);
+              setFloorPicks([]);
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${roofMode ? "toy-button-green" : ""}`}

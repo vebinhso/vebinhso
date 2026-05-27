@@ -1043,6 +1043,12 @@ function MagicPage() {
     if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
+  // Bật nhạc ma mị sau khi intro "KHU VỰC" đã hiện xong; áp dụng cho cả 2 khu vực.
+  useEffect(() => {
+    if (intro >= 3) setBgm("magic");
+  }, [intro]);
+
+
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
     setOutfit(loadOutfit() || DEFAULT_OUTFIT);

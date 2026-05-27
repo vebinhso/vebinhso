@@ -225,7 +225,7 @@ function Chat() {
                     }`}
                   />
                   {activeFriend.username}
-                  <span className="text-xs text-orange-700">#{activeFriend.id}</span>
+                  {user && isAdmin(user.email) && <span className="text-xs text-orange-700">#{activeFriend.id}</span>}
                 </div>
                 <div className="flex-1 flex flex-col gap-2 overflow-y-auto mb-3 min-h-[260px] max-h-[55vh] p-2 bg-white/40 rounded-xl">
                   {msgs.length === 0 ? (

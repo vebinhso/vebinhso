@@ -803,7 +803,7 @@ export default function GameWorld(props: Props) {
           <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
         </Clouds>
       </Suspense>
-      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} />
+      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} walls={props.walls} placed={props.placed} onPlayerPos={props.onPlayerPos} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />

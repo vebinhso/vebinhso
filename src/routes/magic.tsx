@@ -1088,7 +1088,9 @@ function MagicPage() {
     } else {
       saveGame({ ...g, answerStreak: 0 });
     }
+    playSfx(isCorrect ? "monsterHit" : "wrongGame", { duck: true });
   };
+
 
   // room phase ticker
   useEffect(() => {

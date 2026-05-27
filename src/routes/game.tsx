@@ -18,7 +18,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -250,11 +250,11 @@ function GamePage() {
       }
     }
 
-    const collides = state.placed.some((p) => {
+    // Tìm các item bị chồng lấn footprint
+    const overlaps = state.placed.filter((p) => {
       if ((p.floor ?? 0) !== activeFloor) return false;
       const pi = getItem(p.itemId);
       if (!pi) return false;
-      // Mái không kiểm tra va chạm sàn (đặt trên đỉnh tường)
       if (isRoof(pi.id) || isRoof(it.id)) return false;
       if (pi.id === "window" || it.id === "window") return false;
       const ps = p.rotation % 2 === 1;
@@ -262,7 +262,28 @@ function GamePage() {
       const pd = ps ? pi.w : pi.d;
       return !(x + fw <= p.x || p.x + pw <= x || z + fd <= p.z || p.z + pd <= z);
     });
-    if (collides) return;
+
+    // Tính stackY: nếu item là topper và TẤT CẢ item bị chồng lên đều là surface
+    // (và topper nằm gọn trong footprint surface), cho phép đặt lên nóc surface cao nhất.
+    let stackY = 0;
+    if (overlaps.length > 0) {
+      const allSurfaces = overlaps.every((p) => {
+        const pi = getItem(p.itemId);
+        if (!pi || !STACK_SURFACES.has(pi.id) || !canStackOn(it.id, pi.id)) return false;
+        const ps = p.rotation % 2 === 1;
+        const pw = ps ? pi.d : pi.w;
+        const pd = ps ? pi.w : pi.d;
+        // topper phải nằm hoàn toàn trong footprint surface
+        return x >= p.x && z >= p.z && x + fw <= p.x + pw && z + fd <= p.z + pd;
+      });
+      if (!allSurfaces) return;
+      stackY = Math.max(
+        ...overlaps.map((p) => {
+          const pi = getItem(p.itemId)!;
+          return (p.stackY ?? 0) + pi.h;
+        })
+      );
+    }
     if (state.money < it.price) return;
     const placed: PlacedItem = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -271,6 +292,7 @@ function GamePage() {
       z,
       rotation,
       floor: activeFloor,
+      ...(stackY > 0 ? { stackY } : {}),
     };
     setState({
       ...state,

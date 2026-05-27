@@ -96,12 +96,56 @@ function buildMarkdown(allFiles: Record<string, string>): string {
   return lines.join("\n");
 }
 
+type HookInfo = {
+  name: string;
+  definedIn: string;
+  purpose: string;
+  usedIn: string[];
+};
+
+const HOOK_PURPOSES: Record<string, string> = {
+  useAuthSync:
+    "Đồng bộ trạng thái đăng nhập Supabase với app: hydrate cache user và invalidate router/query khi auth thay đổi.",
+  useIsMobile:
+    "Phát hiện viewport mobile (<768px) qua matchMedia, dùng để render responsive UI.",
+};
+
+function buildHookTable(files: Record<string, string>): HookInfo[] {
+  const defRegex = /export\s+(?:function|const)\s+(use[A-Z]\w*)/g;
+  const defs = new Map<string, string>();
+  for (const [path, src] of Object.entries(files)) {
+    if (!/\.(ts|tsx)$/.test(path)) continue;
+    for (const m of src.matchAll(defRegex)) {
+      if (!defs.has(m[1])) defs.set(m[1], path);
+    }
+  }
+  const hooks: HookInfo[] = [];
+  for (const [name, definedIn] of defs.entries()) {
+    const usedIn: string[] = [];
+    const useRegex = new RegExp(`\\b${name}\\b`);
+    for (const [path, src] of Object.entries(files)) {
+      if (path === definedIn) continue;
+      if (!/\.(ts|tsx)$/.test(path)) continue;
+      if (useRegex.test(src)) usedIn.push(path);
+    }
+    hooks.push({
+      name,
+      definedIn,
+      purpose: HOOK_PURPOSES[name] ?? "—",
+      usedIn,
+    });
+  }
+  hooks.sort((a, b) => a.name.localeCompare(b.name));
+  return hooks;
+}
+
 function ProjectCodeGuidePage() {
   const allFiles = useMemo(
     () => ({ ...rootFiles, ...srcFiles, ...supabaseFiles, ...publicFiles }),
     [],
   );
   const markdown = useMemo(() => buildMarkdown(allFiles), [allFiles]);
+  const hookTable = useMemo(() => buildHookTable(allFiles), [allFiles]);
   const [query, setQuery] = useState("");
 
   const paths = useMemo(

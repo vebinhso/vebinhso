@@ -239,15 +239,49 @@ function GamePage() {
     const fd = swap ? it.w : it.d;
     if (x < 0 || z < 0 || x + fw > 20 || z + fd > 20) return;
 
-    // Cửa sổ: chỉ cho phép đặt nếu nằm trên 1 tường (kiểm tra khoảng cách điểm tới đoạn tường)
+    // Cửa sổ: snap vào TƯỜNG GẦN NHẤT bất kể hướng (ngang/dọc/xéo).
+    //  - Tìm điểm chiếu của tâm click lên từng đoạn tường, lấy đoạn gần nhất (≤ 0.8m).
+    //  - Lưu (x, z) = tâm cửa sổ (+10 để vẫn nằm trong hệ lưới), kèm angleRad = góc tường.
     if (it.id === "window") {
-      const cx = x + fw / 2 - 10;
-      const cz = z + fd / 2 - 10;
-      const ok = state.walls.some((w) => pointOnSegment(cx, cz, w, 0.6));
-      if (!ok) {
+      const cx0 = x + fw / 2 - 10;
+      const cz0 = z + fd / 2 - 10;
+      let best: { d2: number; cx: number; cz: number; ang: number } | null = null;
+      for (const w of state.walls) {
+        if ((w.floor ?? 0) !== activeFloor) continue;
+        const dx = w.bx - w.ax, dz = w.bz - w.az;
+        const len2 = dx * dx + dz * dz;
+        if (len2 === 0) continue;
+        let t = ((cx0 - w.ax) * dx + (cz0 - w.az) * dz) / len2;
+        t = Math.max(0, Math.min(1, t));
+        const px = w.ax + t * dx;
+        const pz = w.az + t * dz;
+        const d2 = (cx0 - px) ** 2 + (cz0 - pz) ** 2;
+        if (!best || d2 < best.d2) {
+          best = { d2, cx: px, cz: pz, ang: Math.atan2(dx, dz) };
+        }
+      }
+      if (!best || best.d2 > 0.8 * 0.8) {
         flash("🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé.");
         return;
       }
+      if (state.money < it.price) return;
+      const placedWin: PlacedItem = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        itemId: it.id,
+        x: best.cx + 10,
+        z: best.cz + 10,
+        rotation: 0,
+        floor: activeFloor,
+        angleRad: best.ang,
+      };
+      setState({
+        ...state,
+        money: state.money - it.price,
+        netWorth: state.netWorth + it.price,
+        placed: [...state.placed, placedWin],
+      });
+      playSfx("place");
+      return;
     }
 
     // Tìm các item bị chồng lấn footprint

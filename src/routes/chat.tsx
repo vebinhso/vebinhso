@@ -1,23 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { listFriends } from "@/lib/friends";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/chat")({ component: Chat });
 
-type Msg = { from: string; text: string; at: number };
-
-const KEY = "vebinhso_chat_threads";
+type Msg = { id: string; from: string; text: string; at: number };
 
 function threadKey(a: string, b: string) {
   return [a, b].sort().join("-");
 }
-function readAll(): Record<string, Msg[]> {
-  if (typeof window === "undefined") return {};
-  try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; }
-}
-function writeAll(v: Record<string, Msg[]>) { localStorage.setItem(KEY, JSON.stringify(v)); }
 
 function Chat() {
   const navigate = useNavigate();
@@ -25,28 +19,47 @@ function Chat() {
   const [friends, setFriends] = useState<Account[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [text, setText] = useState("");
-  const [all, setAll] = useState<Record<string, Msg[]>>({});
+  const [msgs, setMsgs] = useState<Msg[]>([]);
 
   useEffect(() => {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
     setFriends(listFriends(u.id));
-    setAll(readAll());
   }, [navigate]);
 
-  const msgs = useMemo<Msg[]>(() => {
-    if (!user || activeId == null) return [];
-    return all[threadKey(user.id, activeId)] || [];
-  }, [all, user, activeId]);
+  const loadMsgs = async () => {
+    if (!user || activeId == null) { setMsgs([]); return; }
+    const tk = threadKey(user.id, activeId);
+    const { data } = await supabase
+      .from("messages")
+      .select("id, from_id, text, created_at")
+      .eq("thread_key", tk)
+      .order("created_at", { ascending: true });
+    if (data) {
+      setMsgs(data.map((r: any) => ({ id: r.id, from: r.from_id, text: r.text, at: new Date(r.created_at).getTime() })));
+    }
+  };
+
+  useEffect(() => {
+    loadMsgs();
+    if (activeId == null) return;
+    const t = setInterval(loadMsgs, 3000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeId]);
 
   if (!user) return null;
 
-  const send = () => {
-    if (!text.trim() || activeId == null) return;
-    const k = threadKey(user.id, activeId);
-    const next = { ...all, [k]: [...(all[k] || []), { from: user.id, text: text.trim(), at: Date.now() }] };
-    setAll(next); writeAll(next); setText("");
+  const send = async () => {
+    if (!text.trim() || activeId == null || !user) return;
+    const tk = threadKey(user.id, activeId);
+    const content = text.trim();
+    setText("");
+    await supabase.from("messages").insert({
+      thread_key: tk, from_id: user.id, to_id: activeId, text: content,
+    });
+    loadMsgs();
   };
 
   const activeFriend = friends.find((f) => f.id === activeId) || null;
@@ -63,7 +76,6 @@ function Chat() {
             ) : (
               <div className="flex md:flex-col gap-2 overflow-x-auto">
                 {friends.map((f) => {
-                  const last = (all[threadKey(user.id, f.id)] || []).slice(-1)[0];
                   const active = activeId === f.id;
                   return (
                     <button
@@ -75,7 +87,7 @@ function Chat() {
                     >
                       <div className="font-black text-sm truncate">{f.username}</div>
                       <div className={`text-[10px] truncate ${active ? "text-white/80" : "text-muted-foreground"}`}>
-                        {last ? last.text : "Chưa có tin nhắn"}
+                        Nhấn để mở
                       </div>
                     </button>
                   );
@@ -103,10 +115,10 @@ function Chat() {
                   {msgs.length === 0 ? (
                     <p className="m-auto text-sm text-muted-foreground italic">Chưa có tin nhắn nào. Hãy chào nhau! 👋</p>
                   ) : (
-                    msgs.map((m, i) => {
+                    msgs.map((m) => {
                       const me = m.from === user.id;
                       return (
-                        <div key={i} className={`max-w-[80%] p-2.5 rounded-2xl ${me ? "self-end bg-orange-400 text-white" : "self-start bg-white border-2 border-white"}`}>
+                        <div key={m.id} className={`max-w-[80%] p-2.5 rounded-2xl ${me ? "self-end bg-orange-400 text-white" : "self-start bg-white border-2 border-white"}`}>
                           <p className="font-bold text-sm">{m.text}</p>
                         </div>
                       );

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/character";
 import { generateOutfit } from "@/lib/ai.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -69,12 +70,41 @@ function CharacterPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const gen = useServerFn(generateOutfit);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (!getCurrentUser()) navigate({ to: "/login" });
+    const u = getCurrentUser();
+    if (!u) { navigate({ to: "/login" }); return; }
     const existing = loadOutfit();
     if (existing) { setOutfit(existing); setDesc(existing.description); }
+    supabase.from("profiles").select("avatar_url").eq("user_id", u.id).maybeSingle()
+      .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
   }, [navigate]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const u = getCurrentUser();
+    if (!u) return;
+    if (!file.type.startsWith("image/")) { setErr("Vui lòng chọn tệp ảnh"); return; }
+    if (file.size > 2 * 1024 * 1024) { setErr("Ảnh tối đa 2MB"); return; }
+    setErr(null); setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${u.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", u.id);
+      setAvatarUrl(publicUrl);
+    } catch (e: any) {
+      setErr(e?.message || "Lỗi tải ảnh");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!desc.trim()) { setErr("Hãy mô tả bộ trang phục bạn muốn"); return; }
@@ -106,7 +136,20 @@ function CharacterPage() {
             </p>
           </div>
 
+          <div className="mb-4 flex flex-col items-center gap-2">
+            <div className="w-24 h-24 rounded-full bg-white/70 border-2 border-black/20 overflow-hidden flex items-center justify-center text-4xl">
+              {avatarUrl ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
+            </div>
+            <label className="toy-button !text-sm py-2 px-4 cursor-pointer">
+              {uploading ? "Đang tải..." : "📷 Tải ảnh đại diện"}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+            </label>
+            <p className="text-xs font-bold text-muted-foreground">Ảnh tối đa 2MB · JPG, PNG</p>
+          </div>
+
           <PreviewCharacter o={outfit} />
+
+
 
           <div className="mt-4">
             <label className="block text-sm font-black mb-2">Mô tả trang phục</label>

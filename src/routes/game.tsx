@@ -238,6 +238,7 @@ function GamePage() {
       flash("⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");
       return;
     }
+    if (it.id === "door") setDoorHint(true);
     setSelected(itemId);
     setShopOpen(false);
   };

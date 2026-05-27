@@ -481,7 +481,9 @@ function GamePage() {
       resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }
     setState(next);
+    playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
     setQuestionResult(resultText);
+
     setTimeout(() => {
       setQuestion(randomQuestion());
       setQuestionResult(null);

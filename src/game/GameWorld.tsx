@@ -748,6 +748,7 @@ function PlotAndPlacement({
           color={wallColor}
           dim={(w.floor ?? 0) !== activeFloor}
           onRemove={() => onWallRemove(w.id)}
+          placed={placed}
         />
       ))}
 

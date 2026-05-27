@@ -3,6 +3,7 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getLoginAt, getCurrentUser, getLoginStreak } from "@/lib/auth";
+import { getOnlineSeconds, isIdle } from "@/lib/session";
 import { loadGame, saveGame, computeLevel } from "@/lib/game";
 import { isClaimed, setClaimed } from "@/lib/claims";
 
@@ -104,8 +105,9 @@ function Utilities() {
   const [tab, setTab] = useState<Tab>("daily");
   // Đồng hồ phiên: tính từ lúc người chơi ĐĂNG NHẬP, không phải lúc mở trang tiện ích
   const [seconds, setSeconds] = useState(0);
+  const [idle, setIdle] = useState(false);
   useEffect(() => {
-    const tick = () => setSeconds(Math.floor((Date.now() - getLoginAt()) / 1000));
+    const tick = () => { setSeconds(getOnlineSeconds()); setIdle(isIdle()); };
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
@@ -198,6 +200,7 @@ function Utilities() {
               <div className="hidden md:block mt-3 rounded-2xl bg-white/70 p-3 border border-black/10">
                 <div className="text-[11px] font-bold text-muted-foreground">⏱️ Phiên online</div>
                 <div className="text-xl font-black text-orange-600">{fmtTime(seconds)}</div>
+                {idle && <div className="text-[10px] font-bold text-amber-600 mt-1">⏸ Tạm dừng (không hoạt động)</div>}
               </div>
             </div>
 

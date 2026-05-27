@@ -8,6 +8,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useAuthSync } from "@/hooks/use-auth-sync";
+import { useEffect } from "react";
+import { startSessionTracker } from "@/lib/session";
 
 import appCss from "../styles.css?url";
 
@@ -126,5 +128,9 @@ function RootComponent() {
 
 function AuthSyncBridge() {
   useAuthSync();
+  useEffect(() => {
+    const stop = startSessionTracker();
+    return stop;
+  }, []);
   return null;
 }

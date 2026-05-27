@@ -9,6 +9,8 @@ import {
   wallCost,
   WALL_HEIGHT,
   WALL_PALETTES,
+  MAX_FLOOR,
+  floorHasRoof,
   type GameState,
   type PlacedItem,
   type WallSegment,
@@ -47,6 +49,9 @@ function GamePage() {
 
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Multi-floor
+  const [activeFloor, setActiveFloor] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -145,6 +150,7 @@ function GamePage() {
     }
 
     const collides = state.placed.some((p) => {
+      if ((p.floor ?? 0) !== activeFloor) return false;
       const pi = getItem(p.itemId);
       if (!pi) return false;
       // Mái không kiểm tra va chạm sàn (đặt trên đỉnh tường)
@@ -163,7 +169,7 @@ function GamePage() {
       x,
       z,
       rotation,
-      floor: 0,
+      floor: activeFloor,
     };
     setState({
       ...state,
@@ -210,6 +216,10 @@ function GamePage() {
 
   // Build wall between 2 pillars, or build roof from 4 pillars
   const onPillarClick = (placedId: string) => {
+    // Chỉ cho phép thao tác với cột thuộc tầng đang chọn
+    const clicked = state.placed.find((p) => p.id === placedId);
+    if (!clicked || (clicked.floor ?? 0) !== activeFloor) return;
+
     if (roofMode) {
       // Toggle pick: deselect if already chosen
       if (roofPicks.includes(placedId)) {
@@ -247,7 +257,7 @@ function GamePage() {
         ax, az, bx, bz,
         style: roofStyle,
         value,
-        floor: 0,
+        floor: activeFloor,
       };
       setState({
         ...state,
@@ -299,7 +309,7 @@ function GamePage() {
       ax, az, bx, bz,
       color: state.wallColor,
       value: wallValue,
-      floor: 0,
+      floor: activeFloor,
     };
     setState({
       ...state,
@@ -379,9 +389,29 @@ function GamePage() {
     gradeAnswer(correctSet, picked);
   };
 
-  const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar");
+  const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   const canEnterWallMode = pillarsPlaced.length >= 2;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
+
+  const canAccessFloor = (f: number) => {
+    if (f <= 0) return true;
+    for (let i = 0; i < f; i++) {
+      if (!floorHasRoof(state, i)) return false;
+    }
+    return true;
+  };
+  const tryGoFloor = (f: number) => {
+    if (f === activeFloor) return;
+    if (!canAccessFloor(f)) {
+      flash(`🏠 Hãy lợp mái tầng dưới trước khi lên tầng ${f}!`, 2200);
+      return;
+    }
+    setActiveFloor(f);
+    setSelected(null);
+    setWallMode(false); setWallPickA(null);
+    setRoofMode(false); setRoofPicks([]);
+  };
+  const floorLabel = (f: number) => (f === 0 ? "Trệt" : String(f));
 
   return (
     <div className="fixed inset-0 bg-sky-300 overflow-hidden select-none">
@@ -403,6 +433,7 @@ function GamePage() {
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
           onRoofRemove={removeRoof}
+          activeFloor={activeFloor}
         />
       </Suspense>
 
@@ -422,6 +453,26 @@ function GamePage() {
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
           <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+
+          {/* Chọn tầng */}
+          <div className="glass-card px-2 py-1.5 flex items-center gap-1">
+            <span className="text-[10px] font-black text-stone-700 mr-1">TẦNG:</span>
+            {Array.from({ length: MAX_FLOOR + 1 }, (_, f) => {
+              const accessible = canAccessFloor(f);
+              const active = activeFloor === f;
+              return (
+                <button
+                  key={f}
+                  onClick={() => tryGoFloor(f)}
+                  className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
+                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp mái tầng ${f - 1} trước`}
+                >
+                  {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
+                </button>
+              );
+            })}
+          </div>
+
           <button
             onClick={() => {
               if (!canEnterWallMode) {

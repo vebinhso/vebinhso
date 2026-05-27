@@ -5,6 +5,7 @@ import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 export function SettingsPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState(() => getAudioSettings());
+  const wt = useWorldToggles();
 
   useEffect(() => {
     const sync = () => setS(getAudioSettings());

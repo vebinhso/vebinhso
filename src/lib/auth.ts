@@ -7,6 +7,7 @@ export type Account = {
   username: string;
   email: string;
   createdAt: string;
+  avatarUrl?: string | null;
 };
 
 export type LoginStreak = {
@@ -80,7 +81,7 @@ export async function hydrateFromSession(): Promise<Account | null> {
   // Fetch profile (created by trigger)
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, created_at, email")
+    .select("username, display_name, created_at, email, avatar_url")
     .eq("user_id", u.id)
     .maybeSingle();
 
@@ -89,6 +90,7 @@ export async function hydrateFromSession(): Promise<Account | null> {
     username: profile?.username || (u.email?.split("@")[0] ?? "player"),
     email: profile?.email || u.email || "",
     createdAt: profile?.created_at || u.created_at || new Date().toISOString(),
+    avatarUrl: (profile as any)?.avatar_url ?? null,
   };
   setCurrentUserCache(acc);
   return acc;

@@ -79,7 +79,9 @@ function Home() {
     <GameLayout>
       <header className="flex items-start justify-between p-4 md:p-6 gap-3">
         <div className="glass-card px-5 py-3 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-4 border-white flex items-center justify-center text-2xl">🐕</div>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-4 border-white flex items-center justify-center text-2xl overflow-hidden">
+            {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
+          </div>
           <div>
             <h1 className="text-lg font-black leading-tight">{user.username}</h1>
             <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>

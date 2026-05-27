@@ -8,6 +8,8 @@ import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
+import { useWorldToggles } from "@/lib/world-toggles";
+import { getItem as catalogGetItem } from "./catalog";
 
 const GRID = 20;
 const CELL = 1;

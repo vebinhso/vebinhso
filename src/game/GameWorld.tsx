@@ -591,7 +591,7 @@ const Neighborhood = memo(function Neighborhood() {
       {trees}
     </group>
   );
-}
+});
 
 function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,

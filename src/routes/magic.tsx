@@ -983,6 +983,17 @@ function MagicPage() {
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
   const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
   const [bossResult, setBossResult] = useState<string | null>(null);
+  const [witchResult, setWitchResult] = useState<string | null>(null);
+  const [quiz5Result, setQuiz5Result] = useState<string | null>(null);
+  const arraysEqualSet = (a: number[], b: number[]) => {
+    if (a.length !== b.length) return false;
+    const sa = [...a].sort(); const sb = [...b].sort();
+    return sa.every((v, i) => v === sb[i]);
+  };
+  const correctLettersOf = (q: Question) => {
+    const idxs = q.correctIndexes ?? [q.answer];
+    return idxs.map((i) => String.fromCharCode(65 + i)).join(", ");
+  };
   const [coins, setCoins] = useState(0);
   const [won, setWon] = useState(false);
 

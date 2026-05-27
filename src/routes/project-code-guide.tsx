@@ -1000,7 +1000,7 @@ function ProjectCodeGuidePage() {
                             ))}
                             {m.imports.length > 10 && (
                               <li className="text-[10px] text-muted-foreground">+{m.imports.length - 10} more</li>
-                            ))}
+                            )}
                           </ul>
                         )}
                       </td>

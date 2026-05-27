@@ -37,6 +37,10 @@ type Props = {
   onRoofRemove: (id: string) => void;
   onFloorRemove: (id: string) => void;
   activeFloor: number;
+  pickups?: Pickup[];
+  collectedIds?: Set<string>;
+  onPickup?: (p: Pickup) => void;
+  showAdminMarkers?: boolean;
 };
 
 function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRefObject<any>; activeFloor: number }) {

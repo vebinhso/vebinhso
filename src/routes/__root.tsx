@@ -12,6 +12,7 @@ import { useAuthSync } from "@/hooks/use-auth-sync";
 import { useEffect } from "react";
 import { startSessionTracker } from "@/lib/session";
 import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
+import { SettingsPanel } from "@/components/SettingsPanel";
 
 import appCss from "../styles.css?url";
 
@@ -125,6 +126,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
       <AudioBridge />
+      <SettingsPanel />
       <Outlet />
     </QueryClientProvider>
   );

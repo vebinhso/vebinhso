@@ -152,6 +152,8 @@ async function refreshFromDB(uid: string) {
 }
 
 async function flushToDB(uid: string) {
+  // Đồng bộ cấp độ tính toán xuống DB để xếp hạng hiển thị đúng.
+  CACHE.level = computeLevel(CACHE);
   // Scalars
   await supabase.from("game_state").upsert({
     user_id: uid,

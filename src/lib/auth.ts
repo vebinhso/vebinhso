@@ -178,7 +178,10 @@ export function recordLoginDay(uid: string): LoginStreak {
   return next;
 }
 
-export function getLoginStreak(_uid: string): LoginStreak {
+export function getLoginStreak(uid: string): LoginStreak {
+  // Đọc luôn từ localStorage để phản ánh ngay sau khi hydrate.
+  const s = readStreak(uid);
+  if (s.lastLoginDate) STREAK = s;
   return STREAK;
 }
 

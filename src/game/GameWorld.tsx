@@ -39,7 +39,7 @@ type Props = {
   activeFloor: number;
 };
 
-function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }) {
+function Character({ controlsRef, activeFloor }: { controlsRef: React.MutableRefObject<any>; activeFloor: number }) {
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);
@@ -50,6 +50,15 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
   const grounded = useRef(true);
   const walkPhase = useRef(0);
   const { camera } = useThree();
+  const floorY = activeFloor * 5; // WALL_HEIGHT
+
+  // Khi đổi tầng: dịch chuyển nhân vật lên sàn của tầng đó.
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.position.set(0, floorY, 0);
+    yVel.current = 0;
+    grounded.current = true;
+  }, [activeFloor, floorY]);
 
   const [outfit, setOutfit] = useState<any>(null);
   useEffect(() => {
@@ -97,9 +106,11 @@ function Character({ controlsRef }: { controlsRef: React.MutableRefObject<any> }
     if (k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
     yVel.current -= 18 * dt;
     ref.current.position.y += yVel.current * dt;
-    if (ref.current.position.y <= 0) { ref.current.position.y = 0; yVel.current = 0; grounded.current = true; }
+    if (ref.current.position.y <= floorY) { ref.current.position.y = floorY; yVel.current = 0; grounded.current = true; }
 
-    const limit = WORLD / 2 - 0.5;
+    // Trên tầng cao: giới hạn trong mảnh đất 20x20 để khỏi té khỏi sàn.
+    const plotHalf = 20 / 2 - 0.4;
+    const limit = activeFloor > 0 ? plotHalf : WORLD / 2 - 0.5;
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
     ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
 
@@ -459,6 +470,23 @@ function PlotAndPlacement({
       </mesh>
       <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, floorY + 0.02, 0]} />
 
+      {/* Rào cản 4 cạnh trên các tầng cao để nhân vật không bị té */}
+      {activeFloor > 0 && (
+        <group position={[0, floorY, 0]}>
+          {[
+            { p: [0, 0.5, -half] as [number, number, number], s: [GRID, 1, 0.15] as [number, number, number] },
+            { p: [0, 0.5, half] as [number, number, number], s: [GRID, 1, 0.15] as [number, number, number] },
+            { p: [-half, 0.5, 0] as [number, number, number], s: [0.15, 1, GRID] as [number, number, number] },
+            { p: [half, 0.5, 0] as [number, number, number], s: [0.15, 1, GRID] as [number, number, number] },
+          ].map((r, i) => (
+            <mesh key={i} position={r.p} castShadow>
+              <boxGeometry args={r.s} />
+              <meshStandardMaterial color="#fde68a" roughness={0.7} />
+            </mesh>
+          ))}
+        </group>
+      )}
+
       {/* 4 cột mốc trắng — chỉ ở tầng trệt */}
       {[-half, half].map((x) =>
         [-half, half].map((z) => (
@@ -612,7 +640,7 @@ export default function GameWorld(props: Props) {
           <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
         </Clouds>
       </Suspense>
-      <Character controlsRef={controlsRef} />
+      <Character controlsRef={controlsRef} activeFloor={props.activeFloor} />
       <PlotAndPlacement {...props} />
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />

@@ -372,7 +372,7 @@ function isRoof(id: string) {
   return id === "roof" || id === "roof_ton";
 }
 
-const DOOR_CUT_HALF = 0.6;
+const DOOR_CUT_HALF = 0.5;
 const DOOR_CUT_HEIGHT = 3;
 
 /** Tính các đoạn khoét trên 1 tường (theo t∈[0,1]) do các cánh cửa nằm áp tường tạo ra. */

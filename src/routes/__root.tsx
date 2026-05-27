@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Vệ binh số - vui học kỹ năng số" },
       { name: "description", content: "Trải nghiệm game học tập và xây nhà siêu thú vị." },
-      { name: "author", content: "Thú Cưng Pro" },
+      { name: "author", content: "VỆ BINH SỐ" },
       { property: "og:title", content: "Vệ binh số - vui học kỹ năng số" },
       { property: "og:description", content: "Trải nghiệm game học tập và xây nhà siêu thú vị." },
       { property: "og:type", content: "website" },

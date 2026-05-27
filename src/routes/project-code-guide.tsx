@@ -197,6 +197,567 @@ function buildHookTable(files: Record<string, string>): HookInfo[] {
   return hooks;
 }
 
+// ============ FILE ANALYSIS ============
+
+type FileDetail = {
+  task: string;
+  role: string;
+  codeExplain: string;
+  relations: string;
+};
+
+const FILE_DETAILS: Record<string, FileDetail> = {
+  "src/router.tsx": {
+    task: "Khởi tạo TanStack Router với QueryClient context.",
+    role: "Bootstrap router của toàn app.",
+    codeExplain:
+      "Tạo QueryClient mới cho mỗi request, build router từ routeTree.gen.ts, gắn context { queryClient } để loader/route truy cập.",
+    relations:
+      "Được src/start.ts và SSR entry dùng. Cung cấp context cho mọi route + useRouter trong components.",
+  },
+  "src/start.ts": {
+    task: "Cấu hình TanStack Start (middleware client/server).",
+    role: "Entry-point startup của Start framework.",
+    codeExplain:
+      "Đăng ký requestMiddleware (errorMiddleware) và functionMiddleware (attachSupabaseAuth) để mỗi serverFn tự gắn Bearer token Supabase.",
+    relations:
+      "Liên kết với @/integrations/supabase/auth-attacher, @/lib/error-capture. Mọi createServerFn dùng requireSupabaseAuth đều phụ thuộc file này.",
+  },
+  "src/server.ts": {
+    task: "Server entry cho SSR/Worker runtime.",
+    role: "Handler HTTP cấp cao nhất.",
+    codeExplain: "Khởi tạo handler từ Start, trả về fetch handler cho Cloudflare Worker.",
+    relations: "Dùng router từ src/router.tsx; deploy qua wrangler.jsonc.",
+  },
+  "src/routes/__root.tsx": {
+    task: "Root layout: HTML shell + providers toàn cục.",
+    role: "Layout cha của mọi route.",
+    codeExplain:
+      "Định nghĩa head() (meta, font Montserrat, styles.css), shellComponent (html/body), RootComponent (QueryClientProvider + AuthSyncBridge + <Outlet/>). AuthSyncBridge gọi useAuthSync + startSessionTracker.",
+    relations:
+      "Wrap tất cả routes. Phụ thuộc @/hooks/use-auth-sync, @/lib/session, @tanstack/react-query.",
+  },
+  "src/routes/index.tsx": {
+    task: "Trang chủ /.",
+    role: "Landing page.",
+    codeExplain: "Render menu chính dẫn vào game, character, missions...",
+    relations: "Link đến hầu hết route con qua <Link>.",
+  },
+  "src/routes/game.tsx": {
+    task: "Trang game chính: build/place nội thất + tường + mái + sàn.",
+    role: "Core gameplay screen.",
+    codeExplain:
+      "Quản lý state placedItems, wallMode/roofMode/floorMode, picks (4 cột), inventory, money. Khi đủ 4 cột thì gọi addSegment để tạo Wall/Roof/Floor. Floor chỉ cho phép xây mái khi tầng đã có ít nhất 1 sàn. Render GameWorld 3D.",
+    relations:
+      "Phụ thuộc @/lib/game (PlacedItem, WallSegment, RoofSegment, FloorSegment, save/load), @/game/GameWorld, @/game/catalog. State đồng bộ với Supabase qua game.ts.",
+  },
+  "src/routes/login.tsx": {
+    task: "Form đăng nhập/đăng ký Supabase.",
+    role: "Auth entry.",
+    codeExplain:
+      "Email+password signInWithPassword/signUp; nút Google OAuth; redirect về '/' sau khi thành công. useAuthSync sẽ tự hydrate cache.",
+    relations: "Gọi supabase.auth từ @/integrations/supabase/client. Liên kết auth.callback.tsx.",
+  },
+  "src/routes/auth.callback.tsx": {
+    task: "Xử lý callback OAuth/Magic Link.",
+    role: "Trang trung gian auth.",
+    codeExplain: "Đọc session từ URL hash, exchange token, redirect về /.",
+    relations: "Supabase OAuth provider (Google).",
+  },
+  "src/routes/reset-password.tsx": {
+    task: "Form đặt lại mật khẩu.",
+    role: "Auth recovery.",
+    codeExplain: "Gọi supabase.auth.updateUser({ password }) sau khi user click link reset.",
+    relations: "Supabase Auth.",
+  },
+  "src/routes/verify.tsx": {
+    task: "Trang xác nhận email.",
+    role: "Hiển thị trạng thái verify.",
+    codeExplain: "Đọc query param và hiển thị thông báo thành công/lỗi.",
+    relations: "Supabase email confirm flow.",
+  },
+  "src/routes/character.tsx": {
+    task: "Tùy chỉnh nhân vật (avatar, name, theme).",
+    role: "Profile page.",
+    codeExplain: "Form cập nhật @/lib/character; lưu xuống Supabase profiles table.",
+    relations: "@/lib/character, @/lib/auth.",
+  },
+  "src/routes/chat.tsx": {
+    task: "Chat với AI (Lovable AI Gateway).",
+    role: "AI assistant.",
+    codeExplain: "Gửi tin nhắn qua serverFn @/lib/ai.functions; stream phản hồi.",
+    relations: "@/lib/ai.functions, gemini/gpt-5 models.",
+  },
+  "src/routes/missions.tsx": {
+    task: "Danh sách nhiệm vụ học tập.",
+    role: "Quest list.",
+    codeExplain: "Đọc missions từ game state, hiển thị tiến độ, mở QuestionView.",
+    relations: "@/game/questions, @/game/QuestionView.",
+  },
+  "src/routes/inventory.tsx": {
+    task: "Kho đồ của user.",
+    role: "Inventory screen.",
+    codeExplain: "List item từ game state, cho phép trang bị/sử dụng.",
+    relations: "@/lib/game, @/game/catalog.",
+  },
+  "src/routes/shop.tsx": {
+    task: "Cửa hàng vật phẩm.",
+    role: "Buy items.",
+    codeExplain: "List catalog, trừ tiền khi mua, đẩy vào inventory.",
+    relations: "@/game/catalog, @/lib/game.",
+  },
+  "src/routes/pets.tsx": {
+    task: "Quản lý thú cưng.",
+    role: "Pet collection.",
+    codeExplain: "List pets owned, model 3D preview qua PetModels.",
+    relations: "@/game/PetModels.",
+  },
+  "src/routes/play.tsx": {
+    task: "Minigame mở rộng (stage2).",
+    role: "Additional gameplay.",
+    codeExplain: "Render stage2/stage2rooms tùy chế độ.",
+    relations: "@/game/stage2, @/game/stage2rooms.",
+  },
+  "src/routes/ranking.tsx": {
+    task: "Bảng xếp hạng người chơi.",
+    role: "Leaderboard.",
+    codeExplain: "Query top users theo điểm/level từ Supabase.",
+    relations: "@/integrations/supabase/client.",
+  },
+  "src/routes/events.tsx": {
+    task: "Sự kiện trong game.",
+    role: "Events feed.",
+    codeExplain: "List events đang/đã diễn ra.",
+    relations: "@/lib/game.",
+  },
+  "src/routes/magic.tsx": {
+    task: "Power-ups & ma thuật.",
+    role: "Special abilities.",
+    codeExplain: "Liệt kê powers từ @/lib/powers, cho phép kích hoạt.",
+    relations: "@/lib/powers.",
+  },
+  "src/routes/tutorial.tsx": {
+    task: "Hướng dẫn người chơi mới.",
+    role: "Onboarding.",
+    codeExplain: "Slide hướng dẫn từng bước.",
+    relations: "Liên kết tới /game khi hoàn thành.",
+  },
+  "src/routes/admin.tsx": {
+    task: "Trang admin (quản lý user, content).",
+    role: "Admin dashboard.",
+    codeExplain: "Check has_role('admin') trước khi render. CRUD qua serverFn.",
+    relations: "@/lib/admin, @/lib/claims, RLS policies.",
+  },
+  "src/routes/project-code-guide.tsx": {
+    task: "Trang xem & tải toàn bộ source code dưới dạng .md.",
+    role: "Documentation viewer.",
+    codeExplain:
+      "Dùng import.meta.glob (?raw, eager) bundle mọi file lúc build. Phân tích hooks + files tự động (regex export/import). Render bảng chi tiết + cho phép tải .md.",
+    relations: "Đứng độc lập, không phụ thuộc backend.",
+  },
+  "src/hooks/use-auth-sync.ts": {
+    task: "Custom hook sync Supabase auth ↔ router/query.",
+    role: "Auth bridge hook.",
+    codeExplain: "Xem bảng Hooks ở mục 1.",
+    relations: "Dùng ở __root.tsx.",
+  },
+  "src/hooks/use-mobile.tsx": {
+    task: "Hook detect viewport mobile.",
+    role: "Responsive helper.",
+    codeExplain: "Xem bảng Hooks ở mục 1.",
+    relations: "Dùng trong components/ui/sidebar.",
+  },
+  "src/lib/auth.ts": {
+    task: "Cache user hiện tại + hydrate từ Supabase session.",
+    role: "Auth state module (không phải hook).",
+    codeExplain:
+      "Lưu currentUser trong module-level cache; hydrateFromSession() gọi supabase.auth.getUser + load profile; setCurrentUserCache để useAuthSync xóa cache khi logout.",
+    relations: "Dùng bởi use-auth-sync, mọi route cần user info.",
+  },
+  "src/lib/game.ts": {
+    task: "Domain logic game: types (PlacedItem, WallSegment, RoofSegment, FloorSegment), save/load Supabase, resetGameCacheForLogout.",
+    role: "Core game state module.",
+    codeExplain:
+      "Định nghĩa schema item/wall/roof/floor; serializer; serverFn lưu/đọc từ bảng game_states; cache local để giảm fetch.",
+    relations: "Dùng bởi game.tsx, GameWorld, inventory, shop, missions.",
+  },
+  "src/lib/session.ts": {
+    task: "Track session online + heartbeat.",
+    role: "Telemetry.",
+    codeExplain: "startSessionTracker setInterval ping Supabase để cập nhật last_seen.",
+    relations: "Gọi từ __root AuthSyncBridge.",
+  },
+  "src/lib/character.ts": {
+    task: "CRUD profile/character (tên, avatar, theme).",
+    role: "Profile module.",
+    codeExplain: "ServerFn đọc/ghi bảng profiles.",
+    relations: "character.tsx.",
+  },
+  "src/lib/admin.ts": {
+    task: "Helper kiểm tra/admin operations.",
+    role: "Admin module.",
+    codeExplain: "Kiểm has_role('admin') qua RPC.",
+    relations: "admin.tsx.",
+  },
+  "src/lib/claims.ts": {
+    task: "Đọc JWT claims (role) từ session.",
+    role: "Auth claims helper.",
+    codeExplain: "Decode access_token, extract custom claims.",
+    relations: "admin.ts.",
+  },
+  "src/lib/friends.ts": {
+    task: "Quản lý bạn bè (add, remove, list).",
+    role: "Social module.",
+    codeExplain: "ServerFn CRUD bảng friendships.",
+    relations: "Dùng ở character/ranking.",
+  },
+  "src/lib/powers.ts": {
+    task: "Định nghĩa danh sách power-ups và logic kích hoạt.",
+    role: "Magic catalog.",
+    codeExplain: "Export PowerDef[]; helper computeEffect.",
+    relations: "magic.tsx.",
+  },
+  "src/lib/ai.functions.ts": {
+    task: "ServerFn gọi Lovable AI Gateway (gemini/gpt).",
+    role: "AI bridge.",
+    codeExplain:
+      "createServerFn POST nhận messages, gọi AI Gateway với LOVABLE_API_KEY (process.env trong handler), stream/return text.",
+    relations: "chat.tsx.",
+  },
+  "src/lib/error-capture.ts": {
+    task: "Bắt lỗi global cho client.",
+    role: "Error boundary util.",
+    codeExplain: "Wrap window.onerror + unhandledrejection để log.",
+    relations: "__root error component.",
+  },
+  "src/lib/error-page.ts": {
+    task: "Helper render error page.",
+    role: "Error UI util.",
+    codeExplain: "Format error message thân thiện.",
+    relations: "errorComponent của router.",
+  },
+  "src/lib/utils.ts": {
+    task: "cn() merge className (clsx + tailwind-merge).",
+    role: "Tiện ích UI.",
+    codeExplain: "export function cn(...) { return twMerge(clsx(...)) }.",
+    relations: "Dùng trong mọi component shadcn.",
+  },
+  "src/game/GameWorld.tsx": {
+    task: "Render 3D world (Three.js/R3F): nhà, tường, mái, sàn, items, nhân vật.",
+    role: "3D scene root.",
+    codeExplain:
+      "Canvas R3F + Scene; map placedItems → Models; map walls/roofs/floors → mesh. Floor render như tường nằm ngang trên trần tầng.",
+    relations: "Dùng Models, PetModels, types từ @/lib/game.",
+  },
+  "src/game/Models.tsx": {
+    task: "Component 3D cho từng loại item nội thất.",
+    role: "Furniture models.",
+    codeExplain: "Switch theo catalog id → render geometry/glTF.",
+    relations: "GameWorld.",
+  },
+  "src/game/PetModels.tsx": {
+    task: "Component 3D cho từng loại thú cưng.",
+    role: "Pet models.",
+    codeExplain: "Tương tự Models nhưng cho pets, có animation idle.",
+    relations: "GameWorld, pets.tsx.",
+  },
+  "src/game/QuestionView.tsx": {
+    task: "UI hiển thị câu hỏi quiz và xử lý trả lời.",
+    role: "Quiz component.",
+    codeExplain: "Nhận Question, render choices, check đúng/sai, callback onAnswer.",
+    relations: "missions.tsx, questions.ts.",
+  },
+  "src/game/catalog.ts": {
+    task: "Catalog tất cả item mua được + giá + texture.",
+    role: "Item database.",
+    codeExplain: "Export ITEMS: ItemDef[].",
+    relations: "shop, inventory, game.tsx, Models.",
+  },
+  "src/game/questions.ts": {
+    task: "Bộ câu hỏi quiz (kỹ năng số).",
+    role: "Question bank.",
+    codeExplain: "Export QUESTIONS: Question[].",
+    relations: "missions, QuestionView.",
+  },
+  "src/game/stage2.tsx": {
+    task: "Minigame stage 2.",
+    role: "Extra gameplay.",
+    codeExplain: "Scene/logic riêng stage 2.",
+    relations: "play.tsx.",
+  },
+  "src/game/stage2rooms.tsx": {
+    task: "Map các phòng cho stage 2.",
+    role: "Room definitions.",
+    codeExplain: "Export room configs.",
+    relations: "stage2.",
+  },
+  "src/components/GameLayout.tsx": {
+    task: "Layout shell chung cho mọi trang game (header, back button, background).",
+    role: "Shared layout.",
+    codeExplain: "Wrapper div + tùy chọn showBack render nút quay lại qua useNavigate.",
+    relations: "Dùng ở mọi route game/character/shop/...",
+  },
+  "src/components/ImageUploadField.tsx": {
+    task: "Field upload ảnh lên Supabase Storage.",
+    role: "Form field.",
+    codeExplain: "Input file → upload qua serverFn → trả URL.",
+    relations: "character.tsx, admin.",
+  },
+  "src/integrations/supabase/client.ts": {
+    task: "Singleton Supabase client cho browser.",
+    role: "Auto-generated, KHÔNG sửa tay.",
+    codeExplain: "createClient với VITE_SUPABASE_URL + publishable key.",
+    relations: "Mọi file gọi supabase.* trên client.",
+  },
+  "src/integrations/supabase/client.server.ts": {
+    task: "Admin Supabase client (service role) cho server.",
+    role: "Auto-generated, server-only.",
+    codeExplain: "createClient với SERVICE_ROLE_KEY — bypass RLS.",
+    relations: "Chỉ dùng trong serverFn/route đã verify auth.",
+  },
+  "src/integrations/supabase/auth-middleware.ts": {
+    task: "Middleware requireSupabaseAuth cho serverFn.",
+    role: "Auto-generated.",
+    codeExplain:
+      "Đọc Authorization header, verify với Supabase, inject { supabase, userId, claims } vào context. Throw 401 nếu thiếu/invalid.",
+    relations: "Mọi protected serverFn.",
+  },
+  "src/integrations/supabase/auth-attacher.ts": {
+    task: "Function middleware attach Bearer token vào RPC.",
+    role: "Auto-generated.",
+    codeExplain: "Trước mỗi serverFn call, đọc supabase.auth.getSession() và set header Authorization.",
+    relations: "Đăng ký trong src/start.ts.",
+  },
+  "src/integrations/supabase/types.ts": {
+    task: "Types tự sinh từ schema DB.",
+    role: "Auto-generated.",
+    codeExplain: "Database type cho supabase-js.",
+    relations: "Mọi truy vấn typed.",
+  },
+  "src/integrations/lovable/index.ts": {
+    task: "Tích hợp Lovable platform helpers.",
+    role: "Auto-generated.",
+    codeExplain: "Export utilities Lovable cung cấp.",
+    relations: "Tùy chỗ dùng.",
+  },
+  "src/styles.css": {
+    task: "Design tokens + Tailwind v4 entry.",
+    role: "Global styles.",
+    codeExplain: "@import 'tailwindcss'; định nghĩa biến oklch (--background, --primary...), toy-button utilities, glass-card.",
+    relations: "Import bởi __root.tsx; mọi component dùng class Tailwind.",
+  },
+  "src/routeTree.gen.ts": {
+    task: "Auto-generated route tree.",
+    role: "KHÔNG sửa tay.",
+    codeExplain: "Sinh bởi TanStack Router Vite plugin.",
+    relations: "Dùng bởi router.tsx.",
+  },
+  "supabase/config.toml": {
+    task: "Cấu hình project Supabase (project_id + per-function settings).",
+    role: "Config file.",
+    codeExplain: "TOML cho Supabase CLI.",
+    relations: "Edge functions (nếu có).",
+  },
+  "package.json": {
+    task: "Khai báo dependencies + scripts.",
+    role: "npm manifest.",
+    codeExplain: "Liệt kê react/tanstack/supabase/three/...; scripts dev/build.",
+    relations: "Toàn project.",
+  },
+  "vite.config.ts": {
+    task: "Cấu hình Vite + TanStack Start plugin.",
+    role: "Build config.",
+    codeExplain: "Plugin tanstackStart, alias '@' → src/, target Cloudflare.",
+    relations: "Build pipeline.",
+  },
+  "tsconfig.json": {
+    task: "TypeScript config (strict mode).",
+    role: "TS config.",
+    codeExplain: "paths '@/*' → src/*, strict: true.",
+    relations: "Toàn project TS.",
+  },
+  "wrangler.jsonc": {
+    task: "Cấu hình Cloudflare Worker deploy.",
+    role: "Deploy config.",
+    codeExplain: "Bindings, compatibility_date, nodejs_compat flag.",
+    relations: "Deploy production.",
+  },
+  "eslint.config.js": {
+    task: "Cấu hình ESLint.",
+    role: "Lint config.",
+    codeExplain: "Flat config TS + React rules.",
+    relations: "Dev tooling.",
+  },
+  "components.json": {
+    task: "Cấu hình shadcn/ui CLI.",
+    role: "shadcn config.",
+    codeExplain: "Alias + style + tailwind config cho shadcn add.",
+    relations: "src/components/ui/*.",
+  },
+  ".env": {
+    task: "Biến môi trường (VITE_SUPABASE_*).",
+    role: "Auto-generated.",
+    codeExplain: "Không sửa tay; Supabase tự inject.",
+    relations: "client.ts.",
+  },
+};
+
+function inferFromPath(p: string): FileDetail {
+  const path = p.replace(/^\//, "");
+  if (path.startsWith("src/components/ui/")) {
+    const name = path.split("/").pop()?.replace(/\.tsx?$/, "");
+    return {
+      task: `shadcn/ui component: <${name}/>.`,
+      role: "Primitive UI component (Radix + Tailwind).",
+      codeExplain: "Auto-generated từ shadcn CLI; wrap Radix primitive với class Tailwind + cn().",
+      relations: "Dùng khắp app cho UI building blocks.",
+    };
+  }
+  if (path.startsWith("src/components/")) {
+    return {
+      task: `Component dùng chung trong app.`,
+      role: "Shared component.",
+      codeExplain: "Xem source bên dưới để biết chi tiết.",
+      relations: "Import bởi nhiều route.",
+    };
+  }
+  if (path.startsWith("src/routes/")) {
+    return {
+      task: `Route page TanStack — đường dẫn ${path.replace(/^src\/routes\//, "/").replace(/\.tsx?$/, "")}.`,
+      role: "Page route.",
+      codeExplain: "Export Route = createFileRoute(...) + component; xem source.",
+      relations: "Render trong <Outlet/> của __root.",
+    };
+  }
+  if (path.startsWith("src/lib/")) {
+    return {
+      task: `Module logic/util thuộc src/lib.`,
+      role: "Library module.",
+      codeExplain: "Xem source.",
+      relations: "Import bởi route/component.",
+    };
+  }
+  if (path.startsWith("src/game/")) {
+    return {
+      task: `Module thuộc game engine/UI.`,
+      role: "Game module.",
+      codeExplain: "Xem source.",
+      relations: "Dùng bởi /game, /play.",
+    };
+  }
+  if (path.startsWith("public/")) {
+    return {
+      task: "Asset tĩnh phục vụ trực tiếp.",
+      role: "Public asset.",
+      codeExplain: "Phục vụ từ /.",
+      relations: "Tham chiếu bằng URL absolute.",
+    };
+  }
+  if (path.startsWith("supabase/")) {
+    return {
+      task: "Tài nguyên Supabase (config/migration).",
+      role: "Supabase resource.",
+      codeExplain: "Quản lý bởi Supabase CLI.",
+      relations: "Database/Auth.",
+    };
+  }
+  return {
+    task: "File cấu hình hoặc tài liệu project.",
+    role: "Project file.",
+    codeExplain: "Xem source.",
+    relations: "—",
+  };
+}
+
+type FileMeta = {
+  path: string;        // không có leading /
+  fullPath: string;    // có leading /
+  exports: string[];
+  imports: string[];   // module specifiers
+  usedBy: string[];    // file paths import file này
+  lines: number;
+  bytes: number;
+  detail: FileDetail;
+};
+
+function buildFileMeta(files: Record<string, string>): FileMeta[] {
+  const entries = Object.entries(files).filter(
+    ([p]) => !p.includes("routeTree.gen"),
+  );
+
+  // 1. exports + imports
+  const exportRe = /export\s+(?:default\s+(?:function|class)?\s*(\w+)?|(?:async\s+)?function\s+(\w+)|const\s+(\w+)|class\s+(\w+)|type\s+(\w+)|interface\s+(\w+)|enum\s+(\w+))/g;
+  const importRe = /import\s+(?:[\s\S]*?)\s+from\s+["']([^"']+)["']/g;
+
+  const metas: FileMeta[] = entries.map(([fullPath, src]) => {
+    const path = fullPath.replace(/^\//, "");
+    const exports: string[] = [];
+    if (/\.(ts|tsx|js|jsx)$/.test(path)) {
+      for (const m of src.matchAll(exportRe)) {
+        const name = m[1] || m[2] || m[3] || m[4] || m[5] || m[6] || m[7];
+        if (name && !exports.includes(name)) exports.push(name);
+      }
+      if (/export\s+default\b/.test(src) && !exports.some((e) => e === "default")) {
+        exports.push("default");
+      }
+    }
+    const imports: string[] = [];
+    if (/\.(ts|tsx|js|jsx)$/.test(path)) {
+      for (const m of src.matchAll(importRe)) {
+        if (!imports.includes(m[1])) imports.push(m[1]);
+      }
+    }
+    return {
+      path,
+      fullPath,
+      exports,
+      imports,
+      usedBy: [],
+      lines: src.split("\n").length,
+      bytes: src.length,
+      detail: FILE_DETAILS[path] ?? inferFromPath(fullPath),
+    };
+  });
+
+  // 2. usedBy — resolve alias '@/x' → 'src/x', './' tương đối
+  const byPath = new Map(metas.map((m) => [m.path, m]));
+  function resolveSpec(fromPath: string, spec: string): string | null {
+    let candidate: string | null = null;
+    if (spec.startsWith("@/")) {
+      candidate = "src/" + spec.slice(2);
+    } else if (spec.startsWith("./") || spec.startsWith("../")) {
+      const dir = fromPath.split("/").slice(0, -1);
+      const parts = spec.split("/");
+      for (const p of parts) {
+        if (p === "..") dir.pop();
+        else if (p !== ".") dir.push(p);
+      }
+      candidate = dir.join("/");
+    } else {
+      return null;
+    }
+    // thử với extension
+    const exts = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
+    for (const ext of exts) {
+      const k = candidate + ext;
+      if (byPath.has(k)) return k;
+    }
+    return null;
+  }
+  for (const m of metas) {
+    for (const spec of m.imports) {
+      const resolved = resolveSpec(m.path, spec);
+      if (resolved && resolved !== m.path) {
+        const target = byPath.get(resolved)!;
+        if (!target.usedBy.includes(m.path)) target.usedBy.push(m.path);
+      }
+    }
+  }
+  metas.sort((a, b) => a.path.localeCompare(b.path));
+  return metas;
+}
+
+
 function ProjectCodeGuidePage() {
   const allFiles = useMemo(
     () => ({ ...rootFiles, ...srcFiles, ...supabaseFiles, ...publicFiles }),

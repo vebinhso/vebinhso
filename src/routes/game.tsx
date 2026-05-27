@@ -283,6 +283,45 @@ function GamePage() {
     const clicked = state.placed.find((p) => p.id === placedId);
     if (!clicked || (clicked.floor ?? 0) !== activeFloor) return;
 
+    if (floorMode) {
+      if (floorPicks.includes(placedId)) {
+        setFloorPicks(floorPicks.filter((x) => x !== placedId));
+        return;
+      }
+      const next = [...floorPicks, placedId];
+      if (next.length < 4) {
+        setFloorPicks(next);
+        flash(`Đã chọn ${next.length}/4 cột trụ cho sàn.`);
+        return;
+      }
+      const corners = next
+        .map((id) => state.placed.find((p) => p.id === id))
+        .filter(Boolean) as PlacedItem[];
+      const xs = corners.map((p) => p.x - 10 + 0.5);
+      const zs = corners.map((p) => p.z - 10 + 0.5);
+      const ax = Math.min(...xs), bx = Math.max(...xs);
+      const az = Math.min(...zs), bz = Math.max(...zs);
+      const w = Math.max(1, Math.round(bx - ax));
+      const d = Math.max(1, Math.round(bz - az));
+      const tilesNeeded = w * d;
+      if (state.concrete < tilesNeeded) {
+        flash(`❌ Thiếu bê tông! Cần ${tilesNeeded} xô (đang có ${state.concrete}).`, 3000);
+        setFloorPicks([]);
+        return;
+      }
+      const value = tilesNeeded * 4;
+      const seg: FloorSegment = { id: `f-${Date.now()}`, ax, az, bx, bz, value, floor: activeFloor };
+      setState({
+        ...state,
+        concrete: state.concrete - tilesNeeded,
+        floors: [...state.floors, seg],
+        netWorth: state.netWorth + value,
+      });
+      setFloorPicks([]);
+      flash(`🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.`, 2500);
+      return;
+    }
+
     if (roofMode) {
       // Toggle pick: deselect if already chosen
       if (roofPicks.includes(placedId)) {

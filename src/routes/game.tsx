@@ -85,6 +85,8 @@ function GamePage() {
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
   const [editingId, setEditingId] = useState<string | null>(null);
   const [moveMode, setMoveMode] = useState(false);
+  // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
+  const [doorHint, setDoorHint] = useState(false);
 
   useEffect(() => {
     setMounted(true);

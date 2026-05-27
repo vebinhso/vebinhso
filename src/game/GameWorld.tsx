@@ -45,6 +45,10 @@ type Props = {
   showAdminMarkers?: boolean;
   sparkles?: { id: string; x: number; z: number; at: number }[];
   onPlayerPos?: (x: number, z: number) => void;
+  /** Click vào item đã đặt (khi không ở build/place mode) để mở panel chỉnh xoay/di chuyển. */
+  onItemClick?: (id: string) => void;
+  /** id item đang được chỉnh — sẽ vẽ vòng highlight quanh nó. */
+  editingId?: string | null;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".

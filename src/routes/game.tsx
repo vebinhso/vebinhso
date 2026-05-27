@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import {
   loadGame,
   saveGame,

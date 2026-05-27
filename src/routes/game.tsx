@@ -9,6 +9,8 @@ import {
   wallCost,
   WALL_HEIGHT,
   WALL_PALETTES,
+  MAX_FLOOR,
+  floorHasRoof,
   type GameState,
   type PlacedItem,
   type WallSegment,

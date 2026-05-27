@@ -10,6 +10,8 @@ export type Question = {
   correctIndexes?: number[];
   optionImages?: string[];
   maps?: string[];
+  enabled?: boolean;
+  priority?: number;
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [
@@ -28,14 +30,34 @@ export const DEFAULT_QUESTIONS: Question[] = [
 ];
 
 let QUESTION_CACHE: Question[] = [];
+let PRIORITY_MODE = false;
+
+export async function loadPriorityMode(): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from("admin_config")
+      .select("value")
+      .eq("key", "priority_mode")
+      .maybeSingle();
+    const val: any = (data as any)?.value;
+    PRIORITY_MODE = !!(val?.enabled);
+    return PRIORITY_MODE;
+  } catch (e) {
+    console.error("[questions] loadPriorityMode failed", e);
+    return PRIORITY_MODE;
+  }
+}
 
 export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
   try {
-    const { data, error } = await supabase
-      .from("questions_bank")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .range(0, 4999);
+    const [{ data, error }] = await Promise.all([
+      supabase
+        .from("questions_bank")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .range(0, 4999),
+      loadPriorityMode(),
+    ]);
     if (error) throw error;
     const rows = data ?? [];
     const mapped: Question[] = rows.map((row: any) => {
@@ -46,6 +68,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         ? row.correct_indexes
         : (typeof row.answer_index === "number" ? [row.answer_index] : [0]);
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
+      const enabled = row.enabled === false ? false : true;
+      const priority = typeof row.priority === "number" ? row.priority : 0;
       return {
         q: row.text ?? "",
         options,
@@ -55,11 +79,14 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         correctIndexes,
         optionImages,
         maps,
+        enabled,
+        priority,
       };
     });
+    const enabledOnly = mapped.filter((q) => q.enabled !== false);
     const filtered = map
-      ? mapped.filter((q) => (q.maps ?? ["all"]).includes(map) || (q.maps ?? ["all"]).includes("all"))
-      : mapped;
+      ? enabledOnly.filter((q) => (q.maps ?? ["all"]).includes(map) || (q.maps ?? ["all"]).includes("all"))
+      : enabledOnly;
     QUESTION_CACHE = filtered;
     return filtered;
   } catch (e) {
@@ -87,5 +114,11 @@ export const QUESTIONS: Question[] = new Proxy([] as Question[], {
 
 export function randomQuestion(): Question {
   const arr = getQuestions();
+  if (PRIORITY_MODE) {
+    const zone = arr.filter((q) => (q.priority ?? 0) > 0);
+    if (zone.length > 0) {
+      return zone[Math.floor(Math.random() * zone.length)];
+    }
+  }
   return arr[Math.floor(Math.random() * arr.length)];
 }

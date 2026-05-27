@@ -90,6 +90,12 @@ function GamePage() {
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))
       .catch(() => setQuestionsReady(true));
+    // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
+    setCollectedIds(loadCollected(u.id));
+    const base = generateBasePickups();
+    loadPickupExtras()
+      .then((extras) => setPickups([...base, ...extras]))
+      .catch(() => setPickups(base));
   }, [navigate]);
 
   useEffect(() => {

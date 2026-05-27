@@ -148,25 +148,28 @@ export type Database = {
       }
       messages: {
         Row: {
-          content: string
           created_at: string
-          from_user: string
+          from_id: string
           id: string
-          to_user: string
+          text: string
+          thread_key: string
+          to_id: string
         }
         Insert: {
-          content: string
           created_at?: string
-          from_user: string
+          from_id: string
           id?: string
-          to_user: string
+          text: string
+          thread_key: string
+          to_id: string
         }
         Update: {
-          content?: string
           created_at?: string
-          from_user?: string
+          from_id?: string
           id?: string
-          to_user?: string
+          text?: string
+          thread_key?: string
+          to_id?: string
         }
         Relationships: []
       }

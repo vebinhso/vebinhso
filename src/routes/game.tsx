@@ -913,6 +913,24 @@ function GamePage() {
           </div>
         </div>
       )}
+
+      {/* Boom modal — 2 câu hỏi liên tiếp, +10/-5 mỗi câu */}
+      {boom && (
+        <div className="absolute inset-0 bg-black/70 z-40 flex items-center justify-center p-3 md:p-6">
+          <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-red-500">
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <div className="text-base md:text-lg font-black text-red-700 animate-pulse">
+                💣 BẠN ĐÃ ĐẠP TRÚNG BOOM! Câu {boom.qIdx + 1}/2 (✅ +10đ • ❌ −5đ)
+              </div>
+              <button onClick={closeBoom} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖</button>
+            </div>
+            <QuestionView question={boom.q} onAnswer={handleBoomAnswer} disabled={!!boomResult} />
+            {boomResult && (
+              <div className="mt-4 text-center font-black text-xl md:text-2xl">{boomResult}</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

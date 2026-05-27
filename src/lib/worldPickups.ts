@@ -1,7 +1,7 @@
 // World pickups (coins + bombs) cho map nhà.
-// - Layout cơ bản: sinh deterministic 100 xu + 200 boom, cùng layout cho mọi user.
+// - Layout: sinh deterministic theo NGÀY (mỗi ngày 1 layout mới) — 100 xu + 200 boom.
 // - Extras: admin có thể thêm/xoá vật phẩm thủ công, lưu trong admin_config.
-// - Collected per-user: lưu localStorage.
+// - Collected per-user per-day: lưu localStorage, reset khi sang ngày mới.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,7 +22,12 @@ function rng(seed: number) {
   };
 }
 
-export function generateBasePickups(seed = BASE_SEED): Pickup[] {
+/** YYYYMMDD theo timezone máy người chơi (mọi user reset cùng kiểu mỗi ngày). */
+export function dayKey(d: Date = new Date()): number {
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+export function generateBasePickups(seed: number = BASE_SEED ^ dayKey()): Pickup[] {
   const r = rng(seed);
   const out: Pickup[] = [];
   const place = (kind: PickupKind, i: number) => {
@@ -43,9 +48,6 @@ export function generateBasePickups(seed = BASE_SEED): Pickup[] {
 }
 
 // ===== Config (admin-managed full layout) =====
-// admin_config.value shape: { override: boolean, items: Pickup[] }
-//  - override=false → map = base sinh sẵn + items (thêm thủ công)
-//  - override=true  → map = items (admin quản lý TOÀN BỘ vị trí xu+boom)
 const EXTRAS_KEY = "world_pickups_extras";
 
 export type PickupConfig = { override: boolean; items: Pickup[] };
@@ -88,13 +90,24 @@ export async function savePickupExtras(items: Pickup[]) {
   await savePickupConfig({ override: cur.override, items });
 }
 
-// ===== Collected (per user, localStorage) =====
+// ===== Collected (per user, PER DAY, localStorage) =====
 const LS_KEY = "vebinhso_pickups_collected_";
+
+function lsKey(uid: string) {
+  return `${LS_KEY}${uid}_${dayKey()}`;
+}
 
 export function loadCollected(uid: string): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = localStorage.getItem(LS_KEY + uid);
+    // Dọn key của ngày cũ để khỏi phình localStorage
+    const prefix = LS_KEY + uid + "_";
+    const today = lsKey(uid);
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix) && k !== today) localStorage.removeItem(k);
+    }
+    const raw = localStorage.getItem(today);
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch {
     return new Set();
@@ -104,7 +117,7 @@ export function loadCollected(uid: string): Set<string> {
 export function saveCollected(uid: string, s: Set<string>) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(LS_KEY + uid, JSON.stringify([...s]));
+    localStorage.setItem(lsKey(uid), JSON.stringify([...s]));
   } catch {
     /* noop */
   }

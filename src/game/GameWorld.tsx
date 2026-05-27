@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows } from "@react-three/drei";
-import { Suspense, type ReactNode } from "react";
+import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, type CatalogItem } from "./catalog";
@@ -261,41 +261,64 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
 }
 
 
-function Pickup3D({ p, collected, showAdmin }: { p: Pickup; collected: boolean; showAdmin: boolean }) {
+// Geometry/material chia sẻ cho 100+ đồng xu để giảm overhead.
+const COIN_GEO = new THREE.CylinderGeometry(0.28, 0.28, 0.08, 18);
+const COIN_MAT = new THREE.MeshStandardMaterial({
+  color: "#fde047",
+  emissive: "#f59e0b",
+  emissiveIntensity: 0.95,
+  metalness: 0.9,
+  roughness: 0.18,
+});
+const HALO_GEO = new THREE.SphereGeometry(0.55, 10, 10);
+const BOMB_GEO = new THREE.SphereGeometry(0.28, 10, 10);
+const BOMB_MAT = new THREE.MeshStandardMaterial({
+  color: "#dc2626",
+  emissive: "#7f1d1d",
+  emissiveIntensity: 0.6,
+  transparent: true,
+  opacity: 0.55,
+});
+
+function CoinPickup({ p }: { p: Pickup }) {
   const ref = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const haloRef = useRef<THREE.Mesh>(null);
+  const haloMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: "#fde047", transparent: true, opacity: 0.4, depthWrite: false }),
+    [],
+  );
   useFrame(({ clock }, dt) => {
     if (ref.current) ref.current.rotation.y += dt * 2.8;
-    if (glowRef.current) {
+    if (haloRef.current) {
       const t = clock.getElapsedTime();
-      const s = 1 + Math.sin(t * 4) * 0.18;
-      glowRef.current.scale.setScalar(s);
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(t * 4) * 0.18;
+      const s = 1 + Math.sin(t * 4 + p.x) * 0.15;
+      haloRef.current.scale.setScalar(s);
+      haloMat.opacity = 0.32 + Math.sin(t * 4 + p.x) * 0.15;
     }
   });
-  if (collected) return null;
-  if (p.kind === "coin") {
-    return (
-      <group position={[p.x, 0.45, p.z]}>
-        {/* Halo phát sáng óng ánh quanh đồng xu */}
-        <mesh ref={glowRef}>
-          <sphereGeometry args={[0.55, 16, 16]} />
-          <meshBasicMaterial color="#fde047" transparent opacity={0.45} depthWrite={false} />
-        </mesh>
-        <pointLight color="#fcd34d" intensity={1.4} distance={3} decay={2} />
-        <mesh ref={ref} castShadow>
-          <cylinderGeometry args={[0.28, 0.28, 0.08, 24]} />
-          <meshStandardMaterial color="#fde047" emissive="#f59e0b" emissiveIntensity={0.95} metalness={0.9} roughness={0.18} />
-        </mesh>
-      </group>
-    );
-  }
-  if (!showAdmin) return null;
   return (
-    <mesh position={[p.x, 0.35, p.z]}>
-      <sphereGeometry args={[0.28, 12, 12]} />
-      <meshStandardMaterial color="#dc2626" emissive="#7f1d1d" emissiveIntensity={0.6} transparent opacity={0.55} />
-    </mesh>
+    <group position={[p.x, 0.45, p.z]}>
+      <mesh ref={haloRef} geometry={HALO_GEO} material={haloMat} />
+      <mesh ref={ref} geometry={COIN_GEO} material={COIN_MAT} castShadow />
+    </group>
+  );
+}
+
+function PickupsField({ pickups, collectedIds, showAdminMarkers, sparkles }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean; sparkles?: { id: string; x: number; z: number; at: number }[] }) {
+  return (
+    <group>
+      {pickups.map((p) => {
+        if (collectedIds.has(p.id)) return null;
+        if (p.kind === "coin") return <CoinPickup key={p.id} p={p} />;
+        if (!showAdminMarkers) return null;
+        return (
+          <mesh key={p.id} position={[p.x, 0.35, p.z]} geometry={BOMB_GEO} material={BOMB_MAT} />
+        );
+      })}
+      {(sparkles ?? []).map((s) => (
+        <Sparkle key={s.id} x={s.x} z={s.z} at={s.at} />
+      ))}
+    </group>
   );
 }
 
@@ -303,7 +326,7 @@ function Sparkle({ x, z, at }: { x: number; z: number; at: number }) {
   const ringRef = useRef<THREE.Mesh>(null);
   const coreRef = useRef<THREE.Mesh>(null);
   useFrame(() => {
-    const t = (Date.now() - at) / 1000; // 0..~1.1
+    const t = (Date.now() - at) / 1000;
     const k = Math.min(1, t / 1.1);
     if (ringRef.current) {
       const s = 0.4 + k * 2.2;
@@ -327,19 +350,6 @@ function Sparkle({ x, z, at }: { x: number; z: number; at: number }) {
         <ringGeometry args={[0.25, 0.42, 32]} />
         <meshBasicMaterial color="#fde047" transparent opacity={0.9} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
-    </group>
-  );
-}
-
-function PickupsField({ pickups, collectedIds, showAdminMarkers, sparkles }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean; sparkles?: { id: string; x: number; z: number; at: number }[] }) {
-  return (
-    <group>
-      {pickups.map((p) => (
-        <Pickup3D key={p.id} p={p} collected={collectedIds.has(p.id)} showAdmin={showAdminMarkers} />
-      ))}
-      {(sparkles ?? []).map((s) => (
-        <Sparkle key={s.id} x={s.x} z={s.z} at={s.at} />
-      ))}
     </group>
   );
 }
@@ -499,7 +509,7 @@ function NeighborTree({ seed }: { seed: number }) {
   );
 }
 
-function Neighborhood() {
+const Neighborhood = memo(function Neighborhood() {
   // Mảnh trung tâm (mảnh đất người chơi) cần được chừa lại.
   // half mảnh + đường = 11 ô; thêm một dải an toàn nhỏ.
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12
@@ -581,7 +591,7 @@ function Neighborhood() {
       {trees}
     </group>
   );
-}
+});
 
 function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
@@ -774,7 +784,7 @@ export default function GameWorld(props: Props) {
   }, [props]);
 
   return (
-    <Canvas shadows camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, toneMappingExposure: 1.1 }}>
+    <Canvas shadows camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance", toneMappingExposure: 1.1 }}>
       {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
       <color attach="background" args={["#87ceeb"]} />
       <ambientLight intensity={0.35} />
@@ -784,8 +794,8 @@ export default function GameWorld(props: Props) {
         position={[25, 35, 18]}
         intensity={2}
         color="#fff5e1"
-        shadow-mapSize-width={4096}
-        shadow-mapSize-height={4096}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-left={-30}
         shadow-camera-right={30}
         shadow-camera-top={30}
@@ -808,7 +818,7 @@ export default function GameWorld(props: Props) {
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
-      <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
+      <ContactShadows position={[0, 0.03, 0]} opacity={0.4} scale={50} blur={2.2} far={12} resolution={512} frames={1} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />
       <OrbitControls
         ref={controlsRef}

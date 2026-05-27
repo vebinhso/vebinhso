@@ -629,6 +629,10 @@ function GamePage() {
             flash("🧹 Đã gỡ sàn");
           }}
           activeFloor={activeFloor}
+          pickups={pickups}
+          collectedIds={collectedIds}
+          onPickup={handlePickup}
+          showAdminMarkers={isAdmin(user.email)}
         />
       </Suspense>
 

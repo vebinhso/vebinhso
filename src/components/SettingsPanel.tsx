@@ -61,6 +61,28 @@ export function SettingsPanel() {
               className="w-full mb-6 accent-orange-500"
             />
 
+            <div className="border-t-2 border-dashed border-orange-200 pt-4 mb-4">
+              <div className="text-sm font-black mb-2 text-center">🎮 NHÂN VẬT</div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm">
+                  {wt.collision === "block" ? "🧱 Bị cản bởi vật" : "👻 Đi xuyên thấu"}
+                </span>
+                <button
+                  onClick={() => setToggles({ collision: wt.collision === "block" ? "phase" : "block" })}
+                  className={`px-4 py-2 rounded-full font-black text-xs border-2 ${
+                    wt.collision === "block"
+                      ? "bg-rose-500 border-rose-700 text-white"
+                      : "bg-sky-500 border-sky-700 text-white"
+                  }`}
+                >
+                  {wt.collision === "block" ? "ĐANG CẢN" : "XUYÊN THẤU"}
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground font-bold mt-1">
+                Bật "Cản" để nhân vật va chạm tường + đồ nội thất.
+              </p>
+            </div>
+
             <button
               onClick={() => setOpen(false)}
               className="toy-button toy-button-primary w-full"

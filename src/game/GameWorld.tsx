@@ -19,11 +19,14 @@ type Props = {
   placed: PlacedItem[];
   walls: WallSegment[];
   roofs: RoofSegment[];
+  floors: FloorSegment[];
   wallColor: string;
   wallMode: boolean;
   wallPickA: string | null;
   roofMode: boolean;
   roofPicks: string[];
+  floorMode: boolean;
+  floorPicks: string[];
   selectedItemId: string | null;
   rotation: number;
   onRotate: () => void;
@@ -32,6 +35,7 @@ type Props = {
   onPillarClick: (placedId: string) => void;
   onWallRemove: (id: string) => void;
   onRoofRemove: (id: string) => void;
+  onFloorRemove: (id: string) => void;
   activeFloor: number;
 };
 

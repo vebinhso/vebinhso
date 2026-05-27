@@ -18,6 +18,7 @@ import {
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
+import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 

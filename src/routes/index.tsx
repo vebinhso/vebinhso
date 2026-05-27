@@ -212,7 +212,7 @@ function Home() {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-lg border-2 border-white">🐕</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{found.username}</div>
-                    <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>
+                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>}
                   </div>
                 </div>
                 <button

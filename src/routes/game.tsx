@@ -740,3 +740,50 @@ function pointOnSegment(px: number, pz: number, w: WallSegment, tol: number) {
   const cz = az + t * dz;
   return Math.hypot(px - cx, pz - cz) <= tol;
 }
+
+const RAINDROPS = Array.from({ length: 60 }).map((_, i) => ({
+  left: `${(i * 137.5) % 100}%`,
+  top: `-${(i * 71.3) % 20}%`,
+  delay: `${(i * 0.113) % 0.7}s`,
+  dur: `${0.5 + (i * 0.017) % 0.4}s`,
+}));
+
+function WeatherOverlay({ powers }: { powers: number[] }) {
+  const rain = powers.includes(1);
+  const tornado = powers.includes(2);
+  const sun = powers.includes(3);
+  if (!rain && !tornado && !sun) return null;
+  return (
+    <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
+      {sun && (
+        <div className="absolute top-6 right-10 w-28 h-28 rounded-full bg-yellow-300 shadow-[0_0_60px_20px_rgba(253,224,71,0.6)] animate-[sunPulse_3s_ease-in-out_infinite] z-10" />
+      )}
+      {rain && (
+        <div className="absolute inset-0 z-20">
+          {RAINDROPS.map((d, i) => (
+            <div
+              key={i}
+              className="absolute w-0.5 h-5 bg-blue-200/70 rounded-full animate-[rainFall_0.7s_linear_infinite]"
+              style={{
+                left: d.left,
+                top: d.top,
+                animationDelay: d.delay,
+                animationDuration: d.dur,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {tornado && (
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 animate-[tornadoSpin_2s_linear_infinite]">
+          <div className="text-7xl opacity-80">🌪️</div>
+        </div>
+      )}
+      <style>{`
+        @keyframes rainFall { to { transform: translateY(120vh); } }
+        @keyframes sunPulse { 0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
+        @keyframes tornadoSpin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+}

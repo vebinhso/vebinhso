@@ -54,6 +54,11 @@ function GamePage() {
   // Multi-floor
   const [activeFloor, setActiveFloor] = useState(0);
 
+  // Undo stack
+  const [history, setHistory] = useState<GameState[]>([]);
+  const isUndoingRef = useRef(false);
+  const lastStateRef = useRef<GameState | null>(null);
+
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();

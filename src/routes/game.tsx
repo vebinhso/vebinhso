@@ -150,6 +150,7 @@ function GamePage() {
     }
 
     const collides = state.placed.some((p) => {
+      if ((p.floor ?? 0) !== activeFloor) return false;
       const pi = getItem(p.itemId);
       if (!pi) return false;
       // Mái không kiểm tra va chạm sàn (đặt trên đỉnh tường)
@@ -168,7 +169,7 @@ function GamePage() {
       x,
       z,
       rotation,
-      floor: 0,
+      floor: activeFloor,
     };
     setState({
       ...state,

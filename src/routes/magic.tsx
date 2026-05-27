@@ -981,7 +981,7 @@ function MagicPage() {
   const [doors, setDoors] = useState<DoorState[]>(Array(10).fill("closed"));
   const [room, setRoom] = useState<RoomState | null>(null);
   const [modal, setModal] = useState<null | { kind: "empty" | "chest" | "exit"; text: string }>(null);
-  const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; question: Question | null }>(null);
+  const [boss, setBoss] = useState<null | { door: number; hp: number; maxHp: number; level: 1 | 2 | 3; bulletsLeft: number; perHit: number; correct: number; question: Question | null }>(null);
   const [bossResult, setBossResult] = useState<string | null>(null);
   const [bossDefeated, setBossDefeated] = useState<null | { level: 1 | 2 | 3; reward: number }>(null);
   const [witchResult, setWitchResult] = useState<string | null>(null);
@@ -1102,6 +1102,7 @@ function MagicPage() {
         door: room.doorIdx,
         hp: o.hp, maxHp: o.hp,
         level: o.level, bulletsLeft: o.bullets, perHit: o.perHit,
+        correct: 0,
         question: randomQuestion(),
       });
     }
@@ -1337,35 +1338,34 @@ function MagicPage() {
     const correct = a === b;
     const g = loadGame();
     const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
+    const NEED = 5;
     if (correct) {
+      const newCorrect = boss.correct + 1;
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
-      const newHp = Math.max(0, boss.hp - boss.perHit);
-      const newBullets = boss.bulletsLeft - 1;
-      setBossResult("✅ Chính xác! Bắn trúng boss!");
-      if (newHp <= 0) {
-        const maxHp = boss.maxHp;
+      setBossResult(`✅ Chính xác! (${newCorrect}/${NEED} câu đúng)`);
+      if (newCorrect >= NEED) {
+        const reward = boss.maxHp;
         const level = boss.level;
         setBoss(null);
         setBossResult(null);
-        setBossDefeated({ level, reward: maxHp });
+        setBossDefeated({ level, reward });
         setTimeout(() => {
           setBossDefeated(null);
-          addCoins(maxHp);
-          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${maxHp} đồng` });
+          addCoins(reward);
+          setModal({ kind: "chest", text: `⚔️ Hạ gục boss cấp ${level}! +${reward} đồng` });
         }, 1200);
         return;
       }
       setTimeout(() => {
         setBossResult(null);
-        setBoss((prev) => prev ? { ...prev, hp: newHp, bulletsLeft: newBullets <= 0 ? 10 : newBullets, question: randomQuestion() } : prev);
+        setBoss((prev) => prev ? { ...prev, correct: newCorrect, hp: Math.max(0, prev.maxHp - prev.maxHp * (newCorrect / NEED)), question: randomQuestion() } : prev);
       }, 1200);
     } else {
       saveGame({ ...g, answerStreak: 0 });
-      const nb = Math.max(0, boss.bulletsLeft - 1);
       setBossResult(`❌ Sai rồi! Đáp án đúng: ${correctLetters}`);
       setTimeout(() => {
         setBossResult(null);
-        setBoss((prev) => prev ? { ...prev, bulletsLeft: nb <= 0 ? 10 : nb, question: randomQuestion() } : prev);
+        setBoss((prev) => prev ? { ...prev, question: randomQuestion() } : prev);
       }, 1200);
     }
   };
@@ -1869,7 +1869,7 @@ function MagicPage() {
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>👹 Boss cấp {boss.level}</span>
               <span>❤️ {boss.hp}/{boss.maxHp}</span>
-              <span>❄️ Đạn: {boss.bulletsLeft}/10</span>
+              <span>✅ {boss.correct}/5 câu đúng</span>
             </div>
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
@@ -1881,7 +1881,7 @@ function MagicPage() {
               </div>
             )}
             <p className="text-xs font-bold mt-2 opacity-70">
-              Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
+              Trả lời đúng 5 câu để hạ gục boss!
             </p>
           </div>
         </div>

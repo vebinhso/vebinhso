@@ -1,6 +1,7 @@
 // Supabase-backed auth — keeps a synchronous `getCurrentUser()` for legacy callers
 // by maintaining an in-memory cache hydrated from `supabase.auth` + `profiles`.
 import { supabase } from "@/integrations/supabase/client";
+import { loadGame, saveGame } from "./game";
 
 export type Account = {
   id: string; // auth.users.id (UUID)
@@ -94,6 +95,42 @@ export async function hydrateFromSession(): Promise<Account | null> {
   };
   setCurrentUserCache(acc);
   return acc;
+}
+
+export async function renameAccount(newName: string): Promise<{ ok: boolean; msg: string; cost: number }> {
+  const u = getCurrentUser();
+  if (!u) return { ok: false, msg: "Chưa đăng nhập", cost: 0 };
+  const name = newName.trim();
+  if (name.length < 2 || name.length > 20) return { ok: false, msg: "Tên phải từ 2–20 ký tự", cost: 0 };
+
+  const { data: prof } = await supabase
+    .from("profiles").select("name_changes").eq("user_id", u.id).maybeSingle();
+  const changes = (prof as any)?.name_changes ?? 0;
+  const cost = changes === 0 ? 0 : 50;
+
+  const { data: existing } = await supabase
+    .from("profiles").select("user_id").eq("username", name).maybeSingle();
+  if (existing && (existing as any).user_id !== u.id) {
+    return { ok: false, msg: "Tên này đã có người dùng", cost };
+  }
+
+  if (cost > 0) {
+    const g = loadGame();
+    if (g.money < cost) return { ok: false, msg: `Cần ${cost} xu để đổi tên (đang có ${g.money})`, cost };
+    saveGame({ ...g, money: g.money - cost });
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ username: name, display_name: name, name_changes: changes + 1 })
+    .eq("user_id", u.id);
+  if (error) {
+    if (cost > 0) { const g = loadGame(); saveGame({ ...g, money: g.money + cost }); }
+    return { ok: false, msg: error.message, cost };
+  }
+
+  setCurrentUserCache({ ...u, username: name });
+  return { ok: true, msg: cost > 0 ? `Đã đổi tên (−${cost} xu)` : "Đã đổi tên (miễn phí lần đầu)", cost };
 }
 
 // ===== Login streak (kept local for now — non-critical) =====

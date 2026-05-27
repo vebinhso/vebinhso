@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getCurrentUser, setCurrentUser, getLoginStreak, type Account, type LoginStreak } from "@/lib/auth";
+import { getCurrentUser, setCurrentUser, getLoginStreak, renameAccount, type Account, type LoginStreak } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import { isAdmin } from "@/lib/admin";
 import {
@@ -32,6 +32,25 @@ function Home() {
   const [searchName, setSearchName] = useState("");
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");
+
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameVal, setRenameVal] = useState("");
+  const [renameBusy, setRenameBusy] = useState(false);
+
+  const doRename = async () => {
+    setRenameBusy(true);
+    const res = await renameAccount(renameVal);
+    setRenameBusy(false);
+    if (res.ok) {
+      toast.success(res.msg);
+      setUser(getCurrentUser());
+      setMoney(loadGame().money);
+      setRenameOpen(false);
+      setRenameVal("");
+    } else {
+      toast.error(res.msg);
+    }
+  };
 
   const refreshFriends = (uid: string) => {
     setFriends(listFriends(uid));
@@ -83,7 +102,10 @@ function Home() {
             {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
           </div>
           <div>
-            <h1 className="text-lg font-black leading-tight">{user.username}</h1>
+            <h1 className="text-lg font-black leading-tight flex items-center gap-2">
+              {user.username}
+              <button onClick={() => { setRenameVal(user.username); setRenameOpen(true); }} className="text-sm opacity-60 hover:opacity-100 transition" title="Đổi tên">✏️</button>
+            </h1>
             <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
@@ -194,6 +216,28 @@ function Home() {
         </div>
         <Link to="/events" className="toy-button toy-button-accent">SỰ KIỆN HOT 🔥</Link>
       </footer>
+
+      {renameOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setRenameOpen(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-2">✏️ Đổi tên đăng nhập</h3>
+            <p className="text-xs text-muted-foreground mb-3">Lần đầu miễn phí. Các lần sau tốn 50 xu/lần.</p>
+            <input
+              value={renameVal}
+              onChange={(e) => setRenameVal(e.target.value)}
+              maxLength={20}
+              placeholder="Tên mới (2–20 ký tự)"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setRenameOpen(false)} className="toy-button flex-1">Hủy</button>
+              <button onClick={doRename} disabled={renameBusy} className="toy-button toy-button-primary flex-1 disabled:opacity-50">
+                {renameBusy ? "Đang đổi..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GameLayout>
   );
 }

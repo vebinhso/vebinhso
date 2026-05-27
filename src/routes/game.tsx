@@ -325,12 +325,16 @@ function GamePage() {
   const closeQuestion = () => {
     setQuestion(null);
     setQuestionResult(null);
+    setPicked([]);
   };
-  const answerQuestion = (idx: number) => {
+  const gradeAnswer = (correctSet: number[], pickedSet: number[]) => {
     if (!question) return;
+    const a = [...correctSet].sort().join(",");
+    const b = [...pickedSet].sort().join(",");
+    const ok = a === b;
     let next: GameState;
     let resultText: string;
-    if (idx === question.answer) {
+    if (ok) {
       next = {
         ...state,
         money: state.money + question.reward,
@@ -340,14 +344,35 @@ function GamePage() {
       resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
       next = { ...state, answerStreak: 0 };
-      resultText = `❌ Sai rồi! Đáp án: ${question.options[question.answer]}`;
+      const correctLabels = correctSet.map((i) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
+      resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }
     setState(next);
     setQuestionResult(resultText);
     setTimeout(() => {
       setQuestion(randomQuestion());
       setQuestionResult(null);
+      setPicked([]);
     }, 1200);
+  };
+  const answerQuestion = (idx: number) => {
+    if (!question || questionResult) return;
+    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
+      ? question.correctIndexes
+      : [question.answer];
+    const isMulti = correctSet.length > 1;
+    if (isMulti) {
+      setPicked((prev) => prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx]);
+      return;
+    }
+    gradeAnswer(correctSet, [idx]);
+  };
+  const confirmMultiAnswer = () => {
+    if (!question || questionResult || picked.length === 0) return;
+    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
+      ? question.correctIndexes
+      : [question.answer];
+    gradeAnswer(correctSet, picked);
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar");

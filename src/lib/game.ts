@@ -236,3 +236,9 @@ export const WALL_PALETTES: { id: string; name: string; colors: string[] }[] = [
   { id: "nordic", name: "Bắc Âu", colors: ["#f8fafc", "#cbd5e1", "#64748b", "#334155", "#0f172a"] },
   { id: "tropic", name: "Nhiệt đới", colors: ["#fef9c3", "#fde047", "#22d3ee", "#0e7490", "#ef4444"] },
 ];
+
+export const MAX_FLOOR = 3;
+
+export function floorHasRoof(s: GameState, floor: number): boolean {
+  return s.roofs.some((r) => (r.floor ?? 0) === floor);
+}

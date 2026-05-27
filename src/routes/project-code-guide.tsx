@@ -13,11 +13,14 @@ export const Route = createFileRoute("/project-code-guide")({
 });
 
 // Bundle toàn bộ source code tại build time
-const srcFiles = import.meta.glob("/src/**/*.{ts,tsx,js,jsx,css,md,json,html}", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
+const srcFiles = import.meta.glob(
+  [
+    "/src/**/*.{ts,tsx,js,jsx,css,md,json,html}",
+    "!/src/routeTree.gen.ts",
+    "!/src/**/*.gen.ts",
+  ],
+  { query: "?raw", import: "default", eager: true },
+) as Record<string, string>;
 
 const rootFiles = import.meta.glob(
   "/*.{json,js,ts,mjs,cjs,md,toml,jsonc,yaml,yml,html}",

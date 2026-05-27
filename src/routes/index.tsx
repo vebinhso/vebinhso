@@ -33,6 +33,25 @@ function Home() {
   const [found, setFound] = useState<Account | null>(null);
   const [searchErr, setSearchErr] = useState<string>("");
 
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameVal, setRenameVal] = useState("");
+  const [renameBusy, setRenameBusy] = useState(false);
+
+  const doRename = async () => {
+    setRenameBusy(true);
+    const res = await renameAccount(renameVal);
+    setRenameBusy(false);
+    if (res.ok) {
+      toast.success(res.msg);
+      setUser(getCurrentUser());
+      setMoney(loadGame().money);
+      setRenameOpen(false);
+      setRenameVal("");
+    } else {
+      toast.error(res.msg);
+    }
+  };
+
   const refreshFriends = (uid: string) => {
     setFriends(listFriends(uid));
     setIncoming(listIncomingRequests(uid));

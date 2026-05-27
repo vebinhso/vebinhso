@@ -65,6 +65,14 @@ function Home() {
     setMoney(loadGame().money);
     refreshFriends(u.id);
     setReady(true);
+    // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
+    const refresh = () => {
+      const cu = getCurrentUser();
+      if (cu) setStreak(getLoginStreak(cu.id));
+    };
+    window.addEventListener("auth-change", refresh);
+    const t = setTimeout(refresh, 800);
+    return () => { window.removeEventListener("auth-change", refresh); clearTimeout(t); };
   }, [navigate]);
 
   if (!ready || !user) return null;

@@ -3,6 +3,7 @@
 // - Loop SFX: rain | tornado — bật/tắt theo quyền năng.
 // - One-shot SFX: click | place | purchase | rightHouse | wrongHouse | wrongGame | monsterHit
 //   khi `duck=true` sẽ giảm volume BGM xuống đến khi sfx kết thúc.
+// - Cài đặt người dùng: mute + master volume (lưu localStorage).
 import homeUrl from "@/assets/audio/home.mp3";
 import houseUrl from "@/assets/audio/house.mp3";
 import magicUrl from "@/assets/audio/magic.mp3";
@@ -46,7 +47,7 @@ const BGM_VOL = 0.45;
 const BGM_DUCK = 0.1;
 const LOOP_SFX_VOL = 0.5;
 const SFX_VOL: Record<Sfx, number> = {
-  click: 0.4,
+  click: 0.85, // to hơn theo yêu cầu người dùng
   place: 0.7,
   purchase: 0.8,
   rightHouse: 0.85,
@@ -62,7 +63,49 @@ const loopEls: Partial<Record<LoopSfx, AudioRef>> = {};
 let currentBgm: BgmName = null;
 let unlocked = false;
 const pendingPlays: Array<() => void> = [];
-let duckCount = 0; // số sfx đang phát (cần duck)
+let duckCount = 0;
+
+// ===== Cài đặt người dùng =====
+const SETTINGS_KEY = "vebinhso_audio_settings_v1";
+type Settings = { muted: boolean; master: number }; // master: 0..1
+function loadSettings(): Settings {
+  if (typeof window === "undefined") return { muted: false, master: 1 };
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+    if (s && typeof s.master === "number") return { muted: !!s.muted, master: Math.max(0, Math.min(1, s.master)) };
+  } catch {}
+  return { muted: false, master: 1 };
+}
+let SETTINGS: Settings = loadSettings();
+function saveSettings() {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch {}
+  window.dispatchEvent(new Event("audio-settings-change"));
+}
+
+function effectiveBgmVol() {
+  if (SETTINGS.muted) return 0;
+  const base = duckCount > 0 ? BGM_DUCK : BGM_VOL;
+  return base * SETTINGS.master;
+}
+function effectiveLoopVol() {
+  return SETTINGS.muted ? 0 : LOOP_SFX_VOL * SETTINGS.master;
+}
+function effectiveSfxVol(name: Sfx) {
+  return SETTINGS.muted ? 0 : SFX_VOL[name] * SETTINGS.master;
+}
+
+export function getAudioSettings(): Settings { return { ...SETTINGS }; }
+export function setMuted(m: boolean) {
+  SETTINGS.muted = m;
+  saveSettings();
+  applyAllVolumes();
+}
+export function setMasterVolume(v: number) {
+  SETTINGS.master = Math.max(0, Math.min(1, v));
+  saveSettings();
+  applyAllVolumes();
+}
 
 function isBrowser() {
   return typeof window !== "undefined";
@@ -79,19 +122,24 @@ function makeAudio(src: string, opts: { loop?: boolean; volume?: number } = {}) 
 }
 
 function getBgm(name: Exclude<BgmName, null>): AudioRef {
-  if (!bgmEls[name]) bgmEls[name] = { el: makeAudio(SOURCES[name], { loop: true, volume: BGM_VOL }) };
+  if (!bgmEls[name]) bgmEls[name] = { el: makeAudio(SOURCES[name], { loop: true, volume: effectiveBgmVol() }) };
   return bgmEls[name]!;
 }
 function getLoopSfx(name: LoopSfx): AudioRef {
-  if (!loopEls[name]) loopEls[name] = { el: makeAudio(SOURCES[name], { loop: true, volume: LOOP_SFX_VOL }) };
+  if (!loopEls[name]) loopEls[name] = { el: makeAudio(SOURCES[name], { loop: true, volume: effectiveLoopVol() }) };
   return loopEls[name]!;
 }
 
-function applyBgmVolume() {
-  const target = duckCount > 0 ? BGM_DUCK : BGM_VOL;
+function applyAllVolumes() {
+  const bgm = effectiveBgmVol();
   for (const k of Object.keys(bgmEls) as Array<Exclude<BgmName, null>>) {
     const ref = bgmEls[k];
-    if (ref && !ref.el.paused) ref.el.volume = target;
+    if (ref) ref.el.volume = bgm;
+  }
+  const loop = effectiveLoopVol();
+  for (const k of Object.keys(loopEls) as LoopSfx[]) {
+    const ref = loopEls[k];
+    if (ref) ref.el.volume = loop;
   }
 }
 
@@ -103,7 +151,6 @@ function safePlay(el: HTMLAudioElement) {
 export function setBgm(name: BgmName) {
   if (!isBrowser()) return;
   if (currentBgm === name) return;
-  // dừng bgm cũ
   if (currentBgm) {
     const old = bgmEls[currentBgm];
     if (old) { old.el.pause(); old.el.currentTime = 0; }
@@ -111,7 +158,7 @@ export function setBgm(name: BgmName) {
   currentBgm = name;
   if (!name) return;
   const next = getBgm(name);
-  next.el.volume = duckCount > 0 ? BGM_DUCK : BGM_VOL;
+  next.el.volume = effectiveBgmVol();
   if (!unlocked) {
     pendingPlays.push(() => safePlay(next.el));
   } else {
@@ -122,6 +169,7 @@ export function setBgm(name: BgmName) {
 export function startLoopSfx(name: LoopSfx) {
   if (!isBrowser()) return;
   const ref = getLoopSfx(name);
+  ref.el.volume = effectiveLoopVol();
   if (!ref.el.paused) return;
   if (!unlocked) pendingPlays.push(() => safePlay(ref.el));
   else safePlay(ref.el);
@@ -136,16 +184,17 @@ export function stopLoopSfx(name: LoopSfx) {
 
 export function playSfx(name: Sfx, opts: { duck?: boolean } = {}) {
   if (!isBrowser() || !unlocked) return;
-  const el = makeAudio(SOURCES[name], { loop: false, volume: SFX_VOL[name] });
+  if (SETTINGS.muted) return;
+  const el = makeAudio(SOURCES[name], { loop: false, volume: effectiveSfxVol(name) });
   const duck = !!opts.duck;
   if (duck) {
     duckCount++;
-    applyBgmVolume();
+    applyAllVolumes();
   }
   const cleanup = () => {
     if (duck) {
       duckCount = Math.max(0, duckCount - 1);
-      applyBgmVolume();
+      applyAllVolumes();
     }
     el.removeEventListener("ended", cleanup);
     el.removeEventListener("error", cleanup);
@@ -155,13 +204,11 @@ export function playSfx(name: Sfx, opts: { duck?: boolean } = {}) {
   safePlay(el);
 }
 
-// Mở khoá audio sau lượt tương tác đầu tiên (yêu cầu của trình duyệt).
 export function unlockAudioOnUserGesture() {
   if (!isBrowser() || unlocked) return;
   const handler = () => {
     if (unlocked) return;
     unlocked = true;
-    // chạy các pending play
     for (const f of pendingPlays.splice(0)) f();
     document.removeEventListener("pointerdown", handler);
     document.removeEventListener("keydown", handler);

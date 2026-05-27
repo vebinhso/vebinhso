@@ -65,13 +65,14 @@ export async function sendRequestAsync(myId: string, friendId: string): Promise<
   if (myId === friendId) return { ok: false, msg: "Không thể tự kết bạn với chính mình." };
   const existing = getFriendship(myId, friendId);
   if (existing?.status === "accepted") return { ok: false, msg: "Hai bạn đã là bạn bè." };
-  // Auto-accept (simple model)
-  const { error } = await supabase.from("friends").upsert({
-    user_id: myId, friend_id: friendId, status: "accepted",
+  if (existing?.status === "pending") return { ok: false, msg: "Đã gửi lời mời, đang chờ phản hồi." };
+  // Gửi lời mời ở trạng thái "pending" — người nhận sẽ đồng ý hoặc từ chối.
+  const { error } = await supabase.from("friends").insert({
+    user_id: myId, friend_id: friendId, status: "pending",
   });
   if (error) return { ok: false, msg: error.message };
   await refresh(myId);
-  return { ok: true, msg: "Đã kết bạn thành công!" };
+  return { ok: true, msg: "Đã gửi lời mời kết bạn!" };
 }
 
 // Legacy sync wrapper (fire-and-forget)

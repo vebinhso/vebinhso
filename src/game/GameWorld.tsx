@@ -42,6 +42,7 @@ type Props = {
   collectedIds?: Set<string>;
   onPickup?: (p: Pickup) => void;
   showAdminMarkers?: boolean;
+  sparkles?: { id: string; x: number; z: number; at: number }[];
 };
 
 function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {

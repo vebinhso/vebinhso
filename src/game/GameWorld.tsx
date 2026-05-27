@@ -189,6 +189,14 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
       controlsRef.current.target.lerp(t, 0.18);
       controlsRef.current.update();
     }
+    // Báo vị trí ra ngoài (throttle ~10Hz) để HUD xác định gần cửa
+    if (onPlayerPos) {
+      const now = performance.now();
+      if (now - lastReport.current > 100) {
+        lastReport.current = now;
+        onPlayerPos(ref.current.position.x, ref.current.position.z);
+      }
+    }
   });
 
   // Character: 2 cells tall × 1 cell wide

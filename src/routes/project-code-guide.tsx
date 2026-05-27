@@ -96,19 +96,77 @@ function buildMarkdown(allFiles: Record<string, string>): string {
   return lines.join("\n");
 }
 
+type HookDetail = {
+  task: string;
+  codeExplain: string;
+  relations: string;
+  related: string[];
+  deps: string[];
+  returns: string;
+  trigger: string;
+};
+
 type HookInfo = {
   name: string;
   definedIn: string;
-  purpose: string;
   usedIn: string[];
+  detail: HookDetail;
 };
 
-const HOOK_PURPOSES: Record<string, string> = {
-  useAuthSync:
-    "Đồng bộ trạng thái đăng nhập Supabase với app: hydrate cache user và invalidate router/query khi auth thay đổi.",
-  useIsMobile:
-    "Phát hiện viewport mobile (<768px) qua matchMedia, dùng để render responsive UI.",
+const HOOK_DETAILS: Record<string, HookDetail> = {
+  useAuthSync: {
+    task:
+      "Đồng bộ trạng thái đăng nhập Supabase với toàn app: hydrate user cache và làm mới router/query khi auth thay đổi.",
+    codeExplain:
+      "Trong useEffect đăng ký supabase.auth.onAuthStateChange. Nếu session = null → setCurrentUserCache(null) + resetGameCacheForLogout(). Nếu có session → setTimeout(0) gọi hydrateFromSession() (deferred để tránh đệ quy Supabase). Sau mỗi event đều router.invalidate() và queryClient.invalidateQueries() để UI fetch lại. Khi mount cũng gọi hydrateFromSession() lần đầu. Cleanup unsubscribe khi unmount.",
+    relations:
+      "Cầu nối giữa Supabase Auth ↔ TanStack Router ↔ TanStack Query ↔ cache trong @/lib/auth và @/lib/game. Mount duy nhất 1 lần trong AuthSyncBridge của __root.tsx nên ảnh hưởng toàn bộ app.",
+    related: [
+      "src/routes/__root.tsx (AuthSyncBridge gọi hook)",
+      "src/integrations/supabase/client.ts",
+      "src/lib/auth.ts (hydrateFromSession, setCurrentUserCache)",
+      "src/lib/game.ts (resetGameCacheForLogout)",
+      "src/lib/session.ts (startSessionTracker chạy song song)",
+    ],
+    deps: [
+      "useEffect (React)",
+      "useRouter (@tanstack/react-router)",
+      "useQueryClient (@tanstack/react-query)",
+      "supabase.auth.onAuthStateChange",
+    ],
+    returns: "void (side-effect hook).",
+    trigger:
+      "Mount 1 lần trong <AuthSyncBridge/>; tự kích hoạt lại mỗi khi user đăng nhập / đăng xuất / refresh token.",
+  },
+  useIsMobile: {
+    task:
+      "Phát hiện viewport mobile (<768px) bằng matchMedia để render UI responsive theo cách thuần JS thay vì chỉ dựa vào Tailwind.",
+    codeExplain:
+      "State isMobile khởi tạo undefined. useEffect tạo MediaQueryList max-width: 767px, đăng ký 'change' → setIsMobile(window.innerWidth < 768). Set lần đầu ngay sau mount. Cleanup removeEventListener. Return !!isMobile để luôn trả boolean (tránh undefined gây flicker render đầu).",
+    relations:
+      "Hook tiện ích thuần UI, không phụ thuộc auth/store. Dùng bởi component dùng chung như sidebar/drawer/dialog để chọn layout mobile vs desktop. Hiện chủ yếu phục vụ sidebar của shadcn/ui.",
+    related: [
+      "src/components/ui/sidebar.tsx (consumer điển hình)",
+      "src/styles.css (breakpoint Tailwind md:768px tương ứng)",
+    ],
+    deps: ["React.useState", "React.useEffect", "window.matchMedia"],
+    returns: "boolean — true nếu width < 768px.",
+    trigger:
+      "Mỗi component gọi hook sẽ subscribe; cập nhật mỗi khi user resize cửa sổ hoặc xoay thiết bị.",
+  },
 };
+
+function defaultDetail(name: string, definedIn: string): HookDetail {
+  return {
+    task: `Custom hook ${name} — chưa có mô tả chi tiết. Xem trực tiếp ${definedIn.replace(/^\//, "")}.`,
+    codeExplain: "—",
+    relations: "—",
+    related: [definedIn.replace(/^\//, "")],
+    deps: [],
+    returns: "—",
+    trigger: "—",
+  };
+}
 
 function buildHookTable(files: Record<string, string>): HookInfo[] {
   const defRegex = /export\s+(?:function|const)\s+(use[A-Z]\w*)/g;
@@ -131,8 +189,8 @@ function buildHookTable(files: Record<string, string>): HookInfo[] {
     hooks.push({
       name,
       definedIn,
-      purpose: HOOK_PURPOSES[name] ?? "—",
       usedIn,
+      detail: HOOK_DETAILS[name] ?? defaultDetail(name, definedIn),
     });
   }
   hooks.sort((a, b) => a.name.localeCompare(b.name));
@@ -202,15 +260,24 @@ function ProjectCodeGuidePage() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-black mb-3">
-              1. 🪝 HOOKS — Danh sách & Mục đích
+              1. 🪝 HOOKS — Chi tiết từng custom hook
             </h2>
+            <p className="text-sm text-muted-foreground font-bold mb-3">
+              Mỗi hook được tách thành: Nhiệm vụ • Giải thích code • Mối liên hệ • Phụ thuộc • Trả về • Khi nào chạy • Nơi sử dụng.
+            </p>
             <div className="overflow-x-auto rounded-2xl border-2 border-gray-200">
               <table className="w-full text-sm">
                 <thead className="bg-gray-900 text-white">
                   <tr>
                     <th className="px-3 py-2 text-left font-black w-10">#</th>
-                    <th className="px-3 py-2 text-left font-black">Hook</th>
-                    <th className="px-3 py-2 text-left font-black">Mục đích</th>
+                    <th className="px-3 py-2 text-left font-black w-56">Hook</th>
+                    <th className="px-3 py-2 text-left font-black">Nhiệm vụ</th>
+                    <th className="px-3 py-2 text-left font-black">Giải thích code</th>
+                    <th className="px-3 py-2 text-left font-black">Mối liên hệ</th>
+                    <th className="px-3 py-2 text-left font-black">Phụ thuộc</th>
+                    <th className="px-3 py-2 text-left font-black">Trả về</th>
+                    <th className="px-3 py-2 text-left font-black">Khi nào chạy</th>
+                    <th className="px-3 py-2 text-left font-black">File liên quan</th>
                     <th className="px-3 py-2 text-left font-black">Nơi sử dụng</th>
                   </tr>
                 </thead>
@@ -222,12 +289,38 @@ function ProjectCodeGuidePage() {
                         <code className="inline-block px-2 py-1 rounded-md bg-gray-900 text-emerald-300 font-mono text-xs font-bold">
                           {h.name}
                         </code>
-                        <div className="text-[11px] text-muted-foreground font-mono mt-1">
+                        <div className="text-[11px] text-muted-foreground font-mono mt-1 break-all">
                           {h.definedIn.replace(/^\//, "")}
                         </div>
                       </td>
-                      <td className="px-3 py-3 font-medium text-gray-700">{h.purpose}</td>
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 font-medium text-gray-700 min-w-[200px]">{h.detail.task}</td>
+                      <td className="px-3 py-3 text-gray-700 min-w-[260px] whitespace-pre-wrap">{h.detail.codeExplain}</td>
+                      <td className="px-3 py-3 text-gray-700 min-w-[220px]">{h.detail.relations}</td>
+                      <td className="px-3 py-3 min-w-[160px]">
+                        {h.detail.deps.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">—</span>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-0.5">
+                            {h.detail.deps.map((d) => (
+                              <li key={d} className="text-[12px] font-mono text-gray-800">{d}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[140px]">{h.detail.returns}</td>
+                      <td className="px-3 py-3 text-[12px] text-gray-700 min-w-[160px]">{h.detail.trigger}</td>
+                      <td className="px-3 py-3 min-w-[200px]">
+                        {h.detail.related.length === 0 ? (
+                          <span className="text-xs text-muted-foreground italic">—</span>
+                        ) : (
+                          <ul className="space-y-0.5">
+                            {h.detail.related.map((r) => (
+                              <li key={r} className="text-[11px] font-mono text-blue-700 break-all">{r}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 min-w-[180px]">
                         {h.usedIn.length === 0 ? (
                           <span className="text-xs text-muted-foreground italic">Chưa dùng</span>
                         ) : (
@@ -247,7 +340,7 @@ function ProjectCodeGuidePage() {
                   ))}
                   {hookTable.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground font-bold">
+                      <td colSpan={10} className="px-3 py-6 text-center text-muted-foreground font-bold">
                         Chưa có custom hook nào.
                       </td>
                     </tr>
@@ -256,6 +349,7 @@ function ProjectCodeGuidePage() {
               </table>
             </div>
           </section>
+
 
           <h2 className="text-2xl font-black mb-3">2. 📁 Toàn bộ file source</h2>
 

@@ -1881,7 +1881,7 @@ function MagicPage() {
               </div>
             )}
             <p className="text-xs font-bold mt-2 opacity-70">
-              Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
+              Trả lời đúng 5 câu để hạ gục boss!
             </p>
           </div>
         </div>

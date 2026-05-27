@@ -1050,27 +1050,23 @@ function MapsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminCon
 
 /* ===================== PICKUPS (Vật phẩm map nhà) ===================== */
 function PickupsPanel() {
-  const [extras, setExtras] = useState<Pickup[] | null>(null);
+  const [cfg, setCfg] = useState<PickupConfig | null>(null);
   const [kind, setKind] = useState<PickupKind>("coin");
   const [x, setX] = useState("20");
   const [z, setZ] = useState("20");
+  const [filter, setFilter] = useState<"all" | "coin" | "bomb">("all");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPickupExtras().then(setExtras).catch(() => setExtras([]));
+    loadPickupConfig().then(setCfg).catch(() => setCfg({ override: false, items: [] }));
   }, []);
 
-  const baseCount = useMemo(() => {
-    const b = generateBasePickups();
-    return { coin: b.filter((p) => p.kind === "coin").length, bomb: b.filter((p) => p.kind === "bomb").length };
-  }, []);
-
-  const persist = async (items: Pickup[]) => {
+  const persist = async (next: PickupConfig) => {
     setSaving(true);
     try {
-      await savePickupExtras(items);
-      setExtras(items);
+      await savePickupConfig(next);
+      setCfg(next);
       setMsg("✅ Đã lưu");
       setTimeout(() => setMsg(null), 1500);
     } catch (e: any) {
@@ -1080,34 +1076,54 @@ function PickupsPanel() {
     }
   };
 
+  if (!cfg) return <div className="font-bold">Đang tải...</div>;
+
   const add = () => {
     const nx = parseFloat(x), nz = parseFloat(z);
     if (!isFinite(nx) || !isFinite(nz)) { setMsg("❌ Tọa độ không hợp lệ"); return; }
-    const id = `x-${kind[0]}-${Date.now().toString(36)}-${Math.floor(Math.random() * 999)}`;
-    persist([...(extras ?? []), { id, kind, x: +nx.toFixed(2), z: +nz.toFixed(2) }]);
+    const id = `m-${kind[0]}-${Date.now().toString(36)}-${Math.floor(Math.random() * 999)}`;
+    persist({ ...cfg, items: [...cfg.items, { id, kind, x: +nx.toFixed(2), z: +nz.toFixed(2) }] });
   };
-  const remove = (id: string) => persist((extras ?? []).filter((p) => p.id !== id));
-  const clearAll = () => { if (confirm("Xoá toàn bộ vật phẩm thủ công?")) persist([]); };
+  const remove = (id: string) => persist({ ...cfg, items: cfg.items.filter((p) => p.id !== id) });
+  const updateCoord = (id: string, axis: "x" | "z", v: string) => {
+    const nv = parseFloat(v); if (!isFinite(nv)) return;
+    persist({ ...cfg, items: cfg.items.map((p) => p.id === id ? { ...p, [axis]: +nv.toFixed(2) } : p) });
+  };
+  const clearAll = () => { if (confirm("Xoá toàn bộ vật phẩm trong danh sách?")) persist({ ...cfg, items: [] }); };
+  const loadBaseIntoEditor = () => {
+    if (!confirm("Tải 100 xu + 200 boom layout mặc định vào danh sách (sẽ bật chế độ ghi đè)?")) return;
+    persist({ override: true, items: generateBasePickups() });
+  };
+  const toggleOverride = (v: boolean) => persist({ ...cfg, override: v });
 
-  if (extras === null) return <div className="font-bold">Đang tải...</div>;
-  const extraCoins = extras.filter((p) => p.kind === "coin").length;
-  const extraBombs = extras.filter((p) => p.kind === "bomb").length;
+  const coinCount = cfg.items.filter((p) => p.kind === "coin").length;
+  const bombCount = cfg.items.filter((p) => p.kind === "bomb").length;
+  const filtered = cfg.items.filter((p) => filter === "all" ? true : p.kind === filter);
 
   return (
     <div>
       <h2 className="text-xl font-black mb-2">🪙 Vật phẩm rải trên map nhà</h2>
       <p className="text-sm text-muted-foreground font-bold mb-3">
-        Map sinh sẵn <b>{baseCount.coin} xu</b> + <b>{baseCount.bomb} boom</b> ngẫu nhiên (giống nhau cho mọi người chơi).
-        Thêm bên dưới để chèn thêm vật phẩm thủ công vào vị trí cụ thể.
-        <br />Hệ tọa độ: x/z trong khoảng <code>±100</code>, mảnh đất ở giữa <code>±10</code>.
+        Hệ tọa độ: x/z trong khoảng <code>±100</code>, mảnh đất ở giữa <code>±10</code>. Xu = +10đ, Boom = 2 câu hỏi (✅+10/❌−5).
       </p>
+
+      <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-3 mb-3 flex flex-wrap gap-3 items-center">
+        <label className="flex items-center gap-2 font-black text-sm">
+          <input type="checkbox" checked={cfg.override} onChange={(e) => toggleOverride(e.target.checked)} className="w-4 h-4" />
+          Ghi đè toàn bộ (quản lý 100% vị trí)
+        </label>
+        <button onClick={loadBaseIntoEditor} disabled={saving} className="toy-button !text-xs !py-2 !px-3">📥 Nạp layout base vào danh sách</button>
+        <span className="text-xs font-bold text-muted-foreground">
+          {cfg.override ? "→ Map chỉ dùng danh sách dưới đây." : "→ Map = 100 xu + 200 boom ngẫu nhiên + các mục dưới đây."}
+        </span>
+      </div>
 
       <div className="grid sm:grid-cols-[auto_auto_auto_auto_auto] gap-2 items-end bg-amber-50/60 border border-amber-200 rounded-xl p-3 mb-4">
         <label className="text-xs font-black flex flex-col gap-1">
           Loại
           <select value={kind} onChange={(e) => setKind(e.target.value as PickupKind)} className="border-2 border-amber-300 rounded px-2 py-1 font-bold">
-            <option value="coin">🪙 Xu (+1đ)</option>
-            <option value="bomb">💣 Boom (2 câu hỏi)</option>
+            <option value="coin">🪙 Xu (+10đ)</option>
+            <option value="bomb">💣 Boom</option>
           </select>
         </label>
         <label className="text-xs font-black flex flex-col gap-1">
@@ -1117,22 +1133,36 @@ function PickupsPanel() {
           z <input value={z} onChange={(e) => setZ(e.target.value)} className="border-2 border-amber-300 rounded px-2 py-1 w-24 font-bold" />
         </label>
         <button onClick={add} disabled={saving} className="toy-button toy-button-primary !text-xs !py-2 !px-3">➕ Thêm</button>
-        <button onClick={clearAll} disabled={saving || extras.length === 0} className="toy-button !text-xs !py-2 !px-3">🗑️ Xoá hết thủ công</button>
+        <button onClick={clearAll} disabled={saving || cfg.items.length === 0} className="toy-button !text-xs !py-2 !px-3">🗑️ Xoá hết</button>
       </div>
 
       {msg && <div className="mb-2 text-sm font-black">{msg}</div>}
 
-      <div className="text-sm font-bold mb-2">
-        Thủ công: 🪙 {extraCoins} · 💣 {extraBombs} (tổng {extras.length})
+      <div className="flex flex-wrap gap-2 items-center mb-2 text-sm font-bold">
+        <span>Tổng trong danh sách: 🪙 {coinCount} · 💣 {bombCount} ({cfg.items.length})</span>
+        <span className="ml-auto flex gap-1">
+          {(["all", "coin", "bomb"] as const).map((k) => (
+            <button key={k} onClick={() => setFilter(k)} className={`px-2 py-1 rounded border-2 text-xs ${filter === k ? "bg-amber-300 border-amber-500" : "bg-white border-amber-200"}`}>
+              {k === "all" ? "Tất cả" : k === "coin" ? "🪙 Xu" : "💣 Boom"}
+            </button>
+          ))}
+        </span>
       </div>
-      {extras.length === 0 ? (
-        <div className="text-muted-foreground font-bold">Chưa có vật phẩm thủ công.</div>
+
+      {filtered.length === 0 ? (
+        <div className="text-muted-foreground font-bold">Chưa có vật phẩm nào.</div>
       ) : (
         <ul className="grid gap-1 max-h-[55vh] overflow-y-auto">
-          {extras.map((p) => (
-            <li key={p.id} className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex justify-between items-center gap-2">
-              <span>{p.kind === "coin" ? "🪙" : "💣"} <code>{p.id}</code> · x={p.x} · z={p.z}</span>
-              <button onClick={() => remove(p.id)} disabled={saving} className="toy-button !text-xs !py-1 !px-2">Xoá</button>
+          {filtered.map((p) => (
+            <li key={p.id} className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex flex-wrap justify-between items-center gap-2">
+              <span className="flex items-center gap-2">
+                {p.kind === "coin" ? "🪙" : "💣"} <code className="text-xs">{p.id}</code>
+              </span>
+              <span className="flex items-center gap-1 text-xs">
+                x <input defaultValue={p.x} onBlur={(e) => updateCoord(p.id, "x", e.target.value)} className="border rounded px-1 py-0.5 w-16" />
+                z <input defaultValue={p.z} onBlur={(e) => updateCoord(p.id, "z", e.target.value)} className="border rounded px-1 py-0.5 w-16" />
+                <button onClick={() => remove(p.id)} disabled={saving} className="toy-button !text-xs !py-1 !px-2">Xoá</button>
+              </span>
             </li>
           ))}
         </ul>

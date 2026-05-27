@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import {
   loadGame,
   saveGame,
@@ -579,7 +580,7 @@ function GamePage() {
         <div className="glass-card px-4 py-2 pointer-events-auto flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-2 border-white flex items-center justify-center text-xl">🐕</div>
           <div className="text-sm">
-            <div className="font-black">{user.username} <span className="text-xs text-orange-700">#{user.id}</span></div>
+            <div className="font-black">{user.username} {isAdmin(user.email) && <span className="text-xs text-orange-700">#{user.id}</span>}</div>
             <div className="font-bold text-yellow-700">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
             <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu • 🔥 streak {state.answerStreak}</div>
             <div className="text-xs font-bold text-stone-700">🧱 Gạch: {state.bricks} • 🪣 Bê tông: {state.concrete} • 🏠 Mái ngói: {state.roofTiles} • 🟥 Mái tôn: {state.roofTilesTon}</div>

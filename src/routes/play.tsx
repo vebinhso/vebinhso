@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import { loadOutfit } from "@/lib/character";
 
 export const Route = createFileRoute("/play")({ component: PlayPage });
@@ -46,7 +47,7 @@ function PlayPage() {
           <div className="text-6xl mb-3">🎮</div>
           <h1 className="text-3xl font-black mb-2">CHỌN BẢN ĐỒ</h1>
           <p className="font-bold text-muted-foreground mb-6">
-            Xin chào <span className="text-orange-600">{user.username}</span> (ID #{user.id})
+            Xin chào <span className="text-orange-600">{user.username}</span>{isAdmin(user.email) && <> (ID #{user.id})</>}
           </p>
           <div className="grid gap-4">
             <Link to="/game" className="toy-button toy-button-primary w-full !text-xl py-6 flex flex-col items-center gap-1">

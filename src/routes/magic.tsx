@@ -964,6 +964,7 @@ type MagicSave = {
   s2Inv: { shield: boolean; potion: number };
   coins: number;
   stage2Unlocked?: boolean;
+  selectedArea?: 1 | 2 | null;
 };
 function loadMagic(): MagicSave | null {
   if (typeof window === "undefined") return null;
@@ -1063,6 +1064,18 @@ function MagicPage() {
       setS2Inv(saved.s2Inv || { shield: false, potion: 0 });
       setCoins(saved.coins || 0);
       setStage2Unlocked(!!saved.stage2Unlocked || saved.stage === 2);
+      // Khôi phục khu vực đã chọn lần trước (nếu có) — và reset trạng thái phòng để có thể chơi lại
+      if (saved.selectedArea === 1 || saved.selectedArea === 2) {
+        if (saved.selectedArea === 1) {
+          setDoors(Array(10).fill("closed"));
+          setStage(1);
+        } else {
+          setS2Doors(Array(5).fill("closed"));
+          setS2Inv({ shield: false, potion: 0 });
+          setStage(2);
+        }
+        setSelectedArea(saved.selectedArea);
+      }
     }
     setHydrated(true);
   }, [navigate]);
@@ -1072,9 +1085,9 @@ function MagicPage() {
     if (!hydrated) return;
     saveMagic({
       stage: stage === "transition" ? 1 : (stage as 1 | 2),
-      doors, s2Doors, s2Inv, coins, stage2Unlocked,
+      doors, s2Doors, s2Inv, coins, stage2Unlocked, selectedArea,
     });
-  }, [hydrated, stage, doors, s2Doors, s2Inv, coins, stage2Unlocked]);
+  }, [hydrated, stage, doors, s2Doors, s2Inv, coins, stage2Unlocked, selectedArea]);
 
   // Cộng vàng vừa cho local HUD vừa vào game.money toàn cục
   const addCoins = (n: number) => {

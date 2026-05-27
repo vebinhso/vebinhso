@@ -99,6 +99,9 @@ function CharacterPage() {
       const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
       await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", u.id);
       setAvatarUrl(publicUrl);
+      // Refresh in-memory user cache so trang chủ hiển thị avatar mới ngay
+      const { setCurrentUserCache } = await import("@/lib/auth");
+      setCurrentUserCache({ ...u, avatarUrl: publicUrl });
     } catch (e: any) {
       setErr(e?.message || "Lỗi tải ảnh");
     } finally {

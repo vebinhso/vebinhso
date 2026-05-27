@@ -116,7 +116,7 @@ function Home() {
               {user.username}
               <button onClick={() => { setRenameVal(user.username); setRenameOpen(true); }} className="text-sm opacity-60 hover:opacity-100 transition" title="Đổi tên">✏️</button>
             </h1>
-            <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>
+            {isAdmin(user.email) && <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>}
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
@@ -143,16 +143,16 @@ function Home() {
             <p className="text-xs text-center text-muted-foreground italic">Chưa có bạn bè. Hãy kết bạn bên dưới!</p>
           ) : (
             <>
-              {(showAllFriends ? friends : friends.slice(0, 3)).map((f) => (
+              {(showAllFriends ? friends : friends.slice(0, 1)).map((f) => (
                 <div key={f.id} className="friend-item">
                   <span className="w-9 h-9 rounded-full bg-blue-300 flex items-center justify-center">🧑</span>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{f.username}</div>
-                    <div className="text-[10px] text-orange-700 font-bold">ID #{f.id}</div>
+                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{f.id}</div>}
                   </div>
                 </div>
               ))}
-              {friends.length > 3 && (
+              {friends.length > 1 && (
                 <button
                   onClick={() => setShowAllFriends((v) => !v)}
                   className="w-full mt-1 py-1 rounded-lg bg-white/60 hover:bg-white/80 text-[10px] font-black transition"
@@ -166,10 +166,10 @@ function Home() {
           {incoming.length > 0 && (
             <div className="mt-2 border-t-2 border-white/60 pt-2">
               <h4 className="text-xs font-black text-center mb-2">📬 LỜI MỜI ({incoming.length})</h4>
-              {(showAllIncoming ? incoming : incoming.slice(0, 3)).map((r) => (
+              {(showAllIncoming ? incoming : incoming.slice(0, 1)).map((r) => (
                 <div key={r.from.id} className="bg-white/80 rounded-xl p-2 mb-2 text-xs">
                   <div className="font-black">{r.from.username}</div>
-                  <div className="text-[10px] text-orange-700 font-bold mb-1">ID #{r.from.id}</div>
+                  {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold mb-1">ID #{r.from.id}</div>}
                   <div className="flex gap-1">
                     <button
                       onClick={() => { acceptRequest(user.id, r.from.id); refreshFriends(user.id); toast.success("Đã chấp nhận!"); }}
@@ -182,7 +182,7 @@ function Home() {
                   </div>
                 </div>
               ))}
-              {incoming.length > 3 && (
+              {incoming.length > 1 && (
                 <button
                   onClick={() => setShowAllIncoming((v) => !v)}
                   className="w-full mt-1 py-1 rounded-lg bg-white/60 hover:bg-white/80 text-[10px] font-black transition"
@@ -212,7 +212,7 @@ function Home() {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-lg border-2 border-white">🐕</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{found.username}</div>
-                    <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>
+                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>}
                   </div>
                 </div>
                 <button

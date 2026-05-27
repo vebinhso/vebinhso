@@ -702,7 +702,7 @@ function PlotAndPlacement({
         const wz = p.z - half + fd / 2;
         const pFloor = p.floor ?? 0;
         const floorOffset = pFloor * WALL_HEIGHT;
-        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0);
+        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0) + (p.stackY ?? 0);
         const isOtherFloor = pFloor !== activeFloor;
         const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);

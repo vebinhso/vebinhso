@@ -42,6 +42,7 @@ type Props = {
   collectedIds?: Set<string>;
   onPickup?: (p: Pickup) => void;
   showAdminMarkers?: boolean;
+  sparkles?: { id: string; x: number; z: number; at: number }[];
 };
 
 function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void }) {
@@ -205,14 +206,31 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup }
 
 function Pickup3D({ p, collected, showAdmin }: { p: Pickup; collected: boolean; showAdmin: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
-  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 2.5; });
+  const glowRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }, dt) => {
+    if (ref.current) ref.current.rotation.y += dt * 2.8;
+    if (glowRef.current) {
+      const t = clock.getElapsedTime();
+      const s = 1 + Math.sin(t * 4) * 0.18;
+      glowRef.current.scale.setScalar(s);
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.35 + Math.sin(t * 4) * 0.18;
+    }
+  });
   if (collected) return null;
   if (p.kind === "coin") {
     return (
-      <mesh ref={ref} position={[p.x, 0.45, p.z]} castShadow>
-        <cylinderGeometry args={[0.28, 0.28, 0.08, 20]} />
-        <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.75} roughness={0.25} />
-      </mesh>
+      <group position={[p.x, 0.45, p.z]}>
+        {/* Halo phát sáng óng ánh quanh đồng xu */}
+        <mesh ref={glowRef}>
+          <sphereGeometry args={[0.55, 16, 16]} />
+          <meshBasicMaterial color="#fde047" transparent opacity={0.45} depthWrite={false} />
+        </mesh>
+        <pointLight color="#fcd34d" intensity={1.4} distance={3} decay={2} />
+        <mesh ref={ref} castShadow>
+          <cylinderGeometry args={[0.28, 0.28, 0.08, 24]} />
+          <meshStandardMaterial color="#fde047" emissive="#f59e0b" emissiveIntensity={0.95} metalness={0.9} roughness={0.18} />
+        </mesh>
+      </group>
     );
   }
   if (!showAdmin) return null;
@@ -224,11 +242,46 @@ function Pickup3D({ p, collected, showAdmin }: { p: Pickup; collected: boolean; 
   );
 }
 
-function PickupsField({ pickups, collectedIds, showAdminMarkers }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean }) {
+function Sparkle({ x, z, at }: { x: number; z: number; at: number }) {
+  const ringRef = useRef<THREE.Mesh>(null);
+  const coreRef = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    const t = (Date.now() - at) / 1000; // 0..~1.1
+    const k = Math.min(1, t / 1.1);
+    if (ringRef.current) {
+      const s = 0.4 + k * 2.2;
+      ringRef.current.scale.set(s, s, s);
+      (ringRef.current.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - k);
+    }
+    if (coreRef.current) {
+      const s = 1 + k * 1.6;
+      coreRef.current.scale.set(s, s, s);
+      (coreRef.current.material as THREE.MeshBasicMaterial).opacity = 1 - k;
+    }
+  });
+  return (
+    <group position={[x, 0.6, z]}>
+      <pointLight color="#fef08a" intensity={3} distance={5} decay={2} />
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[0.35, 16, 16]} />
+        <meshBasicMaterial color="#fff7c2" transparent opacity={1} depthWrite={false} />
+      </mesh>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.25, 0.42, 32]} />
+        <meshBasicMaterial color="#fde047" transparent opacity={0.9} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+function PickupsField({ pickups, collectedIds, showAdminMarkers, sparkles }: { pickups: Pickup[]; collectedIds: Set<string>; showAdminMarkers: boolean; sparkles?: { id: string; x: number; z: number; at: number }[] }) {
   return (
     <group>
       {pickups.map((p) => (
         <Pickup3D key={p.id} p={p} collected={collectedIds.has(p.id)} showAdmin={showAdminMarkers} />
+      ))}
+      {(sparkles ?? []).map((s) => (
+        <Sparkle key={s.id} x={s.x} z={s.z} at={s.at} />
       ))}
     </group>
   );
@@ -696,7 +749,7 @@ export default function GameWorld(props: Props) {
       <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
-        <PickupsField pickups={props.pickups} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} />
+        <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
       <ContactShadows position={[0, 0.03, 0]} opacity={0.45} scale={60} blur={2.4} far={15} resolution={1024} />
       <fog attach="fog" args={["#dbeafe", 90, 280]} />

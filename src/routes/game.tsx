@@ -25,7 +25,7 @@ import { QuestionView } from "@/game/QuestionView";
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 import { getActivePowerIds } from "@/lib/powers";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
-import { generateBasePickups, loadPickupExtras, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
+import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -73,6 +73,8 @@ function GamePage() {
   // Pickups (coins + bombs scattered around the house)
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
+  // Hiệu ứng lấp lánh khi dẫm trúng xu
+  const [sparkles, setSparkles] = useState<{ id: string; x: number; z: number; at: number }[]>([]);
   // Boom modal: 2 sequential questions
   const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
@@ -92,10 +94,9 @@ function GamePage() {
       .catch(() => setQuestionsReady(true));
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
-    const base = generateBasePickups();
-    loadPickupExtras()
-      .then((extras) => setPickups([...base, ...extras]))
-      .catch(() => setPickups(base));
+    loadPickupConfig()
+      .then((cfg) => setPickups(resolvePickups(cfg)))
+      .catch(() => setPickups([]));
   }, [navigate]);
 
   useEffect(() => {
@@ -526,9 +527,13 @@ function GamePage() {
     if (collectedIds.has(p.id)) return;
     markCollected(p.id);
     if (p.kind === "coin") {
-      setState((s) => (s ? { ...s, money: s.money + 1 } : s));
+      setState((s) => (s ? { ...s, money: s.money + 10 } : s));
       playSfx("rightHouse", { duck: true });
-      flash("🪙 +1đ", 800);
+      // Sparkle 1.1s
+      const sid = `s-${p.id}-${Date.now()}`;
+      setSparkles((arr) => [...arr, { id: sid, x: p.x, z: p.z, at: Date.now() }]);
+      setTimeout(() => setSparkles((arr) => arr.filter((s) => s.id !== sid)), 1100);
+      flash("✨ +10đ", 900);
     } else {
       // Boom: mở modal trả lời 2 câu hỏi
       playSfx("wrongHouse", { duck: true });
@@ -633,6 +638,7 @@ function GamePage() {
           collectedIds={collectedIds}
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
+          sparkles={sparkles}
         />
       </Suspense>
 

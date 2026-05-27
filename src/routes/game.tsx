@@ -476,6 +476,8 @@ function GamePage() {
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   const canEnterWallMode = pillarsPlaced.length >= 2;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
+  const canEnterFloorMode = pillarsPlaced.length >= 4;
+  const floorOnThisFloor = state.floors.some((f) => (f.floor ?? 0) === activeFloor);
 
   const canAccessFloor = (f: number) => {
     if (f <= 0) return true;

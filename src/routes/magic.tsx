@@ -1448,28 +1448,39 @@ function MagicPage() {
     }, 1600);
   };
 
-  const answerWitch = (i: number) => {
-    if (!witch || !witch.question) return;
-    const isCorrect = i === witch.question.answer;
+  const answerWitch = (picked: number[]) => {
+    if (!witch || !witch.question || witchResult) return;
+    const q = witch.question;
+    const correctIdx = q.correctIndexes ?? [q.answer];
+    const isCorrect = arraysEqualSet(picked, correctIdx);
     bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);
+    setWitchResult(isCorrect ? "✅ Chính xác! −20 HP phù thủy!" : `❌ Sai rồi! Đáp án đúng: ${correctLettersOf(q)}`);
     if (newHp <= 0) {
-      addCoins(100);
-      setWitch(null);
-      setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
-      setS2Room(null);
-      setGameComplete(true);
+      setTimeout(() => {
+        setWitchResult(null);
+        addCoins(100);
+        setWitch(null);
+        setS2Doors((d) => { const n = [...d]; n[4] = "cleared"; return n; });
+        setS2Room(null);
+        setGameComplete(true);
+      }, 1100);
       return;
     }
     const nextWave = witch.wave + 1;
     if (nextWave > 5) {
-      // 5 waves done, boss still alive
-      setWitch(null);
-      setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
+      setTimeout(() => {
+        setWitchResult(null);
+        setWitch(null);
+        setS2Modal({ title: "⏱️ Hết 5 đợt sét", text: `Phù thủy đã cạn sét nhưng vẫn còn ${newHp} HP. Bạn rút lui!` });
+      }, 1100);
       return;
     }
-    setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });
+    setTimeout(() => {
+      setWitchResult(null);
+      setWitch({ ...witch, hp: newHp, correct: newCorrect, wave: nextWave, phase: "cast", phaseStart: Date.now(), question: null });
+    }, 1100);
   };
 
   // chest fully revealed after 5s reveal

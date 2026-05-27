@@ -409,14 +409,15 @@ function Neighborhood() {
 }
 
 function PlotAndPlacement({
-  placed, walls, roofs, wallColor, wallMode, wallPickA, roofMode, roofPicks,
-  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove,
+  placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
+  floorMode, floorPicks,
+  selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
   const half = (GRID * CELL) / 2;
-  const buildMode = wallMode || roofMode;
+  const buildMode = wallMode || roofMode || floorMode;
   const floorY = activeFloor * WALL_HEIGHT;
 
   const rotatedFootprint = (it: CatalogItem) => {

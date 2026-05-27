@@ -169,3 +169,24 @@ export const CATEGORIES = [
 export function getItem(id: string) {
   return CATALOG.find((c) => c.id === id);
 }
+
+// ===== Stack-on-Y system =====
+// Items có mặt nóc phẳng — có thể đặt vật khác lên trên
+export const STACK_SURFACES = new Set<string>([
+  "tvstand", "cabinet", "lavabocab", "table", "roundtable", "desk",
+  "diningtable", "balconytable", "fridge", "fridge3",
+  "wardrobe", "bookshelf", "washer", "stonebench", "sink",
+]);
+
+// Items có thể xếp chồng lên nóc surface
+export const STACK_TOPPERS = new Set<string>([
+  "tv", "microwave", "oven", "ricecooker", "hood", "speaker", "clock",
+  "decolamp", "nightlamp", "kitchenlamp", "bathlamp", "lamp",
+  "smallpot", "midpot", "tallpot", "patternpot_s", "patternpot_m", "patternpot_l",
+  "pot", "waterfilter", "waterheater", "bathmirror", "mirror",
+  "painting", "bedroompainting", "fan",
+]);
+
+export function canStackOn(topperId: string, surfaceId: string): boolean {
+  return STACK_TOPPERS.has(topperId) && STACK_SURFACES.has(surfaceId);
+}

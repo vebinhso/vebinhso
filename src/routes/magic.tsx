@@ -1807,14 +1807,7 @@ function MagicPage() {
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
             </div>
-            <p className="font-black text-base mb-3">❓ {boss.question.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {boss.question.options.map((opt, i) => (
-                <button key={i} onClick={() => answerBoss(i)} className="toy-button !text-sm py-2">
-                  {opt}
-                </button>
-              ))}
-            </div>
+            <QuestionView question={boss.question} onAnswer={answerBoss} compact />
             <p className="text-xs font-bold mt-2 opacity-70">
               Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
             </p>

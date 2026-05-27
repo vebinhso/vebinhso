@@ -736,13 +736,26 @@ function PlotAndPlacement({
               if (!buildMode && !isOtherFloor) onRemove(p.id);
             }}
             onClick={(e) => {
-              if (buildMode && p.itemId === "pillar" && !isOtherFloor) {
+              if (isOtherFloor) return;
+              if (buildMode && p.itemId === "pillar") {
                 e.stopPropagation();
                 onPillarClick(p.id);
+                return;
+              }
+              // Không ở build/place mode → mở panel chỉnh xoay/di chuyển
+              if (!buildMode && !selected && onItemClick) {
+                e.stopPropagation();
+                onItemClick(p.id);
               }
             }}
           >
             <ItemModel item={it} />
+            {editingId === p.id && !isOtherFloor && (
+              <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <ringGeometry args={[Math.max(it.w, it.d) * 0.7, Math.max(it.w, it.d) * 0.85, 36]} />
+                <meshBasicMaterial color="#22d3ee" transparent opacity={0.85} side={THREE.DoubleSide} depthWrite={false} />
+              </mesh>
+            )}
             {isPickedPillar && !isOtherFloor && (
               <mesh position={[0, 2.5, 0]}>
                 <torusGeometry args={[0.6, 0.08, 8, 24]} />

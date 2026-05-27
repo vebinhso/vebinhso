@@ -51,6 +51,10 @@ function GamePage() {
   const [roofPicks, setRoofPicks] = useState<string[]>([]);
   const [roofStyle, setRoofStyle] = useState<"tile" | "ton">("tile");
 
+  // Floor-build flow (pick 4 pillars defining a rectangle)
+  const [floorMode, setFloorMode] = useState(false);
+  const [floorPicks, setFloorPicks] = useState<string[]>([]);
+
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);
 

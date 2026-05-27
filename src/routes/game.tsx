@@ -78,7 +78,48 @@ function GamePage() {
     if (state) saveGame(state);
   }, [state]);
 
+  // Track history (snapshot previous state on every change, except undo)
+  useEffect(() => {
+    if (!state) return;
+    if (isUndoingRef.current) {
+      isUndoingRef.current = false;
+    } else if (lastStateRef.current && lastStateRef.current !== state) {
+      const prev = lastStateRef.current;
+      setHistory((h) => [...h.slice(-29), prev]);
+    }
+    lastStateRef.current = state;
+  }, [state]);
+
+  const handleUndo = () => {
+    setHistory((h) => {
+      if (h.length === 0) {
+        flash("↩️ Không có gì để hoàn tác");
+        return h;
+      }
+      const prev = h[h.length - 1];
+      isUndoingRef.current = true;
+      setState(prev);
+      flash("↩️ Đã hoàn tác");
+      return h.slice(0, -1);
+    });
+  };
+
+  // Ctrl+Z / Cmd+Z shortcut
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [state, history]);
+
   if (!mounted || !user || !state) return null;
+
 
   const level = computeLevel(state);
   const lvlInfo = nextLevelInfo(state);

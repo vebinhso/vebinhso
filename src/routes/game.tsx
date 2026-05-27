@@ -120,6 +120,15 @@ function GamePage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [state, history]);
 
+  useEffect(() => {
+    const u = getCurrentUser();
+    if (!u) return;
+    const tick = () => setActivePowers(getActivePowerIds(u.id));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, []);
+
   if (!mounted || !user || !state) return null;
 
 

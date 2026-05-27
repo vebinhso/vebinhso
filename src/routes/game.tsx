@@ -236,6 +236,34 @@ function GamePage() {
   };
 
   const handlePlace = (x: number, z: number) => {
+  const handlePlace = (x: number, z: number) => {
+    // Chế độ DỊCH CHUYỂN: cập nhật vị trí item đang chỉnh, không tạo item mới
+    if (editingId && moveMode && state) {
+      const target = state.placed.find((p) => p.id === editingId);
+      if (target) {
+        const it = getItem(target.itemId);
+        if (it) {
+          const swap = target.rotation % 2 === 1;
+          const fw = swap ? it.d : it.w;
+          const fd = swap ? it.w : it.d;
+          // Đưa về dạng "center-based" (+10 để vẫn nằm trong hệ lưới [0..20])
+          const cx = x + fw / 2;
+          const cz = z + fd / 2;
+          // Chặn ra ngoài mảnh đất
+          const clX = Math.max(0, Math.min(20, cx));
+          const clZ = Math.max(0, Math.min(20, cz));
+          // Lưu angleRad (nếu chưa có thì derive từ rotation)
+          const angleRad = typeof target.angleRad === "number" ? target.angleRad : (target.rotation * Math.PI) / 2;
+          setState({
+            ...state,
+            placed: state.placed.map((p) => (p.id === editingId ? { ...p, x: clX, z: clZ, angleRad, rotation: 0 } : p)),
+          });
+          setMoveMode(false);
+          playSfx("place");
+        }
+      }
+      return;
+    }
     const it = selected ? getItem(selected) : null;
     if (!it || !state) return;
     const swap = rotation % 2 === 1;

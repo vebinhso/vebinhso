@@ -216,6 +216,28 @@ function Home() {
         </div>
         <Link to="/events" className="toy-button toy-button-accent">SỰ KIỆN HOT 🔥</Link>
       </footer>
+
+      {renameOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setRenameOpen(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-2">✏️ Đổi tên đăng nhập</h3>
+            <p className="text-xs text-muted-foreground mb-3">Lần đầu miễn phí. Các lần sau tốn 50 xu/lần.</p>
+            <input
+              value={renameVal}
+              onChange={(e) => setRenameVal(e.target.value)}
+              maxLength={20}
+              placeholder="Tên mới (2–20 ký tự)"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setRenameOpen(false)} className="toy-button flex-1">Hủy</button>
+              <button onClick={doRename} disabled={renameBusy} className="toy-button toy-button-primary flex-1 disabled:opacity-50">
+                {renameBusy ? "Đang đổi..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GameLayout>
   );
 }

@@ -39,7 +39,10 @@ function Chat() {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
-    setFriends(listFriends(u.id));
+    const load = () => setFriends(listFriends(u.id));
+    load();
+    window.addEventListener("friends-change", load);
+    return () => window.removeEventListener("friends-change", load);
   }, [navigate]);
 
   // Presence: track online users globally

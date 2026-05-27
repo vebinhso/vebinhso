@@ -514,7 +514,8 @@ function PlotAndPlacement({
         const isOtherFloor = pFloor !== activeFloor;
         const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);
-        const isPickedPillar = isWallPickPillar || isRoofPickPillar;
+        const isFloorPickPillar = floorMode && p.itemId === "pillar" && floorPicks.includes(p.id);
+        const isPickedPillar = isWallPickPillar || isRoofPickPillar || isFloorPickPillar;
         return (
           <group
             key={p.id}

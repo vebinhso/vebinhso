@@ -698,6 +698,7 @@ function GamePage() {
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
+          onPlayerPos={(x, z) => setPlayerPos({ x, z })}
         />
       </Suspense>
 

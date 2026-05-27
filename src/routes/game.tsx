@@ -257,7 +257,7 @@ function GamePage() {
         ax, az, bx, bz,
         style: roofStyle,
         value,
-        floor: 0,
+        floor: activeFloor,
       };
       setState({
         ...state,

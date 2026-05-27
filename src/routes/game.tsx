@@ -582,11 +582,31 @@ function GamePage() {
               setWallPickA(null);
               setRoofMode(false);
               setRoofPicks([]);
+              setFloorMode(false);
+              setFloorPicks([]);
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""}`}
           >
             {wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
+          </button>
+          <button
+            onClick={() => {
+              if (!canEnterFloorMode) {
+                flash("Đặt ít nhất 4 cột bê tông trước khi xây sàn.");
+                return;
+              }
+              setFloorMode((f) => !f);
+              setFloorPicks([]);
+              setWallMode(false);
+              setWallPickA(null);
+              setRoofMode(false);
+              setRoofPicks([]);
+              setSelected(null);
+            }}
+            className={`toy-button !text-sm !py-2 !px-4 ${floorMode ? "toy-button-green" : ""}`}
+          >
+            {floorMode ? `✅ Đang xây sàn (${floorPicks.length}/4)` : "🟫 XÂY SÀN"}
           </button>
           <button
             onClick={() => {

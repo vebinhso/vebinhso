@@ -126,7 +126,15 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
             let t = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
             t = Math.max(0, Math.min(1, t));
             const cx = w.ax + t * dx, cz = w.az + t * dz;
-            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) return true;
+            if ((nx - cx) ** 2 + (nz - cz) ** 2 < (R + 0.18) ** 2) {
+              // Cho phép đi qua nếu nằm trong lỗ khoét cửa
+              if (placed) {
+                const cuts = computeDoorCutouts(w, placed);
+                const tRaw = ((nx - w.ax) * dx + (nz - w.az) * dz) / len2;
+                if (cuts.some((c) => tRaw >= c.t0 - 0.02 && tRaw <= c.t1 + 0.02)) continue;
+              }
+              return true;
+            }
           }
         }
         // placed solid items

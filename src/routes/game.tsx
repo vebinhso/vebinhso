@@ -21,6 +21,7 @@ import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions 
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
+import { getActivePowerIds } from "@/lib/powers";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -37,6 +38,7 @@ function GamePage() {
   
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
 
   // Wall-build flow
@@ -117,6 +119,15 @@ function GamePage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [state, history]);
+
+  useEffect(() => {
+    const u = getCurrentUser();
+    if (!u) return;
+    const tick = () => setActivePowers(getActivePowerIds(u.id));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   if (!mounted || !user || !state) return null;
 
@@ -466,6 +477,16 @@ function GamePage() {
         />
       </Suspense>
 
+      <WeatherOverlay powers={activePowers} />
+
+      {activePowers.some((id) => [1,2,3].includes(id)) && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 glass-card px-4 py-1.5 pointer-events-none z-40">
+          <div className="text-xs font-black">
+            {activePowers.includes(1) && "🌧️ Đang mưa "}{activePowers.includes(3) && "☀️ Trời nắng "}{activePowers.includes(2) && "🌪️ Lốc xoáy"}
+          </div>
+        </div>
+      )}
+
       {/* Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">
         <div className="glass-card px-4 py-2 pointer-events-auto flex items-center gap-3">
@@ -718,4 +739,51 @@ function pointOnSegment(px: number, pz: number, w: WallSegment, tol: number) {
   const cx = ax + t * dx;
   const cz = az + t * dz;
   return Math.hypot(px - cx, pz - cz) <= tol;
+}
+
+const RAINDROPS = Array.from({ length: 60 }).map((_, i) => ({
+  left: `${(i * 137.5) % 100}%`,
+  top: `-${(i * 71.3) % 20}%`,
+  delay: `${(i * 0.113) % 0.7}s`,
+  dur: `${0.5 + (i * 0.017) % 0.4}s`,
+}));
+
+function WeatherOverlay({ powers }: { powers: number[] }) {
+  const rain = powers.includes(1);
+  const tornado = powers.includes(2);
+  const sun = powers.includes(3);
+  if (!rain && !tornado && !sun) return null;
+  return (
+    <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
+      {sun && (
+        <div className="absolute top-6 right-10 w-28 h-28 rounded-full bg-yellow-300 shadow-[0_0_60px_20px_rgba(253,224,71,0.6)] animate-[sunPulse_3s_ease-in-out_infinite] z-10" />
+      )}
+      {rain && (
+        <div className="absolute inset-0 z-20">
+          {RAINDROPS.map((d, i) => (
+            <div
+              key={i}
+              className="absolute w-0.5 h-5 bg-blue-200/70 rounded-full animate-[rainFall_0.7s_linear_infinite]"
+              style={{
+                left: d.left,
+                top: d.top,
+                animationDelay: d.delay,
+                animationDuration: d.dur,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {tornado && (
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 z-20 animate-[tornadoSpin_2s_linear_infinite]">
+          <div className="text-7xl opacity-80">🌪️</div>
+        </div>
+      )}
+      <style>{`
+        @keyframes rainFall { to { transform: translateY(120vh); } }
+        @keyframes sunPulse { 0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
+        @keyframes tornadoSpin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
 }

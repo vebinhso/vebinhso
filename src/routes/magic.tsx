@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
 import { randomQuestion, type Question } from "@/game/questions";
+import { QuestionView } from "@/game/QuestionView";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from "@/game/stage2";
 import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
@@ -1296,9 +1297,14 @@ function MagicPage() {
     exitRoom(true);
   };
 
-  const answerBoss = (idx: number) => {
+  const answerBoss = (picked: number[]) => {
     if (!boss || !boss.question) return;
-    const correct = idx === boss.question.answer;
+    const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
+      ? boss.question.correctIndexes
+      : [boss.question.answer];
+    const a = [...correctSet].sort().join(",");
+    const b = [...picked].sort().join(",");
+    const correct = a === b;
     const g = loadGame();
     if (correct) {
       saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
@@ -1801,14 +1807,7 @@ function MagicPage() {
             <div className="h-2 bg-black/30 rounded-full overflow-hidden mb-3">
               <div className="h-full bg-red-500" style={{ width: `${(boss.hp / boss.maxHp) * 100}%` }} />
             </div>
-            <p className="font-black text-base mb-3">❓ {boss.question.q}</p>
-            <div className="grid grid-cols-2 gap-2">
-              {boss.question.options.map((opt, i) => (
-                <button key={i} onClick={() => answerBoss(i)} className="toy-button !text-sm py-2">
-                  {opt}
-                </button>
-              ))}
-            </div>
+            <QuestionView question={boss.question} onAnswer={answerBoss} compact />
             <p className="text-xs font-bold mt-2 opacity-70">
               Đáp đúng → bắn đạn băng −{boss.perHit} HP. Hết đạn sẽ reload.
             </p>

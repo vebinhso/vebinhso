@@ -18,6 +18,7 @@ import {
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
+import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 
@@ -33,7 +34,7 @@ function GamePage() {
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
-  const [picked, setPicked] = useState<number[]>([]);
+  
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
@@ -339,12 +340,14 @@ function GamePage() {
   const closeQuestion = () => {
     setQuestion(null);
     setQuestionResult(null);
-    setPicked([]);
   };
-  const gradeAnswer = (correctSet: number[], pickedSet: number[]) => {
-    if (!question) return;
+  const handleAnswer = (picked: number[]) => {
+    if (!question || questionResult) return;
+    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
+      ? question.correctIndexes
+      : [question.answer];
     const a = [...correctSet].sort().join(",");
-    const b = [...pickedSet].sort().join(",");
+    const b = [...picked].sort().join(",");
     const ok = a === b;
     let next: GameState;
     let resultText: string;
@@ -366,27 +369,7 @@ function GamePage() {
     setTimeout(() => {
       setQuestion(randomQuestion());
       setQuestionResult(null);
-      setPicked([]);
     }, 1200);
-  };
-  const answerQuestion = (idx: number) => {
-    if (!question || questionResult) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    const isMulti = correctSet.length > 1;
-    if (isMulti) {
-      setPicked((prev) => prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx]);
-      return;
-    }
-    gradeAnswer(correctSet, [idx]);
-  };
-  const confirmMultiAnswer = () => {
-    if (!question || questionResult || picked.length === 0) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    gradeAnswer(correctSet, picked);
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
@@ -651,78 +634,22 @@ function GamePage() {
       )}
 
       {/* Question modal */}
-      {question && (() => {
-        const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-          ? question.correctIndexes
-          : [question.answer];
-        const isMulti = correctSet.length > 1;
-        const optImages = question.optionImages || [];
-        const hasOptionImages = optImages.some((u) => u && u.length > 0);
-        return (
-          <div className="absolute inset-0 bg-black/60 z-30 flex items-center justify-center p-3 md:p-6">
-            <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3 gap-2">
-                <div className="text-xs md:text-sm font-bold text-orange-700">
-                  {isMulti
-                    ? `❓ Chọn TẤT CẢ đáp án đúng rồi bấm Xác nhận (+${question.reward}đ)`
-                    : `❓ Trả lời đúng để +${question.reward}đ`}
-                </div>
-                <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖ Thoát</button>
+      {question && (
+        <div className="absolute inset-0 bg-black/60 z-30 flex items-center justify-center p-3 md:p-6">
+          <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <div className="text-xs md:text-sm font-bold text-orange-700">
+                ❓ Trả lời đúng để +{question.reward}đ
               </div>
-              <h3 className="text-2xl md:text-3xl font-black mb-4 text-center leading-snug">{question.q}</h3>
-              {question.imageUrl && (
-                <div className="flex justify-center mb-4">
-                  <img src={question.imageUrl} alt="" className="max-h-48 md:max-h-64 w-auto rounded-xl object-contain border-2 border-orange-200" />
-                </div>
-              )}
-              <div className={hasOptionImages ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-2"}>
-                {question.options.map((opt, i) => {
-                  const isPicked = picked.includes(i);
-                  const baseClass = hasOptionImages
-                    ? "rounded-xl border-2 p-2 text-left flex flex-col items-stretch gap-2 transition-all"
-                    : "rounded-xl border-2 px-4 py-3 text-left transition-all w-full";
-                  const stateClass = isMulti && isPicked
-                    ? "bg-green-100 border-green-600 ring-2 ring-green-400"
-                    : "bg-white border-gray-300 hover:border-orange-400 hover:bg-orange-50";
-                  const disabled = !!questionResult;
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => answerQuestion(i)}
-                      disabled={disabled}
-                      className={`${baseClass} ${stateClass} ${disabled ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      {hasOptionImages && optImages[i] && (
-                        <img src={optImages[i]} alt="" className="max-h-32 w-full object-contain rounded-md bg-gray-50" />
-                      )}
-                      <div className="text-base md:text-lg font-bold flex items-center gap-2">
-                        {isMulti && (
-                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded border-2 text-xs ${isPicked ? "bg-green-600 border-green-700 text-white" : "border-gray-400"}`}>
-                            {isPicked ? "✓" : ""}
-                          </span>
-                        )}
-                        <span>{String.fromCharCode(65 + i)}. {opt}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {isMulti && (
-                <button
-                  onClick={confirmMultiAnswer}
-                  disabled={!!questionResult || picked.length === 0}
-                  className="toy-button-green w-full mt-4 !text-lg !py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ✓ XÁC NHẬN ({picked.length})
-                </button>
-              )}
-              {questionResult && (
-                <div className="mt-4 text-center font-black text-xl md:text-2xl">{questionResult}</div>
-              )}
+              <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖ Thoát</button>
             </div>
+            <QuestionView question={question} onAnswer={handleAnswer} disabled={!!questionResult} />
+            {questionResult && (
+              <div className="mt-4 text-center font-black text-xl md:text-2xl">{questionResult}</div>
+            )}
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }

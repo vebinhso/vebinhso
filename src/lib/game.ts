@@ -8,6 +8,7 @@ export type PlacedItem = {
   x: number;
   z: number;
   rotation: number;
+  floor?: number;
 };
 
 export type WallSegment = {
@@ -15,6 +16,7 @@ export type WallSegment = {
   ax: number; az: number; bx: number; bz: number;
   color: string;
   value?: number;
+  floor?: number;
 };
 
 export type RoofSegment = {
@@ -22,6 +24,7 @@ export type RoofSegment = {
   ax: number; az: number; bx: number; bz: number;
   style: "tile" | "ton";
   value: number;
+  floor?: number;
 };
 
 export type GameState = {

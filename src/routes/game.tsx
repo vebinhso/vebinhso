@@ -474,7 +474,10 @@ function GamePage() {
   };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
-  const canEnterWallMode = pillarsPlaced.length >= 2;
+  const WALL_LEVEL_REQ = [3, 10, 18]; // tầng trệt, tầng 2, tầng 3
+  const wallLevelReq = WALL_LEVEL_REQ[activeFloor] ?? 99;
+  const meetsWallLevel = level >= wallLevelReq;
+  const canEnterWallMode = pillarsPlaced.length >= 2 && meetsWallLevel;
   const canEnterRoofMode = pillarsPlaced.length >= 4;
   const canEnterFloorMode = pillarsPlaced.length >= 4;
   const floorOnThisFloor = state.floors.some((f) => (f.floor ?? 0) === activeFloor);
@@ -482,14 +485,15 @@ function GamePage() {
   const canAccessFloor = (f: number) => {
     if (f <= 0) return true;
     for (let i = 0; i < f; i++) {
-      if (!floorHasRoof(state, i)) return false;
+      // Chỉ cần lợp sàn tầng dưới (không cần mái)
+      if (!state.floors.some((fl) => (fl.floor ?? 0) === i)) return false;
     }
     return true;
   };
   const tryGoFloor = (f: number) => {
     if (f === activeFloor) return;
     if (!canAccessFloor(f)) {
-      flash(`🏠 Hãy lợp mái tầng dưới trước khi lên tầng ${f}!`, 2200);
+      flash(`🏗️ Hãy lợp sàn tầng dưới trước khi lên tầng ${f}!`, 2200);
       return;
     }
     setActiveFloor(f);

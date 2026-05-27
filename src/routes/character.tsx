@@ -136,7 +136,20 @@ function CharacterPage() {
             </p>
           </div>
 
+          <div className="mb-4 flex flex-col items-center gap-2">
+            <div className="w-24 h-24 rounded-full bg-white/70 border-2 border-black/20 overflow-hidden flex items-center justify-center text-4xl">
+              {avatarUrl ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
+            </div>
+            <label className="toy-button !text-sm py-2 px-4 cursor-pointer">
+              {uploading ? "Đang tải..." : "📷 Tải ảnh đại diện"}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+            </label>
+            <p className="text-xs font-bold text-muted-foreground">Ảnh tối đa 2MB · JPG, PNG</p>
+          </div>
+
           <PreviewCharacter o={outfit} />
+
+
 
           <div className="mt-4">
             <label className="block text-sm font-black mb-2">Mô tả trang phục</label>

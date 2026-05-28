@@ -796,7 +796,7 @@ function GamePage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pointer-events-auto items-end">
+        <div className="flex flex-col gap-2 pointer-events-auto items-end mt-12">
           {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
             onClick={() => setThaoTacOpen((v) => !v)}

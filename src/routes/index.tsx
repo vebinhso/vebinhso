@@ -226,7 +226,7 @@ function Home() {
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col items-center justify-end gap-4 order-1 md:order-none">
+        <div className="flex-1 flex flex-col items-center justify-end gap-4">
           <div className="text-9xl drop-shadow-lg animate-bounce" style={{ animationDuration: "3s" }}>🐕</div>
           <Link to="/play" className="toy-button toy-button-primary">CHƠI NGAY</Link>
         </div>

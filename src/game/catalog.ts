@@ -45,7 +45,7 @@ export const CATALOG: CatalogItem[] = [
   // ===== Ngoại thất =====
   { id: "lamp", name: "Cột đèn", category: "Ngoại thất", price: 15, w: 1, d: 1, h: 3, color: "#fbbf24", icon: "💡", shape: "cylinder" },
   { id: "mailbox", name: "Hòm thư", category: "Ngoại thất", price: 10, w: 1, d: 1, h: 1.5, color: "#dc2626", icon: "📫" },
-  { id: "sign", name: "Bảng tên nhà", category: "Ngoại thất", price: 10, w: 2, d: 0.2, h: 1.5, color: "#f59e0b", icon: "🪧" },
+  { id: "sign", name: "Bảng tên nhà (chạm để chỉnh)", category: "Ngoại thất", price: 20, w: 2, d: 0.2, h: 1.5, color: "#f59e0b", icon: "🪧" },
   { id: "tree", name: "Cây xanh", category: "Ngoại thất", price: 20, w: 1, d: 1, h: 2.5, color: "#16a34a", icon: "🌳" },
 
   // ===== Phòng khách =====

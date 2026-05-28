@@ -28,6 +28,7 @@ import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
+import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -89,6 +90,11 @@ function GamePage() {
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(true);
+  // Nhãn bảng tên nhà — lưu localStorage theo user
+  const [signLabels, setSignLabels] = useState<SignLabelMap>({});
+  // id biển tên đang được sửa text (mở modal)
+  const [signEditId, setSignEditId] = useState<string | null>(null);
+  const [signDraft, setSignDraft] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -105,6 +111,7 @@ function GamePage() {
       .catch(() => setQuestionsReady(true));
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
+    setSignLabels(loadSignLabels(u.id));
     loadPickupConfig()
       .then((cfg) => setPickups(resolvePickups(cfg)))
       .catch(() => setPickups([]));
@@ -752,10 +759,16 @@ function GamePage() {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;
+            if (p.itemId === "sign") {
+              setSignEditId(id);
+              setSignDraft(signLabels[id] ?? "");
+              return;
+            }
             setEditingId(id);
             setMoveMode(false);
           }}
           editingId={editingId}
+          signLabels={signLabels}
         />
       </Suspense>
 
@@ -792,12 +805,15 @@ function GamePage() {
             {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
           </button>
           <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
+          <div className="self-end px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">⚙️ THAO TÁC</div>
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
             ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
           </button>
           <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
           <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+
+          <div className="self-end mt-1 px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">🏗️ THỰC HIỆN</div>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">
@@ -1032,9 +1048,14 @@ function GamePage() {
         };
         return (
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{it.icon}</span>
-              <div className="text-sm font-black flex-1">Chỉnh: {it.name}</div>
+              <div className="text-sm font-black flex-1 min-w-0 truncate">Chỉnh: {it.name}</div>
+              <button
+                onClick={() => { handleRemove(editingId); setEditingId(null); setMoveMode(false); flash("🗑 Đã xoá vật"); }}
+                className="toy-button !text-xs !py-1 !px-3 bg-rose-500 text-white"
+                title="Xoá vật phẩm và hoàn tiền"
+              >🗑 Xoá</button>
               <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">Xong</button>
             </div>
             <div className="flex items-center gap-2 mb-2">
@@ -1215,6 +1236,53 @@ function GamePage() {
           </div>
         </div>
       )}
+
+      {/* Modal chỉnh nội dung bảng tên nhà */}
+      {signEditId && (
+        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-3 md:p-6" onClick={() => setSignEditId(null)}>
+          <div className="glass-card max-w-md w-full p-4 md:p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h3 className="text-lg md:text-xl font-black">🪧 Bảng tên nhà</h3>
+              <button onClick={() => setSignEditId(null)} className="toy-button !text-xs !py-1 !px-3">✖ Đóng</button>
+            </div>
+            <p className="text-xs text-stone-700 mb-2">Tối đa {SIGN_LABEL_MAX} ký tự. Bạn có thể dùng emoji 🏠✨🐶.</p>
+            <input
+              autoFocus
+              value={signDraft}
+              onChange={(e) => setSignDraft(e.target.value.slice(0, SIGN_LABEL_MAX))}
+              maxLength={SIGN_LABEL_MAX}
+              placeholder="Nhà của ..."
+              className="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 outline-none font-bold mb-2"
+            />
+            <div className="text-[11px] text-stone-500 mb-3 text-right">{signDraft.length}/{SIGN_LABEL_MAX}</div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (!user || !signEditId) return;
+                  const next = { ...signLabels };
+                  if (next[signEditId]) delete next[signEditId];
+                  setSignLabels(next);
+                  saveSignLabels(user.id, next);
+                  setSignEditId(null);
+                  flash("🪧 Đã xoá nội dung bảng");
+                }}
+                className="toy-button !text-xs !py-2 !px-3"
+              >Xoá nội dung</button>
+              <button
+                onClick={() => {
+                  if (!user || !signEditId) return;
+                  const next = { ...signLabels, [signEditId]: signDraft.trim() };
+                  setSignLabels(next);
+                  saveSignLabels(user.id, next);
+                  setSignEditId(null);
+                  flash("✅ Đã cập nhật bảng tên");
+                }}
+                className="toy-button toy-button-primary !text-sm !py-2 !px-4 flex-1"
+              >Lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1274,6 +1342,8 @@ function WeatherOverlay({ powers }: { powers: number[] }) {
           <div className="text-7xl opacity-80">🌪️</div>
         </div>
       )}
+
+
       <style>{`
         @keyframes rainFall { to { transform: translateY(120vh); } }
         @keyframes sunPulse { 0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }

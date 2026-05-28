@@ -1053,7 +1053,7 @@ function GamePage() {
         });
         const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
         return (
-          <div className="absolute bottom-3 right-3 flex flex-col gap-2 pointer-events-auto z-30">
+          <div className="absolute bottom-3 right-3 sm:bottom-3 [@media(pointer:coarse)]:bottom-28 flex flex-col gap-2 pointer-events-auto z-30">
             {hasAnyDoor && nearDoor && (
               <button
                 onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}

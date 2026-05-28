@@ -941,7 +941,7 @@ function GamePage() {
       </div>
 
       {/* Controls hint */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none max-w-[92vw] text-center">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none max-w-[92vw] text-center [@media(pointer:coarse)]:hidden">
         {wallMode
           ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
           : roofMode
@@ -956,11 +956,11 @@ function GamePage() {
 
       {/* Gợi ý đặt cửa */}
       {doorHint && selected === "door" && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-amber-100 border-2 border-amber-400 text-amber-900 px-5 py-2.5 rounded-2xl shadow-lg text-sm font-black pointer-events-none animate-bounce z-50">
+        <div className="absolute bottom-16 [@media(pointer:coarse)]:bottom-36 left-1/2 -translate-x-1/2 bg-amber-100 border-2 border-amber-400 text-amber-900 px-5 py-2.5 rounded-2xl shadow-lg text-sm font-black pointer-events-none animate-bounce z-50">
           🚪 Hãy bấm vào cửa và xoay về 0°
         </div>
       )}
-      <div className="absolute bottom-14 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
+      <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-28 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 
@@ -1026,7 +1026,7 @@ function GamePage() {
       })()}
 
       {selected && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
+        <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-44 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
           <span className="text-2xl">{getItem(selected)?.icon}</span>
           <div className="text-sm font-black">Đang đặt: {getItem(selected)?.name}</div>
           <button onClick={() => setSelected(null)} className="toy-button !text-xs !py-1 !px-3">Hủy</button>
@@ -1081,7 +1081,7 @@ function GamePage() {
           });
         };
         return (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
+          <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-48 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{it.icon}</span>
               <div className="text-sm font-black flex-1 min-w-0 truncate">Chỉnh: {it.name}</div>

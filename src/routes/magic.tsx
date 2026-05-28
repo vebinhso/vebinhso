@@ -1940,8 +1940,9 @@ function MagicPage() {
 
       {/* Animal encounter quiz (door=2 câu, corridor tiger=5 câu) */}
       {animalQuiz && (
-        <div className="absolute inset-x-0 bottom-0 z-40 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-40 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>{animalQuiz.source === "corridor" ? "🐯 Hổ tấn công! Trả lời để thoát" : "🐾 Gặp thú lạ — trả lời câu hỏi"}</span>
               <span>Câu {animalQuiz.idx + 1}/{animalQuiz.total} · ✅ {animalQuiz.correct}</span>

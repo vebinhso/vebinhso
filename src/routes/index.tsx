@@ -135,8 +135,9 @@ function Home() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-stretch justify-between gap-3 px-4 md:px-6 pb-4">
-        <aside className="glass-card p-4 w-[260px] hidden md:flex flex-col gap-3 max-h-[78vh] overflow-y-auto">
+      <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
+        <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto order-2 md:order-none">
+
           <h3 className="text-center font-black text-foreground">BẠN BÈ ONLINE</h3>
 
           {friends.length === 0 ? (

@@ -1255,7 +1255,7 @@ export function TeaSet() {
 }
 
 
-export function ItemModel({ item, label }: { item: CatalogItem; label?: string }) {
+export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?: string; placedId?: string }) {
   switch (item.id) {
     case "tree": return <Tree />;
     case "bigtree": return <BigTree />;
@@ -1270,7 +1270,7 @@ export function ItemModel({ item, label }: { item: CatalogItem; label?: string }
     case "toilet": return <Toilet />;
     case "lamp": return <Lamp />;
     case "wall": return <Wall h={item.h} />;
-    case "door": return <Door />;
+    case "door": return <Door placedId={placedId} />;
     case "mailbox": return <Mailbox />;
     case "wardrobe": return <Wardrobe w={item.w} h={item.h} />;
     case "table": return <Table w={item.w} d={item.d} h={item.h} />;

@@ -1875,8 +1875,9 @@ function MagicPage() {
 
       {/* Quiz of 10 (door 1 in room 5) */}
       {quiz5 && (
-        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>📜 Cửa 1 — Câu {quiz5.idx + 1}/5</span>
               <span>✅ Đúng: {quiz5.correct}</span>

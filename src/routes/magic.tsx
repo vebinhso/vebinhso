@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
+import { TouchLookControls } from "@/game/TouchLookControls";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";

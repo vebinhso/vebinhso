@@ -12,6 +12,8 @@ import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from 
 import { PirateRoomScene, ForestLakeScene, DarkPotionScene, S2StarRoomScene, SpiderWebRoomScene, WitchRoomScene } from "@/game/stage2rooms";
 import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, CorridorTigers, pickRandomAnimal, type AnimalName } from "@/game/PetModels";
 import { setBgm, playSfx } from "@/lib/audio";
+import { playerInput, setInputKey } from "@/lib/player-input";
+import { TouchControls } from "@/game/TouchControls";
 
 
 export const Route = createFileRoute("/magic")({

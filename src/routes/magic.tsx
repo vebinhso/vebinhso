@@ -1894,8 +1894,9 @@ function MagicPage() {
 
       {/* Boss question */}
       {boss && boss.question && !bossDefeated && !modal && (
-        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>👹 Boss cấp {boss.level}</span>
               <span>❤️ {boss.hp}/{boss.maxHp}</span>

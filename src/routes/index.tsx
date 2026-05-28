@@ -236,6 +236,7 @@ function Home() {
         </div>
 
         <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
+          <button onClick={() => setSurveyOpen(true)} className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300">💗 KHẢO SÁT</button>
           <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">🎁 TIỆN ÍCH</Link>
           <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">⚡ QUYỀN NĂNG</Link>
         </aside>

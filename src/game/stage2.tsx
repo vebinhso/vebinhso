@@ -73,7 +73,7 @@ const WALLS: Array<[number, number, number, number]> = [
   [HALF, -7.5, 15, -7.5], // B north (left of G1 opening)
   [20, -7.5, 32.5, -7.5], // B north (right of G1 opening)
   [-HALF, -12.5, 12, -12.5], // B south (left of F1 opening)
-  [17, -12.5, 32.5, -12.5], // B south (right of F1 opening)
+  [17, -12.5, 27.5, -12.5], // B south (right of F1, left of C opening)
   [32.5, -7.5, 32.5, -12.5], // B east
   [-HALF, -10, -HALF, -12.5], // B west (below A)
   // ===== Main C =====

@@ -8,6 +8,7 @@ import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
+import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 
 const GRID = 20;
@@ -90,8 +91,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
   const o = outfit || { skin: "#fde68a", hair: "#7c2d12", shirt: "#ef4444", pants: "#1e40af", shoes: "#1f2937", accent: "#fcd34d", hat: undefined };
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
-    const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
+    const down = (e: KeyboardEvent) => { setInputKey(e.key, true); };
+    const up = (e: KeyboardEvent) => { setInputKey(e.key, false); };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
@@ -99,7 +100,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
 
   useFrame((_, dt) => {
     if (!ref.current) return;
-    const k = keys.current;
+    const k = playerInput;
     const speed = 6;
     const camDir = new THREE.Vector3();
     camera.getWorldDirection(camDir);

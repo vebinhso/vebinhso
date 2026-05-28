@@ -874,6 +874,7 @@ function GamePage() {
       </Suspense>
 
       <WeatherOverlay powers={activePowers} />
+      <TouchControls />
 
       {activePowers.some((id) => [1,2,3].includes(id)) && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 glass-card px-4 py-1.5 pointer-events-none z-40">
@@ -885,17 +886,17 @@ function GamePage() {
 
       {/* Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">
-        <div className="glass-card px-4 py-2 pointer-events-auto flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-2 border-white flex items-center justify-center text-xl">🐕</div>
-          <div className="text-sm">
-            <div className="font-black">{user.username} {isAdmin(user.email) && <span className="text-xs text-orange-700">#{user.id}</span>}</div>
-            <div className="font-bold text-yellow-700">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
-            <div className="text-xs font-bold text-blue-700">Lv.{level} • ✅ {state.correctAnswers} câu • 🔥 streak {state.answerStreak}</div>
-            <div className="text-xs font-bold text-stone-700">🧱 Gạch: {state.bricks} • 🪣 Bê tông: {state.concrete} • 🏠 Mái ngói: {state.roofTiles} • 🟥 Mái tôn: {state.roofTilesTon}</div>
+        <div className="glass-card px-3 py-2 pointer-events-auto flex items-center gap-2 max-w-[60vw] sm:max-w-none">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-2 border-white flex items-center justify-center text-lg sm:text-xl shrink-0">🐕</div>
+          <div className="text-[11px] sm:text-sm min-w-0">
+            <div className="font-black truncate">{user.username} {isAdmin(user.email) && <span className="text-xs text-orange-700">#{user.id}</span>}</div>
+            <div className="font-bold text-yellow-700 truncate">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
+            <div className="text-[10px] sm:text-xs font-bold text-blue-700 truncate">Lv.{level} • ✅ {state.correctAnswers} • 🔥 {state.answerStreak}</div>
+            <div className="text-[10px] sm:text-xs font-bold text-stone-700 truncate">🧱 {state.bricks} • 🪣 {state.concrete} • 🏠 {state.roofTiles} • 🟥 {state.roofTilesTon}</div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pointer-events-auto items-end">
+        <div className="flex flex-col gap-2 pointer-events-auto items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
             ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
@@ -1052,7 +1053,7 @@ function GamePage() {
         });
         const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
         return (
-          <div className="absolute bottom-3 right-3 flex flex-col gap-2 pointer-events-auto z-30">
+          <div className="absolute bottom-3 right-3 sm:bottom-3 [@media(pointer:coarse)]:bottom-28 flex flex-col gap-2 pointer-events-auto z-30">
             {hasAnyDoor && nearDoor && (
               <button
                 onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}
@@ -1378,7 +1379,6 @@ function WeatherOverlay({ powers }: { powers: number[] }) {
         @keyframes sunPulse { 0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
         @keyframes tornadoSpin { to { transform: rotate(360deg); } }
       `}</style>
-      <TouchControls />
     </div>
   );
 }

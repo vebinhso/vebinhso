@@ -1236,6 +1236,53 @@ function GamePage() {
           </div>
         </div>
       )}
+
+      {/* Modal chỉnh nội dung bảng tên nhà */}
+      {signEditId && (
+        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-3 md:p-6" onClick={() => setSignEditId(null)}>
+          <div className="glass-card max-w-md w-full p-4 md:p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h3 className="text-lg md:text-xl font-black">🪧 Bảng tên nhà</h3>
+              <button onClick={() => setSignEditId(null)} className="toy-button !text-xs !py-1 !px-3">✖ Đóng</button>
+            </div>
+            <p className="text-xs text-stone-700 mb-2">Tối đa {SIGN_LABEL_MAX} ký tự. Bạn có thể dùng emoji 🏠✨🐶.</p>
+            <input
+              autoFocus
+              value={signDraft}
+              onChange={(e) => setSignDraft(e.target.value.slice(0, SIGN_LABEL_MAX))}
+              maxLength={SIGN_LABEL_MAX}
+              placeholder="Nhà của ..."
+              className="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 outline-none font-bold mb-2"
+            />
+            <div className="text-[11px] text-stone-500 mb-3 text-right">{signDraft.length}/{SIGN_LABEL_MAX}</div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (!user || !signEditId) return;
+                  const next = { ...signLabels };
+                  if (next[signEditId]) delete next[signEditId];
+                  setSignLabels(next);
+                  saveSignLabels(user.id, next);
+                  setSignEditId(null);
+                  flash("🪧 Đã xoá nội dung bảng");
+                }}
+                className="toy-button !text-xs !py-2 !px-3"
+              >Xoá nội dung</button>
+              <button
+                onClick={() => {
+                  if (!user || !signEditId) return;
+                  const next = { ...signLabels, [signEditId]: signDraft.trim() };
+                  setSignLabels(next);
+                  saveSignLabels(user.id, next);
+                  setSignEditId(null);
+                  flash("✅ Đã cập nhật bảng tên");
+                }}
+                className="toy-button toy-button-primary !text-sm !py-2 !px-4 flex-1"
+              >Lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1296,52 +1343,6 @@ function WeatherOverlay({ powers }: { powers: number[] }) {
         </div>
       )}
 
-      {/* Modal chỉnh nội dung bảng tên nhà */}
-      {signEditId && (
-        <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-3 md:p-6" onClick={() => setSignEditId(null)}>
-          <div className="glass-card max-w-md w-full p-4 md:p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-3 gap-2">
-              <h3 className="text-lg md:text-xl font-black">🪧 Bảng tên nhà</h3>
-              <button onClick={() => setSignEditId(null)} className="toy-button !text-xs !py-1 !px-3">✖ Đóng</button>
-            </div>
-            <p className="text-xs text-stone-700 mb-2">Tối đa {SIGN_LABEL_MAX} ký tự. Bạn có thể dùng emoji 🏠✨🐶.</p>
-            <input
-              autoFocus
-              value={signDraft}
-              onChange={(e) => setSignDraft(e.target.value.slice(0, SIGN_LABEL_MAX))}
-              maxLength={SIGN_LABEL_MAX}
-              placeholder="Nhà của ..."
-              className="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 outline-none font-bold mb-2"
-            />
-            <div className="text-[11px] text-stone-500 mb-3 text-right">{signDraft.length}/{SIGN_LABEL_MAX}</div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  if (!user || !signEditId) return;
-                  const next = { ...signLabels };
-                  if (next[signEditId]) delete next[signEditId];
-                  setSignLabels(next);
-                  saveSignLabels(user.id, next);
-                  setSignEditId(null);
-                  flash("🪧 Đã xoá nội dung bảng");
-                }}
-                className="toy-button !text-xs !py-2 !px-3"
-              >Xoá nội dung</button>
-              <button
-                onClick={() => {
-                  if (!user || !signEditId) return;
-                  const next = { ...signLabels, [signEditId]: signDraft.trim() };
-                  setSignLabels(next);
-                  saveSignLabels(user.id, next);
-                  setSignEditId(null);
-                  flash("✅ Đã cập nhật bảng tên");
-                }}
-                className="toy-button toy-button-primary !text-sm !py-2 !px-4 flex-1"
-              >Lưu</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes rainFall { to { transform: translateY(120vh); } }

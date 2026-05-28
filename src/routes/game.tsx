@@ -805,12 +805,15 @@ function GamePage() {
             {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
           </button>
           <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
+          <div className="self-end px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">⚙️ THAO TÁC</div>
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
             ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
           </button>
           <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
           <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+
+          <div className="self-end mt-1 px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">🏗️ THỰC HIỆN</div>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">

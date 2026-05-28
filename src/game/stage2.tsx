@@ -28,50 +28,43 @@ export const S2_H = 4.8;
 const HALF = 2.5;
 
 type Rect = { xmin: number; xmax: number; zmin: number; zmax: number };
+
 export const S2_SEGMENTS: Rect[] = [
-  // ===== main spine (A → B → C → D → rooms) =====
-  { xmin: -2.5, xmax: 2.5, zmin: -10, zmax: 2.5 }, // A vertical
-  { xmin: -2.5, xmax: 32.5, zmin: -12.5, zmax: -7.5 }, // B horizontal
-  { xmin: 27.5, xmax: 32.5, zmin: -32.5, zmax: -7.5 }, // C vertical
-  { xmin: 27.5, xmax: 47.5, zmin: -32.5, zmax: -27.5 }, // D horizontal
+  // ===== MAIN PATH (all edges aligned) =====
+  { xmin: -2.5, xmax: 2.5, zmin: -10, zmax: 2.5 }, // A
+  { xmin: -2.5, xmax: 32.5, zmin: -12.5, zmax: -7.5 }, // B
+  { xmin: 27.5, xmax: 32.5, zmin: -32.5, zmax: -7.5 }, // C
+  { xmin: 27.5, xmax: 47.5, zmin: -32.5, zmax: -27.5 }, // D
 
-  // ===== ROOMS (now open and connected) =====
-  { xmin: 20, xmax: 27.5, zmin: -18, zmax: -12.5 }, // room1
-  { xmin: 32.5, xmax: 40, zmin: -7.5, zmax: -2 }, // room2
-  { xmin: 20, xmax: 27.5, zmin: -27.5, zmax: -22.5 }, // room3
-  { xmin: 27.5, xmax: 32.5, zmin: -27.5, zmax: -22.5 }, // room4
-  { xmin: 40, xmax: 47.5, zmin: -32.5, zmax: -27.5 }, // room5
-
-  // ===== maze decoy branches — adjusted so they don't block main path =====
-  // E — west off A
+  // ===== E — WEST BRANCH =====
   { xmin: -12, xmax: 0, zmin: -5, zmax: -1 }, // E1
   { xmin: -12, xmax: -7, zmin: -15, zmax: -3 }, // E2
   { xmin: -22, xmax: -9, zmin: -15, zmax: -11 }, // E3
 
-  // F — south off B
+  // ===== F — SOUTH OF B =====
   { xmin: 12, xmax: 17, zmin: -22, zmax: -10 }, // F1
   { xmin: 12, xmax: 25, zmin: -22, zmax: -18 }, // F2
   { xmin: 20, xmax: 25, zmin: -32, zmax: -20 }, // F3
 
-  // G — north off B
+  // ===== G — NORTH OF B =====
   { xmin: 15, xmax: 20, zmin: -12, zmax: 0 }, // G1
   { xmin: 5, xmax: 20, zmin: -2, zmax: 2 }, // G2
   { xmin: 5, xmax: 10, zmin: 0, zmax: 8 }, // G3
 
-  // H — east off C
+  // ===== H — EAST OF C =====
   { xmin: 32, xmax: 42, zmin: -26, zmax: -22 }, // H1
   { xmin: 37, xmax: 42, zmin: -23, zmax: -14 }, // H2
   { xmin: 37, xmax: 47, zmin: -16, zmax: -12 }, // H3
 
-  // I — south off D
+  // ===== I — SOUTH OF D (east end) =====
   { xmin: 42, xmax: 47, zmin: -42, zmax: -31 }, // I1
   { xmin: 33, xmax: 43, zmin: -42, zmax: -38 }, // I2
   { xmin: 32, xmax: 38, zmin: -50, zmax: -41 }, // I3
 
-  // J — south off C
+  // ===== J — SOUTH OF C (FIXED — missing before) =====
   { xmin: 27.5, xmax: 32.5, zmin: -42, zmax: -31 }, // J1
   { xmin: 15, xmax: 28, zmin: -42, zmax: -38 }, // J2
-  { xmin: 15, xmax: 20, zmin: -55, zmax: -42 }, // J3
+  { xmin: 15, xmax: 21, zmin: -50, zmax: -41 }, // J3 (dead end)
 ];
 
 // Walls = [x1, z1, x2, z2]

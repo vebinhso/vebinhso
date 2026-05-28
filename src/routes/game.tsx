@@ -1045,9 +1045,14 @@ function GamePage() {
         };
         return (
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{it.icon}</span>
-              <div className="text-sm font-black flex-1">Chỉnh: {it.name}</div>
+              <div className="text-sm font-black flex-1 min-w-0 truncate">Chỉnh: {it.name}</div>
+              <button
+                onClick={() => { handleRemove(editingId); setEditingId(null); setMoveMode(false); flash("🗑 Đã xoá vật"); }}
+                className="toy-button !text-xs !py-1 !px-3 bg-rose-500 text-white"
+                title="Xoá vật phẩm và hoàn tiền"
+              >🗑 Xoá</button>
               <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">Xong</button>
             </div>
             <div className="flex items-center gap-2 mb-2">

@@ -874,6 +874,7 @@ function GamePage() {
       </Suspense>
 
       <WeatherOverlay powers={activePowers} />
+      <TouchControls />
 
       {activePowers.some((id) => [1,2,3].includes(id)) && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 glass-card px-4 py-1.5 pointer-events-none z-40">

@@ -79,8 +79,8 @@ function GamePage() {
   const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
   // Hiệu ứng lấp lánh khi dẫm trúng xu
   const [sparkles, setSparkles] = useState<{ id: string; x: number; z: number; at: number }[]>([]);
-  // Boom modal: 2 sequential questions
-  const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
+  // Boom modal: BẮT BUỘC trả lời đúng mới biến mất. Sai → câu mới.
+  const [boom, setBoom] = useState<null | { q: Question; tries: number; correct: number; gained: number }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
 
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại

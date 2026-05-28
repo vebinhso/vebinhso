@@ -50,6 +50,8 @@ type Props = {
   onItemClick?: (id: string) => void;
   /** id item đang được chỉnh — sẽ vẽ vòng highlight quanh nó. */
   editingId?: string | null;
+  /** Map placedItemId → label cho biển tên nhà */
+  signLabels?: Record<string, string>;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -679,7 +681,7 @@ function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
-  activeFloor, onItemClick, editingId,
+  activeFloor, onItemClick, editingId, signLabels,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -836,7 +838,7 @@ function PlotAndPlacement({
               }
             }}
           >
-            <ItemModel item={it} />
+            <ItemModel item={it} label={p.itemId === "sign" ? signLabels?.[p.id] : undefined} />
             {editingId === p.id && !isOtherFloor && (
               <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <ringGeometry args={[Math.max(it.w, it.d) * 0.7, Math.max(it.w, it.d) * 0.85, 36]} />

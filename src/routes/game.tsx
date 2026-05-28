@@ -88,6 +88,7 @@ function GamePage() {
   const [moveMode, setMoveMode] = useState(false);
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(true);
 
   useEffect(() => {
     setMounted(true);

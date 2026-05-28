@@ -898,6 +898,7 @@ function GamePage() {
               🎨 Đổi màu tường
             </button>
           )}
+          </div>
         </div>
       </div>
 

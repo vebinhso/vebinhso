@@ -50,17 +50,17 @@ function PlayPage() {
             Xin chào <span className="text-orange-600">{user.username}</span>{isAdmin(user.email) && <> (ID #{user.id})</>}
           </p>
           <div className="grid gap-3 sm:gap-4">
-            <Link to="/game" className="toy-button toy-button-primary w-full text-sm sm:text-lg md:text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 whitespace-normal !leading-tight">
+            <Link to="/game" className="toy-button toy-button-primary w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 whitespace-normal !leading-tight">
               <span className="text-2xl sm:text-3xl">🏡</span>
               <span>BẢN ĐỒ NHÀ</span>
               <span className="text-[10px] sm:text-xs font-bold opacity-80">Khu Nông thôn — Xây dựng & trang trí</span>
             </Link>
-            <Link to="/magic" className="toy-button w-full text-sm sm:text-lg md:text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-purple-500 to-indigo-700 text-white whitespace-normal !leading-tight">
+            <Link to="/magic" className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-purple-500 to-indigo-700 text-white whitespace-normal !leading-tight">
               <span className="text-2xl sm:text-3xl">🏰</span>
               <span>BẢN ĐỒ LÂU ĐÀI MA THUẬT</span>
               <span className="text-[10px] sm:text-xs font-bold opacity-90">Hành lang 10 cánh cửa — Đấu boss</span>
             </Link>
-            <Link to="/character" className="toy-button w-full text-xs sm:text-sm">
+            <Link to="/character" className="toy-button w-full !text-xs sm:!text-sm">
               🎨 Đổi trang phục
             </Link>
           </div>

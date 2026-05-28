@@ -1728,7 +1728,7 @@ function MagicPage() {
 
       {/* controls hint */}
       {!room && stage !== "transition" && (
-        <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20">
+        <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20 hidden [@media(pointer:fine)]:block">
           WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột
         </div>
       )}

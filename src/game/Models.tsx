@@ -1,5 +1,6 @@
 // Models 3D chi tiết, PBR (metalness/roughness) — hướng tả thực cartoon
 import * as THREE from "three";
+import { Text } from "@react-three/drei";
 import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";
 
@@ -423,7 +424,15 @@ export function TVStand({ w = 4 }) {
   );
 }
 
-export function Sign({ w = 2 }) {
+export function Sign({ w = 2, label = "" }: { w?: number; label?: string }) {
+  // Khung biển: cao 0.6m, rộng w mét. Chữ chỉ gói gọn trong khung (~92% bề rộng).
+  const innerW = w * 0.92;
+  const innerH = 0.6 * 0.78;
+  const text = (label || "Bảng tên nhà").slice(0, 50);
+  // Auto-size: vừa khung theo cả chiều rộng và chiều cao.
+  const byHeight = innerH * 0.85;
+  const byWidth = (innerW / Math.max(text.length, 4)) * 1.6;
+  const fontSize = Math.max(0.08, Math.min(byHeight, byWidth));
   return (
     <group>
       <mesh castShadow position={[0, 0.5, 0]}>
@@ -434,6 +443,30 @@ export function Sign({ w = 2 }) {
         <boxGeometry args={[w, 0.6, 0.1]} />
         <MStd color="#f59e0b" />
       </mesh>
+      {/* 2 mặt chữ — không cần font ngoài, drei dùng font mặc định */}
+      <Text
+        position={[0, 1.2, 0.056]}
+        fontSize={fontSize}
+        maxWidth={innerW}
+        color="#1f2937"
+        anchorX="center"
+        anchorY="middle"
+        textAlign="center"
+      >
+        {text}
+      </Text>
+      <Text
+        position={[0, 1.2, -0.056]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={fontSize}
+        maxWidth={innerW}
+        color="#1f2937"
+        anchorX="center"
+        anchorY="middle"
+        textAlign="center"
+      >
+        {text}
+      </Text>
     </group>
   );
 }
@@ -1221,7 +1254,7 @@ export function TeaSet() {
 }
 
 
-export function ItemModel({ item }: { item: CatalogItem }) {
+export function ItemModel({ item, label }: { item: CatalogItem; label?: string }) {
   switch (item.id) {
     case "tree": return <Tree />;
     case "bigtree": return <BigTree />;
@@ -1243,7 +1276,7 @@ export function ItemModel({ item }: { item: CatalogItem }) {
     case "roundtable": return <RoundTable />;
     case "desk": return <Desk />;
     case "tvstand": return <TVStand w={item.w} />;
-    case "sign": return <Sign w={item.w} />;
+    case "sign": return <Sign w={item.w} label={label} />;
     case "pillar": return <Pillar />;
     case "floor": return <Floor />;
     case "roof": return <Roof />;

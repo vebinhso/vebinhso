@@ -951,42 +951,63 @@ function GamePage() {
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 
-      {/* HUD: cửa & đèn — góc dưới phải */}
+      {/* HUD: cửa & đèn — chỉ hiện khi tới gần và đã có đặt vật tương ứng */}
       {(() => {
-        // Tính có cửa nào gần nhân vật không (chỉ tầng trệt, cự ly ≤ 2.2m)
-        const nearDoor = state.placed.some((p) => {
-          if (p.itemId !== "door") return false;
-          if ((p.floor ?? 0) !== 0) return false;
+        // Tìm cửa gần nhất (cùng tầng trệt, cự ly ≤ 2.5m) → chỉ thao tác MỘT cửa đó
+        let nearest: { id: string; d2: number } | null = null;
+        for (const p of state.placed) {
+          if (p.itemId !== "door") continue;
+          if ((p.floor ?? 0) !== 0) continue;
           const it = getItem(p.itemId);
-          if (!it) return false;
+          if (!it) continue;
           const swap = p.rotation % 2 === 1;
           const fw = swap ? it.d : it.w;
           const fd = swap ? it.w : it.d;
-          const cx = p.x - 10 + fw / 2;
-          const cz = p.z - 10 + fd / 2;
+          const hasAngle = typeof p.angleRad === "number";
+          const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+          const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
           const dx = playerPos.x - cx;
           const dz = playerPos.z - cz;
-          return dx * dx + dz * dz < 2.2 * 2.2;
+          const d2 = dx * dx + dz * dz;
+          if (d2 < 2.5 * 2.5 && (!nearest || d2 < nearest.d2)) nearest = { id: p.id, d2 };
+        }
+        // Đèn: hiện khi đã đặt ít nhất 1 đèn & nhân vật cách đèn ≤ 3m
+        const LAMP_IDS = new Set(["lamp", "gardenlamp"]);
+        const nearLamp = state.placed.some((p) => {
+          if (!LAMP_IDS.has(p.itemId)) return false;
+          const cx = p.x - 10 + 0.5;
+          const cz = p.z - 10 + 0.5;
+          const dx = playerPos.x - cx;
+          const dz = playerPos.z - cz;
+          return dx * dx + dz * dz < 3 * 3;
         });
-        const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
+        if (!nearest && !nearLamp) return null;
+        const isOpen = nearest ? (wt.doorsOpen || wt.openDoorIds?.includes(nearest.id)) : false;
         return (
           <div className="absolute bottom-3 right-3 sm:bottom-3 [@media(pointer:coarse)]:bottom-28 flex flex-col gap-2 pointer-events-auto z-30">
-            {hasAnyDoor && nearDoor && (
+            {nearest && (
               <button
-                onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}
-                className={`toy-button !text-sm !py-2 !px-4 ${wt.doorsOpen ? "toy-button-green" : "toy-button-primary"}`}
-                title="Mở/đóng tất cả cửa nhà cùng lúc"
+                onClick={() => {
+                  const cur = new Set(wt.openDoorIds ?? []);
+                  if (cur.has(nearest!.id)) cur.delete(nearest!.id); else cur.add(nearest!.id);
+                  setToggles({ openDoorIds: Array.from(cur), doorsOpen: false });
+                  playSfx("place");
+                }}
+                className={`toy-button !text-sm !py-2 !px-4 ${isOpen ? "toy-button-green" : "toy-button-primary"}`}
+                title="Mở/đóng cửa gần nhất"
               >
-                {wt.doorsOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
+                {isOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
               </button>
             )}
-            <button
-              onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
-              className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
-              title="Bật/tắt tất cả đèn"
-            >
-              {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
-            </button>
+            {nearLamp && (
+              <button
+                onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
+                className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
+                title="Bật/tắt tất cả đèn"
+              >
+                {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
+              </button>
+            )}
           </div>
         );
       })()}

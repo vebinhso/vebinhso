@@ -797,24 +797,35 @@ function GamePage() {
         </div>
 
         <div className="flex flex-col gap-2 pointer-events-auto items-end">
-          {/* Toggle tools (touch only) */}
+          {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
-            onClick={() => setToolsOpen((v) => !v)}
-            className="toy-button !text-xs !py-2 !px-3 [@media(pointer:fine)]:hidden"
-            title="Ẩn/hiện công cụ"
+            onClick={() => setThaoTacOpen((v) => !v)}
+            className={`toy-button !text-xs !py-2 !px-3 ${thaoTacOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            title="Mở/đóng nhóm Thao tác"
           >
-            {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
+            {thaoTacOpen ? "✖ ⚙️ THAO TÁC" : "⚙️ THAO TÁC"}
           </button>
-          <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
-          <div className="self-end px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">⚙️ THAO TÁC</div>
-          <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
-          <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
-            ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
-          </button>
-          <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
-          <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+          {thaoTacOpen && (
+            <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+              <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
+              <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
+                ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
+              </button>
+              <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
+              <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+            </div>
+          )}
 
-          <div className="self-end mt-1 px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">🏗️ THỰC HIỆN</div>
+          {/* THỰC HIỆN */}
+          <button
+            onClick={() => setThucHienOpen((v) => !v)}
+            className={`toy-button !text-xs !py-2 !px-3 mt-1 ${thucHienOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            title="Mở/đóng nhóm Thực hiện"
+          >
+            {thucHienOpen ? "✖ 🏗️ THỰC HIỆN" : "🏗️ THỰC HIỆN"}
+          </button>
+          {thucHienOpen && (
+            <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">
@@ -915,7 +926,8 @@ function GamePage() {
               🎨 Đổi màu tường
             </button>
           )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

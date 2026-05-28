@@ -38,6 +38,7 @@ function Home() {
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameVal, setRenameVal] = useState("");
   const [renameBusy, setRenameBusy] = useState(false);
+  const [surveyOpen, setSurveyOpen] = useState(false);
 
   const doRename = async () => {
     setRenameBusy(true);
@@ -136,22 +137,6 @@ function Home() {
       </header>
 
 
-      {/* Khảo sát trải nghiệm */}
-      <div className="px-4 md:px-6 -mt-2 mb-2">
-        <a
-          href="https://byvn.net/AnKf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block max-w-md glass-card px-4 py-3 border-2 border-pink-300 bg-gradient-to-r from-pink-100/90 to-rose-100/90 hover:from-pink-200 hover:to-rose-200 transition shadow-md"
-        >
-          <p className="text-xs md:text-sm font-bold text-rose-700 leading-snug">
-            💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhée!
-          </p>
-          <p className="text-xs font-black text-pink-700 mt-1 underline truncate">
-            🔗 https://byvn.net/AnKf
-          </p>
-        </a>
-      </div>
 
       <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
 
@@ -251,6 +236,7 @@ function Home() {
         </div>
 
         <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
+          <button onClick={() => setSurveyOpen(true)} className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300">💗 KHẢO SÁT</button>
           <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">🎁 TIỆN ÍCH</Link>
           <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">⚡ QUYỀN NĂNG</Link>
         </aside>
@@ -282,6 +268,25 @@ function Home() {
                 {renameBusy ? "Đang đổi..." : "Xác nhận"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {surveyOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSurveyOpen(false)}>
+          <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl p-6 max-w-md w-full border-4 border-pink-300" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-3 text-rose-700">💗 Khảo sát trải nghiệm</h3>
+            <p className="text-sm font-bold text-rose-700 leading-relaxed mb-4">
+              💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhée!
+            </p>
+            <a
+              href="https://byvn.net/AnKf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center toy-button toy-button-primary mb-2"
+            >🔗 MỞ KHẢO SÁT</a>
+            <p className="text-[10px] text-center text-rose-600 break-all">https://byvn.net/AnKf</p>
+            <button onClick={() => setSurveyOpen(false)} className="toy-button w-full mt-3">Đóng</button>
           </div>
         </div>
       )}

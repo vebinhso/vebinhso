@@ -111,6 +111,7 @@ function GamePage() {
       .catch(() => setQuestionsReady(true));
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
+    setSignLabels(loadSignLabels(u.id));
     loadPickupConfig()
       .then((cfg) => setPickups(resolvePickups(cfg)))
       .catch(() => setPickups([]));

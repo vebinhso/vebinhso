@@ -264,10 +264,11 @@ export function Wall({ h = 3 }) {
   );
 }
 
-export function Door() {
-  const { doorsOpen } = useWorldToggles();
+export function Door({ placedId }: { placedId?: string } = {}) {
+  const t = useWorldToggles();
+  const isOpen = t.doorsOpen || (placedId ? t.openDoorIds?.includes(placedId) : false);
   // Bản lề ở mép trái (x = -0.5). Group ngoài xoay quanh bản lề.
-  const open = doorsOpen ? -Math.PI / 2 : 0;
+  const open = isOpen ? -Math.PI / 2 : 0;
   return (
     <group position={[-0.5, 0, 0]} rotation={[0, open, 0]}>
       <group position={[0.5, 0, 0]}>

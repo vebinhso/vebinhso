@@ -699,7 +699,15 @@ function PlotAndPlacement({
     const gz = Math.floor(p.z + half);
     setHover({ x: gx, z: gz });
   };
-  const handleClick = () => { if (!buildMode && selected && hover) onPlace(hover.x, hover.z); };
+  const handleClick = (e: any) => {
+    if (buildMode || !selected) return;
+    let h = hover;
+    if (!h && e?.point) {
+      const p = e.point as THREE.Vector3;
+      h = { x: Math.floor(p.x + half), z: Math.floor(p.z + half) };
+    }
+    if (h) onPlace(h.x, h.z);
+  };
 
   return (
     <group>

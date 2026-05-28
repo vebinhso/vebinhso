@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
+import { TouchLookControls } from "@/game/TouchLookControls";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
@@ -1583,6 +1584,7 @@ function MagicPage() {
                 spawnRef={corridorSpawnRef}
               />
               {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
             </>
           ) : stage === "transition" ? (
             <>
@@ -1617,6 +1619,7 @@ function MagicPage() {
                spawnRef={s2SpawnRef}
              />
              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
+             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
             </>
           )}
         </Suspense>
@@ -1842,8 +1845,9 @@ function MagicPage() {
 
       {/* Witch fight */}
       {witch && (
-        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>🧙‍♀️ Phù thủy</span>
               <span>❤️ Bạn: {witch.playerHp}/100</span>
@@ -1871,8 +1875,9 @@ function MagicPage() {
 
       {/* Quiz of 10 (door 1 in room 5) */}
       {quiz5 && (
-        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>📜 Cửa 1 — Câu {quiz5.idx + 1}/5</span>
               <span>✅ Đúng: {quiz5.correct}</span>
@@ -1889,8 +1894,9 @@ function MagicPage() {
 
       {/* Boss question */}
       {boss && boss.question && !bossDefeated && !modal && (
-        <div className="absolute inset-x-0 bottom-0 z-30 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>👹 Boss cấp {boss.level}</span>
               <span>❤️ {boss.hp}/{boss.maxHp}</span>
@@ -1934,8 +1940,9 @@ function MagicPage() {
 
       {/* Animal encounter quiz (door=2 câu, corridor tiger=5 câu) */}
       {animalQuiz && (
-        <div className="absolute inset-x-0 bottom-0 z-40 p-4">
-          <div className="max-w-2xl mx-auto glass-card p-4">
+        <div className="absolute inset-x-0 bottom-0 z-40 p-2 md:p-4">
+          <div className="max-w-2xl mx-auto glass-card p-3 md:p-4 max-h-[80vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-2 text-xs font-black">
               <span>{animalQuiz.source === "corridor" ? "🐯 Hổ tấn công! Trả lời để thoát" : "🐾 Gặp thú lạ — trả lời câu hỏi"}</span>
               <span>Câu {animalQuiz.idx + 1}/{animalQuiz.total} · ✅ {animalQuiz.correct}</span>
@@ -1953,8 +1960,9 @@ function MagicPage() {
 
       {/* Ghost collision quiz */}
       {ghostQuiz && (
-        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
-          <div className="glass-card max-w-md w-full p-5">
+        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-2 md:p-4">
+          <div className="glass-card max-w-md w-full p-3 md:p-5 max-h-[85vh] overflow-y-auto">
+
             <p className="text-lg font-black mb-3 text-center">👻 Bị ma tấn công! Trả lời nhanh (+20đ nếu đúng)</p>
             <QuestionView question={ghostQuiz} onAnswer={answerGhostQuiz} compact disabled={!!ghostResult} />
             {ghostResult && (

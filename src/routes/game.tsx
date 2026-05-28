@@ -906,7 +906,12 @@ function GamePage() {
           ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
           : roofMode
           ? `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`
-          : "🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}
+          : (
+            <>
+              <span className="hidden [@media(pointer:fine)]:inline">🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa</span>
+              <span className="[@media(pointer:fine)]:hidden">🎮 Joystick để di chuyển • Chạm để đặt • Chạm vật để chỉnh</span>
+            </>
+          )}
       </div>
 
       {/* Gợi ý đặt cửa */}

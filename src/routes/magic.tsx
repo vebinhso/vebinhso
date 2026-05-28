@@ -1619,6 +1619,7 @@ function MagicPage() {
                spawnRef={s2SpawnRef}
              />
              {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
+             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
             </>
           )}
         </Suspense>

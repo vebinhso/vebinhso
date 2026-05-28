@@ -124,7 +124,7 @@ function Home() {
             <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mt-12">
           <Link to="/shop" className="toy-button text-sm">🛒 CỬA HÀNG</Link>
           <Link to="/ranking" className="toy-button text-sm">📊 XẾP HẠNG</Link>
           <Link to="/tutorial" className="toy-button text-sm">📖 HƯỚNG DẪN</Link>
@@ -134,6 +134,7 @@ function Home() {
           <button onClick={handleLogout} className="toy-button text-sm">🚪 ĐĂNG XUẤT</button>
         </div>
       </header>
+
 
       <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
         <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto">

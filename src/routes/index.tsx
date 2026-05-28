@@ -231,7 +231,7 @@ function Home() {
           <Link to="/play" className="toy-button toy-button-primary">CHƠI NGAY</Link>
         </div>
 
-        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center order-3 md:order-none flex-wrap">
+        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
           <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">🎁 TIỆN ÍCH</Link>
           <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">⚡ QUYỀN NĂNG</Link>
         </aside>

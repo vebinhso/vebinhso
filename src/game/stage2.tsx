@@ -89,7 +89,6 @@ const WALLS: Array<[number, number, number, number]> = [
   // ===== decoy E (west arm + south + west) =====
   [-12, -1, 0, -1], // E1 N
   [-7, -5, 0, -5], // E1 S (was [-12,-5,-7,-5])
-  ,
   [-12, -3, -12, -1], // E1 W upper
   [-9, -15, -7, -15], // E2 S (gap x[-12,-9] for E3)
   [-7, -15, -7, -5], // E2 E

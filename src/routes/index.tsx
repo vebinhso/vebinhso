@@ -271,6 +271,25 @@ function Home() {
           </div>
         </div>
       )}
+
+      {surveyOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSurveyOpen(false)}>
+          <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl p-6 max-w-md w-full border-4 border-pink-300" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-3 text-rose-700">💗 Khảo sát trải nghiệm</h3>
+            <p className="text-sm font-bold text-rose-700 leading-relaxed mb-4">
+              💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhée!
+            </p>
+            <a
+              href="https://byvn.net/AnKf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center toy-button toy-button-primary mb-2"
+            >🔗 MỞ KHẢO SÁT</a>
+            <p className="text-[10px] text-center text-rose-600 break-all">https://byvn.net/AnKf</p>
+            <button onClick={() => setSurveyOpen(false)} className="toy-button w-full mt-3">Đóng</button>
+          </div>
+        </div>
+      )}
     </GameLayout>
   );
 }

@@ -675,7 +675,6 @@ function Chest({ pos, reveal }: { pos: [number, number, number]; reveal: number 
 // ============ PLAYER (corridor) ============
 function PlayerController({ active, onNearDoor, exitOpen, onExitCross, spawnRef }: { active: boolean; onNearDoor: (idx: number | null) => void; exitOpen?: boolean; onExitCross?: () => void; spawnRef?: React.MutableRefObject<{ x: number; z: number; lookX: number; lookZ: number } | null> }) {
   const { camera } = useThree();
-  const keys = useRef<Record<string, boolean>>({});
   const vy = useRef(0);
   const grounded = useRef(true);
   const exited = useRef(false);
@@ -690,15 +689,15 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross, spawnRef 
       camera.position.set(0, 1.7, -CORRIDOR_LEN / 2 + 3);
       camera.lookAt(0, 1.6, CORRIDOR_LEN / 2);
     }
-    const d = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = true; };
-    const u = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
+    const d = (e: KeyboardEvent) => { setInputKey(e.key, true); };
+    const u = (e: KeyboardEvent) => { setInputKey(e.key, false); };
     window.addEventListener("keydown", d); window.addEventListener("keyup", u);
     return () => { window.removeEventListener("keydown", d); window.removeEventListener("keyup", u); };
   }, [camera, spawnRef]);
 
   useFrame((_, dt) => {
     if (!active) return;
-    const k = keys.current;
+    const k = playerInput;
     const speed = 5;
     const fwd = new THREE.Vector3();
     camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
@@ -717,6 +716,7 @@ function PlayerController({ active, onNearDoor, exitOpen, onExitCross, spawnRef 
     vy.current -= 16 * dt;
     camera.position.y += vy.current * dt;
     if (camera.position.y <= 1.7) { camera.position.y = 1.7; vy.current = 0; grounded.current = true; }
+
 
     const halfW = CORRIDOR_W / 2 - 0.4;
     const halfL = CORRIDOR_LEN / 2 - 0.4;

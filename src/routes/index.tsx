@@ -226,15 +226,14 @@ function Home() {
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col items-center justify-end gap-4">
+        <div className="flex-1 flex flex-col items-center justify-end gap-4 order-1 md:order-none">
           <div className="text-9xl drop-shadow-lg animate-bounce" style={{ animationDuration: "3s" }}>🐕</div>
           <Link to="/play" className="toy-button toy-button-primary">CHƠI NGAY</Link>
         </div>
 
-        <aside className="flex flex-col gap-3 justify-center">
-          <Link to="/inventory" className="toy-button min-w-[180px] justify-start">🎒 HÀNH TRANG</Link>
-          <Link to="/missions" className="toy-button min-w-[180px] justify-start">🎁 TIỆN ÍCH</Link>
-          <Link to="/pets" className="toy-button min-w-[180px] justify-start">⚡ QUYỀN NĂNG</Link>
+        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center order-3 md:order-none flex-wrap">
+          <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">🎁 TIỆN ÍCH</Link>
+          <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">⚡ QUYỀN NĂNG</Link>
         </aside>
       </main>
 

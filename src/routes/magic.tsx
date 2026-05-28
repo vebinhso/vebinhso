@@ -1622,6 +1622,9 @@ function MagicPage() {
         </Suspense>
       </Canvas>
 
+      {/* Mobile joystick + jump + open-door (E) — desktop unchanged */}
+      <TouchControls showActionButton actionKey="e" actionLabel="🚪 MỞ (E)" />
+
       {/* HUD top-left */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
         <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>

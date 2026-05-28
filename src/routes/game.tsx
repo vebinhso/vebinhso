@@ -28,6 +28,7 @@ import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
+import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -89,6 +90,11 @@ function GamePage() {
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(true);
+  // Nhãn bảng tên nhà — lưu localStorage theo user
+  const [signLabels, setSignLabels] = useState<SignLabelMap>({});
+  // id biển tên đang được sửa text (mở modal)
+  const [signEditId, setSignEditId] = useState<string | null>(null);
+  const [signDraft, setSignDraft] = useState("");
 
   useEffect(() => {
     setMounted(true);

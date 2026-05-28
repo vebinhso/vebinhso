@@ -38,6 +38,7 @@ function Home() {
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameVal, setRenameVal] = useState("");
   const [renameBusy, setRenameBusy] = useState(false);
+  const [surveyOpen, setSurveyOpen] = useState(false);
 
   const doRename = async () => {
     setRenameBusy(true);

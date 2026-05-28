@@ -43,24 +43,24 @@ function PlayPage() {
   return (
     <GameLayout showBack>
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="glass-card max-w-xl w-full p-8 text-center">
-          <div className="text-6xl mb-3">🎮</div>
-          <h1 className="text-3xl font-black mb-2">CHỌN BẢN ĐỒ</h1>
-          <p className="font-bold text-muted-foreground mb-6">
+        <div className="glass-card max-w-xl w-full p-4 sm:p-8 text-center">
+          <div className="text-4xl sm:text-6xl mb-3">🎮</div>
+          <h1 className="text-xl sm:text-3xl font-black mb-2">CHỌN BẢN ĐỒ</h1>
+          <p className="font-bold text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
             Xin chào <span className="text-orange-600">{user.username}</span>{isAdmin(user.email) && <> (ID #{user.id})</>}
           </p>
-          <div className="grid gap-4">
-            <Link to="/game" className="toy-button toy-button-primary w-full !text-xl py-6 flex flex-col items-center gap-1">
-              <span className="text-3xl">🏡</span>
+          <div className="grid gap-3 sm:gap-4">
+            <Link to="/game" className="toy-button toy-button-primary w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 whitespace-normal !leading-tight">
+              <span className="text-2xl sm:text-3xl">🏡</span>
               <span>BẢN ĐỒ NHÀ</span>
-              <span className="text-xs font-bold opacity-80">Khu Nông thôn — Xây dựng & trang trí</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-80">Khu Nông thôn — Xây dựng & trang trí</span>
             </Link>
-            <Link to="/magic" className="toy-button w-full !text-xl py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-purple-500 to-indigo-700 text-white">
-              <span className="text-3xl">🏰</span>
+            <Link to="/magic" className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-purple-500 to-indigo-700 text-white whitespace-normal !leading-tight">
+              <span className="text-2xl sm:text-3xl">🏰</span>
               <span>BẢN ĐỒ LÂU ĐÀI MA THUẬT</span>
-              <span className="text-xs font-bold opacity-90">Hành lang 10 cánh cửa — Đấu boss</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-90">Hành lang 10 cánh cửa — Đấu boss</span>
             </Link>
-            <Link to="/character" className="toy-button w-full !text-sm">
+            <Link to="/character" className="toy-button w-full !text-xs sm:!text-sm">
               🎨 Đổi trang phục
             </Link>
           </div>

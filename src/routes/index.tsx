@@ -124,7 +124,7 @@ function Home() {
             <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mt-12">
           <Link to="/shop" className="toy-button text-sm">🛒 CỬA HÀNG</Link>
           <Link to="/ranking" className="toy-button text-sm">📊 XẾP HẠNG</Link>
           <Link to="/tutorial" className="toy-button text-sm">📖 HƯỚNG DẪN</Link>
@@ -135,7 +135,26 @@ function Home() {
         </div>
       </header>
 
+
+      {/* Khảo sát trải nghiệm */}
+      <div className="px-4 md:px-6 -mt-2 mb-2">
+        <a
+          href="https://byvn.net/AnKf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block max-w-md glass-card px-4 py-3 border-2 border-pink-300 bg-gradient-to-r from-pink-100/90 to-rose-100/90 hover:from-pink-200 hover:to-rose-200 transition shadow-md"
+        >
+          <p className="text-xs md:text-sm font-bold text-rose-700 leading-snug">
+            💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhée!
+          </p>
+          <p className="text-xs font-black text-pink-700 mt-1 underline truncate">
+            🔗 https://byvn.net/AnKf
+          </p>
+        </a>
+      </div>
+
       <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
+
         <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto">
 
           <h3 className="text-center font-black text-foreground">BẠN BÈ ONLINE</h3>

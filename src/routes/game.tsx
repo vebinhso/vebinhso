@@ -649,7 +649,7 @@ function GamePage() {
         flash("💣 Đạp trúng boom! (chưa có câu hỏi)", 1500);
         return;
       }
-      setBoom({ qIdx: 0, q: randomQuestion(), gained: 0, answered: [] });
+      setBoom({ q: randomQuestion(), tries: 0, correct: 0, gained: 0 });
       setBoomResult(null);
     }
   };
@@ -662,20 +662,19 @@ function GamePage() {
     const gained = boom.gained + delta;
     setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
     playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
-    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ`);
+    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ — phải trả lời thêm 1 câu!`);
     setTimeout(() => {
-      if (boom.qIdx === 0) {
-        setBoom({ qIdx: 1, q: randomQuestion(), gained, answered: [...boom.answered, ok ? 1 : 0] });
+      if (ok) {
+        flash(`💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
+        setBoom(null);
         setBoomResult(null);
       } else {
-        const total = gained;
-        flash(`💣 Hết boom! Tổng: ${total >= 0 ? "+" : ""}${total}đ`, 2000);
-        setBoom(null);
+        // Sai → câu hỏi mới, modal vẫn mở
+        setBoom({ q: randomQuestion(), tries: boom.tries + 1, correct: boom.correct, gained });
         setBoomResult(null);
       }
     }, 1200);
   };
-  const closeBoom = () => { setBoom(null); setBoomResult(null); };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng

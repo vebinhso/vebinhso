@@ -838,7 +838,7 @@ function PlotAndPlacement({
               }
             }}
           >
-            <ItemModel item={it} label={p.itemId === "sign" ? signLabels?.[p.id] : undefined} />
+            <ItemModel item={it} placedId={p.id} label={p.itemId === "sign" ? signLabels?.[p.id] : undefined} />
             {editingId === p.id && !isOtherFloor && (
               <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <ringGeometry args={[Math.max(it.w, it.d) * 0.7, Math.max(it.w, it.d) * 0.85, 36]} />

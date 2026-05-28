@@ -88,6 +88,7 @@ function GamePage() {
   const [moveMode, setMoveMode] = useState(false);
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -781,7 +782,16 @@ function GamePage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pointer-events-auto items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+        <div className="flex flex-col gap-2 pointer-events-auto items-end">
+          {/* Toggle tools (touch only) */}
+          <button
+            onClick={() => setToolsOpen((v) => !v)}
+            className="toy-button !text-xs !py-2 !px-3 [@media(pointer:fine)]:hidden"
+            title="Ẩn/hiện công cụ"
+          >
+            {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
+          </button>
+          <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
             ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
@@ -888,6 +898,7 @@ function GamePage() {
               🎨 Đổi màu tường
             </button>
           )}
+          </div>
         </div>
       </div>
 
@@ -906,7 +917,12 @@ function GamePage() {
           ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
           : roofMode
           ? `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`
-          : "🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}
+          : (
+            <>
+              <span className="hidden [@media(pointer:fine)]:inline">🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa</span>
+              <span className="[@media(pointer:fine)]:hidden">🎮 Joystick để di chuyển • Chạm để đặt • Chạm vật để chỉnh</span>
+            </>
+          )}
       </div>
 
       {/* Gợi ý đặt cửa */}
@@ -1074,31 +1090,31 @@ function GamePage() {
 
       {/* Shop */}
       {shopOpen && (
-        <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4" onClick={() => setShopOpen(false)}>
-          <div className="glass-card max-w-3xl w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="p-4 border-b-2 border-white/50 flex items-center justify-between">
-              <h2 className="text-2xl font-black">🛒 CỬA HÀNG</h2>
-              <div className="font-bold text-yellow-700">💰 {state.money}đ</div>
+        <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-2 md:p-4" onClick={() => setShopOpen(false)}>
+          <div className="glass-card max-w-3xl w-full max-h-[92vh] md:max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="p-2 md:p-4 border-b-2 border-white/50 flex items-center justify-between gap-2">
+              <h2 className="text-lg md:text-2xl font-black">🛒 CỬA HÀNG</h2>
+              <div className="font-bold text-yellow-700 text-xs md:text-base">💰 {state.money}đ</div>
               <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
             </div>
-            <div className="flex flex-wrap gap-2 p-3 border-b-2 border-white/50">
+            <div className="flex flex-wrap gap-1 md:gap-2 p-2 md:p-3 border-b-2 border-white/50">
               {CATEGORIES.map((c) => (
                 <button
                   key={c}
                   onClick={() => setActiveCat(c)}
-                  className={`toy-button !text-xs !py-2 !px-3 ${activeCat === c ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+                  className={`toy-button !text-[10px] md:!text-xs !py-1 md:!py-2 !px-2 md:!px-3 ${activeCat === c ? "toy-button-primary !text-[10px] md:!text-xs !py-1 md:!py-2 !px-2 md:!px-3" : ""}`}
                 >
                   {c}
                 </button>
               ))}
             </div>
             {activeCat === "Vật liệu" && (
-              <div className="px-4 pt-3 text-[11px] font-bold text-stone-700">
-                💡 Đặt CỘT BÊ TÔNG trước để giới hạn bề ngang. Mua GẠCH + BÊ TÔNG TƯƠI, rồi bấm
-                {" "}<span className="text-orange-700">🧱 XÂY TƯỜNG</span> để hệ thống tự quy đổi (10 gạch + 1 bê tông cho 1m × 5m).
+              <div className="px-3 md:px-4 pt-2 md:pt-3 text-[10px] md:text-[11px] font-bold text-stone-700">
+                💡 Đặt CỘT BÊ TÔNG trước. Mua GẠCH + BÊ TÔNG, rồi bấm
+                {" "}<span className="text-orange-700">🧱 XÂY TƯỜNG</span> (10 gạch + 1 bê tông / 1m×5m).
               </div>
             )}
-            <div className="p-4 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="p-2 md:p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-3" style={{ scrollbarWidth: "thin" }}>
               {CATALOG.filter((c) => c.category === activeCat).map((it) => {
                 const canAfford = state.money >= it.price;
                 const kind = it.kind ?? "place";
@@ -1109,19 +1125,19 @@ function GamePage() {
                   kind === "palette" ? "MỞ PALETTE" :
                   "MUA & ĐẶT";
                 return (
-                  <div key={it.id} className="relative rounded-3xl p-3 text-center border-2 border-amber-200" style={{
+                  <div key={it.id} className="relative rounded-2xl md:rounded-3xl p-2 md:p-3 text-center border-2 border-amber-200" style={{
                     background: "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
-                    boxShadow: "0 12px 22px -10px rgba(180,120,0,0.55), inset 0 -6px 0 rgba(0,0,0,0.07), inset 0 4px 0 rgba(255,255,255,0.6)",
+                    boxShadow: "0 8px 16px -8px rgba(180,120,0,0.45), inset 0 -4px 0 rgba(0,0,0,0.07), inset 0 3px 0 rgba(255,255,255,0.6)",
                   }}>
-                    <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl mb-1" style={{
+                    <div className="mx-auto w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-1" style={{
                       background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
                       boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
                     }}>{it.icon}</div>
-                    <div className="font-black text-sm mt-1 line-clamp-1">{it.name}</div>
-                    <div className="text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d} ô</div>
-                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-xs font-black">💰 {it.price}đ</div>
+                    <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{it.name}</div>
+                    <div className="text-[9px] md:text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d}</div>
+                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">💰 {it.price}đ</div>
                     <button onClick={() => buyAndSelect(it.id)} disabled={!canAfford}
-                      className={`toy-button !text-xs !py-1 !px-3 mt-2 w-full ${canAfford ? "toy-button-primary !text-xs !py-1 !px-3" : "opacity-50"}`}>
+                      className={`toy-button !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3 mt-2 w-full ${canAfford ? `toy-button-primary !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3` : "opacity-50"}`}>
                       {canAfford ? label : "Hết tiền"}
                     </button>
                   </div>

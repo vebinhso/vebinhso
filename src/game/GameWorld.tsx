@@ -145,7 +145,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         if (placed) {
           for (const p of placed) {
             if ((p.floor ?? 0) !== 0) continue;
-            if (p.itemId === "door" && doorsOpen) continue;
+            if (p.itemId === "door" && (t.doorsOpen || t.openDoorIds?.includes(p.id))) continue;
             if (p.itemId !== "door" && !SOLID_ITEMS.has(p.itemId)) continue;
             const it = getItem(p.itemId);
             if (!it) continue;

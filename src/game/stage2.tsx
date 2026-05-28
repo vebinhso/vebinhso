@@ -28,48 +28,43 @@ export const S2_H = 4.8;
 const HALF = 2.5;
 
 type Rect = { xmin: number; xmax: number; zmin: number; zmax: number };
-
 export const S2_SEGMENTS: Rect[] = [
-  // ===== MAIN PATH (all edges aligned) =====
-  { xmin: -2.5, xmax: 2.5, zmin: -10, zmax: 2.5 }, // A
-  { xmin: -2.5, xmax: 32.5, zmin: -12.5, zmax: -7.5 }, // B
+  // ===== main path =====
+  { xmin: -HALF, xmax: HALF, zmin: -10, zmax: 2.5 }, // A
+  { xmin: -HALF, xmax: 32.5, zmin: -12.5, zmax: -7.5 }, // B
   { xmin: 27.5, xmax: 32.5, zmin: -32.5, zmax: -7.5 }, // C
   { xmin: 27.5, xmax: 47.5, zmin: -32.5, zmax: -27.5 }, // D
-
-  // ===== E — WEST BRANCH =====
-  { xmin: -12, xmax: 0, zmin: -5, zmax: -1 }, // E1
-  { xmin: -12, xmax: -7, zmin: -15, zmax: -3 }, // E2
-  { xmin: -22, xmax: -9, zmin: -15, zmax: -11 }, // E3
-
-  // ===== F — SOUTH OF B =====
-  { xmin: 12, xmax: 17, zmin: -22, zmax: -10 }, // F1
-  { xmin: 12, xmax: 25, zmin: -22, zmax: -18 }, // F2
-  { xmin: 20, xmax: 25, zmin: -32, zmax: -20 }, // F3
-
-  // ===== G — NORTH OF B =====
-  { xmin: 15, xmax: 20, zmin: -12, zmax: 0 }, // G1
-  { xmin: 5, xmax: 20, zmin: -2, zmax: 2 }, // G2
-  { xmin: 5, xmax: 10, zmin: 0, zmax: 8 }, // G3
-
-  // ===== H — EAST OF C =====
-  { xmin: 32, xmax: 42, zmin: -26, zmax: -22 }, // H1
-  { xmin: 37, xmax: 42, zmin: -23, zmax: -14 }, // H2
-  { xmin: 37, xmax: 47, zmin: -16, zmax: -12 }, // H3
-
-  // ===== I — SOUTH OF D (east end) =====
-  { xmin: 42, xmax: 47, zmin: -42, zmax: -31 }, // I1
-  { xmin: 33, xmax: 43, zmin: -42, zmax: -38 }, // I2
-  { xmin: 32, xmax: 38, zmin: -50, zmax: -41 }, // I3
-
-  // ===== J — SOUTH OF C (FIXED — missing before) =====
-  { xmin: 27.5, xmax: 32.5, zmin: -42, zmax: -31 }, // J1
-  { xmin: 15, xmax: 28, zmin: -42, zmax: -38 }, // J2
-  { xmin: 15, xmax: 21, zmin: -50, zmax: -41 }, // J3 (dead end)
+  // ===== maze decoy branches — multi-turn dead ends =====
+  // E — west off A, then south, then west
+  { xmin: -12, xmax: 0, zmin: -5, zmax: -1 }, // E1 west arm
+  { xmin: -12, xmax: -7, zmin: -15, zmax: -3 }, // E2 south turn
+  { xmin: -22, xmax: -9, zmin: -15, zmax: -11 }, // E3 west turn (dead end)
+  // F — south off B, then east, then south
+  { xmin: 12, xmax: 17, zmin: -22, zmax: -10 }, // F1 south arm
+  { xmin: 12, xmax: 25, zmin: -22, zmax: -18 }, // F2 east turn
+  { xmin: 20, xmax: 25, zmin: -32, zmax: -20 }, // F3 south turn (dead end)
+  // G — north off B, then west, then north
+  { xmin: 15, xmax: 20, zmin: -12, zmax: 0 }, // G1 north arm
+  { xmin: 5, xmax: 20, zmin: -2, zmax: 2 }, // G2 west turn
+  { xmin: 5, xmax: 10, zmin: 0, zmax: 8 }, // G3 north turn (dead end)
+  // H — east off C, then north, then east
+  { xmin: 27.5, xmax: 42, zmin: -26, zmax: -22 }, // H1 (was xmin: 32)
+  { xmin: 37, xmax: 42, zmin: -24, zmax: -14 }, // H2 (was zmin: -23)
+  { xmin: 37, xmax: 47, zmin: -16, zmax: -12 }, // H3 east turn (dead end)
+  // I — south off D (east end), then west, then south
+  { xmin: 41, xmax: 47, zmin: -42, zmax: -31 }, // I1 (was xmin: 42)
+  { xmin: 33, xmax: 43, zmin: -43, zmax: -38 }, // I2 (was zmin: -42)
+  { xmin: 32, xmax: 38, zmin: -50, zmax: -41 }, // I3 south turn (dead end)
+  // J — south off C, then west, then south
+  { xmin: 27.5, xmax: 32.5, zmin: -42, zmax: -31 }, // J1 south arm
+  { xmin: 15, xmax: 30, zmin: -43, zmax: -38 }, // J2 (was xmax:28, zmin:-42)
+  { xmin: 15, xmax: 20, zmin: -50, zmax: -41 }, // J3 south turn (dead end)
 ];
 
 // Walls = [x1, z1, x2, z2]
 const WALLS: Array<[number, number, number, number]> = [
   // ===== Main A =====
+
   [-HALF, 2.5, HALF, 2.5], // A north
   [HALF, 2.5, HALF, -7.5], // A east
   [-HALF, 2.5, -HALF, -1], // A west upper (above E1 opening)
@@ -93,7 +88,8 @@ const WALLS: Array<[number, number, number, number]> = [
 
   // ===== decoy E (west arm + south + west) =====
   [-12, -1, 0, -1], // E1 N
-  [-12, -5, -7, -5], // E1 S (gap x[-7,0] for E2)
+  [-7, -5, 0, -5], // E1 S (was [-12,-5,-7,-5])
+  ,
   [-12, -3, -12, -1], // E1 W upper
   [-9, -15, -7, -15], // E2 S (gap x[-12,-9] for E3)
   [-7, -15, -7, -5], // E2 E
@@ -121,11 +117,11 @@ const WALLS: Array<[number, number, number, number]> = [
   [10, 2, 10, 8], // G3 E
   [5, 2, 5, 8], // G3 W
   // ===== decoy H (east arm + north + east) =====
-  [32, -22, 37, -22], // H1 N (gap x[37,42] for H2)
-  [32, -26, 42, -26], // H1 S
+  [27.5, -22, 37, -22], // H1 N (was [32,-22,37,-22])
+  [27.5, -26, 42, -26], // H1 S (was [32,-26,42,-26])
   [42, -26, 42, -23], // H1 E
-  [42, -22, 42, -16], // H2 E
-  [37, -23, 37, -16], // H2 W
+  [42, -24, 42, -16], // H2 E (was [42,-22,42,-16])
+  [37, -24, 37, -16], // H2 W (was [37,-23,37,-16])
   [37, -12, 47, -12], // H3 N
   [42, -16, 47, -16], // H3 S (gap x[37,42] for H2)
   [47, -16, 47, -12], // H3 E
@@ -133,9 +129,9 @@ const WALLS: Array<[number, number, number, number]> = [
   // ===== decoy I (south arm + west + south) =====
   [43, -42, 47, -42], // I1 S (gap x[42,43] for I2)
   [47, -42, 47, -32.5], // I1 E
-  [42, -38, 42, -32.5], // I1 W
+  [41, -38, 41, -32.5], // I1 W (was [42,-38,42,-32.5])
   [33, -38, 42, -38], // I2 N
-  [38, -42, 42, -42], // I2 S (gaps for I3 and I1)
+  [38, -43, 43, -43], // I2 S (was [38,-42,42,-42])
   [33, -41, 33, -38], // I2 W
   [32, -41, 33, -41], // I3 N
   [32, -50, 38, -50], // I3 S
@@ -145,8 +141,8 @@ const WALLS: Array<[number, number, number, number]> = [
   [28, -42, 32.5, -42], // J1 S (gap x[27.5,28] for J2)
   [32.5, -42, 32.5, -32.5], // J1 E
   [27.5, -38, 27.5, -32.5], // J1 W
-  [15, -38, 27.5, -38], // J2 N
-  [20, -42, 27.5, -42], // J2 S (gaps for J3 and J1)
+  [15, -38, 30, -38], // J2 N (was [15,-38,27.5,-38])
+  [20, -43, 30, -43], // J2 S (was [20,-42,27.5,-42])
   [15, -41, 15, -38], // J2 W
   [15, -50, 20, -50], // J3 S
   [20, -50, 20, -42], // J3 E

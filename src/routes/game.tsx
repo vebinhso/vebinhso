@@ -89,7 +89,8 @@ function GamePage() {
   const [moveMode, setMoveMode] = useState(false);
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(true);
+  const [thaoTacOpen, setThaoTacOpen] = useState(false);
+  const [thucHienOpen, setThucHienOpen] = useState(false);
   // Nhãn bảng tên nhà — lưu localStorage theo user
   const [signLabels, setSignLabels] = useState<SignLabelMap>({});
   // id biển tên đang được sửa text (mở modal)
@@ -796,24 +797,35 @@ function GamePage() {
         </div>
 
         <div className="flex flex-col gap-2 pointer-events-auto items-end">
-          {/* Toggle tools (touch only) */}
+          {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
-            onClick={() => setToolsOpen((v) => !v)}
-            className="toy-button !text-xs !py-2 !px-3 [@media(pointer:fine)]:hidden"
-            title="Ẩn/hiện công cụ"
+            onClick={() => setThaoTacOpen((v) => !v)}
+            className={`toy-button !text-xs !py-2 !px-3 ${thaoTacOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            title="Mở/đóng nhóm Thao tác"
           >
-            {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
+            {thaoTacOpen ? "✖ ⚙️ THAO TÁC" : "⚙️ THAO TÁC"}
           </button>
-          <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
-          <div className="self-end px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">⚙️ THAO TÁC</div>
-          <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
-          <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
-            ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
-          </button>
-          <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
-          <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+          {thaoTacOpen && (
+            <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+              <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
+              <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
+                ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
+              </button>
+              <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
+              <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+            </div>
+          )}
 
-          <div className="self-end mt-1 px-2 py-0.5 rounded-full bg-white/70 text-[10px] font-black text-stone-700 tracking-wider">🏗️ THỰC HIỆN</div>
+          {/* THỰC HIỆN */}
+          <button
+            onClick={() => setThucHienOpen((v) => !v)}
+            className={`toy-button !text-xs !py-2 !px-3 mt-1 ${thucHienOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            title="Mở/đóng nhóm Thực hiện"
+          >
+            {thucHienOpen ? "✖ 🏗️ THỰC HIỆN" : "🏗️ THỰC HIỆN"}
+          </button>
+          {thucHienOpen && (
+            <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">
@@ -914,7 +926,8 @@ function GamePage() {
               🎨 Đổi màu tường
             </button>
           )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -951,42 +964,63 @@ function GamePage() {
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 
-      {/* HUD: cửa & đèn — góc dưới phải */}
+      {/* HUD: cửa & đèn — chỉ hiện khi tới gần và đã có đặt vật tương ứng */}
       {(() => {
-        // Tính có cửa nào gần nhân vật không (chỉ tầng trệt, cự ly ≤ 2.2m)
-        const nearDoor = state.placed.some((p) => {
-          if (p.itemId !== "door") return false;
-          if ((p.floor ?? 0) !== 0) return false;
+        // Tìm cửa gần nhất (cùng tầng trệt, cự ly ≤ 2.5m) → chỉ thao tác MỘT cửa đó
+        let nearest: { id: string; d2: number } | null = null;
+        for (const p of state.placed) {
+          if (p.itemId !== "door") continue;
+          if ((p.floor ?? 0) !== 0) continue;
           const it = getItem(p.itemId);
-          if (!it) return false;
+          if (!it) continue;
           const swap = p.rotation % 2 === 1;
           const fw = swap ? it.d : it.w;
           const fd = swap ? it.w : it.d;
-          const cx = p.x - 10 + fw / 2;
-          const cz = p.z - 10 + fd / 2;
+          const hasAngle = typeof p.angleRad === "number";
+          const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+          const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
           const dx = playerPos.x - cx;
           const dz = playerPos.z - cz;
-          return dx * dx + dz * dz < 2.2 * 2.2;
+          const d2 = dx * dx + dz * dz;
+          if (d2 < 2.5 * 2.5 && (!nearest || d2 < nearest.d2)) nearest = { id: p.id, d2 };
+        }
+        // Đèn: hiện khi đã đặt ít nhất 1 đèn & nhân vật cách đèn ≤ 3m
+        const LAMP_IDS = new Set(["lamp", "gardenlamp"]);
+        const nearLamp = state.placed.some((p) => {
+          if (!LAMP_IDS.has(p.itemId)) return false;
+          const cx = p.x - 10 + 0.5;
+          const cz = p.z - 10 + 0.5;
+          const dx = playerPos.x - cx;
+          const dz = playerPos.z - cz;
+          return dx * dx + dz * dz < 3 * 3;
         });
-        const hasAnyDoor = state.placed.some((p) => p.itemId === "door");
+        if (!nearest && !nearLamp) return null;
+        const isOpen = nearest ? (wt.doorsOpen || wt.openDoorIds?.includes(nearest.id)) : false;
         return (
           <div className="absolute bottom-3 right-3 sm:bottom-3 [@media(pointer:coarse)]:bottom-28 flex flex-col gap-2 pointer-events-auto z-30">
-            {hasAnyDoor && nearDoor && (
+            {nearest && (
               <button
-                onClick={() => { setToggles({ doorsOpen: !wt.doorsOpen }); playSfx("place"); }}
-                className={`toy-button !text-sm !py-2 !px-4 ${wt.doorsOpen ? "toy-button-green" : "toy-button-primary"}`}
-                title="Mở/đóng tất cả cửa nhà cùng lúc"
+                onClick={() => {
+                  const cur = new Set(wt.openDoorIds ?? []);
+                  if (cur.has(nearest!.id)) cur.delete(nearest!.id); else cur.add(nearest!.id);
+                  setToggles({ openDoorIds: Array.from(cur), doorsOpen: false });
+                  playSfx("place");
+                }}
+                className={`toy-button !text-sm !py-2 !px-4 ${isOpen ? "toy-button-green" : "toy-button-primary"}`}
+                title="Mở/đóng cửa gần nhất"
               >
-                {wt.doorsOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
+                {isOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
               </button>
             )}
-            <button
-              onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
-              className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
-              title="Bật/tắt tất cả đèn"
-            >
-              {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
-            </button>
+            {nearLamp && (
+              <button
+                onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
+                className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
+                title="Bật/tắt tất cả đèn"
+              >
+                {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
+              </button>
+            )}
           </div>
         );
       })()}

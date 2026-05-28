@@ -6,12 +6,13 @@ export type CollisionMode = "phase" | "block";
 
 export type WorldToggles = {
   collision: CollisionMode;   // 'phase' = đi xuyên, 'block' = bị cản
-  doorsOpen: boolean;         // mở tất cả cửa nhà
+  doorsOpen: boolean;         // (legacy) mở tất cả cửa nhà cùng lúc
+  openDoorIds: string[];      // id các cửa đang mở (per-door)
   lightsOn: boolean;          // bật tất cả đèn
 };
 
 const LS_KEY = "vebinhso_world_toggles";
-const DEFAULTS: WorldToggles = { collision: "phase", doorsOpen: false, lightsOn: true };
+const DEFAULTS: WorldToggles = { collision: "phase", doorsOpen: false, openDoorIds: [], lightsOn: true };
 
 function read(): WorldToggles {
   if (typeof window === "undefined") return { ...DEFAULTS };
@@ -34,6 +35,16 @@ export function setToggles(patch: Partial<WorldToggles>) {
   CURRENT = { ...CURRENT, ...patch };
   try { localStorage.setItem(LS_KEY, JSON.stringify(CURRENT)); } catch { /* noop */ }
   if (typeof window !== "undefined") window.dispatchEvent(new Event("world-toggles-change"));
+}
+
+export function isDoorOpen(id: string, t: WorldToggles = CURRENT): boolean {
+  return t.doorsOpen || (t.openDoorIds?.includes(id) ?? false);
+}
+
+export function toggleDoorOpen(id: string) {
+  const set = new Set(CURRENT.openDoorIds ?? []);
+  if (set.has(id)) set.delete(id); else set.add(id);
+  setToggles({ openDoorIds: Array.from(set) });
 }
 
 export function useWorldToggles(): WorldToggles {

@@ -136,7 +136,7 @@ function Home() {
       </header>
 
       <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
-        <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto order-2 md:order-none">
+        <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto">
 
           <h3 className="text-center font-black text-foreground">BẠN BÈ ONLINE</h3>
 
@@ -226,12 +226,12 @@ function Home() {
           </div>
         </aside>
 
-        <div className="flex-1 flex flex-col items-center justify-end gap-4 order-1 md:order-none">
+        <div className="flex-1 flex flex-col items-center justify-end gap-4">
           <div className="text-9xl drop-shadow-lg animate-bounce" style={{ animationDuration: "3s" }}>🐕</div>
           <Link to="/play" className="toy-button toy-button-primary">CHƠI NGAY</Link>
         </div>
 
-        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center order-3 md:order-none flex-wrap">
+        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
           <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">🎁 TIỆN ÍCH</Link>
           <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">⚡ QUYỀN NĂNG</Link>
         </aside>

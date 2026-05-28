@@ -264,10 +264,11 @@ export function Wall({ h = 3 }) {
   );
 }
 
-export function Door() {
-  const { doorsOpen } = useWorldToggles();
+export function Door({ placedId }: { placedId?: string } = {}) {
+  const t = useWorldToggles();
+  const isOpen = t.doorsOpen || (placedId ? t.openDoorIds?.includes(placedId) : false);
   // Bản lề ở mép trái (x = -0.5). Group ngoài xoay quanh bản lề.
-  const open = doorsOpen ? -Math.PI / 2 : 0;
+  const open = isOpen ? -Math.PI / 2 : 0;
   return (
     <group position={[-0.5, 0, 0]} rotation={[0, open, 0]}>
       <group position={[0.5, 0, 0]}>
@@ -1254,7 +1255,7 @@ export function TeaSet() {
 }
 
 
-export function ItemModel({ item, label }: { item: CatalogItem; label?: string }) {
+export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?: string; placedId?: string }) {
   switch (item.id) {
     case "tree": return <Tree />;
     case "bigtree": return <BigTree />;
@@ -1269,7 +1270,7 @@ export function ItemModel({ item, label }: { item: CatalogItem; label?: string }
     case "toilet": return <Toilet />;
     case "lamp": return <Lamp />;
     case "wall": return <Wall h={item.h} />;
-    case "door": return <Door />;
+    case "door": return <Door placedId={placedId} />;
     case "mailbox": return <Mailbox />;
     case "wardrobe": return <Wardrobe w={item.w} h={item.h} />;
     case "table": return <Table w={item.w} d={item.d} h={item.h} />;

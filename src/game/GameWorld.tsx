@@ -64,7 +64,8 @@ const SOLID_ITEMS = new Set<string>([
 ]);
 
 function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, walls, placed, onPlayerPos }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void; walls?: WallSegment[]; placed?: PlacedItem[]; onPlayerPos?: (x: number, z: number) => void }) {
-  const { collision, doorsOpen } = useWorldToggles();
+  const t = useWorldToggles();
+  const { collision } = t;
   const lastReport = useRef(0);
   const ref = useRef<THREE.Group>(null!);
   const armL = useRef<THREE.Mesh>(null!);
@@ -144,7 +145,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         if (placed) {
           for (const p of placed) {
             if ((p.floor ?? 0) !== 0) continue;
-            if (p.itemId === "door" && doorsOpen) continue;
+            if (p.itemId === "door" && (t.doorsOpen || t.openDoorIds?.includes(p.id))) continue;
             if (p.itemId !== "door" && !SOLID_ITEMS.has(p.itemId)) continue;
             const it = getItem(p.itemId);
             if (!it) continue;
@@ -838,7 +839,7 @@ function PlotAndPlacement({
               }
             }}
           >
-            <ItemModel item={it} label={p.itemId === "sign" ? signLabels?.[p.id] : undefined} />
+            <ItemModel item={it} placedId={p.id} label={p.itemId === "sign" ? signLabels?.[p.id] : undefined} />
             {editingId === p.id && !isOtherFloor && (
               <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <ringGeometry args={[Math.max(it.w, it.d) * 0.7, Math.max(it.w, it.d) * 0.85, 36]} />

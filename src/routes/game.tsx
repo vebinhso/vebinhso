@@ -759,10 +759,16 @@ function GamePage() {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;
+            if (p.itemId === "sign") {
+              setSignEditId(id);
+              setSignDraft(signLabels[id] ?? "");
+              return;
+            }
             setEditingId(id);
             setMoveMode(false);
           }}
           editingId={editingId}
+          signLabels={signLabels}
         />
       </Suspense>
 

@@ -27,121 +27,7 @@ import { getActivePowerIds } from "@/lib/powers";
 import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
-import { setInputKey } from "@/lib/player-input";
-
-function TouchControls() {
-  const [isTouch, setIsTouch] = useState(false);
-  const [knob, setKnob] = useState({ x: 0, y: 0 });
-  const joyRef = useRef<HTMLDivElement>(null);
-  const activeDirs = useRef<{ w: boolean; a: boolean; s: boolean; d: boolean }>({ w: false, a: false, s: false, d: false });
-
-  useEffect(() => {
-    setIsTouch(typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
-  }, []);
-
-  if (!isTouch) return null;
-
-  const RADIUS = 60;
-  const KNOB = 26;
-  const DEAD = 12;
-
-  const updateDirs = (dx: number, dy: number) => {
-    const next = { w: false, a: false, s: false, d: false };
-    if (Math.hypot(dx, dy) >= DEAD) {
-      if (dy < -DEAD * 0.5) next.w = true;
-      if (dy > DEAD * 0.5) next.s = true;
-      if (dx < -DEAD * 0.5) next.a = true;
-      if (dx > DEAD * 0.5) next.d = true;
-    }
-    (["w", "a", "s", "d"] as const).forEach((key) => {
-      if (next[key] !== activeDirs.current[key]) {
-        setInputKey(key, next[key]);
-        activeDirs.current[key] = next[key];
-      }
-    });
-  };
-
-  const resetDirs = () => {
-    (["w", "a", "s", "d"] as const).forEach((key) => {
-      if (activeDirs.current[key]) {
-        setInputKey(key, false);
-        activeDirs.current[key] = false;
-      }
-    });
-    setKnob({ x: 0, y: 0 });
-  };
-
-  const onJoyMove = (e: React.PointerEvent) => {
-    const el = joyRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    let dx = e.clientX - cx;
-    let dy = e.clientY - cy;
-    const dist = Math.hypot(dx, dy);
-    const max = RADIUS - KNOB / 2;
-    if (dist > max) { dx = (dx / dist) * max; dy = (dy / dist) * max; }
-    setKnob({ x: dx, y: dy });
-    updateDirs(dx, dy);
-  };
-
-  const onJoyDown = (e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    onJoyMove(e);
-  };
-
-  const onJoyUp = (e: React.PointerEvent) => {
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-    resetDirs();
-  };
-
-  const jumpDown = (e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    setInputKey(" ", true);
-  };
-  const jumpUp = (e: React.PointerEvent) => {
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-    setInputKey(" ", false);
-  };
-
-  return (
-    <>
-      <div
-        ref={joyRef}
-        onPointerDown={onJoyDown}
-        onPointerMove={(e) => { if (e.buttons) onJoyMove(e); }}
-        onPointerUp={onJoyUp}
-        onPointerCancel={onJoyUp}
-        onPointerLeave={onJoyUp}
-        className="fixed bottom-6 left-6 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-white/30 backdrop-blur-md shadow-xl"
-        style={{ width: RADIUS * 2, height: RADIUS * 2, touchAction: "none" }}
-      >
-        <div
-          className="absolute rounded-full bg-white/90 border-2 border-white shadow-lg"
-          style={{
-            width: KNOB * 2,
-            height: KNOB * 2,
-            left: `calc(50% - ${KNOB}px)`,
-            top: `calc(50% - ${KNOB}px)`,
-            transform: `translate(${knob.x}px, ${knob.y}px)`,
-            transition: knob.x === 0 && knob.y === 0 ? "transform 0.15s" : "none",
-          }}
-        />
-      </div>
-      <button
-        onPointerDown={jumpDown}
-        onPointerUp={jumpUp}
-        onPointerCancel={jumpUp}
-        onPointerLeave={jumpUp}
-        className="fixed bottom-8 right-8 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-gradient-to-br from-amber-300 to-orange-500 text-white font-black text-2xl shadow-xl active:scale-95"
-        style={{ width: 72, height: 72, touchAction: "none" }}
-      >
-        ⤴
-      </button>
-    </>
-  );
-}
+import { TouchControls } from "@/game/TouchControls";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -193,8 +79,8 @@ function GamePage() {
   const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
   // Hiệu ứng lấp lánh khi dẫm trúng xu
   const [sparkles, setSparkles] = useState<{ id: string; x: number; z: number; at: number }[]>([]);
-  // Boom modal: 2 sequential questions
-  const [boom, setBoom] = useState<null | { qIdx: 0 | 1; q: Question; gained: number; answered: number[] }>(null);
+  // Boom modal: BẮT BUỘC trả lời đúng mới biến mất. Sai → câu mới.
+  const [boom, setBoom] = useState<null | { q: Question; tries: number; correct: number; gained: number }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
 
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
@@ -763,7 +649,7 @@ function GamePage() {
         flash("💣 Đạp trúng boom! (chưa có câu hỏi)", 1500);
         return;
       }
-      setBoom({ qIdx: 0, q: randomQuestion(), gained: 0, answered: [] });
+      setBoom({ q: randomQuestion(), tries: 0, correct: 0, gained: 0 });
       setBoomResult(null);
     }
   };
@@ -776,20 +662,19 @@ function GamePage() {
     const gained = boom.gained + delta;
     setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
     playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
-    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ`);
+    setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ — phải trả lời thêm 1 câu!`);
     setTimeout(() => {
-      if (boom.qIdx === 0) {
-        setBoom({ qIdx: 1, q: randomQuestion(), gained, answered: [...boom.answered, ok ? 1 : 0] });
+      if (ok) {
+        flash(`💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
+        setBoom(null);
         setBoomResult(null);
       } else {
-        const total = gained;
-        flash(`💣 Hết boom! Tổng: ${total >= 0 ? "+" : ""}${total}đ`, 2000);
-        setBoom(null);
+        // Sai → câu hỏi mới, modal vẫn mở
+        setBoom({ q: randomQuestion(), tries: boom.tries + 1, correct: boom.correct, gained });
         setBoomResult(null);
       }
     }, 1200);
   };
-  const closeBoom = () => { setBoom(null); setBoomResult(null); };
 
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng
@@ -1298,15 +1183,14 @@ function GamePage() {
         </div>
       )}
 
-      {/* Boom modal — 2 câu hỏi liên tiếp, +10/-5 mỗi câu */}
+      {/* Boom modal — BẮT BUỘC trả lời đúng mới biến mất. Sai → câu mới. */}
       {boom && (
         <div className="absolute inset-0 bg-black/70 z-40 flex items-center justify-center p-3 md:p-6">
           <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-red-500">
-            <div className="flex items-center justify-between mb-3 gap-2">
+            <div className="mb-3">
               <div className="text-base md:text-lg font-black text-red-700 animate-pulse">
-                💣 BẠN ĐÃ ĐẠP TRÚNG BOOM! Câu {boom.qIdx + 1}/2 (✅ +10đ • ❌ −5đ)
+                💣 BẠN ĐÃ ĐẠP TRÚNG BOOM! Phải trả lời ĐÚNG để thoát (✅ +10đ • ❌ −5đ){boom.tries > 0 ? ` • Lần ${boom.tries + 1}` : ""}
               </div>
-              <button onClick={closeBoom} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖</button>
             </div>
             <QuestionView question={boom.q} onAnswer={handleBoomAnswer} disabled={!!boomResult} />
             {boomResult && (

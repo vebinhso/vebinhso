@@ -1960,8 +1960,9 @@ function MagicPage() {
 
       {/* Ghost collision quiz */}
       {ghostQuiz && (
-        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
-          <div className="glass-card max-w-md w-full p-5">
+        <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center p-2 md:p-4">
+          <div className="glass-card max-w-md w-full p-3 md:p-5 max-h-[85vh] overflow-y-auto">
+
             <p className="text-lg font-black mb-3 text-center">👻 Bị ma tấn công! Trả lời nhanh (+20đ nếu đúng)</p>
             <QuestionView question={ghostQuiz} onAnswer={answerGhostQuiz} compact disabled={!!ghostResult} />
             {ghostResult && (

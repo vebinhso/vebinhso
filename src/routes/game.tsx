@@ -1379,7 +1379,6 @@ function WeatherOverlay({ powers }: { powers: number[] }) {
         @keyframes sunPulse { 0%,100% { opacity: 0.8; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
         @keyframes tornadoSpin { to { transform: rotate(360deg); } }
       `}</style>
-      <TouchControls />
     </div>
   );
 }

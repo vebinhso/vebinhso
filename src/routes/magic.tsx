@@ -1584,6 +1584,7 @@ function MagicPage() {
                 spawnRef={corridorSpawnRef}
               />
               {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
+              {!modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
             </>
           ) : stage === "transition" ? (
             <>

@@ -782,7 +782,16 @@ function GamePage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pointer-events-auto items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+        <div className="flex flex-col gap-2 pointer-events-auto items-end">
+          {/* Toggle tools (touch only) */}
+          <button
+            onClick={() => setToolsOpen((v) => !v)}
+            className="toy-button !text-xs !py-2 !px-3 [@media(pointer:fine)]:hidden"
+            title="Ẩn/hiện công cụ"
+          >
+            {toolsOpen ? "✖ ẨN MENU" : "☰ MENU"}
+          </button>
+          <div className={`flex flex-col gap-2 items-end max-h-[78vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth ${toolsOpen ? "" : "[@media(pointer:coarse)]:hidden"}`} style={{ scrollbarWidth: "thin" }}>
           <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
           <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
             ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}

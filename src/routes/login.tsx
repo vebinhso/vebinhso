@@ -4,6 +4,8 @@ import { useState } from "react";
 import { lovable } from "@/integrations/lovable";
 import { signInWithPassword, signUpWithPassword } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordChecklist } from "@/components/PasswordChecklist";
+import { isPasswordValid } from "@/lib/password";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
@@ -136,7 +138,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
     setError(""); setSuccess("");
     if (!username.trim() || !email.trim() || !password || !confirm) { setError("Vui lòng điền đầy đủ các trường!"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Email không hợp lệ!"); return; }
-    if (password.length < 6) { setError("Mật khẩu phải ít nhất 6 ký tự."); return; }
+    if (!isPasswordValid(password)) { setError("Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
     if (password !== confirm) { setError("Mật khẩu xác nhận không khớp!"); return; }
     setBusy(true);
     try {
@@ -160,6 +162,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
         <Field label="Tên hiển thị (*)" value={username} onChange={setUsername} />
         <Field label="Email (*)" type="email" placeholder="ten@vi-du.com" value={email} onChange={setEmail} />
         <Field label="Mật khẩu (*)" type="password" value={password} onChange={setPassword} />
+        <PasswordChecklist password={password} />
         <Field label="Xác nhận mật khẩu (*)" type="password" value={confirm} onChange={setConfirm} />
         {error && (
           <div className="text-red-600 font-bold text-sm text-center bg-red-50 rounded-xl p-2">{error}</div>

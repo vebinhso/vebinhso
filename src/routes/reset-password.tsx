@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordChecklist } from "@/components/PasswordChecklist";
+import { isPasswordValid } from "@/lib/password";
 
 export const Route = createFileRoute("/reset-password")({ component: ResetPasswordPage });
 
@@ -32,7 +34,7 @@ function ResetPasswordPage() {
 
   const handleSubmit = async () => {
     setError(""); setMsg("");
-    if (password.length < 6) { setError("Mật khẩu phải ít nhất 6 ký tự."); return; }
+    if (!isPasswordValid(password)) { setError("Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
     if (password !== confirm) { setError("Mật khẩu xác nhận không khớp."); return; }
     setBusy(true);
     const { error: e } = await supabase.auth.updateUser({ password });
@@ -68,6 +70,7 @@ function ResetPasswordPage() {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold" />
               </div>
+              <PasswordChecklist password={password} />
               <div className="space-y-1">
                 <label className="text-sm font-bold">Xác nhận mật khẩu mới</label>
                 <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}

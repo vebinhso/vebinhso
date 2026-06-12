@@ -11,10 +11,14 @@ const LABELS: [keyof ReturnType<typeof validatePassword>, string][] = [
 export function PasswordChecklist({ password }: { password: string }) {
   const checks = validatePassword(password);
   return (
-    <div>
+    <div className="rounded-xl bg-gray-50 p-3 space-y-1">
       {LABELS.map(([key, label]) => (
-        <div key={key}>
-          <span>{checks[key] ? "✓" : "✗"}</span> {label}
+        <div
+          key={key}
+          className={`text-sm font-bold flex items-center gap-2 ${checks[key] ? "text-green-600" : "text-red-500"}`}
+        >
+          <span>{checks[key] ? "✓" : "✗"}</span>
+          <span>{label}</span>
         </div>
       ))}
     </div>

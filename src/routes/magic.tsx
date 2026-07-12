@@ -1460,10 +1460,10 @@ function MagicPage() {
   };
 
   const [quiz5, setQuiz5] = useState<null | { q: Question; idx: number; correct: number }>(null);
-  const answerQuiz5 = (picked: number[]) => {
+  const answerQuiz5 = async (picked: number[]) => {
     if (!quiz5 || quiz5Result) return;
-    const correctIdx = quiz5.q.correctIndexes ?? [quiz5.q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(quiz5.q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;

@@ -67,14 +67,12 @@ function ResetPasswordPage() {
               {msg && <p className="text-sm font-bold text-green-700 bg-green-50 rounded-xl p-3">{msg}</p>}
               <div className="space-y-1">
                 <label className="text-sm font-bold">Mật khẩu mới</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold" />
+                <PasswordInput value={password} onChange={setPassword} />
               </div>
               <PasswordChecklist password={password} />
               <div className="space-y-1">
                 <label className="text-sm font-bold">Xác nhận mật khẩu mới</label>
-                <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold" />
+                <PasswordInput value={confirm} onChange={setConfirm} />
               </div>
               {error && <p className="text-sm font-bold text-red-600">{error}</p>}
               <button onClick={handleSubmit} disabled={busy} className="toy-button toy-button-primary w-full">

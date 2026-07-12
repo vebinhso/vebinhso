@@ -207,7 +207,7 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         <StatCard icon="👥" label="Tổng người chơi" value={total} />
         <StatCard icon="🟢" label="Online hôm nay" value={activeToday} />
-        <StatCard icon="❓" label="Tổng số câu hỏi" value={totalQuestions} />
+        <StatCard icon="❓" label="Tổng câu đã trả lời" value={totalAnswered} hint={`${totalCorrect} câu đúng`} />
         <StatCard icon="🎯" label="Tỉ lệ đúng trung bình" value={`${avgCorrectRate.toFixed(1)}%`} hint={`${totalCorrect} câu đúng / ${totalAnswered} câu đã trả lời`} />
         <StatCard icon="⏱️" label="Thời gian chơi trung bình" value={formatPlay(avgPlaySec)} hint={`Tổng ${formatPlay(totalPlaySec)}`} />
       </div>

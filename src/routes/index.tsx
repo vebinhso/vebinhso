@@ -163,7 +163,7 @@ function Home() {
                 ✏️
               </button>
             </h1>
-            {isAdmin(user.email) && <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>}
+            
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
@@ -205,7 +205,7 @@ function Home() {
                   <span className="w-9 h-9 rounded-full bg-blue-300 flex items-center justify-center">🧑</span>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{f.username}</div>
-                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{f.id}</div>}
+                    
                   </div>
                 </div>
               ))}
@@ -226,9 +226,6 @@ function Home() {
               {(showAllIncoming ? incoming : incoming.slice(0, 1)).map((r) => (
                 <div key={r.from.id} className="bg-white/80 rounded-xl p-2 mb-2 text-xs">
                   <div className="font-black">{r.from.username}</div>
-                  {isAdmin(user.email) && (
-                    <div className="text-[10px] text-orange-700 font-bold mb-1">ID #{r.from.id}</div>
-                  )}
                   <div className="flex gap-1">
                     <button
                       onClick={() => {
@@ -286,7 +283,7 @@ function Home() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{found.username}</div>
-                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>}
+                    
                   </div>
                 </div>
                 <button

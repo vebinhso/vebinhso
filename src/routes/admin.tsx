@@ -320,7 +320,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
         <h2 className="text-xl font-black">👥 Quản lý người chơi ({filtered.length})</h2>
         <input
           value={query} onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm theo tên / email / ID"
+          placeholder="Tìm theo tên / email"
           className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72"
         />
       </div>
@@ -330,7 +330,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
           <table className="w-full text-left text-sm">
             <thead className="bg-orange-100 font-black">
               <tr>
-                <th className="p-2">ID</th>
+                
                 <th className="p-2">Tên</th>
                 <th className="p-2">Email</th>
                 <th className="p-2">Lv</th>
@@ -348,7 +348,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                   <tr key={p.id}
                     onClick={() => setSelected(p)}
                     className={`border-b border-orange-50 cursor-pointer hover:bg-orange-50 font-bold ${selected?.id === p.id ? "bg-orange-100" : ""}`}>
-                    <td className="p-2 text-orange-600">#{p.id}</td>
+                    
                     <td className="p-2">{p.username}</td>
                     <td className="p-2 text-xs text-muted-foreground">{p.email}</td>
                     <td className="p-2">{p.level}</td>
@@ -365,7 +365,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={9} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
+                <tr><td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
               )}
             </tbody>
           </table>
@@ -375,7 +375,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
           {selected ? (
             <>
               <h3 className="font-black text-lg mb-1">{selected.username}</h3>
-              <div className="text-xs font-bold text-muted-foreground mb-3">{selected.email} · #{selected.id}</div>
+              <div className="text-xs font-bold text-muted-foreground mb-3">{selected.email}</div>
               <div className="grid grid-cols-2 gap-2 mb-3 text-sm font-bold">
                 <div className="bg-orange-50 p-2 rounded">Cấp: {selected.level}</div>
                 <div className="bg-orange-50 p-2 rounded">Streak: {selected.streak}</div>

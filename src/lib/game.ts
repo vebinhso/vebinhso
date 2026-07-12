@@ -126,33 +126,38 @@ async function refreshFromDB(uid: string) {
     supabase.from("walls").select("*").eq("user_id", uid),
     supabase.from("roofs").select("*").eq("user_id", uid),
   ]);
+  const next: GameState = { ...CACHE };
   if (gs.data) {
-    CACHE = {
-      ...CACHE,
-      money: gs.data.money ?? 0,
-      netWorth: gs.data.net_worth ?? 0,
-      correctAnswers: gs.data.correct_answers ?? 0,
-      answerStreak: gs.data.answer_streak ?? 0,
-      level: gs.data.level ?? 0,
-      bricks: gs.data.bricks ?? 0,
-      concrete: gs.data.concrete ?? 0,
-      roofTiles: gs.data.roof_tiles ?? 0,
-      roofTilesTon: gs.data.roof_tiles_ton ?? 0,
-      wallColor: gs.data.wall_color ?? "#f5e6c8",
-      ownedPalettes: Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [],
-      placed: (items.data || []).map((r: any) => ({
-        id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
-      })),
-      walls: (walls.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
-      })),
-      roofs: (roofs.data || []).map((r: any) => ({
-        id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
-      })),
-    };
-    persistLocal(uid);
-    if (typeof window !== "undefined") window.dispatchEvent(new Event("game-change"));
+    next.money = gs.data.money ?? 0;
+    next.netWorth = gs.data.net_worth ?? 0;
+    next.correctAnswers = gs.data.correct_answers ?? 0;
+    next.answerStreak = gs.data.answer_streak ?? 0;
+    next.level = gs.data.level ?? 0;
+    next.bricks = gs.data.bricks ?? 0;
+    next.concrete = gs.data.concrete ?? 0;
+    next.roofTiles = gs.data.roof_tiles ?? 0;
+    next.roofTilesTon = gs.data.roof_tiles_ton ?? 0;
+    next.wallColor = gs.data.wall_color ?? "#f5e6c8";
+    next.ownedPalettes = Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [];
   }
+  if (items.data) {
+    next.placed = items.data.map((r: any) => ({
+      id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
+    }));
+  }
+  if (walls.data) {
+    next.walls = walls.data.map((r: any) => ({
+      id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
+    }));
+  }
+  if (roofs.data) {
+    next.roofs = roofs.data.map((r: any) => ({
+      id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
+    }));
+  }
+  CACHE = next;
+  persistLocal(uid);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("game-change"));
 }
 
 async function flushToDB(uid: string) {

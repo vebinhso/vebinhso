@@ -1,0 +1,1 @@
+ALTER TABLE public.game_state ADD COLUMN IF NOT EXISTS total_answered integer NOT NULL DEFAULT 0;

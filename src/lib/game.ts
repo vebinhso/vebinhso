@@ -42,6 +42,7 @@ export type GameState = {
   money: number;
   netWorth: number;
   correctAnswers: number;
+  totalAnswered: number;
   answerStreak: number;
   level: number;
   placed: PlacedItem[];
@@ -60,6 +61,7 @@ const DEFAULT: GameState = {
   money: 0,
   netWorth: 0,
   correctAnswers: 0,
+  totalAnswered: 0,
   answerStreak: 0,
   level: 0,
   placed: [],
@@ -131,6 +133,7 @@ async function refreshFromDB(uid: string) {
     next.money = gs.data.money ?? 0;
     next.netWorth = gs.data.net_worth ?? 0;
     next.correctAnswers = gs.data.correct_answers ?? 0;
+    next.totalAnswered = gs.data.total_answered ?? 0;
     next.answerStreak = gs.data.answer_streak ?? 0;
     next.level = gs.data.level ?? 0;
     next.bricks = gs.data.bricks ?? 0;
@@ -169,6 +172,7 @@ async function flushToDB(uid: string) {
     money: CACHE.money,
     net_worth: CACHE.netWorth,
     correct_answers: CACHE.correctAnswers,
+    total_answered: CACHE.totalAnswered,
     answer_streak: CACHE.answerStreak,
     level: CACHE.level,
     bricks: CACHE.bricks,

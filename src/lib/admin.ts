@@ -117,6 +117,7 @@ export type PlayerStat = {
   money: number;
   netWorth: number;
   correctAnswers: number;
+  totalAnswered: number;
   playSeconds: number;
   streak: number;
   lastLoginDate: number;
@@ -128,7 +129,7 @@ let STATS_CACHE: PlayerStat[] = [];
 export async function refreshPlayerStats(): Promise<PlayerStat[]> {
   const [profiles, games, streaks] = await Promise.all([
     supabase.from("profiles").select("user_id, username"),
-    supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level, total_play_seconds"),
+    supabase.from("game_state").select("user_id, money, net_worth, correct_answers, total_answered, level, total_play_seconds"),
     supabase.from("login_streaks").select("user_id, current_streak, last_login_date"),
   ]);
   const gMap = new Map<string, any>();
@@ -141,6 +142,7 @@ export async function refreshPlayerStats(): Promise<PlayerStat[]> {
     const s = sMap.get(p.user_id) || {};
     const netWorth = g.net_worth || 0;
     const correct = g.correct_answers || 0;
+    const totalAnswered = g.total_answered || 0;
     let lvl = g.level || 0;
     if (!lvl) {
       for (let i = 1; i < cfg.levelNetWorth.length; i++) {
@@ -156,6 +158,7 @@ export async function refreshPlayerStats(): Promise<PlayerStat[]> {
       money: g.money || 0,
       netWorth,
       correctAnswers: correct,
+      totalAnswered,
       playSeconds: g.total_play_seconds || 0,
       streak: s.current_streak || 0,
       lastLoginDate: s.last_login_date ? new Date(s.last_login_date).getTime() : 0,

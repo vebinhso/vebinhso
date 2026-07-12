@@ -626,11 +626,12 @@ function GamePage() {
         ...state,
         money: state.money + graded.reward,
         correctAnswers: state.correctAnswers + 1,
+        totalAnswered: state.totalAnswered + 1,
         answerStreak: state.answerStreak + 1,
       };
       resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
-      next = { ...state, answerStreak: 0 };
+      next = { ...state, answerStreak: 0, totalAnswered: state.totalAnswered + 1 };
       const correctLabels = correctSet.map((i: number) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
       resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }
@@ -688,7 +689,13 @@ function GamePage() {
     reportAnswerResult(q, ok);
     const delta = ok ? 10 : -5;
     const gained = boom.gained + delta;
-    setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
+    setState((s) => (s ? {
+      ...s,
+      money: Math.max(0, s.money + delta),
+      correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers,
+      totalAnswered: s.totalAnswered + 1,
+      answerStreak: ok ? s.answerStreak + 1 : 0,
+    } : s));
     playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
     setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ — phải trả lời thêm 1 câu!`);
     setTimeout(() => {

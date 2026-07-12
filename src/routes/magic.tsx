@@ -1103,9 +1103,9 @@ function MagicPage() {
   const bumpQuestion = (isCorrect: boolean) => {
     const g = loadGame();
     if (isCorrect) {
-      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, totalAnswered: g.totalAnswered + 1, answerStreak: g.answerStreak + 1 });
     } else {
-      saveGame({ ...g, answerStreak: 0 });
+      saveGame({ ...g, totalAnswered: g.totalAnswered + 1, answerStreak: 0 });
     }
     playSfx(isCorrect ? "monsterHit" : "wrongGame", { duck: true });
   };
@@ -1371,7 +1371,7 @@ function MagicPage() {
     const NEED = 5;
     if (correct) {
       const newCorrect = boss.correct + 1;
-      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, totalAnswered: g.totalAnswered + 1, answerStreak: g.answerStreak + 1 });
       setBossResult(`✅ Chính xác! (${newCorrect}/${NEED} câu đúng)`);
       if (newCorrect >= NEED) {
         const reward = boss.maxHp;
@@ -1391,7 +1391,7 @@ function MagicPage() {
         setBoss((prev) => prev ? { ...prev, correct: newCorrect, hp: Math.max(0, prev.maxHp - prev.maxHp * (newCorrect / NEED)), question: randomQuestion() } : prev);
       }, 1200);
     } else {
-      saveGame({ ...g, answerStreak: 0 });
+      saveGame({ ...g, totalAnswered: g.totalAnswered + 1, answerStreak: 0 });
       setBossResult(`❌ Sai rồi! Đáp án đúng: ${correctLetters}`);
       setTimeout(() => {
         setBossResult(null);

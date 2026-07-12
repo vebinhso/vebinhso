@@ -796,6 +796,27 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           </div>
         </div>
 
+        <div className="mb-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2">
+          <div className="text-sm font-black text-indigo-800 mb-1">🌐 Khung năng lực số — Môi trường số</div>
+          <div className="text-xs font-bold text-indigo-700 mb-1">
+            Chọn bậc (1–8). Câu có bậc sẽ tự vào ưu tiên & xuất hiện theo thứ tự bậc; trong cùng bậc mỗi tài khoản thấy thứ tự khác nhau (random). Trả lời sai → câu hiện lại 1 lần trước khi qua bậc khác.
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => setDraft({ ...draft, competencyLevel: null })}
+              className={`text-xs px-3 py-1 rounded-lg font-black border-2 ${(draft.competencyLevel ?? null) == null ? "bg-gray-400 text-white border-gray-500" : "bg-white border-gray-300"}`}
+            >Không</button>
+            {[1,2,3,4,5,6,7,8].map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => setDraft({ ...draft, competencyLevel: lvl })}
+                className={`text-xs px-3 py-1 rounded-lg font-black border-2 ${draft.competencyLevel === lvl ? "bg-indigo-600 text-white border-indigo-700" : "bg-white border-indigo-200"}`}
+              >Bậc {lvl}</button>
+            ))}
+          </div>
+        </div>
         <div className="flex gap-2 items-center mb-2 flex-wrap">
           <label className="text-sm font-bold">Điểm:</label>
           <input type="number" value={draft.reward} onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}

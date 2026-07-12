@@ -375,7 +375,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
           {selected ? (
             <>
               <h3 className="font-black text-lg mb-1">{selected.username}</h3>
-              <div className="text-xs font-bold text-muted-foreground mb-3">{selected.email} · #{selected.id}</div>
+              <div className="text-xs font-bold text-muted-foreground mb-3">{selected.email}</div>
               <div className="grid grid-cols-2 gap-2 mb-3 text-sm font-bold">
                 <div className="bg-orange-50 p-2 rounded">Cấp: {selected.level}</div>
                 <div className="bg-orange-50 p-2 rounded">Streak: {selected.streak}</div>

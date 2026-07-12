@@ -466,6 +466,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [importing, setImporting] = useState(false);
   const [priorityModeOn, setPriorityModeOn] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<number | "all" | "none">("all");
+
 
   async function reload() {
     setLoading(true);

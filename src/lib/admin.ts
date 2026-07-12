@@ -29,6 +29,7 @@ export type AdminQuestion = {
   category?: string;
   enabled: boolean;
   priority: number;
+  competencyLevel?: number | null; // 1..8 khung năng lực số (câu về môi trường số)
 };
 
 export type DailyReward = { day: number; coin: number; label: string };

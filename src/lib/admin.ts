@@ -127,7 +127,7 @@ let STATS_CACHE: PlayerStat[] = [];
 export async function refreshPlayerStats(): Promise<PlayerStat[]> {
   const [profiles, games, streaks] = await Promise.all([
     supabase.from("profiles").select("user_id, username"),
-    supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level"),
+    supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level, total_play_seconds"),
     supabase.from("login_streaks").select("user_id, current_streak, last_login_date"),
   ]);
   const gMap = new Map<string, any>();
@@ -155,6 +155,7 @@ export async function refreshPlayerStats(): Promise<PlayerStat[]> {
       money: g.money || 0,
       netWorth,
       correctAnswers: correct,
+      playSeconds: g.total_play_seconds || 0,
       streak: s.current_streak || 0,
       lastLoginDate: s.last_login_date ? new Date(s.last_login_date).getTime() : 0,
     };

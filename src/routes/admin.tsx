@@ -333,6 +333,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 <th className="p-2">💰</th>
                 <th className="p-2">🏠</th>
                 <th className="p-2">✅</th>
+                <th className="p-2">⏱️</th>
                 <th className="p-2">Trạng thái</th>
               </tr>
             </thead>

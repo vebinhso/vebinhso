@@ -133,6 +133,7 @@ async function refreshFromDB(uid: string) {
     next.money = gs.data.money ?? 0;
     next.netWorth = gs.data.net_worth ?? 0;
     next.correctAnswers = gs.data.correct_answers ?? 0;
+    next.totalAnswered = gs.data.total_answered ?? 0;
     next.answerStreak = gs.data.answer_streak ?? 0;
     next.level = gs.data.level ?? 0;
     next.bricks = gs.data.bricks ?? 0;

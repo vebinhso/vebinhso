@@ -596,24 +596,24 @@ function GamePage() {
     setQuestion(null);
     setQuestionResult(null);
   };
-  const handleAnswer = (picked: number[]) => {
+  const handleAnswer = async (picked: number[]) => {
     if (!question || questionResult) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    const a = [...correctSet].sort().join(",");
-    const b = [...picked].sort().join(",");
-    const ok = a === b;
+    const sel = picked[0] ?? -1;
+    const graded = await gradeAnswer(question, sel);
+    const correctSet = graded.correctIndexes.length > 0 ? graded.correctIndexes : [];
+    // For multi-select we grade the first pick; multi-answer questions are rare in this project.
+    const ok = graded.isCorrect && picked.length === correctSet.length &&
+      [...correctSet].sort().join(",") === [...picked].sort().join(",");
     let next: GameState;
     let resultText: string;
     if (ok) {
       next = {
         ...state,
-        money: state.money + question.reward,
+        money: state.money + graded.reward,
         correctAnswers: state.correctAnswers + 1,
         answerStreak: state.answerStreak + 1,
       };
-      resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
+      resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
       next = { ...state, answerStreak: 0 };
       const correctLabels = correctSet.map((i) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");

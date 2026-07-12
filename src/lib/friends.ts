@@ -16,13 +16,13 @@ let CACHE_UID: string | null = null;
 
 async function refresh(uid: string) {
   const [profilesRes, friendsRes] = await Promise.all([
-    supabase.from("profiles").select("user_id, username, email, created_at"),
+    supabase.from("profiles").select("user_id, username, created_at"),
     supabase.from("friends").select("*"),
   ]);
   PROFILES = (profilesRes.data || []).map((p: any) => ({
     id: p.user_id,
     username: p.username,
-    email: p.email || "",
+    email: "",
     createdAt: p.created_at,
   }));
   FRIENDSHIPS = (friendsRes.data || []).map((f: any) => ({

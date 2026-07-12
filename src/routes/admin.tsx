@@ -838,7 +838,39 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         )}
       </div>
 
+      {/* Competency level breakdown */}
+      <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-3 mb-4">
+        <div className="font-black text-sm text-indigo-900 mb-2">🌐 Phân loại theo bậc năng lực số</div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedLevel("all")}
+            className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedLevel === "all" ? "bg-indigo-600 text-white border-indigo-700" : "bg-white border-indigo-200"}`}
+          >
+            Tất cả ({list.length})
+          </button>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((lvl) => {
+            const count = list.filter((q) => q.competencyLevel === lvl).length;
+            return (
+              <button
+                key={lvl}
+                onClick={() => setSelectedLevel(lvl)}
+                className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedLevel === lvl ? "bg-indigo-600 text-white border-indigo-700" : "bg-white border-indigo-200"}`}
+              >
+                Bậc {lvl} ({count})
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setSelectedLevel("none")}
+            className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedLevel === "none" ? "bg-gray-500 text-white border-gray-600" : "bg-white border-gray-300"}`}
+          >
+            Không bậc ({list.filter((q) => q.competencyLevel == null).length})
+          </button>
+        </div>
+      </div>
+
       {(() => {
+
         const priorityList = list.filter((x) => (x.priority || 0) > 0);
         const normalList = list.filter((x) => (x.priority || 0) === 0);
 

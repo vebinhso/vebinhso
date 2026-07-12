@@ -616,7 +616,7 @@ function GamePage() {
       resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
       next = { ...state, answerStreak: 0 };
-      const correctLabels = correctSet.map((i) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
+      const correctLabels = correctSet.map((i: number) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
       resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }
     setState(next);

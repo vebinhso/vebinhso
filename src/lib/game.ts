@@ -172,6 +172,7 @@ async function flushToDB(uid: string) {
     money: CACHE.money,
     net_worth: CACHE.netWorth,
     correct_answers: CACHE.correctAnswers,
+    total_answered: CACHE.totalAnswered,
     answer_streak: CACHE.answerStreak,
     level: CACHE.level,
     bricks: CACHE.bricks,

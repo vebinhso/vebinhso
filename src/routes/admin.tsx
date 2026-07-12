@@ -156,8 +156,15 @@ function StatCard({ icon, label, value, hint }: { icon: string; label: string; v
 }
 
 function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
-  useEffect(() => { refreshPlayerStats().catch(() => {}); }, []);
-  const stats = useMemo(() => getAllPlayerStats(), []);
+  const [stats, setStats] = useState<PlayerStat[]>(() => getAllPlayerStats());
+  useEffect(() => {
+    let alive = true;
+    refreshPlayerStats().then((s) => { if (alive) setStats(s); }).catch(() => {});
+    const t = setInterval(() => {
+      refreshPlayerStats().then((s) => { if (alive) setStats(s); }).catch(() => {});
+    }, 15000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
   const total = stats.length;
   const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
   const activeToday = stats.filter((s) => s.lastLoginDate >= todayMs).length;
@@ -232,7 +239,11 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<PlayerStat | null>(null);
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+    const t = setInterval(() => { refresh(); }, 15000);
+    return () => clearInterval(t);
+  }, []);
 
   async function refresh() {
     const fresh = await refreshPlayerStats();

@@ -869,6 +869,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
               </div>
               <div className="text-xs font-bold mt-1 flex items-center gap-2 flex-wrap">
                 <span className="text-orange-600">+{q.reward} xu</span>
+                {typeof q.competencyLevel === "number" && (
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">🌐 Bậc {q.competencyLevel}</span>
+                )}
                 {(q.maps || ["all"]).map((m) => (
                   <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>
                 ))}

@@ -330,7 +330,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
           <table className="w-full text-left text-sm">
             <thead className="bg-orange-100 font-black">
               <tr>
-                <th className="p-2">ID</th>
+                
                 <th className="p-2">Tên</th>
                 <th className="p-2">Email</th>
                 <th className="p-2">Lv</th>

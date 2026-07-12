@@ -378,6 +378,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 <div className="bg-orange-50 p-2 rounded">💰 {selected.money}</div>
                 <div className="bg-orange-50 p-2 rounded">🏠 {selected.netWorth}</div>
                 <div className="bg-orange-50 p-2 rounded col-span-2">✅ Câu đúng: {selected.correctAnswers}</div>
+                <div className="bg-orange-50 p-2 rounded col-span-2">⏱️ Tổng thời gian chơi: {fmtPlay(selected.playSeconds || 0)}</div>
               </div>
               <div className="flex flex-col gap-2">
                 <button onClick={() => grantCoin(selected.id)} className="toy-button text-sm bg-green-500">💰 Tặng/trừ xu</button>

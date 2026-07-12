@@ -55,6 +55,7 @@ export async function signOut() {
 export async function signInWithPassword(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  await hydrateFromSession();
 }
 
 /** Email + password sign up with username metadata. */

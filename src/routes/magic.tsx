@@ -1359,16 +1359,13 @@ function MagicPage() {
     exitRoom(true);
   };
 
-  const answerBoss = (picked: number[]) => {
+  const answerBoss = async (picked: number[]) => {
     if (!boss || !boss.question || bossResult) return;
-    const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
-      ? boss.question.correctIndexes
-      : [boss.question.answer];
-    const a = [...correctSet].sort().join(",");
-    const b = [...picked].sort().join(",");
-    const correct = a === b;
+    const graded = await gradeAnswer(boss.question, picked[0] ?? -1);
+    const correctSet = graded.correctIndexes;
+    const correct = graded.isCorrect && arraysEqualSet(picked, correctSet);
     const g = loadGame();
-    const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
+    const correctLetters = correctSet.map((i: number) => String.fromCharCode(65 + i)).join(", ");
     const NEED = 5;
     if (correct) {
       const newCorrect = boss.correct + 1;

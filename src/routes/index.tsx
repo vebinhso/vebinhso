@@ -226,9 +226,6 @@ function Home() {
               {(showAllIncoming ? incoming : incoming.slice(0, 1)).map((r) => (
                 <div key={r.from.id} className="bg-white/80 rounded-xl p-2 mb-2 text-xs">
                   <div className="font-black">{r.from.username}</div>
-                  {isAdmin(user.email) && (
-                    <div className="text-[10px] text-orange-700 font-bold mb-1">ID #{r.from.id}</div>
-                  )}
                   <div className="flex gap-1">
                     <button
                       onClick={() => {

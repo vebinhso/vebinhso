@@ -1431,10 +1431,10 @@ function MagicPage() {
     setS2Room(null);
     setGameComplete(true);
   };
-  const answerGhostQuiz = (picked: number[]) => {
+  const answerGhostQuiz = async (picked: number[]) => {
     if (!ghostQuiz || ghostResult) return;
-    const correctIdx = ghostQuiz.correctIndexes ?? [ghostQuiz.answer];
-    const correct = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(ghostQuiz, picked[0] ?? -1);
+    const correct = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     if (correct) addCoins(20);
     bumpQuestion(correct);
     setGhostResult(correct ? "✅ Đúng!" : "❌ Sai rồi!");

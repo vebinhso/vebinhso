@@ -13,6 +13,7 @@ export type Question = {
   maps?: string[];
   enabled?: boolean;
   priority?: number;
+  competencyLevel?: number | null; // 1..8 khung năng lực số
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [

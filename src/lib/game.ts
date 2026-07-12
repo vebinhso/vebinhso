@@ -61,6 +61,7 @@ const DEFAULT: GameState = {
   money: 0,
   netWorth: 0,
   correctAnswers: 0,
+  totalAnswered: 0,
   answerStreak: 0,
   level: 0,
   placed: [],

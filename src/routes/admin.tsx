@@ -179,10 +179,9 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
   const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
   const activeToday = stats.filter((s) => s.lastLoginDate >= todayMs).length;
   const totalCorrect = stats.reduce((s, p) => s + p.correctAnswers, 0);
-  // Tỉ lệ đúng trung bình = trung bình cộng của (correct / totalQuestions * 100) trên các người chơi
-  const avgCorrectRate = (total > 0 && totalQuestions > 0)
-    ? (stats.reduce((acc, p) => acc + Math.min(1, p.correctAnswers / totalQuestions), 0) / total) * 100
-    : 0;
+  const totalAnswered = stats.reduce((s, p) => s + p.totalAnswered, 0);
+  // Tỉ lệ đúng trung bình = tổng câu đúng / tổng số câu người chơi đã trả lời * 100
+  const avgCorrectRate = totalAnswered > 0 ? (totalCorrect / totalAnswered) * 100 : 0;
   // Thời gian chơi trung bình (giây) = tổng thời gian chơi / số người chơi đã truy cập
   const totalPlaySec = stats.reduce((acc, p) => acc + (p.playSeconds || 0), 0);
   const avgPlaySec = total > 0 ? totalPlaySec / total : 0;

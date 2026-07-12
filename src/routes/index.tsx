@@ -205,7 +205,7 @@ function Home() {
                   <span className="w-9 h-9 rounded-full bg-blue-300 flex items-center justify-center">🧑</span>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{f.username}</div>
-                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{f.id}</div>}
+                    
                   </div>
                 </div>
               ))}

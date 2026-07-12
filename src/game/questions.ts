@@ -87,13 +87,14 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         competencyLevel: cl,
       };
     });
+    // KHÔNG phân theo map — mọi câu hỏi (kể cả có bậc năng lực số) đều
+    // xuất hiện random ở cả bản đồ nhà lẫn lâu đài. Thứ tự do queue theo
+    // bậc quyết định (framework), không lệ thuộc map.
+    void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
-    const filtered = map
-      ? enabledOnly.filter((q) => (q.maps ?? ["all"]).includes(map) || (q.maps ?? ["all"]).includes("all"))
-      : enabledOnly;
-    QUESTION_CACHE = filtered;
-    RECENT_IDS = []; // reset khi đổi map/cache mới
-    return filtered;
+    QUESTION_CACHE = enabledOnly;
+    RECENT_IDS = [];
+    return enabledOnly;
   } catch (e) {
     console.error("[questions] loadQuestionsFromDB failed", e);
     return QUESTION_CACHE;

@@ -1103,9 +1103,9 @@ function MagicPage() {
   const bumpQuestion = (isCorrect: boolean) => {
     const g = loadGame();
     if (isCorrect) {
-      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, answerStreak: g.answerStreak + 1 });
+      saveGame({ ...g, correctAnswers: g.correctAnswers + 1, totalAnswered: g.totalAnswered + 1, answerStreak: g.answerStreak + 1 });
     } else {
-      saveGame({ ...g, answerStreak: 0 });
+      saveGame({ ...g, totalAnswered: g.totalAnswered + 1, answerStreak: 0 });
     }
     playSfx(isCorrect ? "monsterHit" : "wrongGame", { duck: true });
   };

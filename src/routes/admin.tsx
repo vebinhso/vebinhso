@@ -157,18 +157,13 @@ function StatCard({ icon, label, value, hint }: { icon: string; label: string; v
 
 function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
   const [stats, setStats] = useState<PlayerStat[]>(() => getAllPlayerStats());
-  const [totalQuestions, setTotalQuestions] = useState<number>(0);
   useEffect(() => {
     let alive = true;
     const load = async () => {
       try {
-        const [s, qs] = await Promise.all([
-          refreshPlayerStats(),
-          fetchQuestions().catch(() => []),
-        ]);
+        const s = await refreshPlayerStats();
         if (!alive) return;
         setStats(s);
-        setTotalQuestions(qs.length);
       } catch {}
     };
     load();

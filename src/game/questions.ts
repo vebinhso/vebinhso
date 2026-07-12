@@ -57,7 +57,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -68,10 +68,10 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
-      // Answers are hidden from clients — resolved server-side via grade_answer rpc.
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
+      const cl = typeof row.competency_level === "number" ? row.competency_level : null;
       return {
         id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
@@ -84,6 +84,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         maps,
         enabled,
         priority,
+        competencyLevel: cl,
       };
     });
     const enabledOnly = mapped.filter((q) => q.enabled !== false);

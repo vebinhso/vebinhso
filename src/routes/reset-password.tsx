@@ -86,3 +86,26 @@ function ResetPasswordPage() {
     </GameLayout>
   );
 }
+
+function PasswordInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 pr-12 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-500 text-xl leading-none select-none"
+        tabIndex={-1}
+      >
+        {show ? "🙈" : "👁️"}
+      </button>
+    </div>
+  );
+}

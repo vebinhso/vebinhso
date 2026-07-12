@@ -215,10 +215,16 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
       category: row.category ?? "",
       enabled: row.enabled ?? true,
       priority: row.priority ?? 0,
+      competencyLevel: (typeof row.competency_level === "number" ? row.competency_level : null),
       _createdAt: row.created_at ?? "",
     };
   });
   rows.sort((a: any, b: any) => {
+    // Ưu tiên: câu có competency_level trước, sắp theo level asc
+    const aCL = a.competencyLevel;
+    const bCL = b.competencyLevel;
+    if ((aCL != null) !== (bCL != null)) return aCL != null ? -1 : 1;
+    if (aCL != null && bCL != null && aCL !== bCL) return aCL - bCL;
     const ap = a.priority > 0 ? 0 : 1;
     const bp = b.priority > 0 ? 0 : 1;
     if (ap !== bp) return ap - bp;
@@ -240,6 +246,8 @@ function toDbRow(q: AdminQuestion) {
     category: q.category || null,
     enabled: q.enabled ?? true,
     priority: q.priority ?? 0,
+    competency_level: (typeof q.competencyLevel === "number" && q.competencyLevel >= 1 && q.competencyLevel <= 8)
+      ? q.competencyLevel : null,
   };
 }
 

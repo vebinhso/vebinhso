@@ -662,11 +662,14 @@ function GamePage() {
       setBoomResult(null);
     }
   };
-  const handleBoomAnswer = (picked: number[]) => {
+  const handleBoomAnswer = async (picked: number[]) => {
     if (!boom || boomResult) return;
     const q = boom.q;
-    const correctSet = q.correctIndexes && q.correctIndexes.length > 0 ? q.correctIndexes : [q.answer];
-    const ok = [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    const sel = picked[0] ?? -1;
+    const graded = await gradeAnswer(q, sel);
+    const correctSet = graded.correctIndexes;
+    const ok = graded.isCorrect && picked.length === correctSet.length &&
+      [...correctSet].sort().join(",") === [...picked].sort().join(",");
     const delta = ok ? 10 : -5;
     const gained = boom.gained + delta;
     setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
@@ -678,7 +681,6 @@ function GamePage() {
         setBoom(null);
         setBoomResult(null);
       } else {
-        // Sai → câu hỏi mới, modal vẫn mở
         setBoom({ q: randomQuestion(), tries: boom.tries + 1, correct: boom.correct, gained });
         setBoomResult(null);
       }

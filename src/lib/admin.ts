@@ -125,7 +125,7 @@ let STATS_CACHE: PlayerStat[] = [];
 /** Fetch all player stats from Supabase. */
 export async function refreshPlayerStats(): Promise<PlayerStat[]> {
   const [profiles, games, streaks] = await Promise.all([
-    supabase.from("profiles").select("user_id, username, email"),
+    supabase.from("profiles").select("user_id, username"),
     supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level"),
     supabase.from("login_streaks").select("user_id, current_streak, last_login_date"),
   ]);

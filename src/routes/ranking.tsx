@@ -15,7 +15,7 @@ async function fetchRanking(): Promise<Row[]> {
   // Cross-player financial/progression data is fetched from the public leaderboard
   // view (net_worth + level only) — game_state SELECT is restricted to owners.
   const [board, friends] = await Promise.all([
-    supabase.from("leaderboard").select("user_id, username, net_worth, level"),
+    supabase.rpc("get_leaderboard"),
     supabase.from("friends").select("user_id, friend_id, status"),
   ]);
   const friendCount = new Map<string, number>();

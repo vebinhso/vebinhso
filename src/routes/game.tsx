@@ -19,7 +19,7 @@ import {
   type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
-import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
@@ -618,6 +618,7 @@ function GamePage() {
     // For multi-select we grade the first pick; multi-answer questions are rare in this project.
     const ok = graded.isCorrect && picked.length === correctSet.length &&
       [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    reportAnswerResult(question, ok);
     let next: GameState;
     let resultText: string;
     if (ok) {
@@ -684,6 +685,7 @@ function GamePage() {
     const correctSet = graded.correctIndexes;
     const ok = graded.isCorrect && picked.length === correctSet.length &&
       [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    reportAnswerResult(q, ok);
     const delta = ok ? 10 : -5;
     const gained = boom.gained + delta;
     setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));

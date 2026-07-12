@@ -13,6 +13,7 @@ export type Question = {
   maps?: string[];
   enabled?: boolean;
   priority?: number;
+  competencyLevel?: number | null; // 1..8 khung năng lực số
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [
@@ -56,7 +57,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -67,10 +68,10 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
-      // Answers are hidden from clients — resolved server-side via grade_answer rpc.
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
+      const cl = typeof row.competency_level === "number" ? row.competency_level : null;
       return {
         id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
@@ -83,6 +84,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         maps,
         enabled,
         priority,
+        competencyLevel: cl,
       };
     });
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
@@ -167,6 +169,12 @@ function pickAvoidingRecent(pool: Question[]): Question {
 
 export function randomQuestion(): Question {
   const arr = getQuestions();
+  // Khung năng lực số — nếu có bất kỳ câu có competencyLevel, ưu tiên hết
+  const framework = arr.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
+  if (framework.length > 0) {
+    const q = nextFrameworkQuestion(framework);
+    if (q) return q;
+  }
   if (PRIORITY_MODE) {
     const zone = arr.filter((q) => (q.priority ?? 0) > 0);
     if (zone.length > 0) {
@@ -174,4 +182,144 @@ export function randomQuestion(): Question {
     }
   }
   return pickAvoidingRecent(arr);
+}
+
+/* ===================== KHUNG NĂNG LỰC SỐ — Hàng đợi theo user ===================== */
+
+function currentUserSeed(): string {
+  try {
+    // Đọc user id từ Supabase session cache (localStorage)
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i) || "";
+      if (k.startsWith("sb-") && k.endsWith("-auth-token")) {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        try {
+          const j = JSON.parse(raw);
+          const uid = j?.user?.id || j?.currentSession?.user?.id;
+          if (uid) return String(uid);
+        } catch {}
+      }
+    }
+  } catch {}
+  return "anon";
+}
+
+function hash32(s: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed: number) {
+  let t = seed >>> 0;
+  return function () {
+    t = (t + 0x6D2B79F5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffled<T>(arr: T[], rng: () => number): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+type DigitalState = {
+  fp: string;              // fingerprint để rebuild khi bộ câu đổi
+  order: string[];         // hàng đợi id
+  pos: number;
+  retry: Record<string, number>; // số lần đã re-appear khi sai
+  done: string[];          // id đã trả lời đúng
+};
+
+function digitalStorageKey(): string {
+  return `vbs_digital_queue_${currentUserSeed()}`;
+}
+function loadDigitalState(): DigitalState | null {
+  try {
+    const raw = localStorage.getItem(digitalStorageKey());
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+function saveDigitalState(s: DigitalState) {
+  try { localStorage.setItem(digitalStorageKey(), JSON.stringify(s)); } catch {}
+}
+function makeFingerprint(pool: Question[]): string {
+  const parts = pool
+    .map((q) => `${q.id ?? ""}:${q.competencyLevel ?? 0}`)
+    .sort();
+  return String(parts.length) + "|" + hash32(parts.join(",")).toString(36);
+}
+function buildOrder(pool: Question[], rng: () => number): string[] {
+  const byLvl = new Map<number, Question[]>();
+  for (const q of pool) {
+    const lvl = q.competencyLevel ?? 0;
+    if (!byLvl.has(lvl)) byLvl.set(lvl, []);
+    byLvl.get(lvl)!.push(q);
+  }
+  const levels = Array.from(byLvl.keys()).sort((a, b) => a - b);
+  const out: string[] = [];
+  for (const lvl of levels) {
+    const shuffled_ = shuffled(byLvl.get(lvl)!, rng);
+    for (const q of shuffled_) if (q.id) out.push(q.id);
+  }
+  return out;
+}
+
+function nextFrameworkQuestion(pool: Question[]): Question | null {
+  const fp = makeFingerprint(pool);
+  const rng = mulberry32(hash32(currentUserSeed() + "|" + fp));
+  let st = loadDigitalState();
+  if (!st || st.fp !== fp) {
+    st = { fp, order: buildOrder(pool, rng), pos: 0, retry: {}, done: [] };
+    saveDigitalState(st);
+  }
+  // Nếu hết queue → reshuffle & reset done (nhưng giữ nhớ done trong session hiện tại)
+  if (st.pos >= st.order.length) {
+    st = { fp, order: buildOrder(pool, rng), pos: 0, retry: {}, done: [] };
+    saveDigitalState(st);
+  }
+  // Bỏ qua câu đã done
+  while (st.pos < st.order.length) {
+    const id = st.order[st.pos];
+    if (st.done.includes(id)) { st.pos++; continue; }
+    const q = pool.find((x) => x.id === id);
+    if (!q) { st.pos++; continue; }
+    saveDigitalState(st);
+    return q;
+  }
+  return null;
+}
+
+/**
+ * Báo kết quả sau khi grade — để queue biết bỏ qua (đúng) hay re-appear (sai).
+ * Gọi ngay sau gradeAnswer với câu hỏi đã dùng.
+ */
+export function reportAnswerResult(question: Question | null | undefined, correct: boolean) {
+  if (!question?.id || typeof question.competencyLevel !== "number") return;
+  const st = loadDigitalState();
+  if (!st) return;
+  const id = question.id;
+  if (correct) {
+    if (!st.done.includes(id)) st.done.push(id);
+    st.pos++;
+  } else {
+    const times = st.retry[id] ?? 0;
+    if (times < 1) {
+      // Re-insert 2 vị trí phía sau để xuất hiện lại một lần
+      st.retry[id] = times + 1;
+      const insertAt = Math.min(st.order.length, st.pos + 3);
+      st.order.splice(insertAt, 0, id);
+    }
+    st.pos++;
+  }
+  saveDigitalState(st);
 }

@@ -452,6 +452,7 @@ function emptyQuestionDraft(): AdminQuestion {
     imageUrl: "",
     enabled: true,
     priority: 0,
+    competencyLevel: null,
   };
 }
 

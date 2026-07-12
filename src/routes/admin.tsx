@@ -239,7 +239,11 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<PlayerStat | null>(null);
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+    const t = setInterval(() => { refresh(); }, 15000);
+    return () => clearInterval(t);
+  }, []);
 
   async function refresh() {
     const fresh = await refreshPlayerStats();

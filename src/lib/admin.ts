@@ -244,27 +244,10 @@ export async function createQuestion(q: AdminQuestion): Promise<AdminQuestion> {
   const { data, error } = await supabase
     .from("questions_bank")
     .insert(toDbRow(q) as any)
-    .select()
+    .select("id")
     .single();
   if (error) throw error;
-  const rawChoices = Array.isArray((data as any).choices) ? (data as any).choices : [];
-  const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
-    typeof c === "string"
-      ? { text: c, imageUrl: "" }
-      : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
-  );
-  return {
-    id: (data as any).id,
-    q: (data as any).text,
-    options,
-    correctIndexes: Array.isArray((data as any).correct_indexes) ? (data as any).correct_indexes : [(data as any).answer_index ?? 0],
-    maps: Array.isArray((data as any).maps) ? (data as any).maps : ["all"],
-    reward: (data as any).reward ?? 10,
-    imageUrl: (data as any).image_url ?? "",
-    category: (data as any).category ?? "",
-    enabled: (data as any).enabled ?? true,
-    priority: (data as any).priority ?? 0,
-  };
+  return { ...q, id: (data as any).id };
 }
 
 export async function updateQuestion(id: string, q: AdminQuestion): Promise<void> {

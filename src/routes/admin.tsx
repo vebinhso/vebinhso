@@ -157,21 +157,42 @@ function StatCard({ icon, label, value, hint }: { icon: string; label: string; v
 
 function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
   const [stats, setStats] = useState<PlayerStat[]>(() => getAllPlayerStats());
+  const [totalQuestions, setTotalQuestions] = useState<number>(0);
   useEffect(() => {
     let alive = true;
-    refreshPlayerStats().then((s) => { if (alive) setStats(s); }).catch(() => {});
-    const t = setInterval(() => {
-      refreshPlayerStats().then((s) => { if (alive) setStats(s); }).catch(() => {});
-    }, 15000);
+    const load = async () => {
+      try {
+        const [s, qs] = await Promise.all([
+          refreshPlayerStats(),
+          fetchQuestions().catch(() => []),
+        ]);
+        if (!alive) return;
+        setStats(s);
+        setTotalQuestions(qs.length);
+      } catch {}
+    };
+    load();
+    const t = setInterval(load, 15000);
     return () => { alive = false; clearInterval(t); };
   }, []);
   const total = stats.length;
   const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
   const activeToday = stats.filter((s) => s.lastLoginDate >= todayMs).length;
-  const totalAnswers = stats.reduce((s, p) => s + p.correctAnswers, 0);
-  // Tỉ lệ đúng giả lập 70-95% (chưa có log câu sai); thực tế sẽ wire khi có data
-  const avgCorrect = total > 0 ? Math.round((totalAnswers / (total * Math.max(1, totalAnswers / total))) * 100) : 0;
-  const avgOnline = "~ 22 phút"; // chưa track session length
+  const totalCorrect = stats.reduce((s, p) => s + p.correctAnswers, 0);
+  // Tỉ lệ đúng trung bình = trung bình cộng của (correct / totalQuestions * 100) trên các người chơi
+  const avgCorrectRate = (total > 0 && totalQuestions > 0)
+    ? (stats.reduce((acc, p) => acc + Math.min(1, p.correctAnswers / totalQuestions), 0) / total) * 100
+    : 0;
+  // Thời gian chơi trung bình (giây) = tổng thời gian chơi / số người chơi đã truy cập
+  const totalPlaySec = stats.reduce((acc, p) => acc + (p.playSeconds || 0), 0);
+  const avgPlaySec = total > 0 ? totalPlaySec / total : 0;
+  const formatPlay = (sec: number) => {
+    const m = Math.round(sec / 60);
+    if (m < 60) return `${m}p`;
+    const g = Math.floor(m / 60);
+    const p = m % 60;
+    return p === 0 ? `${g}g` : `${g}g ${p}p`;
+  };
 
   const levelDist = useMemo(() => {
     const m: Record<number, number> = {};
@@ -192,10 +213,11 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         <StatCard icon="👥" label="Tổng người chơi" value={total} />
         <StatCard icon="🟢" label="Online hôm nay" value={activeToday} />
-        <StatCard icon="✅" label="Tổng câu đúng" value={totalAnswers} />
-        <StatCard icon="🎯" label="Tỉ lệ đúng TB" value={`${Math.min(100, avgCorrect)}%`} hint="ước lượng" />
-        <StatCard icon="⏱️" label="Thời gian online TB" value={avgOnline} hint="ước lượng" />
+        <StatCard icon="❓" label="Tổng số câu hỏi" value={totalQuestions} />
+        <StatCard icon="🎯" label="Tỉ lệ đúng trung bình" value={`${avgCorrectRate.toFixed(1)}%`} hint={`${totalCorrect} câu đúng / ${totalQuestions} câu`} />
+        <StatCard icon="⏱️" label="Thời gian chơi trung bình" value={formatPlay(avgPlaySec)} hint={`Tổng ${formatPlay(totalPlaySec)}`} />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4">

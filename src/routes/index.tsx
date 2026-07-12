@@ -163,7 +163,7 @@ function Home() {
                 ✏️
               </button>
             </h1>
-            {isAdmin(user.email) && <p className="text-xs font-bold text-orange-700">ID #{user.id}</p>}
+            
             <p className="text-xs font-bold text-rose-600">
               🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>

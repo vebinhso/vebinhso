@@ -501,6 +501,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_email: { Args: never; Returns: string }
       grade_answer: {
         Args: { qid: string; selected: number }
         Returns: {

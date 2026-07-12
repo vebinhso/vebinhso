@@ -106,6 +106,7 @@ function GamePage() {
       return;
     }
     setUser(u);
+    try { recordLoginDay(u.id); } catch {}
     setState(loadGame());
     // Khi cache đã được refresh từ DB, đồng bộ lại state React
     const onGameChange = () => {

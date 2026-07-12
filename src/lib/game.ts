@@ -110,6 +110,20 @@ export function loadGame(): GameState {
   return CACHE;
 }
 
+/**
+ * Nơi DUY NHẤT được phép thay đổi các biến đếm câu trả lời.
+ * Cập nhật tổng số câu đã trả lời, số câu đúng, và streak.
+ */
+export function recordAnswer(isCorrect: boolean) {
+  const g = loadGame();
+  saveGame({
+    ...g,
+    totalAnswered: (g.totalAnswered || 0) + 1,
+    correctAnswers: g.correctAnswers + (isCorrect ? 1 : 0),
+    answerStreak: isCorrect ? g.answerStreak + 1 : 0,
+  });
+}
+
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 export function saveGame(s: GameState) {
   CACHE = { ...s };

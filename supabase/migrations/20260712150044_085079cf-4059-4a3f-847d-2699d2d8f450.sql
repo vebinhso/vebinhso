@@ -1,0 +1,2 @@
+ALTER TABLE public.game_state ADD COLUMN IF NOT EXISTS total_answered INTEGER NOT NULL DEFAULT 0;
+UPDATE public.game_state SET total_answered = correct_answers WHERE total_answered = 0 AND correct_answers > 0;

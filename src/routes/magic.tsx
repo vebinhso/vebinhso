@@ -1229,11 +1229,11 @@ function MagicPage() {
     setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 5, correct: 0, source: "corridor" });
   };
 
-  const answerAnimalQuiz = (picked: number[]) => {
+  const answerAnimalQuiz = async (picked: number[]) => {
     if (!animalQuiz || animalResult) return;
-    const correctIdx = animalQuiz.q.correctIndexes ?? [animalQuiz.q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
-    const reward = isCorrect ? animalQuiz.q.reward : 0;
+    const graded = await gradeAnswer(animalQuiz.q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
+    const reward = isCorrect ? graded.reward : 0;
     if (reward) addCoins(reward);
     bumpQuestion(isCorrect);
     setAnimalResult(isCorrect ? "✅ Đúng!" : "❌ Sai rồi!");

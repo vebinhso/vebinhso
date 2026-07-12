@@ -116,6 +116,7 @@ export type PlayerStat = {
   money: number;
   netWorth: number;
   correctAnswers: number;
+  playSeconds: number;
   streak: number;
   lastLoginDate: number;
 };

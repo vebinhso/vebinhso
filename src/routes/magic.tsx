@@ -1493,11 +1493,11 @@ function MagicPage() {
     }, 1600);
   };
 
-  const answerWitch = (picked: number[]) => {
+  const answerWitch = async (picked: number[]) => {
     if (!witch || !witch.question || witchResult) return;
     const q = witch.question;
-    const correctIdx = q.correctIndexes ?? [q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);

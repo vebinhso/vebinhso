@@ -430,18 +430,7 @@ export type Database = {
       }
     }
     Views: {
-      leaderboard: {
-        Row: {
-          avatar_url: string | null
-          correct_answers: number | null
-          display_name: string | null
-          level: number | null
-          net_worth: number | null
-          user_id: string | null
-          username: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_get_question: {
@@ -491,6 +480,18 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          correct_answers: number
+          display_name: string
+          level: number
+          net_worth: number
+          user_id: string
+          username: string
+        }[]
       }
       grade_answer: {
         Args: { qid: string; selected: number }

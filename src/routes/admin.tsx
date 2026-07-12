@@ -870,9 +870,14 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       </div>
 
       {(() => {
+        const matchesLevel = (q: AdminQuestion) => {
+          if (selectedLevel === "all") return true;
+          if (selectedLevel === "none") return q.competencyLevel == null;
+          return q.competencyLevel === selectedLevel;
+        };
+        const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x));
+        const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x));
 
-        const priorityList = list.filter((x) => (x.priority || 0) > 0);
-        const normalList = list.filter((x) => (x.priority || 0) === 0);
 
         const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
           <li

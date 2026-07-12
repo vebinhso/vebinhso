@@ -365,7 +365,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={9} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
+                <tr><td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
               )}
             </tbody>
           </table>

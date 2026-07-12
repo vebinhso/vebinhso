@@ -69,26 +69,38 @@ function Home() {
   };
 
   useEffect(() => {
-    const u = getCurrentUser();
-    if (!u) {
-      navigate({ to: "/login" });
-      return;
-    }
-    setUser(u);
-    setStreak(getLoginStreak(u.id));
-    setMoney(loadGame().money);
-    refreshFriends(u.id);
-    setReady(true);
-    // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
-    const refresh = () => {
-      const cu = getCurrentUser();
-      if (cu) setStreak(getLoginStreak(cu.id));
-    };
-    window.addEventListener("auth-change", refresh);
-    const t = setTimeout(refresh, 800);
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    (async () => {
+      let u = getCurrentUser();
+      if (!u) {
+        u = await hydrateFromSession();
+      }
+      if (cancelled) return;
+      if (!u) {
+        navigate({ to: "/login" });
+        return;
+      }
+      setUser(u);
+      setStreak(getLoginStreak(u.id));
+      setMoney(loadGame().money);
+      refreshFriends(u.id);
+      setReady(true);
+      // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
+      const refresh = () => {
+        const cu = getCurrentUser();
+        if (cu) setStreak(getLoginStreak(cu.id));
+      };
+      window.addEventListener("auth-change", refresh);
+      const t = setTimeout(refresh, 800);
+      cleanup = () => {
+        window.removeEventListener("auth-change", refresh);
+        clearTimeout(t);
+      };
+    })();
     return () => {
-      window.removeEventListener("auth-change", refresh);
-      clearTimeout(t);
+      cancelled = true;
+      cleanup?.();
     };
   }, [navigate]);
 

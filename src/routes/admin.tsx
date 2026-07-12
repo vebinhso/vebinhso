@@ -320,7 +320,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
         <h2 className="text-xl font-black">👥 Quản lý người chơi ({filtered.length})</h2>
         <input
           value={query} onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm theo tên / email / ID"
+          placeholder="Tìm theo tên / email"
           className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72"
         />
       </div>

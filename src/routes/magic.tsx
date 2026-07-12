@@ -1437,6 +1437,7 @@ function MagicPage() {
     if (!ghostQuiz || ghostResult) return;
     const graded = await gradeAnswer(ghostQuiz, picked[0] ?? -1);
     const correct = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
+    reportAnswerResult(ghostQuiz, correct);
     if (correct) addCoins(20);
     bumpQuestion(correct);
     setGhostResult(correct ? "✅ Đúng!" : "❌ Sai rồi!");

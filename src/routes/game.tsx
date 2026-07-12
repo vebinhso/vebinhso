@@ -19,7 +19,7 @@ import {
   type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
-import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));

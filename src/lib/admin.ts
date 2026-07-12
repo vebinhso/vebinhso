@@ -184,12 +184,11 @@ export async function resetPasswordRandom(_userId: string): Promise<string | nul
 
 // ===== Questions Bank (Supabase) =====
 export async function fetchQuestions(): Promise<AdminQuestion[]> {
-  const { data, error } = await supabase
-    .from("questions_bank")
-    .select("*")
-    .order("created_at", { ascending: true });
+  // Answer columns are hidden from clients — use the admin SECURITY DEFINER RPC
+  // which authorises via has_role and returns the full rows.
+  const { data, error } = await supabase.rpc("admin_list_questions");
   if (error) throw error;
-  const rows = (data || []).map((row: any) => {
+  const rows = ((data as any[]) || []).map((row: any) => {
     const rawChoices = Array.isArray(row.choices) ? row.choices : [];
     const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
       typeof c === "string"
@@ -216,7 +215,6 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
       _createdAt: row.created_at ?? "",
     };
   });
-  // Sort: priority>0 first by priority asc, then priority=0 by created_at asc
   rows.sort((a: any, b: any) => {
     const ap = a.priority > 0 ? 0 : 1;
     const bp = b.priority > 0 ? 0 : 1;

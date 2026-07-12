@@ -618,6 +618,7 @@ function GamePage() {
     // For multi-select we grade the first pick; multi-answer questions are rare in this project.
     const ok = graded.isCorrect && picked.length === correctSet.length &&
       [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    reportAnswerResult(question, ok);
     let next: GameState;
     let resultText: string;
     if (ok) {

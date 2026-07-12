@@ -254,6 +254,15 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
 }
 
 /* ===================== PLAYERS ===================== */
+function fmtPlay(sec: number) {
+  const m = Math.round((sec || 0) / 60);
+  if (m < 1) return `${Math.round(sec || 0)}s`;
+  if (m < 60) return `${m}p`;
+  const g = Math.floor(m / 60);
+  const p = m % 60;
+  return p === 0 ? `${g}g` : `${g}g ${p}p`;
+}
+
 function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
   const [stats, setStats] = useState<PlayerStat[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);

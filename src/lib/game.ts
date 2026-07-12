@@ -42,6 +42,7 @@ export type GameState = {
   money: number;
   netWorth: number;
   correctAnswers: number;
+  totalAnswered: number;
   answerStreak: number;
   level: number;
   placed: PlacedItem[];

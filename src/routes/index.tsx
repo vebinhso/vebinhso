@@ -283,7 +283,7 @@ function Home() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{found.username}</div>
-                    {isAdmin(user.email) && <div className="text-[10px] text-orange-700 font-bold">ID #{found.id}</div>}
+                    
                   </div>
                 </div>
                 <button

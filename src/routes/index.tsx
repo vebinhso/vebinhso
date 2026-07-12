@@ -7,6 +7,7 @@ import {
   setCurrentUser,
   getLoginStreak,
   renameAccount,
+  hydrateFromSession,
   type Account,
   type LoginStreak,
 } from "@/lib/auth";

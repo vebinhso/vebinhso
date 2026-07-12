@@ -19,7 +19,7 @@ import {
   type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
-import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
@@ -596,27 +596,27 @@ function GamePage() {
     setQuestion(null);
     setQuestionResult(null);
   };
-  const handleAnswer = (picked: number[]) => {
+  const handleAnswer = async (picked: number[]) => {
     if (!question || questionResult) return;
-    const correctSet = question.correctIndexes && question.correctIndexes.length > 0
-      ? question.correctIndexes
-      : [question.answer];
-    const a = [...correctSet].sort().join(",");
-    const b = [...picked].sort().join(",");
-    const ok = a === b;
+    const sel = picked[0] ?? -1;
+    const graded = await gradeAnswer(question, sel);
+    const correctSet = graded.correctIndexes.length > 0 ? graded.correctIndexes : [];
+    // For multi-select we grade the first pick; multi-answer questions are rare in this project.
+    const ok = graded.isCorrect && picked.length === correctSet.length &&
+      [...correctSet].sort().join(",") === [...picked].sort().join(",");
     let next: GameState;
     let resultText: string;
     if (ok) {
       next = {
         ...state,
-        money: state.money + question.reward,
+        money: state.money + graded.reward,
         correctAnswers: state.correctAnswers + 1,
         answerStreak: state.answerStreak + 1,
       };
-      resultText = `✅ Chính xác! +${question.reward}đ (🔥 streak ${state.answerStreak + 1})`;
+      resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
       next = { ...state, answerStreak: 0 };
-      const correctLabels = correctSet.map((i) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
+      const correctLabels = correctSet.map((i: number) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
       resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }
     setState(next);
@@ -662,11 +662,14 @@ function GamePage() {
       setBoomResult(null);
     }
   };
-  const handleBoomAnswer = (picked: number[]) => {
+  const handleBoomAnswer = async (picked: number[]) => {
     if (!boom || boomResult) return;
     const q = boom.q;
-    const correctSet = q.correctIndexes && q.correctIndexes.length > 0 ? q.correctIndexes : [q.answer];
-    const ok = [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    const sel = picked[0] ?? -1;
+    const graded = await gradeAnswer(q, sel);
+    const correctSet = graded.correctIndexes;
+    const ok = graded.isCorrect && picked.length === correctSet.length &&
+      [...correctSet].sort().join(",") === [...picked].sort().join(",");
     const delta = ok ? 10 : -5;
     const gained = boom.gained + delta;
     setState((s) => (s ? { ...s, money: Math.max(0, s.money + delta), correctAnswers: ok ? s.correctAnswers + 1 : s.correctAnswers, answerStreak: ok ? s.answerStreak + 1 : 0 } : s));
@@ -678,7 +681,6 @@ function GamePage() {
         setBoom(null);
         setBoomResult(null);
       } else {
-        // Sai → câu hỏi mới, modal vẫn mở
         setBoom({ q: randomQuestion(), tries: boom.tries + 1, correct: boom.correct, gained });
         setBoomResult(null);
       }

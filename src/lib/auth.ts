@@ -82,14 +82,14 @@ export async function hydrateFromSession(): Promise<Account | null> {
   // Fetch profile (created by trigger)
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, created_at, email, avatar_url")
+    .select("username, display_name, created_at, avatar_url")
     .eq("user_id", u.id)
     .maybeSingle();
 
   const acc: Account = {
     id: u.id,
     username: profile?.username || (u.email?.split("@")[0] ?? "player"),
-    email: profile?.email || u.email || "",
+    email: u.email || "",
     createdAt: profile?.created_at || u.created_at || new Date().toISOString(),
     avatarUrl: (profile as any)?.avatar_url ?? null,
   };

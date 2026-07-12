@@ -433,6 +433,74 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_question: {
+        Args: { qid: string }
+        Returns: {
+          answer_index: number
+          category: string | null
+          choices: Json
+          correct_indexes: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          maps: Json
+          priority: number
+          reward: number
+          text: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "questions_bank"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_list_questions: {
+        Args: never
+        Returns: {
+          answer_index: number
+          category: string | null
+          choices: Json
+          correct_indexes: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          maps: Json
+          priority: number
+          reward: number
+          text: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "questions_bank"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          correct_answers: number
+          display_name: string
+          level: number
+          net_worth: number
+          user_id: string
+          username: string
+        }[]
+      }
+      grade_answer: {
+        Args: { qid: string; selected: number }
+        Returns: {
+          correct_indexes: number[]
+          is_correct: boolean
+          reward: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

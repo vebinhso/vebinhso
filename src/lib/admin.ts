@@ -125,7 +125,7 @@ let STATS_CACHE: PlayerStat[] = [];
 /** Fetch all player stats from Supabase. */
 export async function refreshPlayerStats(): Promise<PlayerStat[]> {
   const [profiles, games, streaks] = await Promise.all([
-    supabase.from("profiles").select("user_id, username, email"),
+    supabase.from("profiles").select("user_id, username"),
     supabase.from("game_state").select("user_id, money, net_worth, correct_answers, level"),
     supabase.from("login_streaks").select("user_id, current_streak, last_login_date"),
   ]);
@@ -184,12 +184,11 @@ export async function resetPasswordRandom(_userId: string): Promise<string | nul
 
 // ===== Questions Bank (Supabase) =====
 export async function fetchQuestions(): Promise<AdminQuestion[]> {
-  const { data, error } = await supabase
-    .from("questions_bank")
-    .select("*")
-    .order("created_at", { ascending: true });
+  // Answer columns are hidden from clients — use the admin SECURITY DEFINER RPC
+  // which authorises via has_role and returns the full rows.
+  const { data, error } = await supabase.rpc("admin_list_questions");
   if (error) throw error;
-  const rows = (data || []).map((row: any) => {
+  const rows = ((data as any[]) || []).map((row: any) => {
     const rawChoices = Array.isArray(row.choices) ? row.choices : [];
     const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
       typeof c === "string"
@@ -216,7 +215,6 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
       _createdAt: row.created_at ?? "",
     };
   });
-  // Sort: priority>0 first by priority asc, then priority=0 by created_at asc
   rows.sort((a: any, b: any) => {
     const ap = a.priority > 0 ? 0 : 1;
     const bp = b.priority > 0 ? 0 : 1;
@@ -246,27 +244,10 @@ export async function createQuestion(q: AdminQuestion): Promise<AdminQuestion> {
   const { data, error } = await supabase
     .from("questions_bank")
     .insert(toDbRow(q) as any)
-    .select()
+    .select("id")
     .single();
   if (error) throw error;
-  const rawChoices = Array.isArray((data as any).choices) ? (data as any).choices : [];
-  const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
-    typeof c === "string"
-      ? { text: c, imageUrl: "" }
-      : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
-  );
-  return {
-    id: (data as any).id,
-    q: (data as any).text,
-    options,
-    correctIndexes: Array.isArray((data as any).correct_indexes) ? (data as any).correct_indexes : [(data as any).answer_index ?? 0],
-    maps: Array.isArray((data as any).maps) ? (data as any).maps : ["all"],
-    reward: (data as any).reward ?? 10,
-    imageUrl: (data as any).image_url ?? "",
-    category: (data as any).category ?? "",
-    enabled: (data as any).enabled ?? true,
-    priority: (data as any).priority ?? 0,
-  };
+  return { ...q, id: (data as any).id };
 }
 
 export async function updateQuestion(id: string, q: AdminQuestion): Promise<void> {

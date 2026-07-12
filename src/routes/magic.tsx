@@ -6,7 +6,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { getCurrentUser } from "@/lib/auth";
 import { loadOutfit, DEFAULT_OUTFIT, type Outfit } from "@/lib/character";
-import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions } from "@/game/questions";
+import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 import { loadGame, saveGame } from "@/lib/game";
 import { Stage2Scene, Stage2PlayerController, Witch, Lightning, S2_DOORS } from "@/game/stage2";
@@ -1229,11 +1229,11 @@ function MagicPage() {
     setAnimalQuiz({ q: randomQuestion(), idx: 0, total: 5, correct: 0, source: "corridor" });
   };
 
-  const answerAnimalQuiz = (picked: number[]) => {
+  const answerAnimalQuiz = async (picked: number[]) => {
     if (!animalQuiz || animalResult) return;
-    const correctIdx = animalQuiz.q.correctIndexes ?? [animalQuiz.q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
-    const reward = isCorrect ? animalQuiz.q.reward : 0;
+    const graded = await gradeAnswer(animalQuiz.q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
+    const reward = isCorrect ? graded.reward : 0;
     if (reward) addCoins(reward);
     bumpQuestion(isCorrect);
     setAnimalResult(isCorrect ? "✅ Đúng!" : "❌ Sai rồi!");
@@ -1359,16 +1359,13 @@ function MagicPage() {
     exitRoom(true);
   };
 
-  const answerBoss = (picked: number[]) => {
+  const answerBoss = async (picked: number[]) => {
     if (!boss || !boss.question || bossResult) return;
-    const correctSet = boss.question.correctIndexes && boss.question.correctIndexes.length > 0
-      ? boss.question.correctIndexes
-      : [boss.question.answer];
-    const a = [...correctSet].sort().join(",");
-    const b = [...picked].sort().join(",");
-    const correct = a === b;
+    const graded = await gradeAnswer(boss.question, picked[0] ?? -1);
+    const correctSet = graded.correctIndexes;
+    const correct = graded.isCorrect && arraysEqualSet(picked, correctSet);
     const g = loadGame();
-    const correctLetters = correctSet.map((i) => String.fromCharCode(65 + i)).join(", ");
+    const correctLetters = correctSet.map((i: number) => String.fromCharCode(65 + i)).join(", ");
     const NEED = 5;
     if (correct) {
       const newCorrect = boss.correct + 1;
@@ -1434,10 +1431,10 @@ function MagicPage() {
     setS2Room(null);
     setGameComplete(true);
   };
-  const answerGhostQuiz = (picked: number[]) => {
+  const answerGhostQuiz = async (picked: number[]) => {
     if (!ghostQuiz || ghostResult) return;
-    const correctIdx = ghostQuiz.correctIndexes ?? [ghostQuiz.answer];
-    const correct = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(ghostQuiz, picked[0] ?? -1);
+    const correct = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     if (correct) addCoins(20);
     bumpQuestion(correct);
     setGhostResult(correct ? "✅ Đúng!" : "❌ Sai rồi!");
@@ -1463,10 +1460,10 @@ function MagicPage() {
   };
 
   const [quiz5, setQuiz5] = useState<null | { q: Question; idx: number; correct: number }>(null);
-  const answerQuiz5 = (picked: number[]) => {
+  const answerQuiz5 = async (picked: number[]) => {
     if (!quiz5 || quiz5Result) return;
-    const correctIdx = quiz5.q.correctIndexes ?? [quiz5.q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(quiz5.q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
@@ -1496,11 +1493,11 @@ function MagicPage() {
     }, 1600);
   };
 
-  const answerWitch = (picked: number[]) => {
+  const answerWitch = async (picked: number[]) => {
     if (!witch || !witch.question || witchResult) return;
     const q = witch.question;
-    const correctIdx = q.correctIndexes ?? [q.answer];
-    const isCorrect = arraysEqualSet(picked, correctIdx);
+    const graded = await gradeAnswer(q, picked[0] ?? -1);
+    const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);

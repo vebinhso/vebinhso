@@ -626,11 +626,12 @@ function GamePage() {
         ...state,
         money: state.money + graded.reward,
         correctAnswers: state.correctAnswers + 1,
+        totalAnswered: state.totalAnswered + 1,
         answerStreak: state.answerStreak + 1,
       };
       resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
-      next = { ...state, answerStreak: 0 };
+      next = { ...state, answerStreak: 0, totalAnswered: state.totalAnswered + 1 };
       const correctLabels = correctSet.map((i: number) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
       resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
     }

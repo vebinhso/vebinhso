@@ -97,6 +97,7 @@ function GamePage() {
   const [signEditId, setSignEditId] = useState<string | null>(null);
   const [signDraft, setSignDraft] = useState("");
 
+  const readyRef = useRef(false);
   useEffect(() => {
     setMounted(true);
     const u = getCurrentUser();
@@ -106,6 +107,14 @@ function GamePage() {
     }
     setUser(u);
     setState(loadGame());
+    // Khi cache đã được refresh từ DB, đồng bộ lại state React
+    const onGameChange = () => {
+      readyRef.current = true;
+      setState({ ...loadGame() });
+    };
+    window.addEventListener("game-change", onGameChange);
+    // Fallback: cho phép ghi lại sau 1.5s nếu DB không phản hồi
+    const t = setTimeout(() => { readyRef.current = true; }, 1500);
     // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))
@@ -116,10 +125,14 @@ function GamePage() {
     loadPickupConfig()
       .then((cfg) => setPickups(resolvePickups(cfg)))
       .catch(() => setPickups([]));
+    return () => {
+      window.removeEventListener("game-change", onGameChange);
+      clearTimeout(t);
+    };
   }, [navigate]);
 
   useEffect(() => {
-    if (state) saveGame(state);
+    if (state && readyRef.current) saveGame(state);
   }, [state]);
 
   // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode

@@ -254,6 +254,15 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
 }
 
 /* ===================== PLAYERS ===================== */
+function fmtPlay(sec: number) {
+  const m = Math.round((sec || 0) / 60);
+  if (m < 1) return `${Math.round(sec || 0)}s`;
+  if (m < 60) return `${m}p`;
+  const g = Math.floor(m / 60);
+  const p = m % 60;
+  return p === 0 ? `${g}g` : `${g}g ${p}p`;
+}
+
 function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
   const [stats, setStats] = useState<PlayerStat[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -333,6 +342,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 <th className="p-2">💰</th>
                 <th className="p-2">🏠</th>
                 <th className="p-2">✅</th>
+                <th className="p-2">⏱️</th>
                 <th className="p-2">Trạng thái</th>
               </tr>
             </thead>
@@ -350,6 +360,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                     <td className="p-2">{p.money}</td>
                     <td className="p-2">{p.netWorth}</td>
                     <td className="p-2">{p.correctAnswers}</td>
+                    <td className="p-2 text-xs">{fmtPlay(p.playSeconds || 0)}</td>
                     <td className="p-2">
                       {banned
                         ? <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">KHÓA</span>
@@ -359,7 +370,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
+                <tr><td colSpan={9} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
               )}
             </tbody>
           </table>
@@ -376,6 +387,7 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 <div className="bg-orange-50 p-2 rounded">💰 {selected.money}</div>
                 <div className="bg-orange-50 p-2 rounded">🏠 {selected.netWorth}</div>
                 <div className="bg-orange-50 p-2 rounded col-span-2">✅ Câu đúng: {selected.correctAnswers}</div>
+                <div className="bg-orange-50 p-2 rounded col-span-2">⏱️ Tổng thời gian chơi: {fmtPlay(selected.playSeconds || 0)}</div>
               </div>
               <div className="flex flex-col gap-2">
                 <button onClick={() => grantCoin(selected.id)} className="toy-button text-sm bg-green-500">💰 Tặng/trừ xu</button>

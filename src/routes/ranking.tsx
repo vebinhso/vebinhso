@@ -12,29 +12,25 @@ type Tab = "money" | "level" | "friends";
 type Row = { id: string; name: string; money: number; level: number; friends: number };
 
 async function fetchRanking(): Promise<Row[]> {
-  const [profiles, games, friends] = await Promise.all([
-    supabase.from("profiles").select("user_id, username"),
-    supabase.from("game_state").select("user_id, money, level"),
+  // Cross-player financial/progression data is fetched from the public leaderboard
+  // view (net_worth + level only) — game_state SELECT is restricted to owners.
+  const [board, friends] = await Promise.all([
+    supabase.from("leaderboard").select("user_id, username, net_worth, level"),
     supabase.from("friends").select("user_id, friend_id, status"),
   ]);
-  const gMap = new Map<string, any>();
-  (games.data || []).forEach((g: any) => gMap.set(g.user_id, g));
   const friendCount = new Map<string, number>();
   (friends.data || []).forEach((f: any) => {
     if (f.status !== "accepted") return;
     friendCount.set(f.user_id, (friendCount.get(f.user_id) || 0) + 1);
     friendCount.set(f.friend_id, (friendCount.get(f.friend_id) || 0) + 1);
   });
-  return (profiles.data || []).map((p: any) => {
-    const g = gMap.get(p.user_id) || {};
-    return {
-      id: p.user_id,
-      name: p.username,
-      money: g.money || 0,
-      level: g.level || 0,
-      friends: friendCount.get(p.user_id) || 0,
-    };
-  });
+  return ((board.data as any[]) || []).map((r: any) => ({
+    id: r.user_id,
+    name: r.username,
+    money: r.net_worth || 0,
+    level: r.level || 0,
+    friends: friendCount.get(r.user_id) || 0,
+  }));
 }
 
 function Ranking() {

@@ -56,7 +56,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("*")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -67,9 +67,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
-      const correctIndexes: number[] = Array.isArray(row.correct_indexes) && row.correct_indexes.length > 0
-        ? row.correct_indexes
-        : (typeof row.answer_index === "number" ? [row.answer_index] : [0]);
+      // Answers are hidden from clients — resolved server-side via grade_answer rpc.
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
@@ -77,10 +75,10 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
         options,
-        answer: correctIndexes[0] ?? 0,
+        answer: -1,
         reward: row.reward ?? 10,
         imageUrl: row.image_url ?? undefined,
-        correctIndexes,
+        correctIndexes: [],
         optionImages,
         maps,
         enabled,
@@ -97,6 +95,37 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
   } catch (e) {
     console.error("[questions] loadQuestionsFromDB failed", e);
     return QUESTION_CACHE;
+  }
+}
+
+/**
+ * Server-side grading. Client never learns correct answers before submitting.
+ * Returns { isCorrect, correctIndexes, reward }. Mutates `question` to cache
+ * revealed answers so existing UI code (which reads `question.correctIndexes`)
+ * can display feedback.
+ */
+export async function gradeAnswer(
+  question: Question,
+  selected: number,
+): Promise<{ isCorrect: boolean; correctIndexes: number[]; reward: number }> {
+  if (!question.id) {
+    const ci = question.correctIndexes && question.correctIndexes.length > 0
+      ? question.correctIndexes
+      : [question.answer];
+    return { isCorrect: ci.includes(selected), correctIndexes: ci, reward: question.reward ?? 10 };
+  }
+  try {
+    const { data, error } = await supabase.rpc("grade_answer", { qid: question.id, selected });
+    if (error) throw error;
+    const row: any = Array.isArray(data) ? data[0] : data;
+    if (!row) throw new Error("no grade result");
+    const ci: number[] = Array.isArray(row.correct_indexes) ? row.correct_indexes.map((x: any) => Number(x)) : [];
+    question.correctIndexes = ci;
+    question.answer = ci[0] ?? -1;
+    return { isCorrect: !!row.is_correct, correctIndexes: ci, reward: Number(row.reward ?? question.reward ?? 10) };
+  } catch (e) {
+    console.error("[questions] gradeAnswer failed", e);
+    return { isCorrect: false, correctIndexes: [], reward: question.reward ?? 10 };
   }
 }
 

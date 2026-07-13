@@ -460,9 +460,11 @@ function emptyQuestionDraft(): AdminQuestion {
     maps: ["all"],
     reward: 10,
     imageUrl: "",
+    category: "history",
     enabled: true,
     priority: 0,
     competencyLevel: null,
+    competencyDomain: null,
   };
 }
 

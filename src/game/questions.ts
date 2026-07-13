@@ -190,9 +190,9 @@ export function randomQuestion(): Question {
     : [];
 
   const tryDigital = () =>
-    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool) : null;
+    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool, "digital") : null;
   const tryHistory = () =>
-    historyPool.length > 0 ? nextFrameworkQuestion(historyPool) : null;
+    historyPool.length > 0 ? nextFrameworkQuestion(historyPool, "history") : null;
 
   // Nếu chỉ 1 chủ đề còn câu, chủ đề còn lại tự bị bỏ qua.
   const bothHave = digitalPool.length > 0 && historyPool.length > 0;

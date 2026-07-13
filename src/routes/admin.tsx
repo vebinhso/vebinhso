@@ -759,6 +759,111 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
       </div>
 
+      {/* Category master toggles */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-indigo-300 bg-indigo-50">
+        <div className="font-black text-lg mb-2">📚 Mục câu hỏi áp dụng vào 2 bản đồ</div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {([
+            { key: "digital", label: "🌐 Mục 1: Năng lực số", note: "Xuất hiện theo thứ tự bậc 1 → 8 (khung năng lực số)" },
+            { key: "history", label: "🏛️ Mục 2: Năng lực Lịch sử - Văn hoá", note: "Xuất hiện ngẫu nhiên (random)" },
+          ] as const).map((c) => {
+            const on = catToggles[c.key];
+            const count = list.filter((q) => (c.key === "digital" ? q.category === "digital" : q.category !== "digital")).length;
+            return (
+              <div key={c.key} className={`rounded-xl p-3 border-2 flex items-center justify-between gap-3 ${on ? "bg-white border-indigo-400" : "bg-gray-100 border-gray-300 opacity-70"}`}>
+                <div className="min-w-0">
+                  <div className="font-black text-sm">{c.label} <span className="text-xs text-muted-foreground">({count})</span></div>
+                  <div className="text-[11px] font-bold text-muted-foreground">{c.note}</div>
+                </div>
+                <button onClick={() => toggleCategory(c.key)} className={`shrink-0 relative w-14 h-8 rounded-full transition ${on ? "bg-emerald-500" : "bg-gray-400"}`} title="Bật/tắt áp dụng">
+                  <span className={`absolute top-1 ${on ? "left-7" : "left-1"} w-6 h-6 rounded-full bg-white shadow transition-all`} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Auto-classification suggestion */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-purple-300 bg-purple-50">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <div className="font-black text-lg">🧠 Đề xuất phân loại tự động theo Khung năng lực số</div>
+            <div className="text-xs font-bold text-purple-800/80">Hệ thống quét toàn bộ câu hỏi, đề xuất mục / bậc / miền. Bạn xem trước rồi bấm "Đồng ý áp dụng".</div>
+          </div>
+          <button onClick={() => setSuggestOpen((v) => !v)} className="toy-button text-sm bg-purple-500">
+            {suggestOpen ? "Ẩn đề xuất" : "🔍 Xem đề xuất"}
+          </button>
+        </div>
+        {suggestOpen && (() => {
+          const suggestions = list.map((q) => {
+            const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+            const changed = r.category !== (q.category === "digital" ? "digital" : "history")
+              || r.level !== (q.competencyLevel ?? null)
+              || r.domain !== (q.competencyDomain ?? null);
+            return { q, r, changed };
+          });
+          const changedList = suggestions.filter((s) => s.changed);
+          const catDigital = suggestions.filter((s) => s.r.category === "digital").length;
+          const catHistory = suggestions.length - catDigital;
+          const byLevel = [1, 2, 3, 4, 5, 6, 7, 8].map((lv) => ({ lv, n: suggestions.filter((s) => s.r.level === lv).length }));
+          const byDomain = [1, 2, 3, 4, 5, 6].map((dm) => ({ dm, n: suggestions.filter((s) => s.r.domain === dm).length }));
+          return (
+            <div className="mt-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs font-black">
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🌐 Năng lực số: <span className="text-indigo-700">{catDigital}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🏛️ Lịch sử-VH: <span className="text-amber-700">{catHistory}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🔄 Sẽ thay đổi: <span className="text-red-600">{changedList.length}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">Tổng câu: {suggestions.length}</div>
+              </div>
+              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-2">
+                <div className="text-[11px] font-black mb-1">Theo bậc (Digital)</div>
+                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                  {byLevel.map(({ lv, n }) => (
+                    <span key={lv} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {lv}: {n}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-3">
+                <div className="text-[11px] font-black mb-1">Theo miền năng lực</div>
+                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                  {byDomain.map(({ dm, n }) => (
+                    <span key={dm} className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full">M{dm} {DOMAIN_LABELS[dm]}: {n}</span>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  if (changedList.length === 0) { alert("Không có câu nào cần cập nhật — đề xuất đã khớp dữ liệu hiện tại."); return; }
+                  if (!confirm(`Áp dụng đề xuất cho ${changedList.length} câu hỏi?`)) return;
+                  setBusy(true);
+                  try {
+                    const updates = changedList.map(({ q, r }) => ({
+                      id: q.id,
+                      category: r.category,
+                      competencyLevel: r.level,
+                      competencyDomain: r.domain,
+                    }));
+                    const ok = await bulkApplyClassification(updates);
+                    pushAdminLog(`Áp dụng đề xuất phân loại: ${ok}/${changedList.length} câu`);
+                    alert(`Đã áp dụng ${ok}/${changedList.length} câu.`);
+                    await reload();
+                  } catch (e: any) {
+                    alert("Lỗi: " + (e?.message || e));
+                  } finally { setBusy(false); }
+                }}
+                disabled={busy}
+                className="toy-button text-sm bg-emerald-500"
+              >
+                ✅ Đồng ý áp dụng đề xuất ({changedList.length} câu)
+              </button>
+            </div>
+          );
+        })()}
+      </div>
+
+
+
 
 
       {/* Google Sheet import */}

@@ -26,10 +26,11 @@ export type AdminQuestion = {
   maps: string[];
   reward: number;
   imageUrl?: string;
-  category?: string;
+  category?: string; // "digital" | "history"
   enabled: boolean;
   priority: number;
-  competencyLevel?: number | null; // 1..8 khung năng lực số (câu về môi trường số)
+  competencyLevel?: number | null; // 1..8 khung năng lực số
+  competencyDomain?: number | null; // 1..6 (6 miền DigComp)
 };
 
 export type DailyReward = { day: number; coin: number; label: string };
@@ -215,10 +216,11 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
       maps,
       reward: row.reward ?? 10,
       imageUrl: row.image_url ?? "",
-      category: row.category ?? "",
+      category: row.category ?? "history",
       enabled: row.enabled ?? true,
       priority: row.priority ?? 0,
       competencyLevel: (typeof row.competency_level === "number" ? row.competency_level : null),
+      competencyDomain: (typeof row.competency_domain === "number" ? row.competency_domain : null),
       _createdAt: row.created_at ?? "",
     };
   });
@@ -246,11 +248,13 @@ function toDbRow(q: AdminQuestion) {
     maps: (q.maps && q.maps.length > 0 ? q.maps : ["all"]) as any,
     reward: q.reward ?? 10,
     image_url: q.imageUrl || null,
-    category: q.category || null,
+    category: q.category || "history",
     enabled: q.enabled ?? true,
     priority: q.priority ?? 0,
     competency_level: (typeof q.competencyLevel === "number" && q.competencyLevel >= 1 && q.competencyLevel <= 8)
       ? q.competencyLevel : null,
+    competency_domain: (typeof q.competencyDomain === "number" && q.competencyDomain >= 1 && q.competencyDomain <= 6)
+      ? q.competencyDomain : null,
   };
 }
 

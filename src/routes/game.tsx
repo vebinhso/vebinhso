@@ -597,12 +597,14 @@ function GamePage() {
     flash(`🎨 Màu tường mới: ${hex}`);
   };
 
-  const openQuestion = () => {
+  const openQuestion = async () => {
     if (!questionsReady) {
-      flash("⏳ Đang tải câu hỏi...");
-      return;
+      flash("⏳ Đang tải câu hỏi từ ngân hàng...");
+      try { await loadQuestionsFromDB("rural"); setQuestionsReady(true); } catch {}
     }
-    setQuestion(randomQuestion());
+    const q = randomQuestion();
+    if (!q || !q.q) { flash("⚠️ Chưa có câu hỏi trong ngân hàng admin.", 2000); return; }
+    setQuestion(q);
     setQuestionResult(null);
   };
   const closeQuestion = () => {

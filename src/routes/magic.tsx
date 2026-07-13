@@ -1004,6 +1004,13 @@ function MagicPage() {
     return idxs.map((i) => String.fromCharCode(65 + i)).join(", ");
   };
   const [coins, setCoins] = useState(0);
+  const [globalMoney, setGlobalMoney] = useState(() => loadGame().money);
+  useEffect(() => {
+    const sync = () => setGlobalMoney(loadGame().money);
+    sync();
+    window.addEventListener("game-change", sync);
+    return () => window.removeEventListener("game-change", sync);
+  }, []);
   const [won, setWon] = useState(false);
 
   // Stage 2 state

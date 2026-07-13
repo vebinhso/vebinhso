@@ -21,11 +21,14 @@ import {
   reorderPriority,
   getPriorityMode,
   setPriorityMode,
+  getCategoryToggles,
+  setCategoryToggles,
+  bulkApplyClassification,
   type AdminConfig,
   type AdminQuestion,
   type PlayerStat,
 } from "@/lib/admin";
-import { classifyCompetency } from "@/lib/competency-classifier";
+import { classifyCompetency, classifyQuestion, DOMAIN_LABELS } from "@/lib/competency-classifier";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";

@@ -270,7 +270,7 @@ function GamePage() {
     }
     if (it.id === "door") setDoorHint(true);
     setSelected(itemId);
-    setPlaceQueue(times);
+    setPlaceQueue(times > 1 ? times : 0);
     if (times > 1) flash(`🛒 Đã mua ${times} × ${it.name} — bấm vào đất để đặt lần lượt.`);
     setShopOpen(false);
   };

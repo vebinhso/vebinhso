@@ -33,6 +33,8 @@ function Home() {
   const [user, setUser] = useState<Account | null>(null);
   const [streak, setStreak] = useState<LoginStreak | null>(null);
   const [money, setMoney] = useState(0);
+  const [level, setLevel] = useState(0);
+  const [netWorth, setNetWorth] = useState(0);
   const [ready, setReady] = useState(false);
 
   const [friends, setFriends] = useState<Account[]>([]);
@@ -48,6 +50,48 @@ function Home() {
   const [renameBusy, setRenameBusy] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
 
+  const syncGame = () => {
+    const g = loadGame();
+    setMoney(g.money);
+    setLevel(g.level);
+    setNetWorth(g.netWorth);
+  };
+
+  const takeScreenshot = async () => {
+    try {
+      const md = (navigator as any).mediaDevices;
+      if (!md?.getDisplayMedia) {
+        toast.error("Trình duyệt không hỗ trợ chụp màn hình.");
+        return;
+      }
+      const stream: MediaStream = await md.getDisplayMedia({ video: true, audio: false });
+      const track = stream.getVideoTracks()[0];
+      // Chờ 1 frame để có ảnh
+      await new Promise((r) => setTimeout(r, 250));
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(video, 0, 0);
+      track.stop();
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `vebinhso-${Date.now()}.png`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success("Đã lưu ảnh chụp màn hình!");
+      }, "image/png");
+    } catch (e: any) {
+      if (e?.name !== "NotAllowedError") toast.error("Không thể chụp màn hình.");
+    }
+  };
+
   const doRename = async () => {
     setRenameBusy(true);
     const res = await renameAccount(renameVal);
@@ -55,7 +99,7 @@ function Home() {
     if (res.ok) {
       toast.success(res.msg);
       setUser(getCurrentUser());
-      setMoney(loadGame().money);
+      syncGame();
       setRenameOpen(false);
       setRenameVal("");
     } else {
@@ -83,18 +127,21 @@ function Home() {
       }
       setUser(u);
       setStreak(getLoginStreak(u.id));
-      setMoney(loadGame().money);
+      syncGame();
       refreshFriends(u.id);
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {
         const cu = getCurrentUser();
         if (cu) setStreak(getLoginStreak(cu.id));
+        syncGame();
       };
       window.addEventListener("auth-change", refresh);
+      window.addEventListener("game-change", syncGame);
       const t = setTimeout(refresh, 800);
       cleanup = () => {
         window.removeEventListener("auth-change", refresh);
+        window.removeEventListener("game-change", syncGame);
         clearTimeout(t);
       };
     })();
@@ -169,24 +216,25 @@ function Home() {
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
             </p>
             <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
+            <p className="text-xs font-bold text-purple-700">⭐ Cấp {level} • 🏠 {netWorth}đ</p>
           </div>
         </div>
-        <div className="flex flex-col gap-2 mt-12">
-          <Link to="/shop" className="toy-button text-sm">
+        <div className="flex flex-col gap-2 mt-12 w-[160px]">
+          <Link to="/shop" className="toy-button text-sm w-full justify-center">
             🛒 CỬA HÀNG
           </Link>
-          <Link to="/ranking" className="toy-button text-sm">
+          <Link to="/ranking" className="toy-button text-sm w-full justify-center">
             📊 XẾP HẠNG
           </Link>
-          <Link to="/tutorial" className="toy-button text-sm">
+          <Link to="/tutorial" className="toy-button text-sm w-full justify-center">
             📖 HƯỚNG DẪN
           </Link>
           {isAdmin(user.email) && (
-            <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white">
+            <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white w-full justify-center">
               🛡️ ADMIN
             </Link>
           )}
-          <button onClick={handleLogout} className="toy-button text-sm">
+          <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
             🚪 ĐĂNG XUẤT
           </button>
         </div>
@@ -307,17 +355,17 @@ function Home() {
           </Link>
         </div>
 
-        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
+        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap md:w-[180px]">
           <button
             onClick={() => setSurveyOpen(true)}
-            className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300"
+            className="toy-button md:w-full md:justify-center text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300"
           >
             💗 KHẢO SÁT
           </button>
-          <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">
+          <Link to="/missions" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
             🎁 TIỆN ÍCH
           </Link>
-          <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">
+          <Link to="/pets" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
             ⚡ QUYỀN NĂNG
           </Link>
         </aside>
@@ -325,14 +373,18 @@ function Home() {
 
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
         <div className="flex gap-2">
-          <Link to="/chat" className="toy-button text-sm">
+          <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
           </Link>
-          <Link to="/chat" className="toy-button text-sm">
-            📸
-          </Link>
+          <button
+            onClick={takeScreenshot}
+            className="toy-button text-sm min-w-[140px] justify-center"
+            title="Chụp màn hình trò chơi"
+          >
+            📸 CHỤP ẢNH
+          </button>
         </div>
-        <Link to="/events" className="toy-button toy-button-accent">
+        <Link to="/events" className="toy-button toy-button-accent min-w-[180px] justify-center">
           SỰ KIỆN HOT 🔥
         </Link>
       </footer>

@@ -361,6 +361,9 @@ function GamePage() {
       });
       playSfx("place");
       setDoorHint(false);
+      const remain = Math.max(0, placeQueue - 1);
+      setPlaceQueue(remain);
+      if (remain <= 0) setSelected(null);
       return;
     }
 

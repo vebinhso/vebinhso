@@ -1,0 +1,1 @@
+UPDATE public.questions_bank SET maps = '["all"]'::jsonb WHERE maps IS NULL OR jsonb_typeof(maps) <> 'array' OR NOT (maps @> '["all"]'::jsonb);

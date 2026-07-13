@@ -1,0 +1,1 @@
+GRANT SELECT (competency_level, competency_domain) ON public.questions_bank TO authenticated;

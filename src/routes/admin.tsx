@@ -482,6 +482,11 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [selectedCategory, setSelectedCategory] = useState<"all" | "digital" | "history">("all");
   const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [savedFlash, setSavedFlash] = useState<string | null>(null);
+  const flashSaved = (msg: string = "✅ Đã lưu") => {
+    setSavedFlash(msg);
+    setTimeout(() => setSavedFlash(null), 1800);
+  };
 
 
   async function reload() {
@@ -516,7 +521,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   async function toggleEnabled(q: AdminQuestion) {
     const next = !q.enabled;
     setList((cur) => cur.map((x) => x.id === q.id ? { ...x, enabled: next } : x));
-    try { await toggleQuestionEnabled(q.id, next); }
+    try { await toggleQuestionEnabled(q.id, next); flashSaved(next ? "✅ Đã bật câu hỏi" : "✅ Đã ẩn câu hỏi"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
@@ -527,7 +532,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       ? { ...q, category: "history", competencyLevel: null, competencyDomain: null }
       : { ...q, category: "digital" };
     setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); }
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); flashSaved("✅ Đã lưu mục"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
@@ -535,7 +540,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     const r = classifyQuestion(q.q, q.options.map((o) => o.text));
     const patch: AdminQuestion = { ...q, category: r.category, competencyLevel: r.level, competencyDomain: r.domain };
     setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); }
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); flashSaved("✅ Đã áp dụng đề xuất"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
@@ -659,6 +664,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       setEditingId(null);
       setDraft(emptyQuestionDraft());
       await reload();
+      flashSaved("✅ Đã lưu thay đổi câu hỏi");
     } catch (e: any) {
       alert("Lỗi cập nhật: " + (e?.message || e));
     } finally { setBusy(false); }
@@ -752,13 +758,21 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   }
 
   return (
-    <div>
+    <div className="relative">
+      {savedFlash && (
+        <div className="sticky top-2 z-30 mb-2 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-emerald-500 text-white font-black px-4 py-2 rounded-full shadow-lg border-2 border-emerald-700 animate-in fade-in slide-in-from-top-2">
+            {savedFlash}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length}){loading && " — đang tải..."}</h2>
         <div className="flex gap-2">
           <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
         </div>
       </div>
+
 
       {/* Priority mode master toggle */}
       <div className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}>
@@ -964,12 +978,16 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           <ImageUploadField value={draft.imageUrl || ""} onChange={(url) => setDraft({ ...draft, imageUrl: url })} label="ảnh câu hỏi" />
         </div>
         {editingId ? (
-          <div className="flex gap-2">
-            <button onClick={saveEdit} disabled={busy} className="toy-button text-sm bg-green-500">💾 Lưu thay đổi</button>
+          <div className="flex gap-2 items-center flex-wrap sticky bottom-0 bg-white/95 backdrop-blur -mx-3 px-3 py-2 rounded-b-2xl border-t-2 border-green-200">
+            <button onClick={saveEdit} disabled={busy}
+              className="toy-button bg-green-600 hover:bg-green-700 text-white font-black !text-base !px-6 !py-2 shadow-lg border-2 border-green-800">
+              💾 LƯU THAY ĐỔI
+            </button>
             <button onClick={cancelEdit} disabled={busy} className="toy-button text-sm bg-gray-500">✕ Hủy</button>
+            <span className="text-xs font-bold text-emerald-700">Bấm LƯU để xác nhận các chỉnh sửa</span>
           </div>
         ) : (
-          <button onClick={add} disabled={busy} className="toy-button text-sm">+ Thêm câu hỏi</button>
+          <button onClick={add} disabled={busy} className="toy-button text-sm bg-emerald-600 !py-2 !px-4 font-black">💾 + Thêm & Lưu câu hỏi</button>
         )}
       </div>
 

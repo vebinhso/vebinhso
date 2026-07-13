@@ -41,6 +41,7 @@ function GamePage() {
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
+  const [buyQty, setBuyQty] = useState<Record<string, number>>({});
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   
@@ -214,32 +215,36 @@ function GamePage() {
     setTimeout(() => setToast(null), ms);
   };
 
-  const buyAndSelect = (itemId: string) => {
+  const buyAndSelect = (itemId: string, bulkTimes: number = 1) => {
     const it = getItem(itemId);
     if (!it || !state) return;
-    if (state.money < it.price) {
+    const times = Math.max(1, Math.floor(bulkTimes));
+    const totalPrice = it.price * times;
+    if (state.money < totalPrice) {
       flash("❌ Không đủ tiền! Trả lời câu hỏi để kiếm thêm.");
       return;
     }
     const kind = it.kind ?? "place";
     if (kind === "brick") {
-      setState({ ...state, money: state.money - it.price, bricks: state.bricks + (it.qty ?? 10) });
+      const add = (it.qty ?? 10) * times;
+      setState({ ...state, money: state.money - totalPrice, bricks: state.bricks + add });
       playSfx("purchase", { duck: true });
-      flash(`🧱 +${it.qty ?? 10} viên gạch vào kho`);
+      flash(`🧱 +${add} viên gạch vào kho`);
       return;
     }
     if (kind === "concrete") {
-      setState({ ...state, money: state.money - it.price, concrete: state.concrete + (it.qty ?? 1) });
+      const add = (it.qty ?? 1) * times;
+      setState({ ...state, money: state.money - totalPrice, concrete: state.concrete + add });
       playSfx("purchase", { duck: true });
-      flash(`🪣 +${it.qty ?? 1} xô bê tông tươi vào kho`);
+      flash(`🪣 +${add} xô bê tông tươi vào kho`);
       return;
     }
     if (kind === "rooftile") {
-      const qty = it.qty ?? 10;
+      const qty = (it.qty ?? 10) * times;
       const style = it.roofStyle ?? "tile";
       setState({
         ...state,
-        money: state.money - it.price,
+        money: state.money - totalPrice,
         roofTiles: style === "tile" ? state.roofTiles + qty : state.roofTiles,
         roofTilesTon: style === "ton" ? state.roofTilesTon + qty : state.roofTilesTon,
       });
@@ -1240,14 +1245,18 @@ function GamePage() {
             )}
             <div className="p-2 md:p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-3" style={{ scrollbarWidth: "thin" }}>
               {CATALOG.filter((c) => c.category === activeCat).map((it) => {
-                const canAfford = state.money >= it.price;
                 const kind = it.kind ?? "place";
+                const isBulk = kind === "brick" || kind === "concrete" || kind === "rooftile";
+                const qty = Math.max(1, buyQty[it.id] ?? 1);
+                const totalPrice = it.price * (isBulk ? qty : 1);
+                const canAfford = state.money >= totalPrice;
                 const label =
                   kind === "brick" ? "MUA GẠCH" :
                   kind === "concrete" ? "MUA BÊ TÔNG" :
                   kind === "rooftile" ? "MUA GẠCH MÁI" :
                   kind === "palette" ? "MỞ PALETTE" :
                   "MUA & ĐẶT";
+                const setQ = (n: number) => setBuyQty((prev) => ({ ...prev, [it.id]: Math.max(1, Math.min(99, n)) }));
                 return (
                   <div key={it.id} className="relative rounded-2xl md:rounded-3xl p-2 md:p-3 text-center border-2 border-amber-200" style={{
                     background: "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
@@ -1259,10 +1268,25 @@ function GamePage() {
                     }}>{it.icon}</div>
                     <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{it.name}</div>
                     <div className="text-[9px] md:text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d}</div>
-                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">💰 {it.price}đ</div>
-                    <button onClick={() => buyAndSelect(it.id)} disabled={!canAfford}
+                    <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">
+                      💰 {totalPrice}đ{isBulk && qty > 1 ? ` (${it.price}×${qty})` : ""}
+                    </div>
+                    {isBulk && (
+                      <div className="mt-1 flex items-center justify-center gap-1">
+                        <button onClick={() => setQ(qty - 1)} disabled={qty <= 1}
+                          className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-amber-700 text-white font-black text-sm md:text-base disabled:opacity-40 leading-none">−</button>
+                        <input
+                          type="number" min={1} max={99} value={qty}
+                          onChange={(e) => setQ(parseInt(e.target.value) || 1)}
+                          className="w-9 md:w-11 text-center rounded-md border-2 border-amber-300 bg-white font-black text-[11px] md:text-sm py-0.5"
+                        />
+                        <button onClick={() => setQ(qty + 1)}
+                          className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-amber-700 text-white font-black text-sm md:text-base leading-none">+</button>
+                      </div>
+                    )}
+                    <button onClick={() => buyAndSelect(it.id, isBulk ? qty : 1)} disabled={!canAfford}
                       className={`toy-button !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3 mt-2 w-full ${canAfford ? `toy-button-primary !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3` : "opacity-50"}`}>
-                      {canAfford ? label : "Hết tiền"}
+                      {canAfford ? (isBulk && qty > 1 ? `${label} ×${qty}` : label) : "Hết tiền"}
                     </button>
                   </div>
                 );

@@ -214,32 +214,36 @@ function GamePage() {
     setTimeout(() => setToast(null), ms);
   };
 
-  const buyAndSelect = (itemId: string) => {
+  const buyAndSelect = (itemId: string, bulkTimes: number = 1) => {
     const it = getItem(itemId);
     if (!it || !state) return;
-    if (state.money < it.price) {
+    const times = Math.max(1, Math.floor(bulkTimes));
+    const totalPrice = it.price * times;
+    if (state.money < totalPrice) {
       flash("❌ Không đủ tiền! Trả lời câu hỏi để kiếm thêm.");
       return;
     }
     const kind = it.kind ?? "place";
     if (kind === "brick") {
-      setState({ ...state, money: state.money - it.price, bricks: state.bricks + (it.qty ?? 10) });
+      const add = (it.qty ?? 10) * times;
+      setState({ ...state, money: state.money - totalPrice, bricks: state.bricks + add });
       playSfx("purchase", { duck: true });
-      flash(`🧱 +${it.qty ?? 10} viên gạch vào kho`);
+      flash(`🧱 +${add} viên gạch vào kho`);
       return;
     }
     if (kind === "concrete") {
-      setState({ ...state, money: state.money - it.price, concrete: state.concrete + (it.qty ?? 1) });
+      const add = (it.qty ?? 1) * times;
+      setState({ ...state, money: state.money - totalPrice, concrete: state.concrete + add });
       playSfx("purchase", { duck: true });
-      flash(`🪣 +${it.qty ?? 1} xô bê tông tươi vào kho`);
+      flash(`🪣 +${add} xô bê tông tươi vào kho`);
       return;
     }
     if (kind === "rooftile") {
-      const qty = it.qty ?? 10;
+      const qty = (it.qty ?? 10) * times;
       const style = it.roofStyle ?? "tile";
       setState({
         ...state,
-        money: state.money - it.price,
+        money: state.money - totalPrice,
         roofTiles: style === "tile" ? state.roofTiles + qty : state.roofTiles,
         roofTilesTon: style === "ton" ? state.roofTilesTon + qty : state.roofTilesTon,
       });

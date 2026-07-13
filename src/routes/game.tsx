@@ -669,13 +669,17 @@ function GamePage() {
       setTimeout(() => setSparkles((arr) => arr.filter((s) => s.id !== sid)), 1100);
       flash("✨ +10đ", 900);
     } else {
-      // Boom: mở modal trả lời 2 câu hỏi
+      // Boom: mở modal trả lời câu hỏi từ ngân hàng admin
       playSfx("wrongHouse", { duck: true });
       if (!questionsReady) {
-        flash("💣 Đạp trúng boom! (chưa có câu hỏi)", 1500);
+        try { await loadQuestionsFromDB("rural"); setQuestionsReady(true); } catch {}
+      }
+      const bq = randomQuestion();
+      if (!bq || !bq.q) {
+        flash("💣 Đạp trúng boom! (chưa có câu hỏi trong ngân hàng admin)", 1800);
         return;
       }
-      setBoom({ q: randomQuestion(), tries: 0, correct: 0, gained: 0 });
+      setBoom({ q: bq, tries: 0, correct: 0, gained: 0 });
       setBoomResult(null);
     }
   };

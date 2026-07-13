@@ -605,8 +605,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
-      await createQuestion({ ...draft, competencyLevel: auto });
+      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
+      await createQuestion({ ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
       pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
       setDraft(emptyQuestionDraft());
       await reload();
@@ -634,8 +634,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
-      await updateQuestion(editingId, { ...draft, competencyLevel: auto });
+      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
+      await updateQuestion(editingId, { ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
       setDraft(emptyQuestionDraft());
@@ -716,8 +716,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
-        const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
-        try { await createQuestion({ ...q, competencyLevel: auto }); ok++; } catch { /* skip */ }
+        const auto = classifyQuestion(q.q, q.options.map((o) => o.text));
+        try { await createQuestion({ ...q, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain }); ok++; } catch { /* skip */ }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
       alert(`Đã import ${ok}/${parsed.length} câu hỏi`);

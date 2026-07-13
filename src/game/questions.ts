@@ -175,19 +175,48 @@ function pickAvoidingRecent(pool: Question[]): Question {
 
 export function randomQuestion(): Question {
   const arr = getQuestions();
-  // Khung năng lực số — nếu có bất kỳ câu có competencyLevel, ưu tiên hết
-  const framework = arr.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
-  if (framework.length > 0) {
-    const q = nextFrameworkQuestion(framework);
-    if (q) return q;
+  const digitalOn = CAT_TOGGLES.digital;
+  const historyOn = CAT_TOGGLES.history;
+
+  const digitalPool = arr.filter((q) => q.category === "digital");
+  const historyPool = arr.filter((q) => q.category !== "digital");
+
+  // Chọn nhóm theo toggle
+  let useDigital = false;
+  if (digitalOn && historyOn) {
+    // Cả hai bật → 50/50 giữa hai nhóm
+    useDigital = Math.random() < 0.5 && digitalPool.length > 0;
+    if (!useDigital && historyPool.length === 0) useDigital = digitalPool.length > 0;
+  } else if (digitalOn) {
+    useDigital = true;
+  } else if (historyOn) {
+    useDigital = false;
+  } else {
+    // Cả hai tắt → fallback toàn bộ
+    return pickAvoidingRecent(arr);
   }
-  if (PRIORITY_MODE) {
-    const zone = arr.filter((q) => (q.priority ?? 0) > 0);
-    if (zone.length > 0) {
-      return pickAvoidingRecent(zone);
+
+  if (useDigital) {
+    // Mục 1 (Năng lực số): thứ tự bậc 1 → 8 theo framework
+    const framework = digitalPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
+    if (framework.length > 0) {
+      const q = nextFrameworkQuestion(framework);
+      if (q) return q;
     }
+    if (PRIORITY_MODE) {
+      const zone = digitalPool.filter((q) => (q.priority ?? 0) > 0);
+      if (zone.length > 0) return pickAvoidingRecent(zone);
+    }
+    if (digitalPool.length > 0) return pickAvoidingRecent(digitalPool);
   }
-  return pickAvoidingRecent(arr);
+
+  // Mục 2 (Lịch sử - Văn hoá): random thuần
+  if (PRIORITY_MODE) {
+    const zone = historyPool.filter((q) => (q.priority ?? 0) > 0);
+    if (zone.length > 0) return pickAvoidingRecent(zone);
+  }
+  const pool = historyPool.length > 0 ? historyPool : arr;
+  return pickAvoidingRecent(pool);
 }
 
 /* ===================== KHUNG NĂNG LỰC SỐ — Hàng đợi theo user ===================== */

@@ -190,3 +190,38 @@ export const STACK_TOPPERS = new Set<string>([
 export function canStackOn(topperId: string, surfaceId: string): boolean {
   return STACK_TOPPERS.has(topperId) && STACK_SURFACES.has(surfaceId);
 }
+
+// Chiều cao thực của mặt NÓC (đỉnh) của surface, đo từ đáy model.
+// Nếu không khai báo → dùng catalog.h.
+const SURFACE_TOP_Y: Record<string, number> = {
+  tvstand: 0.9,       // mesh 0..0.9
+  cabinet: 1.0,
+  lavabocab: 1.0,
+  table: 1.0,
+  roundtable: 1.0,
+  desk: 2.0,
+  diningtable: 1.0,
+  balconytable: 1.0,
+  fridge: 2.5,
+  fridge3: 2.5,
+  wardrobe: 2.5,
+  bookshelf: 3.0,
+  washer: 1.0,
+  stonebench: 0.6,
+  sink: 1.0,
+};
+
+// Chiều cao đáy thực của topper (khoảng cách từ gốc model đến điểm thấp nhất
+// muốn tiếp xúc với mặt nóc surface). Không khai báo → 0.
+const TOPPER_BOTTOM_Y: Record<string, number> = {
+  tv: 0.06,       // chân đế TV nằm ở y=0.06..0.14
+};
+
+export function surfaceTopY(id: string): number {
+  const it = CATALOG.find((c) => c.id === id);
+  return SURFACE_TOP_Y[id] ?? (it?.h ?? 0);
+}
+
+export function topperBottomY(id: string): number {
+  return TOPPER_BOTTOM_Y[id] ?? 0;
+}

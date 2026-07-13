@@ -18,7 +18,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -385,8 +385,7 @@ function GamePage() {
       if (!allSurfaces) return;
       stackY = Math.max(
         ...overlaps.map((p) => {
-          const pi = getItem(p.itemId)!;
-          return (p.stackY ?? 0) + pi.h;
+          return (p.stackY ?? 0) + surfaceTopY(p.itemId);
         })
       );
     }
@@ -1105,6 +1104,36 @@ function GamePage() {
             }),
           });
         };
+        // Tìm surface đang nằm dưới topper (footprint chồng lấn + cùng tầng)
+        const isTopper = STACK_TOPPERS.has(ed.itemId);
+        const edSwap = ed.rotation % 2 === 1;
+        const edW = edSwap ? it.d : it.w;
+        const edD = edSwap ? it.w : it.d;
+        const edCX = typeof ed.angleRad === "number" ? ed.x : ed.x + edW / 2;
+        const edCZ = typeof ed.angleRad === "number" ? ed.z : ed.z + edD / 2;
+        const surfaceUnder = isTopper ? state.placed.find((p) => {
+          if (p.id === ed.id) return false;
+          if ((p.floor ?? 0) !== (ed.floor ?? 0)) return false;
+          if (!STACK_SURFACES.has(p.itemId) || !canStackOn(ed.itemId, p.itemId)) return false;
+          const pi = getItem(p.itemId);
+          if (!pi) return false;
+          const ps = p.rotation % 2 === 1;
+          const pw = ps ? pi.d : pi.w;
+          const pd = ps ? pi.w : pi.d;
+          const pCX = typeof p.angleRad === "number" ? p.x : p.x + pw / 2;
+          const pCZ = typeof p.angleRad === "number" ? p.z : p.z + pd / 2;
+          return Math.abs(edCX - pCX) <= pw / 2 && Math.abs(edCZ - pCZ) <= pd / 2;
+        }) : null;
+        const surfaceItem = surfaceUnder ? getItem(surfaceUnder.itemId) : null;
+        const snapOnto = () => {
+          if (!surfaceUnder || !surfaceItem) return;
+          const newStackY = (surfaceUnder.stackY ?? 0) + surfaceTopY(surfaceUnder.itemId);
+          setState({
+            ...state,
+            placed: state.placed.map((p) => (p.id === editingId ? { ...p, stackY: newStackY } : p)),
+          });
+          flash(`✅ Đã đặt lên ${surfaceItem.name}`);
+        };
         return (
           <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-48 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1117,6 +1146,15 @@ function GamePage() {
               >🗑 Xoá</button>
               <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">Xong</button>
             </div>
+            {surfaceItem && (
+              <div className="mb-2">
+                <button
+                  onClick={snapOnto}
+                  className="toy-button toy-button-green !text-xs !py-1 !px-3 w-full"
+                  title="Bù trừ chân đế để đáy vật sát nóc"
+                >📦 Đặt vật trên {surfaceItem.name}</button>
+              </div>
+            )}
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-bold w-12">Xoay:</span>
               <input

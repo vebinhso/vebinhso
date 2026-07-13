@@ -175,29 +175,28 @@ export function randomQuestion(): Question {
   const digitalOn = CAT_TOGGLES.digital;
   const historyOn = CAT_TOGGLES.history;
 
-  const digitalPool = arr.filter((q) => q.category === "digital");
-  const historyPool = arr.filter((q) => q.category !== "digital");
+  // Khi bật chế độ ưu tiên: CHỈ dùng câu có priority > 0.
+  // Khi tắt: dùng toàn bộ ngân hàng.
+  const scope = PRIORITY_MODE ? arr.filter((q) => (q.priority ?? 0) > 0) : arr;
 
-  // Xác định nhóm ưu tiên theo toggle admin
+  const digitalPool = scope.filter((q) => q.category === "digital");
+  const historyPool = scope.filter((q) => q.category !== "digital");
+
   const tryDigital = () => {
-    // Mục 1 (Năng lực số): ưu tiên theo bậc 1 → 8
+    // Năng lực số: theo hàng đợi cấp bậc 1 → 8
     const framework = digitalPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
     if (framework.length > 0) {
       const q = nextFrameworkQuestion(framework);
       if (q) return q;
     }
-    if (PRIORITY_MODE) {
-      const zone = digitalPool.filter((q) => (q.priority ?? 0) > 0);
-      const p = pickAvoidingRecent(zone);
-      if (p) return p;
-    }
     return pickAvoidingRecent(digitalPool);
   };
   const tryHistory = () => {
-    if (PRIORITY_MODE) {
-      const zone = historyPool.filter((q) => (q.priority ?? 0) > 0);
-      const p = pickAvoidingRecent(zone);
-      if (p) return p;
+    // Lịch sử - Văn hoá: nếu có gắn bậc thì cũng đi tuần tự theo bậc
+    const framework = historyPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
+    if (framework.length > 0) {
+      const q = nextFrameworkQuestion(framework);
+      if (q) return q;
     }
     return pickAvoidingRecent(historyPool);
   };
@@ -206,12 +205,14 @@ export function randomQuestion(): Question {
   if (digitalOn && historyOn) {
     order = Math.random() < 0.5 ? [tryDigital, tryHistory] : [tryHistory, tryDigital];
   } else if (digitalOn) {
-    order = [tryDigital, tryHistory];
+    order = [tryDigital];
   } else if (historyOn) {
-    order = [tryHistory, tryDigital];
+    order = [tryHistory];
   } else {
     order = [tryDigital, tryHistory];
   }
+
+
 
   for (const fn of order) {
     const q = fn();

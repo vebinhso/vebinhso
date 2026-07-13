@@ -521,7 +521,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   async function toggleEnabled(q: AdminQuestion) {
     const next = !q.enabled;
     setList((cur) => cur.map((x) => x.id === q.id ? { ...x, enabled: next } : x));
-    try { await toggleQuestionEnabled(q.id, next); }
+    try { await toggleQuestionEnabled(q.id, next); flashSaved(next ? "✅ Đã bật câu hỏi" : "✅ Đã ẩn câu hỏi"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 

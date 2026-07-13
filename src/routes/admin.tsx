@@ -664,6 +664,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       setEditingId(null);
       setDraft(emptyQuestionDraft());
       await reload();
+      flashSaved("✅ Đã lưu thay đổi câu hỏi");
     } catch (e: any) {
       alert("Lỗi cập nhật: " + (e?.message || e));
     } finally { setBusy(false); }

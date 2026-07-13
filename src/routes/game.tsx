@@ -42,6 +42,7 @@ function GamePage() {
   const [shopOpen, setShopOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
   const [buyQty, setBuyQty] = useState<Record<string, number>>({});
+  const [placeQueue, setPlaceQueue] = useState<number>(0);
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   

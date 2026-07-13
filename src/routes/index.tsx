@@ -33,6 +33,8 @@ function Home() {
   const [user, setUser] = useState<Account | null>(null);
   const [streak, setStreak] = useState<LoginStreak | null>(null);
   const [money, setMoney] = useState(0);
+  const [level, setLevel] = useState(0);
+  const [netWorth, setNetWorth] = useState(0);
   const [ready, setReady] = useState(false);
 
   const [friends, setFriends] = useState<Account[]>([]);

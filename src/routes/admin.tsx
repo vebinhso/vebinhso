@@ -1125,31 +1125,35 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                     🏛️ Lịch sử-VH
                   </button>
                 </div>
-                {typeof q.competencyLevel === "number" && (
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {q.competencyLevel}</span>
-                )}
-                {typeof q.competencyDomain === "number" && (
-                  <span className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full" title={DOMAIN_LABELS[q.competencyDomain]}>
-                    M{q.competencyDomain}
-                  </span>
-                )}
+                {(() => {
+                  const curCat = q.category === "digital" ? "digital" : "history";
+                  const curLvl = typeof q.competencyLevel === "number" ? q.competencyLevel : null;
+                  const badge = curLvl
+                    ? (curCat === "digital"
+                        ? `🌐 Bậc ${curLvl}`
+                        : `🏛️ Bậc ${curLvl}`)
+                    : (curCat === "digital" ? "🌐 Chưa gắn bậc" : "🏛️ Chưa gắn bậc");
+                  return (
+                    <span className={`px-2 py-0.5 rounded-full ${curLvl ? "bg-indigo-100 text-indigo-800" : "bg-yellow-100 text-yellow-800"}`}>
+                      {badge}
+                    </span>
+                  );
+                })()}
                 {(() => {
                   const r = classifyQuestion(q.q, q.options.map((o) => o.text));
                   const curCat = q.category === "digital" ? "digital" : "history";
-                  const diff = r.category !== curCat || r.level !== (q.competencyLevel ?? null) || r.domain !== (q.competencyDomain ?? null);
-                  if (!diff) return (
-                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full" title="Phân loại hiện tại khớp với đề xuất">✓ Khớp đề xuất</span>
-                  );
+                  const diff = r.category !== curCat || r.level !== (q.competencyLevel ?? null);
+                  if (!diff) return null;
                   const label = r.category === "digital"
-                    ? `Đề xuất: 🌐 Bậc ${r.level ?? "?"}${r.domain ? ` · M${r.domain}` : ""}`
-                    : "Đề xuất: 🏛️ Lịch sử-VH";
+                    ? `🌐 Bậc ${r.level ?? "?"}`
+                    : `🏛️ Bậc ${r.level ?? "?"}`;
                   return (
                     <button
                       onClick={() => applySuggestionOne(q)}
                       className="px-2 py-0.5 bg-purple-100 text-purple-800 hover:bg-purple-200 rounded-full font-black"
-                      title="Áp dụng đề xuất mục/bậc/miền cho câu này"
+                      title="Áp dụng đề xuất mục & bậc cho câu này"
                     >
-                      💡 {label} — Áp dụng
+                      💡 Đề xuất: {label} — Áp dụng
                     </button>
                   );
                 })()}

@@ -520,6 +520,25 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
+  async function setQuestionCategory(q: AdminQuestion, cat: "digital" | "history") {
+    if (q.category === cat) return;
+    // Khi chuyển sang lịch sử-VH → xoá bậc & miền (không thuộc khung năng lực số)
+    const patch: AdminQuestion = cat === "history"
+      ? { ...q, category: "history", competencyLevel: null, competencyDomain: null }
+      : { ...q, category: "digital" };
+    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
+  async function applySuggestionOne(q: AdminQuestion) {
+    const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+    const patch: AdminQuestion = { ...q, category: r.category, competencyLevel: r.level, competencyDomain: r.domain };
+    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
   async function addToPriority(q: AdminQuestion) {
     const maxP = list.reduce((m, x) => Math.max(m, x.priority || 0), 0);
     const priorityCount = list.filter((x) => (x.priority || 0) > 0).length;

@@ -657,7 +657,7 @@ function GamePage() {
       return next;
     });
   };
-  const handlePickup = (p: Pickup) => {
+  const handlePickup = async (p: Pickup) => {
     if (collectedIds.has(p.id)) return;
     markCollected(p.id);
     if (p.kind === "coin") {

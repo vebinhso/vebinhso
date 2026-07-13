@@ -758,13 +758,21 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   }
 
   return (
-    <div>
+    <div className="relative">
+      {savedFlash && (
+        <div className="sticky top-2 z-30 mb-2 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-emerald-500 text-white font-black px-4 py-2 rounded-full shadow-lg border-2 border-emerald-700 animate-in fade-in slide-in-from-top-2">
+            {savedFlash}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length}){loading && " — đang tải..."}</h2>
         <div className="flex gap-2">
           <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
         </div>
       </div>
+
 
       {/* Priority mode master toggle */}
       <div className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}>

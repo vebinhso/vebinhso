@@ -190,9 +190,9 @@ export function randomQuestion(): Question {
     : [];
 
   const tryDigital = () =>
-    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool) : null;
+    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool, "digital") : null;
   const tryHistory = () =>
-    historyPool.length > 0 ? nextFrameworkQuestion(historyPool) : null;
+    historyPool.length > 0 ? nextFrameworkQuestion(historyPool, "history") : null;
 
   // Nếu chỉ 1 chủ đề còn câu, chủ đề còn lại tự bị bỏ qua.
   const bothHave = digitalPool.length > 0 && historyPool.length > 0;
@@ -264,18 +264,18 @@ type DigitalState = {
   done: string[];          // id đã trả lời đúng
 };
 
-function digitalStorageKey(): string {
-  return `vbs_digital_queue_${currentUserSeed()}`;
+function queueStorageKey(cat: string): string {
+  return `vbs_qqueue_${cat}_${currentUserSeed()}`;
 }
-function loadDigitalState(): DigitalState | null {
+function loadQueueState(cat: string): DigitalState | null {
   try {
-    const raw = localStorage.getItem(digitalStorageKey());
+    const raw = localStorage.getItem(queueStorageKey(cat));
     if (!raw) return null;
     return JSON.parse(raw);
   } catch { return null; }
 }
-function saveDigitalState(s: DigitalState) {
-  try { localStorage.setItem(digitalStorageKey(), JSON.stringify(s)); } catch {}
+function saveQueueState(cat: string, s: DigitalState) {
+  try { localStorage.setItem(queueStorageKey(cat), JSON.stringify(s)); } catch {}
 }
 function makeFingerprint(pool: Question[]): string {
   const parts = pool
@@ -299,26 +299,26 @@ function buildOrder(pool: Question[], rng: () => number): string[] {
   return out;
 }
 
-function nextFrameworkQuestion(pool: Question[]): Question | null {
+function nextFrameworkQuestion(pool: Question[], cat: string): Question | null {
   const fp = makeFingerprint(pool);
-  const rng = mulberry32(hash32(currentUserSeed() + "|" + fp));
-  let st = loadDigitalState();
+  const rng = mulberry32(hash32(currentUserSeed() + "|" + cat + "|" + fp));
+  let st = loadQueueState(cat);
   if (!st || st.fp !== fp) {
     st = { fp, order: buildOrder(pool, rng), pos: 0, retry: {}, done: [] };
-    saveDigitalState(st);
+    saveQueueState(cat, st);
   }
-  // Nếu hết queue → reshuffle & reset done (nhưng giữ nhớ done trong session hiện tại)
+  // Hết vòng → reshuffle & reset (bắt đầu vòng lặp mới, không lặp trước khi hết vòng)
   if (st.pos >= st.order.length) {
     st = { fp, order: buildOrder(pool, rng), pos: 0, retry: {}, done: [] };
-    saveDigitalState(st);
+    saveQueueState(cat, st);
   }
-  // Bỏ qua câu đã done
+  // Bỏ qua câu đã done trong vòng hiện tại
   while (st.pos < st.order.length) {
     const id = st.order[st.pos];
     if (st.done.includes(id)) { st.pos++; continue; }
     const q = pool.find((x) => x.id === id);
     if (!q) { st.pos++; continue; }
-    saveDigitalState(st);
+    saveQueueState(cat, st);
     return q;
   }
   return null;
@@ -330,7 +330,8 @@ function nextFrameworkQuestion(pool: Question[]): Question | null {
  */
 export function reportAnswerResult(question: Question | null | undefined, correct: boolean) {
   if (!question?.id || typeof question.competencyLevel !== "number") return;
-  const st = loadDigitalState();
+  const cat = question.category === "digital" ? "digital" : "history";
+  const st = loadQueueState(cat);
   if (!st) return;
   const id = question.id;
   if (correct) {
@@ -339,12 +340,12 @@ export function reportAnswerResult(question: Question | null | undefined, correc
   } else {
     const times = st.retry[id] ?? 0;
     if (times < 1) {
-      // Re-insert 2 vị trí phía sau để xuất hiện lại một lần
+      // Re-insert 3 vị trí phía sau để xuất hiện lại một lần trong CÙNG vòng
       st.retry[id] = times + 1;
       const insertAt = Math.min(st.order.length, st.pos + 3);
       st.order.splice(insertAt, 0, id);
     }
     st.pos++;
   }
-  saveDigitalState(st);
+  saveQueueState(cat, st);
 }

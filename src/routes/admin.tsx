@@ -479,14 +479,18 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [priorityModeOn, setPriorityModeOn] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | "all" | "none">("all");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "digital" | "history">("all");
+  const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
 
   async function reload() {
     setLoading(true);
     try {
-      const [data, mode] = await Promise.all([fetchQuestions(), getPriorityMode()]);
+      const [data, mode, toggles] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles()]);
       setList(data);
       setPriorityModeOn(mode);
+      setCatToggles(toggles);
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -494,6 +498,13 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function toggleCategory(key: "digital" | "history") {
+    const next = { ...catToggles, [key]: !catToggles[key] };
+    setCatToggles(next);
+    try { await setCategoryToggles(next); pushAdminLog(`Mục ${key === "digital" ? "Năng lực số" : "Lịch sử-Văn hoá"}: ${next[key] ? "BẬT" : "TẮT"}`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setCatToggles(catToggles); }
+  }
 
   async function togglePriorityMode() {
     const next = !priorityModeOn;

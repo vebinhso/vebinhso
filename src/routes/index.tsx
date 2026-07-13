@@ -57,6 +57,41 @@ function Home() {
     setNetWorth(g.netWorth);
   };
 
+  const takeScreenshot = async () => {
+    try {
+      const md = (navigator as any).mediaDevices;
+      if (!md?.getDisplayMedia) {
+        toast.error("Trình duyệt không hỗ trợ chụp màn hình.");
+        return;
+      }
+      const stream: MediaStream = await md.getDisplayMedia({ video: true, audio: false });
+      const track = stream.getVideoTracks()[0];
+      // Chờ 1 frame để có ảnh
+      await new Promise((r) => setTimeout(r, 250));
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(video, 0, 0);
+      track.stop();
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `vebinhso-${Date.now()}.png`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success("Đã lưu ảnh chụp màn hình!");
+      }, "image/png");
+    } catch (e: any) {
+      if (e?.name !== "NotAllowedError") toast.error("Không thể chụp màn hình.");
+    }
+  };
+
   const doRename = async () => {
     setRenameBusy(true);
     const res = await renameAccount(renameVal);

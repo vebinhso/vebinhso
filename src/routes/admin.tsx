@@ -978,12 +978,16 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           <ImageUploadField value={draft.imageUrl || ""} onChange={(url) => setDraft({ ...draft, imageUrl: url })} label="ảnh câu hỏi" />
         </div>
         {editingId ? (
-          <div className="flex gap-2">
-            <button onClick={saveEdit} disabled={busy} className="toy-button text-sm bg-green-500">💾 Lưu thay đổi</button>
+          <div className="flex gap-2 items-center flex-wrap sticky bottom-0 bg-white/95 backdrop-blur -mx-3 px-3 py-2 rounded-b-2xl border-t-2 border-green-200">
+            <button onClick={saveEdit} disabled={busy}
+              className="toy-button bg-green-600 hover:bg-green-700 text-white font-black !text-base !px-6 !py-2 shadow-lg border-2 border-green-800">
+              💾 LƯU THAY ĐỔI
+            </button>
             <button onClick={cancelEdit} disabled={busy} className="toy-button text-sm bg-gray-500">✕ Hủy</button>
+            <span className="text-xs font-bold text-emerald-700">Bấm LƯU để xác nhận các chỉnh sửa</span>
           </div>
         ) : (
-          <button onClick={add} disabled={busy} className="toy-button text-sm">+ Thêm câu hỏi</button>
+          <button onClick={add} disabled={busy} className="toy-button text-sm bg-emerald-600 !py-2 !px-4 font-black">💾 + Thêm & Lưu câu hỏi</button>
         )}
       </div>
 

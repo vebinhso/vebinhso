@@ -7,13 +7,14 @@ export type Question = {
   answer: number; // index (first correct)
   reward: number;
   imageUrl?: string;
-  // Extended (for future use)
   correctIndexes?: number[];
   optionImages?: string[];
   maps?: string[];
   enabled?: boolean;
   priority?: number;
-  competencyLevel?: number | null; // 1..8 khung năng lực số
+  category?: string; // "digital" | "history"
+  competencyLevel?: number | null; // 1..8
+  competencyDomain?: number | null; // 1..6
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [];
@@ -21,8 +22,22 @@ export const DEFAULT_QUESTIONS: Question[] = [];
 
 let QUESTION_CACHE: Question[] = [];
 let PRIORITY_MODE = false;
+let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
 const MAX_RECENT = 20;
+
+export async function loadCategoryToggles(): Promise<{ digital: boolean; history: boolean }> {
+  try {
+    const { data } = await supabase
+      .from("admin_config")
+      .select("value")
+      .eq("key", "category_toggles")
+      .maybeSingle();
+    const v: any = (data as any)?.value || {};
+    CAT_TOGGLES = { digital: v.digital !== false, history: v.history !== false };
+  } catch {}
+  return CAT_TOGGLES;
+}
 
 export async function loadPriorityMode(): Promise<boolean> {
   try {

@@ -984,17 +984,19 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           </button>
           <button
             onClick={async () => {
-              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số?`)) return;
+              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số (mục + bậc + miền)?`)) return;
               setBusy(true);
               let changed = 0;
               try {
+                const updates: { id: string; category: string; competencyLevel: number | null; competencyDomain: number | null }[] = [];
                 for (const q of list) {
-                  const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
-                  if (auto !== q.competencyLevel) {
-                    await updateQuestion(q.id, { ...q, competencyLevel: auto });
-                    changed++;
+                  const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+                  const curCat = q.category === "digital" ? "digital" : "history";
+                  if (r.category !== curCat || r.level !== (q.competencyLevel ?? null) || r.domain !== (q.competencyDomain ?? null)) {
+                    updates.push({ id: q.id, category: r.category, competencyLevel: r.level, competencyDomain: r.domain });
                   }
                 }
+                changed = await bulkApplyClassification(updates);
                 pushAdminLog(`Tự phân loại lại ${changed}/${list.length} câu`);
                 alert(`Đã phân loại lại ${changed}/${list.length} câu.`);
                 await reload();
@@ -1008,7 +1010,22 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             🔄 Tự phân loại lại toàn bộ
           </button>
         </div>
+        {/* Category filter */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {([
+            { key: "all" as const, label: `Tất cả mục (${list.length})` },
+            { key: "digital" as const, label: `🌐 Năng lực số (${list.filter((q) => q.category === "digital").length})` },
+            { key: "history" as const, label: `🏛️ Lịch sử-VH (${list.filter((q) => q.category !== "digital").length})` },
+          ]).map((c) => (
+            <button key={c.key} onClick={() => setSelectedCategory(c.key)}
+              className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedCategory === c.key ? "bg-purple-600 text-white border-purple-700" : "bg-white border-purple-200"}`}>
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+
 
       {(() => {
         const matchesLevel = (q: AdminQuestion) => {

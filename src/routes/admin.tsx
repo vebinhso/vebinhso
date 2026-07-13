@@ -700,7 +700,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
-        try { await createQuestion(q); ok++; } catch { /* skip */ }
+        const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
+        try { await createQuestion({ ...q, competencyLevel: auto }); ok++; } catch { /* skip */ }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
       alert(`Đã import ${ok}/${parsed.length} câu hỏi`);

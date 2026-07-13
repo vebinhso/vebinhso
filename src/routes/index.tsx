@@ -50,6 +50,13 @@ function Home() {
   const [renameBusy, setRenameBusy] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
 
+  const syncGame = () => {
+    const g = loadGame();
+    setMoney(g.money);
+    setLevel(g.level);
+    setNetWorth(g.netWorth);
+  };
+
   const doRename = async () => {
     setRenameBusy(true);
     const res = await renameAccount(renameVal);
@@ -57,7 +64,7 @@ function Home() {
     if (res.ok) {
       toast.success(res.msg);
       setUser(getCurrentUser());
-      setMoney(loadGame().money);
+      syncGame();
       setRenameOpen(false);
       setRenameVal("");
     } else {

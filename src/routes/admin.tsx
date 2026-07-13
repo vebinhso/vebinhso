@@ -532,7 +532,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       ? { ...q, category: "history", competencyLevel: null, competencyDomain: null }
       : { ...q, category: "digital" };
     setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); }
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); flashSaved("✅ Đã lưu mục"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
@@ -540,7 +540,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     const r = classifyQuestion(q.q, q.options.map((o) => o.text));
     const patch: AdminQuestion = { ...q, category: r.category, competencyLevel: r.level, competencyDomain: r.domain };
     setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); }
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); flashSaved("✅ Đã áp dụng đề xuất"); }
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 

@@ -618,7 +618,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      await updateQuestion(editingId, draft);
+      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
+      await updateQuestion(editingId, { ...draft, competencyLevel: auto });
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
       setDraft(emptyQuestionDraft());

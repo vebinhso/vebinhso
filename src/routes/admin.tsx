@@ -21,11 +21,14 @@ import {
   reorderPriority,
   getPriorityMode,
   setPriorityMode,
+  getCategoryToggles,
+  setCategoryToggles,
+  bulkApplyClassification,
   type AdminConfig,
   type AdminQuestion,
   type PlayerStat,
 } from "@/lib/admin";
-import { classifyCompetency } from "@/lib/competency-classifier";
+import { classifyCompetency, classifyQuestion, DOMAIN_LABELS } from "@/lib/competency-classifier";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";
@@ -457,9 +460,11 @@ function emptyQuestionDraft(): AdminQuestion {
     maps: ["all"],
     reward: 10,
     imageUrl: "",
+    category: "history",
     enabled: true,
     priority: 0,
     competencyLevel: null,
+    competencyDomain: null,
   };
 }
 
@@ -474,14 +479,18 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [priorityModeOn, setPriorityModeOn] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | "all" | "none">("all");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "digital" | "history">("all");
+  const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
 
   async function reload() {
     setLoading(true);
     try {
-      const [data, mode] = await Promise.all([fetchQuestions(), getPriorityMode()]);
+      const [data, mode, toggles] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles()]);
       setList(data);
       setPriorityModeOn(mode);
+      setCatToggles(toggles);
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -489,6 +498,13 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function toggleCategory(key: "digital" | "history") {
+    const next = { ...catToggles, [key]: !catToggles[key] };
+    setCatToggles(next);
+    try { await setCategoryToggles(next); pushAdminLog(`Mục ${key === "digital" ? "Năng lực số" : "Lịch sử-Văn hoá"}: ${next[key] ? "BẬT" : "TẮT"}`); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setCatToggles(catToggles); }
+  }
 
   async function togglePriorityMode() {
     const next = !priorityModeOn;
@@ -589,8 +605,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
-      await createQuestion({ ...draft, competencyLevel: auto });
+      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
+      await createQuestion({ ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
       pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
       setDraft(emptyQuestionDraft());
       await reload();
@@ -618,8 +634,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
-      await updateQuestion(editingId, { ...draft, competencyLevel: auto });
+      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
+      await updateQuestion(editingId, { ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
       setDraft(emptyQuestionDraft());
@@ -700,8 +716,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
-        const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
-        try { await createQuestion({ ...q, competencyLevel: auto }); ok++; } catch { /* skip */ }
+        const auto = classifyQuestion(q.q, q.options.map((o) => o.text));
+        try { await createQuestion({ ...q, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain }); ok++; } catch { /* skip */ }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
       alert(`Đã import ${ok}/${parsed.length} câu hỏi`);
@@ -742,6 +758,111 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           </button>
         </div>
       </div>
+
+      {/* Category master toggles */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-indigo-300 bg-indigo-50">
+        <div className="font-black text-lg mb-2">📚 Mục câu hỏi áp dụng vào 2 bản đồ</div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {([
+            { key: "digital", label: "🌐 Mục 1: Năng lực số", note: "Xuất hiện theo thứ tự bậc 1 → 8 (khung năng lực số)" },
+            { key: "history", label: "🏛️ Mục 2: Năng lực Lịch sử - Văn hoá", note: "Xuất hiện ngẫu nhiên (random)" },
+          ] as const).map((c) => {
+            const on = catToggles[c.key];
+            const count = list.filter((q) => (c.key === "digital" ? q.category === "digital" : q.category !== "digital")).length;
+            return (
+              <div key={c.key} className={`rounded-xl p-3 border-2 flex items-center justify-between gap-3 ${on ? "bg-white border-indigo-400" : "bg-gray-100 border-gray-300 opacity-70"}`}>
+                <div className="min-w-0">
+                  <div className="font-black text-sm">{c.label} <span className="text-xs text-muted-foreground">({count})</span></div>
+                  <div className="text-[11px] font-bold text-muted-foreground">{c.note}</div>
+                </div>
+                <button onClick={() => toggleCategory(c.key)} className={`shrink-0 relative w-14 h-8 rounded-full transition ${on ? "bg-emerald-500" : "bg-gray-400"}`} title="Bật/tắt áp dụng">
+                  <span className={`absolute top-1 ${on ? "left-7" : "left-1"} w-6 h-6 rounded-full bg-white shadow transition-all`} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Auto-classification suggestion */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-purple-300 bg-purple-50">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div>
+            <div className="font-black text-lg">🧠 Đề xuất phân loại tự động theo Khung năng lực số</div>
+            <div className="text-xs font-bold text-purple-800/80">Hệ thống quét toàn bộ câu hỏi, đề xuất mục / bậc / miền. Bạn xem trước rồi bấm "Đồng ý áp dụng".</div>
+          </div>
+          <button onClick={() => setSuggestOpen((v) => !v)} className="toy-button text-sm bg-purple-500">
+            {suggestOpen ? "Ẩn đề xuất" : "🔍 Xem đề xuất"}
+          </button>
+        </div>
+        {suggestOpen && (() => {
+          const suggestions = list.map((q) => {
+            const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+            const changed = r.category !== (q.category === "digital" ? "digital" : "history")
+              || r.level !== (q.competencyLevel ?? null)
+              || r.domain !== (q.competencyDomain ?? null);
+            return { q, r, changed };
+          });
+          const changedList = suggestions.filter((s) => s.changed);
+          const catDigital = suggestions.filter((s) => s.r.category === "digital").length;
+          const catHistory = suggestions.length - catDigital;
+          const byLevel = [1, 2, 3, 4, 5, 6, 7, 8].map((lv) => ({ lv, n: suggestions.filter((s) => s.r.level === lv).length }));
+          const byDomain = [1, 2, 3, 4, 5, 6].map((dm) => ({ dm, n: suggestions.filter((s) => s.r.domain === dm).length }));
+          return (
+            <div className="mt-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs font-black">
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🌐 Năng lực số: <span className="text-indigo-700">{catDigital}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🏛️ Lịch sử-VH: <span className="text-amber-700">{catHistory}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🔄 Sẽ thay đổi: <span className="text-red-600">{changedList.length}</span></div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">Tổng câu: {suggestions.length}</div>
+              </div>
+              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-2">
+                <div className="text-[11px] font-black mb-1">Theo bậc (Digital)</div>
+                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                  {byLevel.map(({ lv, n }) => (
+                    <span key={lv} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {lv}: {n}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-3">
+                <div className="text-[11px] font-black mb-1">Theo miền năng lực</div>
+                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                  {byDomain.map(({ dm, n }) => (
+                    <span key={dm} className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full">M{dm} {DOMAIN_LABELS[dm]}: {n}</span>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  if (changedList.length === 0) { alert("Không có câu nào cần cập nhật — đề xuất đã khớp dữ liệu hiện tại."); return; }
+                  if (!confirm(`Áp dụng đề xuất cho ${changedList.length} câu hỏi?`)) return;
+                  setBusy(true);
+                  try {
+                    const updates = changedList.map(({ q, r }) => ({
+                      id: q.id,
+                      category: r.category,
+                      competencyLevel: r.level,
+                      competencyDomain: r.domain,
+                    }));
+                    const ok = await bulkApplyClassification(updates);
+                    pushAdminLog(`Áp dụng đề xuất phân loại: ${ok}/${changedList.length} câu`);
+                    alert(`Đã áp dụng ${ok}/${changedList.length} câu.`);
+                    await reload();
+                  } catch (e: any) {
+                    alert("Lỗi: " + (e?.message || e));
+                  } finally { setBusy(false); }
+                }}
+                disabled={busy}
+                className="toy-button text-sm bg-emerald-500"
+              >
+                ✅ Đồng ý áp dụng đề xuất ({changedList.length} câu)
+              </button>
+            </div>
+          );
+        })()}
+      </div>
+
+
 
 
 
@@ -863,17 +984,19 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           </button>
           <button
             onClick={async () => {
-              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số?`)) return;
+              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số (mục + bậc + miền)?`)) return;
               setBusy(true);
               let changed = 0;
               try {
+                const updates: { id: string; category: string; competencyLevel: number | null; competencyDomain: number | null }[] = [];
                 for (const q of list) {
-                  const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
-                  if (auto !== q.competencyLevel) {
-                    await updateQuestion(q.id, { ...q, competencyLevel: auto });
-                    changed++;
+                  const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+                  const curCat = q.category === "digital" ? "digital" : "history";
+                  if (r.category !== curCat || r.level !== (q.competencyLevel ?? null) || r.domain !== (q.competencyDomain ?? null)) {
+                    updates.push({ id: q.id, category: r.category, competencyLevel: r.level, competencyDomain: r.domain });
                   }
                 }
+                changed = await bulkApplyClassification(updates);
                 pushAdminLog(`Tự phân loại lại ${changed}/${list.length} câu`);
                 alert(`Đã phân loại lại ${changed}/${list.length} câu.`);
                 await reload();
@@ -887,7 +1010,22 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             🔄 Tự phân loại lại toàn bộ
           </button>
         </div>
+        {/* Category filter */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {([
+            { key: "all" as const, label: `Tất cả mục (${list.length})` },
+            { key: "digital" as const, label: `🌐 Năng lực số (${list.filter((q) => q.category === "digital").length})` },
+            { key: "history" as const, label: `🏛️ Lịch sử-VH (${list.filter((q) => q.category !== "digital").length})` },
+          ]).map((c) => (
+            <button key={c.key} onClick={() => setSelectedCategory(c.key)}
+              className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedCategory === c.key ? "bg-purple-600 text-white border-purple-700" : "bg-white border-purple-200"}`}>
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+
 
       {(() => {
         const matchesLevel = (q: AdminQuestion) => {
@@ -895,8 +1033,13 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           if (selectedLevel === "none") return q.competencyLevel == null;
           return q.competencyLevel === selectedLevel;
         };
-        const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x));
-        const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x));
+        const matchesCat = (q: AdminQuestion) => {
+          if (selectedCategory === "all") return true;
+          if (selectedCategory === "digital") return q.category === "digital";
+          return q.category !== "digital";
+        };
+        const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x) && matchesCat(x));
+        const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x) && matchesCat(x));
 
 
         const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
@@ -928,8 +1071,16 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
               </div>
               <div className="text-xs font-bold mt-1 flex items-center gap-2 flex-wrap">
                 <span className="text-orange-600">+{q.reward} xu</span>
+                <span className={`px-2 py-0.5 rounded-full ${q.category === "digital" ? "bg-indigo-100 text-indigo-800" : "bg-amber-100 text-amber-800"}`}>
+                  {q.category === "digital" ? "🌐 Năng lực số" : "🏛️ Lịch sử-VH"}
+                </span>
                 {typeof q.competencyLevel === "number" && (
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">🌐 Bậc {q.competencyLevel}</span>
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {q.competencyLevel}</span>
+                )}
+                {typeof q.competencyDomain === "number" && (
+                  <span className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full" title={DOMAIN_LABELS[q.competencyDomain]}>
+                    M{q.competencyDomain}
+                  </span>
                 )}
                 {(q.maps || ["all"]).map((m) => (
                   <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>

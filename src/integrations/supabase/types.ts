@@ -292,6 +292,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
           created_at: string
@@ -308,6 +309,7 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          competency_domain?: number | null
           competency_level?: number | null
           correct_indexes?: Json
           created_at?: string
@@ -324,6 +326,7 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          competency_domain?: number | null
           competency_level?: number | null
           correct_indexes?: Json
           created_at?: string
@@ -448,6 +451,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
           created_at: string
@@ -473,6 +477,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
           created_at: string

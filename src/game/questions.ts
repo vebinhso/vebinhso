@@ -7,13 +7,14 @@ export type Question = {
   answer: number; // index (first correct)
   reward: number;
   imageUrl?: string;
-  // Extended (for future use)
   correctIndexes?: number[];
   optionImages?: string[];
   maps?: string[];
   enabled?: boolean;
   priority?: number;
-  competencyLevel?: number | null; // 1..8 khung năng lực số
+  category?: string; // "digital" | "history"
+  competencyLevel?: number | null; // 1..8
+  competencyDomain?: number | null; // 1..6
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [];
@@ -21,8 +22,22 @@ export const DEFAULT_QUESTIONS: Question[] = [];
 
 let QUESTION_CACHE: Question[] = [];
 let PRIORITY_MODE = false;
+let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
 const MAX_RECENT = 20;
+
+export async function loadCategoryToggles(): Promise<{ digital: boolean; history: boolean }> {
+  try {
+    const { data } = await supabase
+      .from("admin_config")
+      .select("value")
+      .eq("key", "category_toggles")
+      .maybeSingle();
+    const v: any = (data as any)?.value || {};
+    CAT_TOGGLES = { digital: v.digital !== false, history: v.history !== false };
+  } catch {}
+  return CAT_TOGGLES;
+}
 
 export async function loadPriorityMode(): Promise<boolean> {
   try {
@@ -45,10 +60,11 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
+      loadCategoryToggles(),
     ]);
     if (error) throw error;
     const rows = data ?? [];
@@ -60,6 +76,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
       const cl = typeof row.competency_level === "number" ? row.competency_level : null;
+      const cd = typeof row.competency_domain === "number" ? row.competency_domain : null;
+      const cat = (row.category === "digital" || row.category === "history") ? row.category : "history";
       return {
         id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
@@ -72,12 +90,11 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         maps,
         enabled,
         priority,
+        category: cat,
         competencyLevel: cl,
+        competencyDomain: cd,
       };
     });
-    // KHÔNG phân theo map — mọi câu hỏi (kể cả có bậc năng lực số) đều
-    // xuất hiện random ở cả bản đồ nhà lẫn lâu đài. Thứ tự do queue theo
-    // bậc quyết định (framework), không lệ thuộc map.
     void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
     QUESTION_CACHE = enabledOnly;
@@ -158,19 +175,48 @@ function pickAvoidingRecent(pool: Question[]): Question {
 
 export function randomQuestion(): Question {
   const arr = getQuestions();
-  // Khung năng lực số — nếu có bất kỳ câu có competencyLevel, ưu tiên hết
-  const framework = arr.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
-  if (framework.length > 0) {
-    const q = nextFrameworkQuestion(framework);
-    if (q) return q;
+  const digitalOn = CAT_TOGGLES.digital;
+  const historyOn = CAT_TOGGLES.history;
+
+  const digitalPool = arr.filter((q) => q.category === "digital");
+  const historyPool = arr.filter((q) => q.category !== "digital");
+
+  // Chọn nhóm theo toggle
+  let useDigital = false;
+  if (digitalOn && historyOn) {
+    // Cả hai bật → 50/50 giữa hai nhóm
+    useDigital = Math.random() < 0.5 && digitalPool.length > 0;
+    if (!useDigital && historyPool.length === 0) useDigital = digitalPool.length > 0;
+  } else if (digitalOn) {
+    useDigital = true;
+  } else if (historyOn) {
+    useDigital = false;
+  } else {
+    // Cả hai tắt → fallback toàn bộ
+    return pickAvoidingRecent(arr);
   }
-  if (PRIORITY_MODE) {
-    const zone = arr.filter((q) => (q.priority ?? 0) > 0);
-    if (zone.length > 0) {
-      return pickAvoidingRecent(zone);
+
+  if (useDigital) {
+    // Mục 1 (Năng lực số): thứ tự bậc 1 → 8 theo framework
+    const framework = digitalPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
+    if (framework.length > 0) {
+      const q = nextFrameworkQuestion(framework);
+      if (q) return q;
     }
+    if (PRIORITY_MODE) {
+      const zone = digitalPool.filter((q) => (q.priority ?? 0) > 0);
+      if (zone.length > 0) return pickAvoidingRecent(zone);
+    }
+    if (digitalPool.length > 0) return pickAvoidingRecent(digitalPool);
   }
-  return pickAvoidingRecent(arr);
+
+  // Mục 2 (Lịch sử - Văn hoá): random thuần
+  if (PRIORITY_MODE) {
+    const zone = historyPool.filter((q) => (q.priority ?? 0) > 0);
+    if (zone.length > 0) return pickAvoidingRecent(zone);
+  }
+  const pool = historyPool.length > 0 ? historyPool : arr;
+  return pickAvoidingRecent(pool);
 }
 
 /* ===================== KHUNG NĂNG LỰC SỐ — Hàng đợi theo user ===================== */

@@ -41,6 +41,7 @@ function GamePage() {
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
+  const [buyQty, setBuyQty] = useState<Record<string, number>>({});
   const [question, setQuestion] = useState<Question | null>(null);
   const [questionResult, setQuestionResult] = useState<string | null>(null);
   

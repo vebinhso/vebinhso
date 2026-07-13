@@ -1641,7 +1641,7 @@ function MagicPage() {
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
         <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>
         <div className="glass-card px-3 py-2 text-sm font-black">
-          💰 {coins} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
+          💰 {globalMoney} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
         </div>
         {stage === 2 && (s2Inv.shield || s2Inv.potion > 0) && (
           <div className="glass-card px-3 py-2 text-xs font-black">

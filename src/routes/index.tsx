@@ -184,22 +184,22 @@ function Home() {
             <p className="text-xs font-bold text-purple-700">⭐ Cấp {level} • 🏠 {netWorth}đ</p>
           </div>
         </div>
-        <div className="flex flex-col gap-2 mt-12">
-          <Link to="/shop" className="toy-button text-sm">
+        <div className="flex flex-col gap-2 mt-12 w-[160px]">
+          <Link to="/shop" className="toy-button text-sm w-full justify-center">
             🛒 CỬA HÀNG
           </Link>
-          <Link to="/ranking" className="toy-button text-sm">
+          <Link to="/ranking" className="toy-button text-sm w-full justify-center">
             📊 XẾP HẠNG
           </Link>
-          <Link to="/tutorial" className="toy-button text-sm">
+          <Link to="/tutorial" className="toy-button text-sm w-full justify-center">
             📖 HƯỚNG DẪN
           </Link>
           {isAdmin(user.email) && (
-            <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white">
+            <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white w-full justify-center">
               🛡️ ADMIN
             </Link>
           )}
-          <button onClick={handleLogout} className="toy-button text-sm">
+          <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
             🚪 ĐĂNG XUẤT
           </button>
         </div>

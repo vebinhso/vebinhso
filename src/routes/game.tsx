@@ -18,7 +18,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -385,8 +385,7 @@ function GamePage() {
       if (!allSurfaces) return;
       stackY = Math.max(
         ...overlaps.map((p) => {
-          const pi = getItem(p.itemId)!;
-          return (p.stackY ?? 0) + pi.h;
+          return (p.stackY ?? 0) + surfaceTopY(p.itemId);
         })
       );
     }

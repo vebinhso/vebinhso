@@ -181,6 +181,7 @@ function Home() {
               <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
             </p>
             <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
+            <p className="text-xs font-bold text-purple-700">⭐ Cấp {level} • 🏠 {netWorth}đ</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 mt-12">

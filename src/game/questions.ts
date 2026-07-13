@@ -154,11 +154,8 @@ export const QUESTIONS: Question[] = new Proxy([] as Question[], {
   },
 }) as Question[];
 
-function pickAvoidingRecent(pool: Question[]): Question {
-  if (pool.length === 0) {
-    const fallback = getQuestions();
-    return fallback[0] ?? DEFAULT_QUESTIONS[0];
-  }
+function pickAvoidingRecent(pool: Question[]): Question | null {
+  if (pool.length === 0) return null;
   const avoidCount = Math.min(MAX_RECENT, pool.length - 1);
   const recentSlice = avoidCount > 0 ? RECENT_IDS.slice(-avoidCount) : [];
   let candidates = recentSlice.length > 0
@@ -181,23 +178,9 @@ export function randomQuestion(): Question {
   const digitalPool = arr.filter((q) => q.category === "digital");
   const historyPool = arr.filter((q) => q.category !== "digital");
 
-  // Chọn nhóm theo toggle
-  let useDigital = false;
-  if (digitalOn && historyOn) {
-    // Cả hai bật → 50/50 giữa hai nhóm
-    useDigital = Math.random() < 0.5 && digitalPool.length > 0;
-    if (!useDigital && historyPool.length === 0) useDigital = digitalPool.length > 0;
-  } else if (digitalOn) {
-    useDigital = true;
-  } else if (historyOn) {
-    useDigital = false;
-  } else {
-    // Cả hai tắt → fallback toàn bộ
-    return pickAvoidingRecent(arr);
-  }
-
-  if (useDigital) {
-    // Mục 1 (Năng lực số): thứ tự bậc 1 → 8 theo framework
+  // Xác định nhóm ưu tiên theo toggle admin
+  const tryDigital = () => {
+    // Mục 1 (Năng lực số): ưu tiên theo bậc 1 → 8
     const framework = digitalPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
     if (framework.length > 0) {
       const q = nextFrameworkQuestion(framework);
@@ -205,18 +188,40 @@ export function randomQuestion(): Question {
     }
     if (PRIORITY_MODE) {
       const zone = digitalPool.filter((q) => (q.priority ?? 0) > 0);
-      if (zone.length > 0) return pickAvoidingRecent(zone);
+      const p = pickAvoidingRecent(zone);
+      if (p) return p;
     }
-    if (digitalPool.length > 0) return pickAvoidingRecent(digitalPool);
+    return pickAvoidingRecent(digitalPool);
+  };
+  const tryHistory = () => {
+    if (PRIORITY_MODE) {
+      const zone = historyPool.filter((q) => (q.priority ?? 0) > 0);
+      const p = pickAvoidingRecent(zone);
+      if (p) return p;
+    }
+    return pickAvoidingRecent(historyPool);
+  };
+
+  let order: Array<() => Question | null> = [];
+  if (digitalOn && historyOn) {
+    order = Math.random() < 0.5 ? [tryDigital, tryHistory] : [tryHistory, tryDigital];
+  } else if (digitalOn) {
+    order = [tryDigital, tryHistory];
+  } else if (historyOn) {
+    order = [tryHistory, tryDigital];
+  } else {
+    order = [tryDigital, tryHistory];
   }
 
-  // Mục 2 (Lịch sử - Văn hoá): random thuần
-  if (PRIORITY_MODE) {
-    const zone = historyPool.filter((q) => (q.priority ?? 0) > 0);
-    if (zone.length > 0) return pickAvoidingRecent(zone);
+  for (const fn of order) {
+    const q = fn();
+    if (q) return q;
   }
-  const pool = historyPool.length > 0 ? historyPool : arr;
-  return pickAvoidingRecent(pool);
+  // Cuối cùng: bất kỳ câu hỏi nào trong ngân hàng admin
+  const anyQ = pickAvoidingRecent(arr);
+  if (anyQ) return anyQ;
+  // Không có câu nào trong ngân hàng — trả về placeholder rỗng an toàn
+  return { q: "", options: [], answer: -1, reward: 0 };
 }
 
 /* ===================== KHUNG NĂNG LỰC SỐ — Hàng đợi theo user ===================== */

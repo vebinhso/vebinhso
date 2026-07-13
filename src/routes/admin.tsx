@@ -1033,8 +1033,13 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           if (selectedLevel === "none") return q.competencyLevel == null;
           return q.competencyLevel === selectedLevel;
         };
-        const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x));
-        const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x));
+        const matchesCat = (q: AdminQuestion) => {
+          if (selectedCategory === "all") return true;
+          if (selectedCategory === "digital") return q.category === "digital";
+          return q.category !== "digital";
+        };
+        const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x) && matchesCat(x));
+        const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x) && matchesCat(x));
 
 
         const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
@@ -1066,8 +1071,16 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
               </div>
               <div className="text-xs font-bold mt-1 flex items-center gap-2 flex-wrap">
                 <span className="text-orange-600">+{q.reward} xu</span>
+                <span className={`px-2 py-0.5 rounded-full ${q.category === "digital" ? "bg-indigo-100 text-indigo-800" : "bg-amber-100 text-amber-800"}`}>
+                  {q.category === "digital" ? "🌐 Năng lực số" : "🏛️ Lịch sử-VH"}
+                </span>
                 {typeof q.competencyLevel === "number" && (
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">🌐 Bậc {q.competencyLevel}</span>
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {q.competencyLevel}</span>
+                )}
+                {typeof q.competencyDomain === "number" && (
+                  <span className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full" title={DOMAIN_LABELS[q.competencyDomain]}>
+                    M{q.competencyDomain}
+                  </span>
                 )}
                 {(q.maps || ["all"]).map((m) => (
                   <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>

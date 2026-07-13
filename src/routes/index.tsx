@@ -320,17 +320,17 @@ function Home() {
           </Link>
         </div>
 
-        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap">
+        <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap md:w-[180px]">
           <button
             onClick={() => setSurveyOpen(true)}
-            className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300"
+            className="toy-button md:w-full md:justify-center text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300"
           >
             💗 KHẢO SÁT
           </button>
-          <Link to="/missions" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">
+          <Link to="/missions" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
             🎁 TIỆN ÍCH
           </Link>
-          <Link to="/pets" className="toy-button md:min-w-[180px] md:justify-start text-xs md:text-sm">
+          <Link to="/pets" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
             ⚡ QUYỀN NĂNG
           </Link>
         </aside>
@@ -338,14 +338,18 @@ function Home() {
 
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
         <div className="flex gap-2">
-          <Link to="/chat" className="toy-button text-sm">
+          <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
           </Link>
-          <Link to="/chat" className="toy-button text-sm">
-            📸
-          </Link>
+          <button
+            onClick={takeScreenshot}
+            className="toy-button text-sm min-w-[140px] justify-center"
+            title="Chụp màn hình trò chơi"
+          >
+            📸 CHỤP ẢNH
+          </button>
         </div>
-        <Link to="/events" className="toy-button toy-button-accent">
+        <Link to="/events" className="toy-button toy-button-accent min-w-[180px] justify-center">
           SỰ KIỆN HOT 🔥
         </Link>
       </footer>

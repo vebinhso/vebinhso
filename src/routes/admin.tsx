@@ -25,6 +25,7 @@ import {
   type AdminQuestion,
   type PlayerStat,
 } from "@/lib/admin";
+import { classifyCompetency } from "@/lib/competency-classifier";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";

@@ -861,6 +861,31 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           >
             Không bậc ({list.filter((q) => q.competencyLevel == null).length})
           </button>
+          <button
+            onClick={async () => {
+              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số?`)) return;
+              setBusy(true);
+              let changed = 0;
+              try {
+                for (const q of list) {
+                  const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
+                  if (auto !== q.competencyLevel) {
+                    await updateQuestion(q.id, { ...q, competencyLevel: auto });
+                    changed++;
+                  }
+                }
+                pushAdminLog(`Tự phân loại lại ${changed}/${list.length} câu`);
+                alert(`Đã phân loại lại ${changed}/${list.length} câu.`);
+                await reload();
+              } catch (e: any) {
+                alert("Lỗi: " + (e?.message || e));
+              } finally { setBusy(false); }
+            }}
+            disabled={busy || list.length === 0}
+            className="text-xs px-3 py-1.5 rounded-xl font-black border-2 bg-emerald-500 text-white border-emerald-700 hover:bg-emerald-600 disabled:opacity-50"
+          >
+            🔄 Tự phân loại lại toàn bộ
+          </button>
         </div>
       </div>
 

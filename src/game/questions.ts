@@ -330,7 +330,8 @@ function nextFrameworkQuestion(pool: Question[], cat: string): Question | null {
  */
 export function reportAnswerResult(question: Question | null | undefined, correct: boolean) {
   if (!question?.id || typeof question.competencyLevel !== "number") return;
-  const st = loadDigitalState();
+  const cat = question.category === "digital" ? "digital" : "history";
+  const st = loadQueueState(cat);
   if (!st) return;
   const id = question.id;
   if (correct) {
@@ -339,12 +340,12 @@ export function reportAnswerResult(question: Question | null | undefined, correc
   } else {
     const times = st.retry[id] ?? 0;
     if (times < 1) {
-      // Re-insert 2 vị trí phía sau để xuất hiện lại một lần
+      // Re-insert 3 vị trí phía sau để xuất hiện lại một lần trong CÙNG vòng
       st.retry[id] = times + 1;
       const insertAt = Math.min(st.order.length, st.pos + 3);
       st.order.splice(insertAt, 0, id);
     }
     st.pos++;
   }
-  saveDigitalState(st);
+  saveQueueState(cat, st);
 }

@@ -1090,9 +1090,23 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
               </div>
               <div className="text-xs font-bold mt-1 flex items-center gap-2 flex-wrap">
                 <span className="text-orange-600">+{q.reward} xu</span>
-                <span className={`px-2 py-0.5 rounded-full ${q.category === "digital" ? "bg-indigo-100 text-indigo-800" : "bg-amber-100 text-amber-800"}`}>
-                  {q.category === "digital" ? "🌐 Năng lực số" : "🏛️ Lịch sử-VH"}
-                </span>
+                {/* Nút chọn mục thủ công */}
+                <div className="inline-flex rounded-full overflow-hidden border-2 border-indigo-200">
+                  <button
+                    onClick={() => setQuestionCategory(q, "digital")}
+                    className={`px-2 py-0.5 font-black transition-colors ${q.category === "digital" ? "bg-indigo-600 text-white" : "bg-white text-indigo-700 hover:bg-indigo-50"}`}
+                    title="Đặt câu này thuộc Năng lực số"
+                  >
+                    🌐 Năng lực số
+                  </button>
+                  <button
+                    onClick={() => setQuestionCategory(q, "history")}
+                    className={`px-2 py-0.5 font-black transition-colors ${q.category !== "digital" ? "bg-amber-600 text-white" : "bg-white text-amber-700 hover:bg-amber-50"}`}
+                    title="Đặt câu này thuộc Lịch sử - Văn hoá"
+                  >
+                    🏛️ Lịch sử-VH
+                  </button>
+                </div>
                 {typeof q.competencyLevel === "number" && (
                   <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {q.competencyLevel}</span>
                 )}
@@ -1101,6 +1115,26 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                     M{q.competencyDomain}
                   </span>
                 )}
+                {(() => {
+                  const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+                  const curCat = q.category === "digital" ? "digital" : "history";
+                  const diff = r.category !== curCat || r.level !== (q.competencyLevel ?? null) || r.domain !== (q.competencyDomain ?? null);
+                  if (!diff) return (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full" title="Phân loại hiện tại khớp với đề xuất">✓ Khớp đề xuất</span>
+                  );
+                  const label = r.category === "digital"
+                    ? `Đề xuất: 🌐 Bậc ${r.level ?? "?"}${r.domain ? ` · M${r.domain}` : ""}`
+                    : "Đề xuất: 🏛️ Lịch sử-VH";
+                  return (
+                    <button
+                      onClick={() => applySuggestionOne(q)}
+                      className="px-2 py-0.5 bg-purple-100 text-purple-800 hover:bg-purple-200 rounded-full font-black"
+                      title="Áp dụng đề xuất mục/bậc/miền cho câu này"
+                    >
+                      💡 {label} — Áp dụng
+                    </button>
+                  );
+                })()}
                 {(q.maps || ["all"]).map((m) => (
                   <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>
                 ))}

@@ -175,54 +175,37 @@ export function randomQuestion(): Question {
   const digitalOn = CAT_TOGGLES.digital;
   const historyOn = CAT_TOGGLES.history;
 
-  // Khi bật chế độ ưu tiên: CHỈ dùng câu có priority > 0.
-  // Khi tắt: dùng toàn bộ ngân hàng.
+  // ƯU TIÊN là trên hết: khi bật, CHỈ dùng câu có priority > 0.
   const scope = PRIORITY_MODE ? arr.filter((q) => (q.priority ?? 0) > 0) : arr;
 
-  const digitalPool = scope.filter((q) => q.category === "digital");
-  const historyPool = scope.filter((q) => q.category !== "digital");
+  // Mỗi chủ đề (nếu bật) chỉ dùng câu ĐÃ GẮN BẬC (1..8).
+  // Câu không bậc trong chủ đề đó sẽ KHÔNG hiện.
+  const hasLevel = (q: Question) =>
+    typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8;
+  const digitalPool = digitalOn
+    ? scope.filter((q) => q.category === "digital" && hasLevel(q))
+    : [];
+  const historyPool = historyOn
+    ? scope.filter((q) => q.category !== "digital" && hasLevel(q))
+    : [];
 
-  const tryDigital = () => {
-    // Năng lực số: theo hàng đợi cấp bậc 1 → 8
-    const framework = digitalPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
-    if (framework.length > 0) {
-      const q = nextFrameworkQuestion(framework);
-      if (q) return q;
-    }
-    return pickAvoidingRecent(digitalPool);
-  };
-  const tryHistory = () => {
-    // Lịch sử - Văn hoá: nếu có gắn bậc thì cũng đi tuần tự theo bậc
-    const framework = historyPool.filter((q) => typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8);
-    if (framework.length > 0) {
-      const q = nextFrameworkQuestion(framework);
-      if (q) return q;
-    }
-    return pickAvoidingRecent(historyPool);
-  };
+  const tryDigital = () =>
+    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool) : null;
+  const tryHistory = () =>
+    historyPool.length > 0 ? nextFrameworkQuestion(historyPool) : null;
 
-  let order: Array<() => Question | null> = [];
-  if (digitalOn && historyOn) {
-    order = Math.random() < 0.5 ? [tryDigital, tryHistory] : [tryHistory, tryDigital];
-  } else if (digitalOn) {
-    order = [tryDigital];
-  } else if (historyOn) {
-    order = [tryHistory];
-  } else {
-    order = [tryDigital, tryHistory];
-  }
-
-
+  // Nếu chỉ 1 chủ đề còn câu, chủ đề còn lại tự bị bỏ qua.
+  const bothHave = digitalPool.length > 0 && historyPool.length > 0;
+  const order: Array<() => Question | null> = bothHave
+    ? (Math.random() < 0.5 ? [tryDigital, tryHistory] : [tryHistory, tryDigital])
+    : [tryDigital, tryHistory];
 
   for (const fn of order) {
     const q = fn();
     if (q) return q;
   }
-  // Fallback trong phạm vi ưu tiên (nếu bật) — KHÔNG mở rộng ra ngoài khu vực ưu tiên
-  const anyQ = pickAvoidingRecent(scope);
-  if (anyQ) return anyQ;
 
-  // Không có câu nào trong ngân hàng — trả về placeholder rỗng an toàn
+  // Không có câu hợp lệ (thiếu bậc / thiếu ưu tiên) — placeholder rỗng.
   return { q: "", options: [], answer: -1, reward: 0 };
 }
 

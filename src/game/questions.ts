@@ -60,10 +60,11 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
+      loadCategoryToggles(),
     ]);
     if (error) throw error;
     const rows = data ?? [];
@@ -75,6 +76,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const enabled = row.enabled === false ? false : true;
       const priority = typeof row.priority === "number" ? row.priority : 0;
       const cl = typeof row.competency_level === "number" ? row.competency_level : null;
+      const cd = typeof row.competency_domain === "number" ? row.competency_domain : null;
+      const cat = (row.category === "digital" || row.category === "history") ? row.category : "history";
       return {
         id: row.id ? String(row.id) : undefined,
         q: row.text ?? "",
@@ -87,12 +90,11 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         maps,
         enabled,
         priority,
+        category: cat,
         competencyLevel: cl,
+        competencyDomain: cd,
       };
     });
-    // KHÔNG phân theo map — mọi câu hỏi (kể cả có bậc năng lực số) đều
-    // xuất hiện random ở cả bản đồ nhà lẫn lâu đài. Thứ tự do queue theo
-    // bậc quyết định (framework), không lệ thuộc map.
     void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
     QUESTION_CACHE = enabledOnly;

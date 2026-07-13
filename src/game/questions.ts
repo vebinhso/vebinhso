@@ -218,9 +218,10 @@ export function randomQuestion(): Question {
     const q = fn();
     if (q) return q;
   }
-  // Cuối cùng: bất kỳ câu hỏi nào trong ngân hàng admin
-  const anyQ = pickAvoidingRecent(arr);
+  // Fallback trong phạm vi ưu tiên (nếu bật) — KHÔNG mở rộng ra ngoài khu vực ưu tiên
+  const anyQ = pickAvoidingRecent(scope);
   if (anyQ) return anyQ;
+
   // Không có câu nào trong ngân hàng — trả về placeholder rỗng an toàn
   return { q: "", options: [], answer: -1, reward: 0 };
 }

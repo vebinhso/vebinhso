@@ -809,7 +809,9 @@ function PlotAndPlacement({
         const wz = hasAngle ? p.z - half : p.z - half + fd / 2;
         const pFloor = p.floor ?? 0;
         const floorOffset = pFloor * WALL_HEIGHT;
-        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0) + (p.stackY ?? 0);
+        // TV có sẵn "chân đế" cao 0.5 trong model → khi đặt lên nóc surface phải bù xuống để đáy TV nằm sát mặt nóc
+        const topperBaseInset = p.itemId === "tv" && (p.stackY ?? 0) > 0 ? 0.5 : 0;
+        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0) + (p.stackY ?? 0) - topperBaseInset;
         const isOtherFloor = pFloor !== activeFloor;
         const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);

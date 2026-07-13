@@ -317,3 +317,45 @@ export async function setPriorityMode(enabled: boolean): Promise<void> {
     .upsert({ key: "priority_mode", value: { enabled } as any, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
   if (error) throw error;
 }
+
+// ===== Category toggles (digital / history) =====
+export type CategoryToggles = { digital: boolean; history: boolean };
+
+export async function getCategoryToggles(): Promise<CategoryToggles> {
+  const { data } = await supabase
+    .from("admin_config")
+    .select("value")
+    .eq("key", "category_toggles")
+    .maybeSingle();
+  const v = (data as any)?.value || {};
+  return {
+    digital: v.digital !== false, // mặc định BẬT
+    history: v.history !== false,
+  };
+}
+
+export async function setCategoryToggles(t: CategoryToggles): Promise<void> {
+  const { error } = await supabase
+    .from("admin_config")
+    .upsert({ key: "category_toggles", value: t as any, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
+  if (error) throw error;
+}
+
+/** Áp dụng đề xuất phân loại tự động cho toàn bộ câu hỏi. */
+export async function bulkApplyClassification(
+  updates: { id: string; category: string; competencyLevel: number | null; competencyDomain: number | null }[]
+): Promise<number> {
+  let ok = 0;
+  for (const u of updates) {
+    const { error } = await supabase
+      .from("questions_bank")
+      .update({
+        category: u.category,
+        competency_level: u.competencyLevel,
+        competency_domain: u.competencyDomain,
+      } as any)
+      .eq("id", u.id);
+    if (!error) ok++;
+  }
+  return ok;
+}

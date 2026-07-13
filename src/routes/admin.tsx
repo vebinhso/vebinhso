@@ -482,6 +482,11 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [selectedCategory, setSelectedCategory] = useState<"all" | "digital" | "history">("all");
   const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [savedFlash, setSavedFlash] = useState<string | null>(null);
+  const flashSaved = (msg: string = "✅ Đã lưu") => {
+    setSavedFlash(msg);
+    setTimeout(() => setSavedFlash(null), 1800);
+  };
 
 
   async function reload() {

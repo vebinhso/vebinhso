@@ -1260,8 +1260,11 @@ function GamePage() {
               {CATALOG.filter((c) => c.category === activeCat).map((it) => {
                 const kind = it.kind ?? "place";
                 const isBulk = kind === "brick" || kind === "concrete" || kind === "rooftile";
+                const isPalette = kind === "palette";
+                const showQty = !isPalette;
                 const qty = Math.max(1, buyQty[it.id] ?? 1);
-                const totalPrice = it.price * (isBulk ? qty : 1);
+                const effQty = showQty ? qty : 1;
+                const totalPrice = it.price * effQty;
                 const canAfford = state.money >= totalPrice;
                 const label =
                   kind === "brick" ? "MUA GẠCH" :
@@ -1282,9 +1285,9 @@ function GamePage() {
                     <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{it.name}</div>
                     <div className="text-[9px] md:text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d}</div>
                     <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">
-                      💰 {totalPrice}đ{isBulk && qty > 1 ? ` (${it.price}×${qty})` : ""}
+                      💰 {totalPrice}đ{showQty && effQty > 1 ? ` (${it.price}×${effQty})` : ""}
                     </div>
-                    {isBulk && (
+                    {showQty && (
                       <div className="mt-1 flex items-center justify-center gap-1">
                         <button onClick={() => setQ(qty - 1)} disabled={qty <= 1}
                           className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-amber-700 text-white font-black text-sm md:text-base disabled:opacity-40 leading-none">−</button>
@@ -1297,9 +1300,9 @@ function GamePage() {
                           className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-amber-700 text-white font-black text-sm md:text-base leading-none">+</button>
                       </div>
                     )}
-                    <button onClick={() => buyAndSelect(it.id, isBulk ? qty : 1)} disabled={!canAfford}
+                    <button onClick={() => buyAndSelect(it.id, isBulk || !isPalette ? qty : 1)} disabled={!canAfford}
                       className={`toy-button !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3 mt-2 w-full ${canAfford ? `toy-button-primary !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3` : "opacity-50"}`}>
-                      {canAfford ? (isBulk && qty > 1 ? `${label} ×${qty}` : label) : "Hết tiền"}
+                      {canAfford ? (showQty && effQty > 1 ? `${label} ×${effQty}` : label) : "Hết tiền"}
                     </button>
                   </div>
                 );

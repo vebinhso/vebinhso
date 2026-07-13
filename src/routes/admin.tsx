@@ -25,6 +25,7 @@ import {
   type AdminQuestion,
   type PlayerStat,
 } from "@/lib/admin";
+import { classifyCompetency } from "@/lib/competency-classifier";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";
@@ -588,7 +589,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      await createQuestion(draft);
+      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
+      await createQuestion({ ...draft, competencyLevel: auto });
       pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
       setDraft(emptyQuestionDraft());
       await reload();
@@ -616,7 +618,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      await updateQuestion(editingId, draft);
+      const auto = classifyCompetency(draft.q, draft.options.map((o) => o.text));
+      await updateQuestion(editingId, { ...draft, competencyLevel: auto });
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
       setDraft(emptyQuestionDraft());
@@ -697,7 +700,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
-        try { await createQuestion(q); ok++; } catch { /* skip */ }
+        const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
+        try { await createQuestion({ ...q, competencyLevel: auto }); ok++; } catch { /* skip */ }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
       alert(`Đã import ${ok}/${parsed.length} câu hỏi`);
@@ -805,24 +809,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
 
         <div className="mb-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2">
-          <div className="text-sm font-black text-indigo-800 mb-1">🌐 Khung năng lực số — Môi trường số</div>
-          <div className="text-xs font-bold text-indigo-700 mb-1">
-            Chọn bậc (1–8). Câu có bậc sẽ tự vào ưu tiên & xuất hiện theo thứ tự bậc; trong cùng bậc mỗi tài khoản thấy thứ tự khác nhau (random). Trả lời sai → câu hiện lại 1 lần trước khi qua bậc khác.
-          </div>
-          <div className="flex flex-wrap gap-1">
-            <button
-              type="button"
-              onClick={() => setDraft({ ...draft, competencyLevel: null })}
-              className={`text-xs px-3 py-1 rounded-lg font-black border-2 ${(draft.competencyLevel ?? null) == null ? "bg-gray-400 text-white border-gray-500" : "bg-white border-gray-300"}`}
-            >Không</button>
-            {[1,2,3,4,5,6,7,8].map((lvl) => (
-              <button
-                key={lvl}
-                type="button"
-                onClick={() => setDraft({ ...draft, competencyLevel: lvl })}
-                className={`text-xs px-3 py-1 rounded-lg font-black border-2 ${draft.competencyLevel === lvl ? "bg-indigo-600 text-white border-indigo-700" : "bg-white border-indigo-200"}`}
-              >Bậc {lvl}</button>
-            ))}
+          <div className="text-sm font-black text-indigo-800 mb-1">🌐 Khung năng lực số — Tự động phân loại</div>
+          <div className="text-xs font-bold text-indigo-700">
+            Hệ thống tự phân loại câu hỏi vào 1 trong 8 bậc khung năng lực số dựa trên nội dung. Câu không thuộc môi trường số sẽ để trống bậc.
           </div>
         </div>
         <div className="flex gap-2 items-center mb-2 flex-wrap">
@@ -871,6 +860,31 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedLevel === "none" ? "bg-gray-500 text-white border-gray-600" : "bg-white border-gray-300"}`}
           >
             Không bậc ({list.filter((q) => q.competencyLevel == null).length})
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số?`)) return;
+              setBusy(true);
+              let changed = 0;
+              try {
+                for (const q of list) {
+                  const auto = classifyCompetency(q.q, q.options.map((o) => o.text));
+                  if (auto !== q.competencyLevel) {
+                    await updateQuestion(q.id, { ...q, competencyLevel: auto });
+                    changed++;
+                  }
+                }
+                pushAdminLog(`Tự phân loại lại ${changed}/${list.length} câu`);
+                alert(`Đã phân loại lại ${changed}/${list.length} câu.`);
+                await reload();
+              } catch (e: any) {
+                alert("Lỗi: " + (e?.message || e));
+              } finally { setBusy(false); }
+            }}
+            disabled={busy || list.length === 0}
+            className="text-xs px-3 py-1.5 rounded-xl font-black border-2 bg-emerald-500 text-white border-emerald-700 hover:bg-emerald-600 disabled:opacity-50"
+          >
+            🔄 Tự phân loại lại toàn bộ
           </button>
         </div>
       </div>

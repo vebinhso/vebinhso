@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      floors: {
+        Row: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          created_at: string
+          floor: number
+          id: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          ax: number
+          az: number
+          bx: number
+          bz: number
+          created_at?: string
+          floor?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          ax?: number
+          az?: number
+          bx?: number
+          bz?: number
+          created_at?: string
+          floor?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       friends: {
         Row: {
           created_at: string

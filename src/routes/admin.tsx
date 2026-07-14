@@ -1147,37 +1147,29 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                   const curDm = typeof q.competencyDomain === "number" ? q.competencyDomain : null;
                   return (
                     <>
-                      <span className={`px-2 py-0.5 rounded-full ${curLvl ? "bg-indigo-100 text-indigo-800" : "bg-yellow-100 text-yellow-800"}`}>
-                        {curCat === "digital" ? "🌐" : "🏛️"} {curLvl ? `Bậc ${curLvl}` : "Chưa gắn bậc"}
-                      </span>
-                      {curCat === "digital" && (
-                        <span className={`px-2 py-0.5 rounded-full ${curDm ? "bg-pink-100 text-pink-800" : "bg-yellow-100 text-yellow-800"}`}>
-                          {curDm ? `📚 M${curDm} · ${DOMAIN_LABELS[curDm]}` : "📚 Chưa gắn mục"}
-                        </span>
-                      )}
-                      {/* Bộ chọn Bậc thủ công */}
+                      {/* Bậc — hiện & chỉnh gộp làm một */}
                       <select
                         value={curLvl ?? ""}
                         onChange={(e) => setQuestionLevel(q, e.target.value ? Number(e.target.value) : null)}
-                        className="px-2 py-0.5 rounded-full border-2 border-indigo-200 bg-white text-indigo-800 font-black text-xs"
-                        title="Chọn bậc năng lực (1 cơ bản → 8 nâng cao)"
+                        className={`px-2 py-0.5 rounded-full font-black text-xs border-2 cursor-pointer ${curLvl ? "bg-indigo-100 text-indigo-800 border-indigo-300" : "bg-yellow-100 text-yellow-800 border-yellow-300"}`}
+                        title="Bậc năng lực (1 cơ bản → 8 nâng cao). Bấm để đổi."
                       >
-                        <option value="">Bậc: —</option>
+                        <option value="">{curCat === "digital" ? "🌐 Chưa gắn bậc" : "🏛️ Chưa gắn bậc"}</option>
                         {[1,2,3,4,5,6,7,8].map((lv) => (
-                          <option key={lv} value={lv}>Bậc {lv}</option>
+                          <option key={lv} value={lv}>{curCat === "digital" ? "🌐" : "🏛️"} Bậc {lv}</option>
                         ))}
                       </select>
-                      {/* Bộ chọn Mục thủ công (chỉ khi Digital) */}
+                      {/* Mục (miền) — chỉ với Digital, hiện & chỉnh gộp làm một */}
                       {curCat === "digital" && (
                         <select
                           value={curDm ?? ""}
                           onChange={(e) => setQuestionDomain(q, e.target.value ? Number(e.target.value) : null)}
-                          className="px-2 py-0.5 rounded-full border-2 border-pink-200 bg-white text-pink-800 font-black text-xs"
-                          title="Chọn mục (miền) năng lực số phù hợp cho câu này"
+                          className={`px-2 py-0.5 rounded-full font-black text-xs border-2 cursor-pointer ${curDm ? "bg-pink-100 text-pink-800 border-pink-300" : "bg-yellow-100 text-yellow-800 border-yellow-300"}`}
+                          title="Mục (miền) năng lực số phù hợp cho câu này. Bấm để đổi."
                         >
-                          <option value="">Mục: —</option>
+                          <option value="">📚 Chưa gắn mục</option>
                           {[1,2,3,4,5,6].map((dm) => (
-                            <option key={dm} value={dm}>M{dm} · {DOMAIN_LABELS[dm]}</option>
+                            <option key={dm} value={dm}>📚 M{dm} · {DOMAIN_LABELS[dm]}</option>
                           ))}
                         </select>
                       )}

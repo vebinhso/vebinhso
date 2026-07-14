@@ -879,7 +879,7 @@ function GamePage() {
             {thucHienOpen ? "✖ 🏗️ THỰC HIỆN" : "🏗️ THỰC HIỆN"}
           </button>
           {thucHienOpen && (
-            <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+            <div className="flex flex-col gap-2 items-end max-h-[50vh] [@media(pointer:coarse)]:max-h-[32vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth overscroll-contain" style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">

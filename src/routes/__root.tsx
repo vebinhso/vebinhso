@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { startSessionTracker } from "@/lib/session";
 import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
 import { SettingsPanel } from "@/components/SettingsPanel";
+import { SavedToast } from "@/components/SavedToast";
 
 import appCss from "../styles.css?url";
 
@@ -127,6 +128,7 @@ function RootComponent() {
       <AuthSyncBridge />
       <AudioBridge />
       <SettingsPanel />
+      <SavedToast />
       <Outlet />
     </QueryClientProvider>
   );

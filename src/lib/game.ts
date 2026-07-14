@@ -160,6 +160,8 @@ async function refreshFromDB(uid: string) {
   if (items.data) {
     next.placed = items.data.map((r: any) => ({
       id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
+      ...(r.angle_rad != null ? { angleRad: r.angle_rad } : {}),
+      ...(r.stack_y != null ? { stackY: r.stack_y } : {}),
     }));
   }
   if (walls.data) {
@@ -200,7 +202,11 @@ async function flushToDB(uid: string) {
   await supabase.from("placed_items").delete().eq("user_id", uid);
   if (CACHE.placed.length) {
     await supabase.from("placed_items").insert(
-      CACHE.placed.map((p) => ({ user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0 })),
+      CACHE.placed.map((p) => ({
+        user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0,
+        angle_rad: p.angleRad ?? null,
+        stack_y: p.stackY ?? null,
+      })),
     );
   }
   await supabase.from("walls").delete().eq("user_id", uid);
@@ -215,6 +221,7 @@ async function flushToDB(uid: string) {
       CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
     );
   }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved"));
 }
 
 export function resetGameCacheForLogout() {

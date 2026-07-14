@@ -116,8 +116,9 @@ function GamePage() {
       setState({ ...loadGame() });
     };
     window.addEventListener("game-change", onGameChange);
-    // Fallback: cho phép ghi lại sau 1.5s nếu DB không phản hồi
-    const t = setTimeout(() => { readyRef.current = true; }, 1500);
+    // Không dùng fallback timeout — chỉ cho phép ghi sau khi đã hydrate từ DB
+    // (thông qua sự kiện game-change). Điều này ngăn cache local rỗng ghi đè DB.
+    const t = setTimeout(() => { /* noop */ }, 0);
     // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))

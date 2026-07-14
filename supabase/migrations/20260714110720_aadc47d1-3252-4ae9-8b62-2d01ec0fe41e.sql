@@ -1,1 +1,0 @@
-ALTER TABLE public.game_state ADD COLUMN IF NOT EXISTS sign_labels jsonb NOT NULL DEFAULT '{}'::jsonb;

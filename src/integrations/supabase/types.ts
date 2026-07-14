@@ -123,7 +123,6 @@ export type Database = {
           owned_palettes: Json
           roof_tiles: number
           roof_tiles_ton: number
-          sign_labels: Json
           total_answered: number
           total_play_seconds: number
           updated_at: string
@@ -142,7 +141,6 @@ export type Database = {
           owned_palettes?: Json
           roof_tiles?: number
           roof_tiles_ton?: number
-          sign_labels?: Json
           total_answered?: number
           total_play_seconds?: number
           updated_at?: string
@@ -161,7 +159,6 @@ export type Database = {
           owned_palettes?: Json
           roof_tiles?: number
           roof_tiles_ton?: number
-          sign_labels?: Json
           total_answered?: number
           total_play_seconds?: number
           updated_at?: string

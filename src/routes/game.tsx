@@ -116,9 +116,8 @@ function GamePage() {
       setState({ ...loadGame() });
     };
     window.addEventListener("game-change", onGameChange);
-    // Không dùng fallback timeout — chỉ cho phép ghi sau khi đã hydrate từ DB
-    // (thông qua sự kiện game-change). Điều này ngăn cache local rỗng ghi đè DB.
-    const t = setTimeout(() => { /* noop */ }, 0);
+    // Fallback: cho phép ghi lại sau 1.5s nếu DB không phản hồi
+    const t = setTimeout(() => { readyRef.current = true; }, 1500);
     // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))
@@ -126,17 +125,11 @@ function GamePage() {
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
     setSignLabels(loadSignLabels(u.id));
-    const onSignRefresh = (e: Event) => {
-      const detail = (e as CustomEvent).detail as SignLabelMap | undefined;
-      if (detail) setSignLabels(detail);
-    };
-    window.addEventListener("sign-labels-refresh", onSignRefresh);
     loadPickupConfig()
       .then((cfg) => setPickups(resolvePickups(cfg)))
       .catch(() => setPickups([]));
     return () => {
       window.removeEventListener("game-change", onGameChange);
-      window.removeEventListener("sign-labels-refresh", onSignRefresh);
       clearTimeout(t);
     };
   }, [navigate]);
@@ -861,7 +854,7 @@ function GamePage() {
             {thaoTacOpen ? "✖ ⚙️ THAO TÁC" : "⚙️ THAO TÁC"}
           </button>
           {thaoTacOpen && (
-            <div className="flex flex-col gap-2 items-end max-h-[40vh] [@media(pointer:coarse)]:max-h-[26vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth overscroll-contain" style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}>
+            <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
               <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
               <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
                 ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
@@ -880,7 +873,7 @@ function GamePage() {
             {thucHienOpen ? "✖ 🏗️ THỰC HIỆN" : "🏗️ THỰC HIỆN"}
           </button>
           {thucHienOpen && (
-            <div className="flex flex-col gap-2 items-end max-h-[50vh] [@media(pointer:coarse)]:max-h-[32vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth overscroll-contain" style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}>
+            <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex items-center gap-1">
@@ -1015,7 +1008,7 @@ function GamePage() {
           🚪 Hãy bấm vào cửa và xoay về 0°
         </div>
       )}
-      <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-1 left-1/2 -translate-x-1/2 px-3 py-1 [@media(pointer:coarse)]:px-2 [@media(pointer:coarse)]:py-0.5 text-[11px] [@media(pointer:coarse)]:text-[9px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] [@media(pointer:coarse)]:max-w-[52vw] text-center shadow-sm [@media(pointer:coarse)]:leading-tight">
+      <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-28 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 

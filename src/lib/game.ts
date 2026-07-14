@@ -79,6 +79,10 @@ const DEFAULT: GameState = {
 // In-memory cache per session.
 let CACHE: GameState = { ...DEFAULT };
 let CACHE_UID: string | null = null;
+// Chỉ cho phép ghi DB (destructive delete+insert) SAU KHI đã hydrate xong từ DB.
+// Ngăn cache local rỗng/lỗi thời ghi đè dữ liệu thật trên DB.
+let HYDRATED_FROM_DB = false;
+let PENDING_FLUSH = false;
 
 const LS_PREFIX = "vebinhso_game_cache_";
 
@@ -103,8 +107,8 @@ export function loadGame(): GameState {
   if (!u) return { ...DEFAULT };
   if (CACHE_UID !== u.id) {
     CACHE_UID = u.id;
+    HYDRATED_FROM_DB = false;
     loadCacheFromLocal(u.id);
-    // Trigger async refresh from DB
     refreshFromDB(u.id).catch(() => { /* noop */ });
   }
   return CACHE;
@@ -112,7 +116,6 @@ export function loadGame(): GameState {
 
 /**
  * Nơi DUY NHẤT được phép thay đổi các biến đếm câu trả lời.
- * Cập nhật tổng số câu đã trả lời, số câu đúng, và streak.
  */
 export function recordAnswer(isCorrect: boolean) {
   const g = loadGame();
@@ -132,7 +135,14 @@ export function saveGame(s: GameState) {
   persistLocal(u.id);
   if (typeof window === "undefined") return;
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { flushToDB(u.id).catch(() => { /* noop */ }); }, 600);
+  saveTimer = setTimeout(() => {
+    if (!HYDRATED_FROM_DB) {
+      // Hoãn ghi: chờ hydrate xong để không xoá dữ liệu thật trên DB.
+      PENDING_FLUSH = true;
+      return;
+    }
+    flushToDB(u.id).catch(() => { /* noop */ });
+  }, 600);
 }
 
 async function refreshFromDB(uid: string) {

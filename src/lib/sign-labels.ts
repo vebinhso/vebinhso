@@ -18,6 +18,7 @@ export function saveSignLabels(uid: string, map: SignLabelMap) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(KEY(uid), JSON.stringify(map));
+    window.dispatchEvent(new Event("game-saved"));
   } catch {
     /* ignore */
   }

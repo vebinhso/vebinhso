@@ -70,7 +70,10 @@ export function saveOutfit(o: Outfit) {
   }
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    supabase.from("character_outfit").upsert({ user_id: u.id, outfit: o as any }).then(() => {}, () => {});
+    supabase.from("character_outfit").upsert({ user_id: u.id, outfit: o as any }).then(
+      () => { if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved")); },
+      () => {},
+    );
   }, 500);
 }
 

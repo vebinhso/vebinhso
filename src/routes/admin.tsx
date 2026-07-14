@@ -544,6 +544,22 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
   }
 
+  async function setQuestionDomain(q: AdminQuestion, domain: number | null) {
+    if ((q.competencyDomain ?? null) === domain) return;
+    const patch: AdminQuestion = { ...q, competencyDomain: domain };
+    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi miền câu "${q.q.slice(0, 30)}…" → ${domain ? `M${domain} ${DOMAIN_LABELS[domain]}` : "—"}`); flashSaved("✅ Đã lưu miền"); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
+  async function setQuestionLevel(q: AdminQuestion, level: number | null) {
+    if ((q.competencyLevel ?? null) === level) return;
+    const patch: AdminQuestion = { ...q, competencyLevel: level };
+    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
+    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi bậc câu "${q.q.slice(0, 30)}…" → ${level ? `Bậc ${level}` : "—"}`); flashSaved("✅ Đã lưu bậc"); }
+    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+  }
+
   async function addToPriority(q: AdminQuestion) {
     const maxP = list.reduce((m, x) => Math.max(m, x.priority || 0), 0);
     const priorityCount = list.filter((x) => (x.priority || 0) > 0).length;

@@ -223,9 +223,10 @@ async function flushToDB(uid: string) {
     wall_color: CACHE.wallColor,
     owned_palettes: CACHE.ownedPalettes,
   });
-  // Items/walls/roofs: full replace strategy (simple, OK for small collections)
-  await supabase.from("placed_items").delete().eq("user_id", uid);
+  // Chỉ delete+insert khi mảng KHÔNG rỗng để không "sạch" dữ liệu thật trên DB
+  // trong các race condition. Muốn xoá toàn bộ item, hãy dùng luồng xoá riêng.
   if (CACHE.placed.length) {
+    await supabase.from("placed_items").delete().eq("user_id", uid);
     await supabase.from("placed_items").insert(
       CACHE.placed.map((p) => ({
         user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0,
@@ -234,20 +235,20 @@ async function flushToDB(uid: string) {
       })),
     );
   }
-  await supabase.from("walls").delete().eq("user_id", uid);
   if (CACHE.walls.length) {
+    await supabase.from("walls").delete().eq("user_id", uid);
     await supabase.from("walls").insert(
       CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0, floor: w.floor ?? 0 })),
     );
   }
-  await supabase.from("roofs").delete().eq("user_id", uid);
   if (CACHE.roofs.length) {
+    await supabase.from("roofs").delete().eq("user_id", uid);
     await supabase.from("roofs").insert(
       CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
     );
   }
-  await (supabase.from as any)("floors").delete().eq("user_id", uid);
   if (CACHE.floors.length) {
+    await (supabase.from as any)("floors").delete().eq("user_id", uid);
     await (supabase.from as any)("floors").insert(
       CACHE.floors.map((f) => ({ user_id: uid, ax: f.ax, az: f.az, bx: f.bx, bz: f.bz, value: f.value ?? 0, floor: f.floor ?? 0 })),
     );

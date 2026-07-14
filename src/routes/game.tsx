@@ -1014,7 +1014,7 @@ function GamePage() {
           🚪 Hãy bấm vào cửa và xoay về 0°
         </div>
       )}
-      <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-28 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
+      <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-1 left-1/2 -translate-x-1/2 px-3 py-1 [@media(pointer:coarse)]:px-2 [@media(pointer:coarse)]:py-0.5 text-[11px] [@media(pointer:coarse)]:text-[9px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] [@media(pointer:coarse)]:max-w-[52vw] text-center shadow-sm [@media(pointer:coarse)]:leading-tight">
         🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
       </div>
 

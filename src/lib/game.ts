@@ -215,6 +215,7 @@ async function flushToDB(uid: string) {
       CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
     );
   }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved"));
 }
 
 export function resetGameCacheForLogout() {

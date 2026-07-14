@@ -117,7 +117,7 @@ export function TouchControls({
         onPointerUp={onJoyUp}
         onPointerCancel={onJoyUp}
         onPointerLeave={onJoyUp}
-        className="fixed bottom-6 left-6 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-white/30 backdrop-blur-md shadow-xl"
+        className="fixed bottom-4 left-4 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-white/30 backdrop-blur-md shadow-xl"
         style={{ width: RADIUS * 2, height: RADIUS * 2, touchAction: "none" }}
       >
         <div
@@ -138,8 +138,8 @@ export function TouchControls({
           onPointerUp={jumpUp}
           onPointerCancel={jumpUp}
           onPointerLeave={jumpUp}
-          className="fixed bottom-8 right-8 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-gradient-to-br from-amber-300 to-orange-500 text-white font-black text-2xl shadow-xl active:scale-95"
-          style={{ width: 72, height: 72, touchAction: "none" }}
+          className="fixed bottom-6 right-4 z-40 pointer-events-auto rounded-full border-4 border-white/70 bg-gradient-to-br from-amber-300 to-orange-500 text-white font-black text-xl shadow-xl active:scale-95"
+          style={{ width: 60, height: 60, touchAction: "none" }}
         >
           ⤴
         </button>
@@ -147,8 +147,8 @@ export function TouchControls({
       {showActionButton && (
         <button
           onPointerDown={(e) => { e.preventDefault(); fireAction(); }}
-          className="fixed right-8 z-40 pointer-events-auto rounded-2xl border-4 border-white/70 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white font-black text-sm shadow-xl active:scale-95 px-4 py-3"
-          style={{ bottom: showJumpButton ? 96 : 32, touchAction: "none" }}
+          className="fixed right-4 z-40 pointer-events-auto rounded-2xl border-4 border-white/70 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white font-black text-xs shadow-xl active:scale-95 px-3 py-2"
+          style={{ bottom: showJumpButton ? 80 : 24, touchAction: "none" }}
         >
           {actionLabel}
         </button>

@@ -125,11 +125,17 @@ function GamePage() {
     // Nạp vật phẩm rải trên map (xu + boom) + đã nhặt
     setCollectedIds(loadCollected(u.id));
     setSignLabels(loadSignLabels(u.id));
+    const onSignRefresh = (e: Event) => {
+      const detail = (e as CustomEvent).detail as SignLabelMap | undefined;
+      if (detail) setSignLabels(detail);
+    };
+    window.addEventListener("sign-labels-refresh", onSignRefresh);
     loadPickupConfig()
       .then((cfg) => setPickups(resolvePickups(cfg)))
       .catch(() => setPickups([]));
     return () => {
       window.removeEventListener("game-change", onGameChange);
+      window.removeEventListener("sign-labels-refresh", onSignRefresh);
       clearTimeout(t);
     };
   }, [navigate]);

@@ -860,7 +860,7 @@ function GamePage() {
             {thaoTacOpen ? "✖ ⚙️ THAO TÁC" : "⚙️ THAO TÁC"}
           </button>
           {thaoTacOpen && (
-            <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
+            <div className="flex flex-col gap-2 items-end max-h-[40vh] [@media(pointer:coarse)]:max-h-[26vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth overscroll-contain" style={{ scrollbarWidth: "thin", WebkitOverflowScrolling: "touch" }}>
               <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
               <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
                 ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}

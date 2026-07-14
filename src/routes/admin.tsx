@@ -1144,32 +1144,66 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 {(() => {
                   const curCat = q.category === "digital" ? "digital" : "history";
                   const curLvl = typeof q.competencyLevel === "number" ? q.competencyLevel : null;
-                  const badge = curLvl
-                    ? (curCat === "digital"
-                        ? `🌐 Bậc ${curLvl}`
-                        : `🏛️ Bậc ${curLvl}`)
-                    : (curCat === "digital" ? "🌐 Chưa gắn bậc" : "🏛️ Chưa gắn bậc");
+                  const curDm = typeof q.competencyDomain === "number" ? q.competencyDomain : null;
                   return (
-                    <span className={`px-2 py-0.5 rounded-full ${curLvl ? "bg-indigo-100 text-indigo-800" : "bg-yellow-100 text-yellow-800"}`}>
-                      {badge}
-                    </span>
+                    <>
+                      <span className={`px-2 py-0.5 rounded-full ${curLvl ? "bg-indigo-100 text-indigo-800" : "bg-yellow-100 text-yellow-800"}`}>
+                        {curCat === "digital" ? "🌐" : "🏛️"} {curLvl ? `Bậc ${curLvl}` : "Chưa gắn bậc"}
+                      </span>
+                      {curCat === "digital" && (
+                        <span className={`px-2 py-0.5 rounded-full ${curDm ? "bg-pink-100 text-pink-800" : "bg-yellow-100 text-yellow-800"}`}>
+                          {curDm ? `📚 M${curDm} · ${DOMAIN_LABELS[curDm]}` : "📚 Chưa gắn mục"}
+                        </span>
+                      )}
+                      {/* Bộ chọn Bậc thủ công */}
+                      <select
+                        value={curLvl ?? ""}
+                        onChange={(e) => setQuestionLevel(q, e.target.value ? Number(e.target.value) : null)}
+                        className="px-2 py-0.5 rounded-full border-2 border-indigo-200 bg-white text-indigo-800 font-black text-xs"
+                        title="Chọn bậc năng lực (1 cơ bản → 8 nâng cao)"
+                      >
+                        <option value="">Bậc: —</option>
+                        {[1,2,3,4,5,6,7,8].map((lv) => (
+                          <option key={lv} value={lv}>Bậc {lv}</option>
+                        ))}
+                      </select>
+                      {/* Bộ chọn Mục thủ công (chỉ khi Digital) */}
+                      {curCat === "digital" && (
+                        <select
+                          value={curDm ?? ""}
+                          onChange={(e) => setQuestionDomain(q, e.target.value ? Number(e.target.value) : null)}
+                          className="px-2 py-0.5 rounded-full border-2 border-pink-200 bg-white text-pink-800 font-black text-xs"
+                          title="Chọn mục (miền) năng lực số phù hợp cho câu này"
+                        >
+                          <option value="">Mục: —</option>
+                          {[1,2,3,4,5,6].map((dm) => (
+                            <option key={dm} value={dm}>M{dm} · {DOMAIN_LABELS[dm]}</option>
+                          ))}
+                        </select>
+                      )}
+                    </>
                   );
                 })()}
                 {(() => {
                   const r = classifyQuestion(q.q, q.options.map((o) => o.text));
                   const curCat = q.category === "digital" ? "digital" : "history";
-                  const diff = r.category !== curCat || r.level !== (q.competencyLevel ?? null);
-                  if (!diff) return null;
-                  const label = r.category === "digital"
-                    ? `🌐 Bậc ${r.level ?? "?"}`
-                    : `🏛️ Bậc ${r.level ?? "?"}`;
+                  const curLvl = q.competencyLevel ?? null;
+                  const curDm = q.competencyDomain ?? null;
+                  const diffCat = r.category !== curCat;
+                  const diffLvl = r.level !== curLvl;
+                  const diffDm = r.domain !== curDm;
+                  if (!diffCat && !diffLvl && !diffDm) return null;
+                  const parts: string[] = [];
+                  parts.push(r.category === "digital" ? "🌐 Năng lực số" : "🏛️ Lịch sử-VH");
+                  if (r.level) parts.push(`Bậc ${r.level}`);
+                  if (r.category === "digital" && r.domain) parts.push(`M${r.domain} · ${DOMAIN_LABELS[r.domain]}`);
                   return (
                     <button
                       onClick={() => applySuggestionOne(q)}
                       className="px-2 py-0.5 bg-purple-100 text-purple-800 hover:bg-purple-200 rounded-full font-black"
-                      title="Áp dụng đề xuất mục & bậc cho câu này"
+                      title="Áp dụng đề xuất mục + bậc + miền cho riêng câu này"
                     >
-                      💡 Đề xuất: {label} — Áp dụng
+                      💡 Đề xuất: {parts.join(" · ")} — Áp dụng
                     </button>
                   );
                 })()}

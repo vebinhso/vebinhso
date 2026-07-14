@@ -220,31 +220,37 @@ export type Database = {
       }
       placed_items: {
         Row: {
+          angle_rad: number | null
           created_at: string
           floor: number
           id: string
           item_id: string
           rotation: number
+          stack_y: number | null
           user_id: string
           x: number
           z: number
         }
         Insert: {
+          angle_rad?: number | null
           created_at?: string
           floor?: number
           id?: string
           item_id: string
           rotation?: number
+          stack_y?: number | null
           user_id: string
           x: number
           z: number
         }
         Update: {
+          angle_rad?: number | null
           created_at?: string
           floor?: number
           id?: string
           item_id?: string
           rotation?: number
+          stack_y?: number | null
           user_id?: string
           x?: number
           z?: number

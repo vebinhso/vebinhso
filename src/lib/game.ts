@@ -168,31 +168,39 @@ async function refreshFromDB(uid: string) {
     next.wallColor = gs.data.wall_color ?? "#f5e6c8";
     next.ownedPalettes = Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [];
   }
-  if (items.data) {
+  // MERGE items thay vì overwrite: nếu DB có dữ liệu, dùng DB; nếu DB rỗng
+  // nhưng cache local có, giữ cache (chờ flush lên DB) — tránh xoá nội thất.
+  if (items.data && items.data.length > 0) {
     next.placed = items.data.map((r: any) => ({
       id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
       ...(r.angle_rad != null ? { angleRad: r.angle_rad } : {}),
       ...(r.stack_y != null ? { stackY: r.stack_y } : {}),
     }));
   }
-  if (walls.data) {
+  if (walls.data && walls.data.length > 0) {
     next.walls = walls.data.map((r: any) => ({
       id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
     }));
   }
-  if (roofs.data) {
+  if (roofs.data && roofs.data.length > 0) {
     next.roofs = roofs.data.map((r: any) => ({
       id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
     }));
   }
-  if ((floors as any)?.data) {
+  if ((floors as any)?.data && (floors as any).data.length > 0) {
     next.floors = (floors as any).data.map((r: any) => ({
       id: r.id, ax: Number(r.ax), az: Number(r.az), bx: Number(r.bx), bz: Number(r.bz), value: r.value, floor: r.floor ?? 0,
     }));
   }
   CACHE = next;
   persistLocal(uid);
+  HYDRATED_FROM_DB = true;
   if (typeof window !== "undefined") window.dispatchEvent(new Event("game-change"));
+  // Nếu có thay đổi bị hoãn trong lúc chờ hydrate, flush ngay bây giờ.
+  if (PENDING_FLUSH) {
+    PENDING_FLUSH = false;
+    flushToDB(uid).catch(() => { /* noop */ });
+  }
 }
 
 

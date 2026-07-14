@@ -31,8 +31,9 @@ export function SavedToast() {
   return (
     <div
       aria-live="polite"
-      className={`pointer-events-none fixed top-3 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${
+      className={`pointer-events-none fixed top-16 sm:top-3 right-3 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 z-[9999] transition-all duration-300 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+      }`}
       }`}
     >
       <div className="px-3 py-1.5 rounded-full bg-emerald-600/95 text-white text-xs font-black shadow-lg border-2 border-white/70 flex items-center gap-1.5">

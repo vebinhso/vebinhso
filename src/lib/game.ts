@@ -136,11 +136,12 @@ export function saveGame(s: GameState) {
 }
 
 async function refreshFromDB(uid: string) {
-  const [gs, items, walls, roofs] = await Promise.all([
+  const [gs, items, walls, roofs, floors] = await Promise.all([
     supabase.from("game_state").select("*").eq("user_id", uid).maybeSingle(),
     supabase.from("placed_items").select("*").eq("user_id", uid),
     supabase.from("walls").select("*").eq("user_id", uid),
     supabase.from("roofs").select("*").eq("user_id", uid),
+    (supabase.from as any)("floors").select("*").eq("user_id", uid),
   ]);
   const next: GameState = { ...CACHE };
   if (gs.data) {
@@ -174,10 +175,16 @@ async function refreshFromDB(uid: string) {
       id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
     }));
   }
+  if ((floors as any)?.data) {
+    next.floors = (floors as any).data.map((r: any) => ({
+      id: r.id, ax: Number(r.ax), az: Number(r.az), bx: Number(r.bx), bz: Number(r.bz), value: r.value, floor: r.floor ?? 0,
+    }));
+  }
   CACHE = next;
   persistLocal(uid);
   if (typeof window !== "undefined") window.dispatchEvent(new Event("game-change"));
 }
+
 
 async function flushToDB(uid: string) {
   // Đồng bộ cấp độ tính toán xuống DB để xếp hạng hiển thị đúng.

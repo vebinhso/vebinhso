@@ -372,9 +372,12 @@ function Home() {
       </main>
 
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
+          </Link>
+          <Link to="/friends-map" className="toy-button toy-button-primary text-sm min-w-[140px] justify-center">
+            🗺️ BẢN ĐỒ BẠN BÈ
           </Link>
           <button
             onClick={takeScreenshot}
@@ -384,6 +387,7 @@ function Home() {
             📸 CHỤP ẢNH
           </button>
         </div>
+
         <Link to="/events" className="toy-button toy-button-accent min-w-[180px] justify-center">
           SỰ KIỆN HOT 🔥
         </Link>

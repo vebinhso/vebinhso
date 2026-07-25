@@ -1,89 +1,85 @@
+# Bản đồ bạn bè & tham quan nhà
 
-## Mục tiêu
-Chuyển dự án từ lưu trữ localStorage sang Supabase (Lovable Cloud) để dữ liệu đồng bộ giữa các thiết bị, cho phép xếp hạng/admin chính xác và bảo mật bằng RLS.
+Tính năng lớn, đụng vào DB + realtime + 3D scene. Chia làm 4 mốc để dễ kiểm tra từng bước.
 
-## 1. Authentication
-- Bật **Supabase Auth**: email/password + Google (qua `lovable.auth.signInWithOAuth`).
-- Tự động xác nhận email **TẮT** (user phải verify email).
-- Xoá flow `verifyRegistration` / `pending accounts` cũ trong `src/lib/auth.ts`.
-- Viết lại `src/routes/login.tsx`, `src/routes/verify.tsx` dùng Supabase Auth.
-- Thêm `onAuthStateChange` listener ở `__root.tsx` để invalidate cache.
-- Lưu ý: **tài khoản cũ trong localStorage sẽ không tự chuyển** — người chơi phải đăng ký lại.
+## 1. Dữ liệu & quyền riêng tư (migration)
 
-## 2. Schema database
+Thêm cột / bảng mới:
 
-```text
-profiles              (user_id PK→auth.users, username unique, display_name, avatar, created_at)
-user_roles            (user_id, role app_role enum: admin/moderator/user) — chống privilege escalation
-game_state            (user_id PK, money, net_worth, correct_answers, answer_streak,
-                       level, bricks, concrete, roof_tiles, roof_tiles_ton,
-                       wall_color, owned_palettes jsonb, updated_at)
-placed_items          (id, user_id, item_id, x, z, rotation)
-walls                 (id, user_id, ax, az, bx, bz, color, value)
-roofs                 (id, user_id, ax, az, bx, bz, style, value)
-character_outfit      (user_id PK, outfit jsonb)
-pets                  (id, user_id, pet_id, name, level, xp, equipped)
-friends               (user_id, friend_id, status, created_at)  -- composite PK
-messages              (id, from_user, to_user, content, created_at) -- realtime
-login_streaks         (user_id PK, total_days, current_streak, last_login_date)
-questions_bank        (id, text, choices jsonb, answer_index, image_url, category)
-admin_config          (key PK, value jsonb)  -- prices, levels, rewards overrides
-```
+- `profiles`:
+  - `map_x float`, `map_y float` — toạ độ nhà trên bản đồ (mặc định random 1 lần).
+  - `house_privacy text` — `public | friends | private` (mặc định `friends`).
+  - `house_name text` — tên căn nhà hiển thị dưới icon (nếu null → dùng username).
+- `presence` (bảng mới): `user_id PK`, `is_online bool`, `in_house_owner uuid null`, `last_seen timestamptz`.
+  - Cập nhật qua Realtime + heartbeat 30s (tận dụng `startSessionTracker` sẵn có).
+- RPC `get_friend_houses()` (SECURITY DEFINER):
+  - Trả về danh sách nhà của các user có `friends.status='accepted'` với `auth.uid()`.
+  - Kèm `username, avatar_url, map_x, map_y, house_privacy, house_name, is_online, in_house_owner`.
+- RPC `can_visit_house(owner uuid)`:
+  - `true` nếu `public`, hoặc `friends` + đã kết bạn, hoặc chính chủ.
+  - `false` nếu `private` hoặc không đủ quyền.
+- RLS: cho `authenticated` SELECT các cột public của `profiles` (username, avatar, map coords, privacy, house_name) — vẫn giấu email.
+- GRANT chuẩn cho bảng `presence` (owner-only INSERT/UPDATE, SELECT cho authenticated để bạn bè thấy trạng thái).
 
-- **Hàm `has_role(uuid, app_role)`** SECURITY DEFINER để dùng trong RLS (tránh đệ quy).
-- **Trigger `handle_new_user`** tự tạo `profiles` + `game_state` rỗng khi signup.
-- **Trigger `update_updated_at`** cho mọi bảng có `updated_at`.
+## 2. Server functions
 
-## 3. RLS policies
-- `profiles`: SELECT cho tất cả authenticated (để xem ranking), UPDATE chỉ chủ sở hữu.
-- `game_state`, `placed_items`, `walls`, `roofs`, `character_outfit`, `pets`, `login_streaks`: SELECT cho authenticated (để ranking/leaderboard); INSERT/UPDATE/DELETE chỉ owner. Admin có thể UPDATE tất cả qua `has_role(auth.uid(),'admin')`.
-- `friends`, `messages`: chỉ các bên liên quan đọc/ghi.
-- `questions_bank`, `admin_config`: SELECT cho tất cả; INSERT/UPDATE/DELETE chỉ admin.
-- `user_roles`: SELECT chính mình; INSERT/UPDATE/DELETE chỉ admin.
+Tạo `src/lib/friend-houses.functions.ts` (dùng `requireSupabaseAuth`):
 
-## 4. Refactor code — đọc/ghi từ DB
+- `listFriendHouses()` → gọi RPC `get_friend_houses`.
+- `getVisitableHouse({ ownerId })` → check `can_visit_house`; nếu OK trả về snapshot chỉ đọc: outfit, floors, walls, roofs, placed_items, sign labels của chủ nhà. Nếu không → throw lỗi "Nơi ở riêng tư".
+- `updateHousePrivacy({ privacy, house_name?, map_x?, map_y? })` — cập nhật `profiles`.
+- `setPresenceInHouse({ ownerId | null })` — set/clear `in_house_owner`.
 
-| File hiện tại | Thay đổi |
-|---|---|
-| `src/lib/auth.ts` | Bỏ logic localStorage, dùng `supabase.auth`. Giữ helper `getCurrentUser()` đọc từ session. |
-| `src/lib/game.ts` | `loadGame()` / `saveGame()` async, đọc/ghi `game_state` qua server fn. Debounce save (~500ms). |
-| `src/lib/character.ts` | `loadOutfit/saveOutfit` async qua `character_outfit`. |
-| `src/lib/friends.ts` | Đọc/ghi bảng `friends`. |
-| `src/game/questions.ts` | Đọc từ `questions_bank`. |
-| `src/lib/admin.ts` | `isAdmin()` qua `has_role`; config qua `admin_config`. |
-| `src/routes/ranking.tsx` | Query `profiles + game_state` thay vì duyệt localStorage. |
-| `src/routes/chat.tsx` | Realtime channel cho `messages`. |
-| Các route GameWorld/magic | Dùng React Query để load state, mutation để save. |
+## 3. Bản đồ bạn bè (UI mới `/friends-map`)
 
-- Server functions trong `src/lib/*.functions.ts`:
-  - `getGameState`, `saveGameState`
-  - `getLeaderboard`
-  - `saveOutfit`, `getOutfit`
-  - `listFriends`, `addFriend`, `removeFriend`
-  - `adminListPlayers`, `adminUpdatePlayer`, `adminResetPassword` (dùng `supabaseAdmin`)
-  - `adminListQuestions`, `adminUpsertQuestion`, `adminDeleteQuestion`
-- Wire `attachSupabaseAuth` trong `src/start.ts` nếu chưa có.
+Route mới `src/routes/friends-map.tsx`:
 
-## 5. Migration dữ liệu cũ
-- Một **banner một lần** ở Home: nếu phát hiện dữ liệu cũ trong localStorage, gợi ý người chơi đăng ký tài khoản mới và **tự động đẩy** game state + outfit + walls + placed items + roofs từ localStorage lên DB sau khi login lần đầu.
-- Sau migration thành công → xoá key localStorage để tránh duplicate.
+- Canvas 2D (SVG hoặc div absolute positioning) rộng ~2000x1200, có pan/zoom bằng chuột & pinch trên mobile.
+- Render mỗi nhà bạn bè = icon 🏠 + avatar tròn + tên + chấm trạng thái 🟢/⚪.
+- Hover / tap → popup nhỏ: avatar, tên, online, đang ở trong nhà (nếu có), nút **🏠 Vào nhà** hoặc **🔒 Nơi ở riêng tư** (disabled).
+- Chống chồng: chạy layout đơn giản (jitter theo hash user_id) khi 2 nhà quá gần.
+- Animation `animate-in fade-in slide-in-from-bottom-2` khi icon xuất hiện.
+- Nút **⚙️ Cài đặt nhà của tôi** mở modal chọn privacy (Public / Friends / Private) + đổi `house_name` + kéo icon nhà mình để đổi vị trí.
+- Realtime: subscribe kênh `presence-map` → khi có `is_online` / `in_house_owner` đổi thì refetch chỉ 1 hàng.
 
-## 6. Admin
-- Bảng `user_roles` + seed 8 email allowlist hardcode hiện tại làm admin **sau khi họ signup lần đầu** (qua một edge case trong trigger `handle_new_user`: nếu email ∈ allowlist → INSERT role admin).
-- `src/routes/admin.tsx` query qua server fn admin (dùng service role), không truy cập trực tiếp từ client.
+Thêm entry point vào trang chủ + trong menu game: nút "🗺️ BẢN ĐỒ BẠN BÈ".
 
-## 7. Phạm vi NGOÀI plan này (làm sau)
-- Báo cáo vi phạm, log hệ thống chi tiết, thông số sự kiện thời tiết/festival.
-- Chuyển 3D state realtime giữa người chơi (multiplayer thật).
+## 4. Chế độ tham quan nhà bạn (read-only)
+
+Trong `src/routes/game.tsx`:
+
+- Thêm search param `visit=<ownerId>`. Nếu có:
+  - Gọi `getVisitableHouse({ ownerId })`; lỗi → toast "Căn nhà này hiện không mở cho bạn tham quan." rồi `navigate` về `/friends-map`.
+  - Load snapshot vào state riêng (không đè `useGame`); disable mọi mutation (mua, đặt, xoá, di chuyển, xoay, đổi vật liệu).
+  - HUD hiển thị: avatar + tên chủ nhà, "Đang tham quan", nút **🚪 Rời nhà** (quay lại `/friends-map`).
+  - Gọi `setPresenceInHouse({ ownerId })` khi vào, clear khi rời (cả unmount + `beforeunload`).
+- `GameWorld` nhận thêm prop `readOnly` để bỏ tất cả click-to-edit + edit panel.
+- Hiển thị các visitor khác cùng chủ nhà: dùng Realtime `presence` channel `house:<ownerId>` (chỉ danh sách, chưa render 3D vị trí — tiết kiệm phạm vi giai đoạn 1).
+- Chat trong nhà: dùng lại `messages` bảng sẵn có, filter theo `to_user = ownerId` như "phòng khách" (giai đoạn 2, chưa làm nếu vượt phạm vi).
+
+## 5. NGOÀI phạm vi lần này (làm sau)
+
+- Đồng bộ vị trí 3D theo thời gian thực của visitor bên trong nhà (multiplayer thật).
+- Chat riêng theo phòng nhà.
+- Chỉnh sửa nội thất khi được chủ nhà cấp quyền.
+
+## Chi tiết kỹ thuật
+
+- Realtime hiện tại chỉ bật cho `messages`. Migration sẽ `ALTER PUBLICATION supabase_realtime ADD TABLE presence, profiles` (chỉ các cột an toàn — vì Realtime phát full row, nên tạo bảng phụ `profiles_public` view hoặc chỉ dùng `presence` cho realtime; sẽ dùng `presence` để tránh leak email).
+- Không dùng WebSocket riêng; Supabase Realtime đủ dùng.
+- Toạ độ nhà mặc định: hash `user_id` → toạ độ ổn định trong khung [80..1920]×[80..1120] để user chưa set vị trí vẫn có chỗ hiện lên.
+- Tất cả server fn dùng `requireSupabaseAuth` → RLS bảo vệ; không có endpoint public.
 
 ## Thứ tự thực thi
-1. Tạo migration SQL (bảng + enum + function + trigger + RLS) — chờ user approve.
-2. Bật Google OAuth + email auth.
-3. Viết server functions + refactor `auth.ts`, `game.ts`, `character.ts`, `friends.ts`.
-4. Cập nhật route `login`, `verify`, `ranking`, `chat`, `admin`, GameWorld, magic.
-5. Thêm migration banner localStorage → DB.
-6. Test toàn bộ flow: signup → play → save → ranking → admin.
+
+1. Migration (bảng + cột + RPC + RLS + realtime publication).
+2. Server functions + refactor `friends.ts` để expose danh sách accepted.
+3. Route `/friends-map` (bản đồ + popup + modal cài đặt).
+4. Chế độ `?visit=` trong `/game` (read-only) + nút "Rời nhà".
+5. Cắm entry vào trang chủ + menu game.
+6. Test end-to-end: 2 tài khoản kết bạn → thấy nhau trên map → thăm nhà theo từng chế độ privacy.
 
 ## Cảnh báo
-- Đây là refactor lớn (~15-20 file). Sau khi migrate, **dữ liệu localStorage cũ trên thiết bị hiện tại vẫn còn** nhưng game sẽ đọc từ DB.
-- Mỗi câu trả lời đúng / mỗi lần đặt vật phẩm sẽ tạo 1 request lên DB (có debounce). Cần internet để chơi.
+
+- Đây là feature ~10 file mới/sửa, ảnh hưởng game route lớn nhất. Sau khi làm xong, cần test lại flow xây nhà cũ không bị regression.
+- Chi phí Realtime tăng do thêm `presence` channel — sẽ scope hẹp (chỉ user + bạn bè, không phát toàn cầu).

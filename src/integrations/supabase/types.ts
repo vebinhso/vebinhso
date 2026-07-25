@@ -299,6 +299,30 @@ export type Database = {
         }
         Relationships: []
       }
+      presence: {
+        Row: {
+          in_house_owner: string | null
+          is_online: boolean
+          last_seen: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          in_house_owner?: string | null
+          is_online?: boolean
+          last_seen?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          in_house_owner?: string | null
+          is_online?: boolean
+          last_seen?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar: string | null
@@ -306,6 +330,10 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          house_name: string | null
+          house_privacy: string
+          map_x: number
+          map_y: number
           name_changes: number
           updated_at: string
           user_id: string
@@ -317,6 +345,10 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          house_name?: string | null
+          house_privacy?: string
+          map_x?: number
+          map_y?: number
           name_changes?: number
           updated_at?: string
           user_id: string
@@ -328,6 +360,10 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          house_name?: string | null
+          house_privacy?: string
+          map_x?: number
+          map_y?: number
           name_changes?: number
           updated_at?: string
           user_id?: string
@@ -544,6 +580,22 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      can_visit_house: { Args: { owner: string }; Returns: boolean }
+      get_friend_houses: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          house_name: string
+          house_privacy: string
+          in_house_owner: string
+          is_online: boolean
+          map_x: number
+          map_y: number
+          user_id: string
+          username: string
+        }[]
       }
       get_leaderboard: {
         Args: never

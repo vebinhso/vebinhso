@@ -23,11 +23,13 @@ import { Route as MagicRouteImport } from './routes/magic'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as GameRouteImport } from './routes/game'
+import { Route as FriendsMapRouteImport } from './routes/friends-map'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VisitOwnerIdRouteImport } from './routes/visit.$ownerId'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -104,6 +106,11 @@ const GameRoute = GameRouteImport.update({
   path: '/game',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FriendsMapRoute = FriendsMapRouteImport.update({
+  id: '/friends-map',
+  path: '/friends-map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -127,6 +134,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VisitOwnerIdRoute = VisitOwnerIdRouteImport.update({
+  id: '/visit/$ownerId',
+  path: '/visit/$ownerId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -164,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
@@ -181,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -190,6 +204,7 @@ export interface FileRoutesByTo {
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
@@ -207,6 +222,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -217,6 +233,7 @@ export interface FileRoutesById {
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/events': typeof EventsRoute
+  '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
@@ -234,6 +251,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -245,6 +263,7 @@ export interface FileRouteTypes {
     | '/character'
     | '/chat'
     | '/events'
+    | '/friends-map'
     | '/game'
     | '/inventory'
     | '/login'
@@ -262,6 +281,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
@@ -271,6 +291,7 @@ export interface FileRouteTypes {
     | '/character'
     | '/chat'
     | '/events'
+    | '/friends-map'
     | '/game'
     | '/inventory'
     | '/login'
@@ -288,6 +309,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   id:
@@ -297,6 +319,7 @@ export interface FileRouteTypes {
     | '/character'
     | '/chat'
     | '/events'
+    | '/friends-map'
     | '/game'
     | '/inventory'
     | '/login'
@@ -314,6 +337,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
@@ -324,6 +348,7 @@ export interface RootRouteChildren {
   CharacterRoute: typeof CharacterRoute
   ChatRoute: typeof ChatRoute
   EventsRoute: typeof EventsRoute
+  FriendsMapRoute: typeof FriendsMapRoute
   GameRoute: typeof GameRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
@@ -341,6 +366,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  VisitOwnerIdRoute: typeof VisitOwnerIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -445,6 +471,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/friends-map': {
+      id: '/friends-map'
+      path: '/friends-map'
+      fullPath: '/friends-map'
+      preLoaderRoute: typeof FriendsMapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events': {
       id: '/events'
       path: '/events'
@@ -478,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/visit/$ownerId': {
+      id: '/visit/$ownerId'
+      path: '/visit/$ownerId'
+      fullPath: '/visit/$ownerId'
+      preLoaderRoute: typeof VisitOwnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -524,6 +564,7 @@ const rootRouteChildren: RootRouteChildren = {
   CharacterRoute: CharacterRoute,
   ChatRoute: ChatRoute,
   EventsRoute: EventsRoute,
+  FriendsMapRoute: FriendsMapRoute,
   GameRoute: GameRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
@@ -542,6 +583,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  VisitOwnerIdRoute: VisitOwnerIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }

@@ -328,7 +328,7 @@ function MyHouseSettings({
         <input
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 40))}
-          placeholder={initial.username}
+          placeholder={init.username}
           className="w-full mb-3 px-3 py-2 rounded-xl border-2 border-orange-200 focus:border-orange-400 outline-none"
         />
 

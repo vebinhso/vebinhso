@@ -1315,8 +1315,8 @@ function GamePage() {
                 >📦 Đặt vật trên {surfaceItem.name}</button>
               </div>
             )}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold w-12">Xoay:</span>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="text-xs font-bold w-12 shrink-0">Xoay:</span>
               <input
                 type="range"
                 min={0}
@@ -1324,9 +1324,9 @@ function GamePage() {
                 step={1}
                 value={normDeg}
                 onChange={(e) => setAngle(Number(e.target.value))}
-                className="flex-1 accent-cyan-500"
+                className="flex-1 min-w-0 accent-cyan-500"
               />
-              <span className="text-xs font-black w-12 text-right">{normDeg}°</span>
+              <span className="text-xs font-black w-12 text-right shrink-0">{normDeg}°</span>
             </div>
             <div className="flex items-center gap-1 mb-2 flex-wrap">
               <button onClick={() => setAngle(normDeg - 15)} className="toy-button !text-xs !py-1 !px-2">↺ -15°</button>

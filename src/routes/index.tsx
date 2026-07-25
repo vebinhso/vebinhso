@@ -135,7 +135,7 @@ function Home() {
       syncGame();
       refreshFriends(u.id);
       getMyTeacherProfile().then((p) => { if (!cancelled) setTeacherProfile(p); }).catch(() => {});
-      getMyClassroom().then((c) => { if (!cancelled) setMyClass(c); }).catch(() => {});
+      getMyClasses().then((cs) => { if (!cancelled) setMyClasses(cs); }).catch(() => {});
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {

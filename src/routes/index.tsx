@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import { isAdmin } from "@/lib/admin";
+import { getMyTeacherProfile, joinClass, leaveClass, getMyClassroom, type MyTeacherProfile, type MyClassroom } from "@/lib/teacher";
 import {
   findUserByName,
   sendRequest,
@@ -49,6 +50,10 @@ function Home() {
   const [renameVal, setRenameVal] = useState("");
   const [renameBusy, setRenameBusy] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
+  const [teacherProfile, setTeacherProfile] = useState<MyTeacherProfile | null>(null);
+  const [myClass, setMyClass] = useState<MyClassroom>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
 
   const syncGame = () => {
     const g = loadGame();
@@ -129,6 +134,8 @@ function Home() {
       setStreak(getLoginStreak(u.id));
       syncGame();
       refreshFriends(u.id);
+      getMyTeacherProfile().then((p) => { if (!cancelled) setTeacherProfile(p); }).catch(() => {});
+      getMyClassroom().then((c) => { if (!cancelled) setMyClass(c); }).catch(() => {});
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {
@@ -233,6 +240,32 @@ function Home() {
             <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white w-full justify-center">
               🛡️ ADMIN
             </Link>
+          )}
+          {teacherProfile?.isTeacher && (
+            <Link to="/classroom" className="toy-button text-sm bg-emerald-600 text-white w-full justify-center">
+              🧑‍🏫 LỚP HỌC
+            </Link>
+          )}
+          {teacherProfile && !teacherProfile.isTeacher && teacherProfile.teacherStatus === "pending" && (
+            <div className="text-[10px] font-black bg-yellow-100 text-yellow-800 rounded-xl px-2 py-1 text-center">
+              🧑‍🏫 Chờ duyệt giáo viên
+            </div>
+          )}
+          {myClass ? (
+            <div className="text-[10px] font-black bg-emerald-50 border-2 border-emerald-200 rounded-xl px-2 py-1 text-center">
+              🎟️ Lớp: <b>{myClass.class_code}</b>
+              <button
+                onClick={async () => {
+                  if (!confirm("Rời khỏi lớp này?")) return;
+                  try { await leaveClass(); setMyClass(null); toast.success("Đã rời lớp"); } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                }}
+                className="ml-1 text-red-500 hover:underline"
+              >rời</button>
+            </div>
+          ) : (
+            <button onClick={() => { setJoinCode(""); setJoinOpen(true); }} className="toy-button text-sm bg-blue-500 text-white w-full justify-center">
+              🎟️ VÀO LỚP
+            </button>
           )}
           <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
             🚪 ĐĂNG XUẤT
@@ -447,6 +480,40 @@ function Home() {
             <button onClick={() => setSurveyOpen(false)} className="toy-button w-full mt-3">
               Đóng
             </button>
+          </div>
+        </div>
+      )}
+
+      {joinOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setJoinOpen(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-blue-300" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-2">🎟️ Vào lớp học</h3>
+            <p className="text-xs text-muted-foreground font-bold mb-3">Nhập mã lớp giáo viên cung cấp (4–6 ký tự).</p>
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.trim())}
+              placeholder="VD: ab12cd"
+              maxLength={8}
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 font-black text-center text-2xl tracking-widest uppercase mb-3"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setJoinOpen(false)} className="toy-button flex-1">Huỷ</button>
+              <button
+                onClick={async () => {
+                  if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
+                  try {
+                    await joinClass(joinCode.trim().toLowerCase());
+                    const c = await getMyClassroom();
+                    setMyClass(c);
+                    toast.success(`Đã vào lớp ${c?.class_code ?? ""}`);
+                    setJoinOpen(false);
+                  } catch (e: any) {
+                    toast.error(e?.message || "Mã lớp không hợp lệ");
+                  }
+                }}
+                className="toy-button toy-button-primary flex-1"
+              >Vào lớp</button>
+            </div>
           </div>
         </div>
       )}

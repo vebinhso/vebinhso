@@ -167,6 +167,9 @@ function Register({ setView }: { setView: (v: View) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [teacherSchool, setTeacherSchool] = useState("");
+  const [teacherSubject, setTeacherSubject] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busy, setBusy] = useState(false);
@@ -177,10 +180,24 @@ function Register({ setView }: { setView: (v: View) => void }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Email không hợp lệ!"); return; }
     if (!isPasswordValid(password)) { setError("Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
     if (password !== confirm) { setError("Mật khẩu xác nhận không khớp!"); return; }
+    if (isTeacher && (!teacherSchool.trim() || !teacherSubject.trim())) {
+      setError("Đăng ký giáo viên: vui lòng nhập Trường và Môn giảng dạy."); return;
+    }
     setBusy(true);
     try {
-      await signUpWithPassword({ email: email.trim(), password, username: username.trim() });
+      await signUpWithPassword({
+        email: email.trim(), password, username: username.trim(),
+        isTeacher, teacherSchool: teacherSchool.trim(), teacherSubject: teacherSubject.trim(),
+      });
       await signInWithPassword(email.trim(), password);
+      if (isTeacher) {
+        setSuccess("Đã đăng ký giáo viên. Chờ quản trị viên duyệt để nhận mã lớp.");
+        setTimeout(() => {
+          if (next !== "/") { window.location.href = next; return; }
+          navigate({ to: "/" });
+        }, 1500);
+        return;
+      }
       if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
@@ -202,6 +219,21 @@ function Register({ setView }: { setView: (v: View) => void }) {
         <Field label="Mật khẩu (*)" type="password" value={password} onChange={setPassword} />
         <PasswordChecklist password={password} />
         <Field label="Xác nhận mật khẩu (*)" type="password" value={confirm} onChange={setConfirm} />
+
+        <label className="flex items-start gap-2 mt-1 p-3 rounded-2xl bg-orange-50 border-2 border-orange-200 cursor-pointer">
+          <input type="checkbox" checked={isTeacher} onChange={(e) => setIsTeacher(e.target.checked)} className="mt-1 w-5 h-5 accent-orange-500" />
+          <div className="flex-1">
+            <div className="font-black text-sm">🧑‍🏫 Đăng ký giáo viên</div>
+            <div className="text-xs text-muted-foreground">Yêu cầu quản trị viên duyệt trước khi được nhận mã lớp.</div>
+          </div>
+        </label>
+        {isTeacher && (
+          <>
+            <Field label="Trường giảng dạy (*)" value={teacherSchool} onChange={setTeacherSchool} placeholder="VD: THPT Chuyên KHTN" />
+            <Field label="Môn giảng dạy (*)" value={teacherSubject} onChange={setTeacherSubject} placeholder="VD: Tin học" />
+          </>
+        )}
+
         {error && (
           <div className="text-red-600 font-bold text-sm text-center bg-red-50 rounded-xl p-2">{error}</div>
         )}

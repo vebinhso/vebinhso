@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      classroom_members: {
+        Row: {
+          id: string
+          joined_at: string
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: []
+      }
       duel_answers: {
         Row: {
           created_at: string
@@ -425,6 +446,7 @@ export type Database = {
         Row: {
           avatar: string | null
           avatar_url: string | null
+          class_code: string | null
           coop_build: boolean
           created_at: string
           display_name: string | null
@@ -435,6 +457,9 @@ export type Database = {
           map_x: number
           map_y: number
           name_changes: number
+          teacher_school: string | null
+          teacher_status: Database["public"]["Enums"]["teacher_status"]
+          teacher_subject: string | null
           updated_at: string
           user_id: string
           username: string
@@ -442,6 +467,7 @@ export type Database = {
         Insert: {
           avatar?: string | null
           avatar_url?: string | null
+          class_code?: string | null
           coop_build?: boolean
           created_at?: string
           display_name?: string | null
@@ -452,6 +478,9 @@ export type Database = {
           map_x?: number
           map_y?: number
           name_changes?: number
+          teacher_school?: string | null
+          teacher_status?: Database["public"]["Enums"]["teacher_status"]
+          teacher_subject?: string | null
           updated_at?: string
           user_id: string
           username: string
@@ -459,6 +488,7 @@ export type Database = {
         Update: {
           avatar?: string | null
           avatar_url?: string | null
+          class_code?: string | null
           coop_build?: boolean
           created_at?: string
           display_name?: string | null
@@ -469,6 +499,9 @@ export type Database = {
           map_x?: number
           map_y?: number
           name_changes?: number
+          teacher_school?: string | null
+          teacher_status?: Database["public"]["Enums"]["teacher_status"]
+          teacher_subject?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -490,6 +523,7 @@ export type Database = {
           maps: Json
           priority: number
           reward: number
+          teacher_id: string | null
           text: string
           updated_at: string
         }
@@ -507,6 +541,7 @@ export type Database = {
           maps?: Json
           priority?: number
           reward?: number
+          teacher_id?: string | null
           text: string
           updated_at?: string
         }
@@ -524,6 +559,7 @@ export type Database = {
           maps?: Json
           priority?: number
           reward?: number
+          teacher_id?: string | null
           text?: string
           updated_at?: string
         }
@@ -633,6 +669,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _gen_class_code: { Args: never; Returns: string }
       admin_get_question: {
         Args: { qid: string }
         Returns: {
@@ -649,6 +686,7 @@ export type Database = {
           maps: Json
           priority: number
           reward: number
+          teacher_id: string | null
           text: string
           updated_at: string
         }
@@ -675,6 +713,7 @@ export type Database = {
           maps: Json
           priority: number
           reward: number
+          teacher_id: string | null
           text: string
           updated_at: string
         }[]
@@ -685,8 +724,19 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      approve_teacher: { Args: { uid: string }; Returns: string }
       can_coop_build: { Args: { owner: string }; Returns: boolean }
       can_visit_house: { Args: { owner: string }; Returns: boolean }
+      get_classroom_students: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          joined_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_friend_houses: {
         Args: never
         Returns: {
@@ -714,6 +764,16 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_classroom: {
+        Args: never
+        Returns: {
+          class_code: string
+          teacher_id: string
+          teacher_name: string
+          teacher_school: string
+          teacher_subject: string
+        }[]
+      }
       get_my_email: { Args: never; Returns: string }
       grade_answer: {
         Args: { qid: string; selected: number }
@@ -730,10 +790,31 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_class: { Args: { code: string }; Returns: string }
+      leave_class: { Args: never; Returns: undefined }
+      list_pending_teachers: {
+        Args: never
+        Returns: {
+          class_code: string
+          display_name: string
+          email: string
+          teacher_school: string
+          teacher_status: Database["public"]["Enums"]["teacher_status"]
+          teacher_subject: string
+          user_id: string
+          username: string
+        }[]
+      }
+      reject_teacher: { Args: { uid: string }; Returns: undefined }
+      request_teacher: {
+        Args: { school: string; subject: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "teacher"
       roof_style: "tile" | "ton"
+      teacher_status: "none" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -861,8 +942,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "teacher"],
       roof_style: ["tile", "ton"],
+      teacher_status: ["none", "pending", "approved", "rejected"],
     },
   },
 } as const

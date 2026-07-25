@@ -542,11 +542,7 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
           ➕ Thêm đáp án ({draft.choices.length}/6)
         </button>
 
-        <div className="mb-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2">
-          <div className="text-xs font-bold text-indigo-700">
-            🌐 Hệ thống sẽ tự phân loại vào Khung năng lực số (mục + bậc + miền) khi lưu.
-          </div>
-        </div>
+        {/* Không phân loại tự động — câu hỏi giáo viên nhập giữ nguyên. */}
 
         <div className="flex gap-2 items-center mb-2 flex-wrap">
           <label className="text-sm font-bold">Điểm thưởng (đ):</label>

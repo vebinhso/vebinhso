@@ -483,6 +483,40 @@ function Home() {
           </div>
         </div>
       )}
+
+      {joinOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setJoinOpen(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-blue-300" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-black mb-2">🎟️ Vào lớp học</h3>
+            <p className="text-xs text-muted-foreground font-bold mb-3">Nhập mã lớp giáo viên cung cấp (4–6 ký tự).</p>
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.trim())}
+              placeholder="VD: ab12cd"
+              maxLength={8}
+              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 font-black text-center text-2xl tracking-widest uppercase mb-3"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setJoinOpen(false)} className="toy-button flex-1">Huỷ</button>
+              <button
+                onClick={async () => {
+                  if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
+                  try {
+                    await joinClass(joinCode.trim().toLowerCase());
+                    const c = await getMyClassroom();
+                    setMyClass(c);
+                    toast.success(`Đã vào lớp ${c?.class_code ?? ""}`);
+                    setJoinOpen(false);
+                  } catch (e: any) {
+                    toast.error(e?.message || "Mã lớp không hợp lệ");
+                  }
+                }}
+                className="toy-button toy-button-primary flex-1"
+              >Vào lớp</button>
+            </div>
+          </div>
+        </div>
+      )}
     </GameLayout>
   );
 }

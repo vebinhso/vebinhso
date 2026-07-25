@@ -165,6 +165,7 @@ function FriendsMapPage() {
           className="absolute top-0 left-0 origin-top-left"
           style={{ width: MAP_W, height: MAP_H, transform: `scale(${scale})` }}
         >
+          <MapDecorations />
           {houses.map((h) => (
             <HouseMarker
               key={h.user_id}
@@ -174,6 +175,7 @@ function FriendsMapPage() {
             />
           ))}
         </div>
+
       </div>
 
       {selected && (
@@ -207,25 +209,25 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
       onClick={onClick}
       onMouseEnter={onHover}
       onTouchStart={onHover}
-      className="absolute -translate-x-1/2 -translate-y-1/2 group animate-in fade-in slide-in-from-bottom-2 duration-300"
+      className="absolute -translate-x-1/2 -translate-y-1/2 group animate-in fade-in slide-in-from-bottom-2 duration-300 z-10"
       style={{ left: house.map_x, top: house.map_y }}
       aria-label={`Nhà của ${house.username}`}
     >
       <div className="flex flex-col items-center">
-        <div className="relative transition-transform group-hover:-translate-y-1">
-          <div className="text-5xl drop-shadow-lg">🏠</div>
+        <div className="relative transition-transform group-hover:-translate-y-2">
+          <div className="text-8xl drop-shadow-2xl leading-none">🏠</div>
           <div
-            className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-              online ? "bg-emerald-500" : "bg-gray-400"
+            className={`absolute top-1 right-1 w-6 h-6 rounded-full border-4 border-white shadow ${
+              online ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
             }`}
             title={online ? "Online" : "Offline"}
           />
         </div>
-        <div className="mt-1 flex items-center gap-1 bg-white/90 backdrop-blur px-2 py-1 rounded-full text-xs font-black shadow border border-emerald-200 max-w-[160px]">
+        <div className="mt-1 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-base font-black shadow-lg border-2 border-emerald-300 max-w-[260px]">
           {house.avatar_url ? (
-            <img src={house.avatar_url} alt="" className="w-4 h-4 rounded-full" />
+            <img src={house.avatar_url} alt="" className="w-7 h-7 rounded-full" />
           ) : (
-            <span className="w-4 h-4 rounded-full bg-orange-400 text-white grid place-items-center text-[10px] font-black">
+            <span className="w-7 h-7 rounded-full bg-orange-400 text-white grid place-items-center text-sm font-black">
               {initial(house.username)}
             </span>
           )}
@@ -235,6 +237,114 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
     </button>
   );
 }
+
+function MapDecorations() {
+  // Cartoon travel-map decorations: winding road, river, ponds, mountains, trees, landmarks.
+  // Positions are hand-tuned around empty regions of MAP_W x MAP_H (2000x1200).
+  const trees: Array<[number, number, number]> = [
+    // [x, y, size]
+    [520, 180, 56], [640, 260, 44], [780, 200, 60], [900, 300, 48],
+    [1200, 160, 56], [1350, 240, 48], [1500, 180, 60], [1700, 260, 52],
+    [1850, 360, 56], [1780, 520, 48], [1600, 640, 56], [1450, 780, 48],
+    [1250, 900, 60], [1050, 1000, 52], [820, 980, 56], [560, 900, 48],
+    [340, 820, 56], [220, 700, 48], [180, 520, 56], [260, 380, 48],
+    [420, 480, 44], [980, 460, 44], [1080, 720, 48], [1520, 940, 56],
+  ];
+  const mountains: Array<[number, number, number]> = [
+    [1150, 120, 1.2], [1420, 100, 1.5], [1680, 130, 1.1],
+    [220, 260, 1.0], [1900, 720, 1.3],
+  ];
+  const landmarks: Array<[number, number, string, number]> = [
+    [1550, 500, "⛲", 72],
+    [420, 640, "🌳", 96],
+    [1720, 980, "🎡", 96],
+    [1100, 640, "🌉", 84],
+    [720, 460, "🏞️", 84],
+    [1380, 380, "🚂", 72],
+  ];
+  return (
+    <svg
+      width={MAP_W}
+      height={MAP_H}
+      className="absolute inset-0 pointer-events-none"
+      viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+    >
+      {/* Paper texture edge */}
+      <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#paper)" />
+      <defs>
+        <radialGradient id="paper" cx="50%" cy="50%" r="75%">
+          <stop offset="0%" stopColor="#fefce8" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#fef3c7" stopOpacity="0.0" />
+        </radialGradient>
+        <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.2" fill="#065f46" opacity="0.15" />
+        </pattern>
+      </defs>
+
+      {/* Winding cartoon river */}
+      <path
+        d="M -20 300 C 300 220, 500 500, 800 420 S 1300 320, 1600 520 S 1950 780, 2100 700"
+        stroke="#7dd3fc" strokeWidth="42" fill="none" strokeLinecap="round"
+      />
+      <path
+        d="M -20 300 C 300 220, 500 500, 800 420 S 1300 320, 1600 520 S 1950 780, 2100 700"
+        stroke="#bae6fd" strokeWidth="26" fill="none" strokeLinecap="round"
+      />
+
+      {/* Winding dashed road */}
+      <path
+        d="M 60 1100 C 400 950, 700 1050, 1000 900 S 1500 700, 1700 850 S 2000 1050, 2100 950"
+        stroke="#fde68a" strokeWidth="38" fill="none" strokeLinecap="round"
+      />
+      <path
+        d="M 60 1100 C 400 950, 700 1050, 1000 900 S 1500 700, 1700 850 S 2000 1050, 2100 950"
+        stroke="#f59e0b" strokeWidth="6" fill="none" strokeDasharray="18 22" strokeLinecap="round"
+      />
+
+      {/* Ponds */}
+      <ellipse cx="1750" cy="240" rx="90" ry="46" fill="#7dd3fc" opacity="0.9" />
+      <ellipse cx="380" cy="1000" rx="110" ry="52" fill="#7dd3fc" opacity="0.9" />
+
+      {/* Grass tufts pattern in corners */}
+      <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#dots)" />
+
+      {/* Mountains */}
+      {mountains.map(([x, y, s], i) => (
+        <g key={`m${i}`} transform={`translate(${x} ${y}) scale(${s})`}>
+          <polygon points="0,120 90,0 180,120" fill="#94a3b8" />
+          <polygon points="60,50 90,0 120,50 90,80" fill="#f8fafc" />
+          <polygon points="140,120 210,40 280,120" fill="#a3a3a3" />
+        </g>
+      ))}
+
+      {/* Trees as emoji-in-foreignObject for a hand-drawn cartoon look */}
+      {trees.map(([x, y, s], i) => (
+        <foreignObject key={`t${i}`} x={x - s / 2} y={y - s / 2} width={s} height={s}>
+          <div style={{ fontSize: s * 0.9, lineHeight: 1, filter: "drop-shadow(0 3px 2px rgba(0,0,0,0.15))" }}>
+            🌲
+          </div>
+        </foreignObject>
+      ))}
+
+      {/* Landmarks */}
+      {landmarks.map(([x, y, emoji, s], i) => (
+        <foreignObject key={`l${i}`} x={(x as number) - (s as number) / 2} y={(y as number) - (s as number) / 2} width={s as number} height={s as number}>
+          <div style={{ fontSize: (s as number) * 0.9, lineHeight: 1, filter: "drop-shadow(0 4px 3px rgba(0,0,0,0.18))" }}>
+            {emoji}
+          </div>
+        </foreignObject>
+      ))}
+
+      {/* Compass */}
+      <g transform={`translate(${MAP_W - 130} 110)`}>
+        <circle r="52" fill="#fff" stroke="#0f172a" strokeWidth="4" opacity="0.9" />
+        <polygon points="0,-40 10,0 0,40 -10,0" fill="#ef4444" />
+        <text textAnchor="middle" y="-56" fontSize="22" fontWeight="900" fill="#0f172a">N</text>
+      </g>
+    </svg>
+  );
+}
+
 
 function HousePopup({
   house, myId, onClose, onVisit,

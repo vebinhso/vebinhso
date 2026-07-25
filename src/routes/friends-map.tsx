@@ -223,15 +223,15 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
             title={online ? "Online" : "Offline"}
           />
         </div>
-        <div className="mt-1 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-base font-black shadow-lg border-2 border-emerald-300 max-w-[260px]">
+        <div className="mt-2 flex items-center gap-3 bg-white/95 backdrop-blur px-5 py-3 rounded-full text-3xl font-black shadow-2xl border-4 border-emerald-400 max-w-[420px]">
           {house.avatar_url ? (
-            <img src={house.avatar_url} alt="" className="w-7 h-7 rounded-full" />
+            <img src={house.avatar_url} alt="" className="w-12 h-12 rounded-full border-2 border-emerald-300" />
           ) : (
-            <span className="w-7 h-7 rounded-full bg-orange-400 text-white grid place-items-center text-sm font-black">
+            <span className="w-12 h-12 rounded-full bg-orange-400 text-white grid place-items-center text-2xl font-black border-2 border-emerald-300">
               {initial(house.username)}
             </span>
           )}
-          <span className="truncate">{house.house_name || house.username}</span>
+          <span className="truncate text-emerald-900 drop-shadow">{house.house_name || house.username}</span>
         </div>
       </div>
     </button>
@@ -379,11 +379,11 @@ function HousePopup({
           <p className="mt-1 text-xs text-emerald-700">Đang ở trong một căn nhà.</p>
         )}
         <div className="mt-4 flex gap-2">
-          <button onClick={onClose} className="toy-button toy-button-ghost flex-1">Đóng</button>
+          <button onClick={onClose} className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2">Đóng</button>
           {canVisit ? (
-            <button onClick={onVisit} className="toy-button toy-button-primary flex-1">🏠 Vào nhà</button>
+            <button onClick={onVisit} className="toy-button toy-button-primary flex-1 !text-sm !px-3 !py-2 !animate-none !rounded-2xl">🏠 Vào nhà</button>
           ) : (
-            <button disabled className="toy-button toy-button-ghost flex-1 opacity-60 cursor-not-allowed">🔒 Nơi ở riêng tư</button>
+            <button disabled className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2 opacity-60 cursor-not-allowed">🔒 Riêng tư</button>
           )}
         </div>
       </div>

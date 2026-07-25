@@ -210,7 +210,8 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     setStarting(true);
     setError(null);
     try {
-      const s = await startFn({ data: { duelId, category: t.category, domain: t.domain } });
+      const count = Math.min(30, Math.max(10, qCount));
+      const s = await startFn({ data: { duelId, category: t.category, domain: t.domain, count } });
       setSnap(s);
       setQIndex(0);
       setScoreMine(0);

@@ -21,8 +21,9 @@ import {
   type MyTeacherProfile,
   type TaughtClass,
 } from "@/lib/teacher";
-import { DOMAIN_LABELS, classifyQuestion } from "@/lib/competency-classifier";
+import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
@@ -302,11 +303,10 @@ function OverviewPanel({ classId, refreshKey }: { classId: string; refreshKey?: 
     listMyQuestions(classId).then(setQuestions).catch(() => {});
   }, [classId, refreshKey]);
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       <StatCard icon="👥" label="Học sinh" value={students.length} />
       <StatCard icon="❓" label="Câu hỏi" value={questions.length} />
       <StatCard icon="✅" label="Đang bật" value={questions.filter((q) => q.enabled !== false).length} />
-      <StatCard icon="⭐" label="Có gắn bậc" value={questions.filter((q) => q.competencyLevel != null).length} />
     </div>
   );
 }
@@ -324,31 +324,137 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
 function StudentsPanel({ classId }: { classId: string }) {
   const [rows, setRows] = useState<ClassroomStudent[]>([]);
   const [busy, setBusy] = useState(true);
+  const [openStudent, setOpenStudent] = useState<ClassroomStudent | null>(null);
   useEffect(() => {
     getClassStudents(classId).then((s: ClassroomStudent[]) => { setRows(s); setBusy(false); }).catch(() => setBusy(false));
   }, [classId]);
   if (busy) return <p className="font-bold">Đang tải...</p>;
   if (rows.length === 0) return <p className="font-bold text-muted-foreground">Chưa có học sinh nào tham gia. Chia sẻ mã lớp cho học sinh!</p>;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="text-left border-b-2 border-orange-200">
-          <tr className="font-black">
-            <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={r.user_id} className="border-b border-gray-100">
-              <td className="py-2 font-bold">{i + 1}</td>
-              <td className="font-bold">{r.display_name || r.username}</td>
-              <td>{r.username}</td>
-              <td className="text-muted-foreground">{r.email}</td>
-              <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+    <>
+      <p className="text-xs font-bold text-muted-foreground mb-2">💡 Bấm vào tên học sinh để xem thống kê câu trả lời.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-left border-b-2 border-orange-200">
+            <tr className="font-black">
+              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.user_id} className="border-b border-gray-100 hover:bg-orange-50 cursor-pointer" onClick={() => setOpenStudent(r)}>
+                <td className="py-2 font-bold">{i + 1}</td>
+                <td className="font-bold text-orange-600 hover:underline">{r.display_name || r.username}</td>
+                <td>{r.username}</td>
+                <td className="text-muted-foreground">{r.email}</td>
+                <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {openStudent && (
+        <StudentStatsModal classId={classId} student={openStudent} onClose={() => setOpenStudent(null)} />
+      )}
+    </>
+  );
+}
+
+function StudentStatsModal({ classId, student, onClose }: { classId: string; student: ClassroomStudent; onClose: () => void }) {
+  const [rows, setRows] = useState<StudentAnswerStat[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    getStudentAnswerStats(classId, student.user_id)
+      .then(setRows)
+      .catch((e) => setErr(e?.message || "Lỗi tải"));
+  }, [classId, student.user_id]);
+
+  const totals = useMemo(() => {
+    const list = rows || [];
+    const attempts = list.reduce((s, r) => s + (r.attempts || 0), 0);
+    const correct = list.reduce((s, r) => s + (r.correct_count || 0), 0);
+    const wrong = list.reduce((s, r) => s + (r.wrong_count || 0), 0);
+    const answered = list.filter((r) => (r.attempts || 0) > 0).length;
+    return { attempts, correct, wrong, answered, totalQ: list.length };
+  }, [rows]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3" onClick={onClose}>
+      <div className="bg-white rounded-3xl border-4 border-orange-300 max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b-2 border-orange-200 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-xl font-black truncate">📊 {student.display_name || student.username}</h3>
+            <p className="text-xs text-muted-foreground font-bold truncate">{student.email}</p>
+          </div>
+          <button onClick={onClose} className="toy-button text-sm">✕</button>
+        </div>
+
+        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-2 border-b border-orange-100">
+          <MiniStat label="Đã làm" value={`${totals.answered}/${totals.totalQ}`} tone="orange" />
+          <MiniStat label="Tổng lượt" value={totals.attempts} tone="gray" />
+          <MiniStat label="Đúng" value={totals.correct} tone="green" />
+          <MiniStat label="Sai" value={totals.wrong} tone="red" />
+          <MiniStat
+            label="Tỉ lệ đúng"
+            value={totals.attempts > 0 ? `${Math.round((totals.correct / totals.attempts) * 100)}%` : "—"}
+            tone="purple"
+          />
+        </div>
+
+        <div className="p-4 overflow-y-auto flex-1">
+          {err && <p className="text-red-600 font-bold">{err}</p>}
+          {!rows && !err && <p className="font-bold">Đang tải...</p>}
+          {rows && rows.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có câu hỏi để thống kê.</p>}
+          {rows && rows.length > 0 && (
+            <table className="w-full text-sm">
+              <thead className="text-left border-b-2 border-orange-200 sticky top-0 bg-white">
+                <tr className="font-black">
+                  <th className="py-2">#</th><th>Câu hỏi</th>
+                  <th className="text-center">Lượt</th>
+                  <th className="text-center text-green-700">Đúng</th>
+                  <th className="text-center text-red-700">Sai</th>
+                  <th className="text-center">Lần cuối</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => {
+                  const done = (r.attempts || 0) > 0;
+                  return (
+                    <tr key={r.question_id} className={`border-b border-gray-100 ${!done ? "opacity-60" : ""}`}>
+                      <td className="py-2 font-bold">{i + 1}</td>
+                      <td className="max-w-[24ch] truncate" title={r.question_text}>{r.question_text}</td>
+                      <td className="text-center font-bold">{r.attempts}</td>
+                      <td className="text-center font-bold text-green-700">{r.correct_count}</td>
+                      <td className="text-center font-bold text-red-700">{r.wrong_count}</td>
+                      <td className="text-center text-xs">
+                        {!done ? <span className="text-muted-foreground">chưa làm</span> :
+                          r.last_correct ? <span className="text-green-700 font-black">✓</span> :
+                          <span className="text-red-700 font-black">✗</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string | number; tone: "orange" | "green" | "red" | "gray" | "purple" }) {
+  const bg = {
+    orange: "bg-orange-50 border-orange-200 text-orange-700",
+    green: "bg-green-50 border-green-200 text-green-700",
+    red: "bg-red-50 border-red-200 text-red-700",
+    gray: "bg-gray-50 border-gray-200 text-gray-700",
+    purple: "bg-purple-50 border-purple-200 text-purple-700",
+  }[tone];
+  return (
+    <div className={`rounded-xl border-2 p-2 text-center ${bg}`}>
+      <div className="text-[10px] font-black uppercase opacity-70">{label}</div>
+      <div className="text-lg md:text-xl font-black">{value}</div>
     </div>
   );
 }
@@ -429,16 +535,15 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
       .map((n) => indexMap.get(n))
       .filter((n): n is number => typeof n === "number");
     if (correct.length === 0) { toast.error("Tick ít nhất 1 đáp án đúng"); return null; }
-    const auto = classifyQuestion(text, kept.map((c) => c.text));
     return {
       ...draft,
       text,
       choices: kept,
       correctIndexes: Array.from(new Set(correct)).sort((a, b) => a - b),
       reward: Number(draft.reward) > 0 ? Number(draft.reward) : 10,
-      category: auto.category,
-      competencyLevel: auto.level,
-      competencyDomain: auto.domain,
+      category: "history",
+      competencyLevel: null,
+      competencyDomain: null,
       classId,
     };
   };
@@ -542,11 +647,7 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
           ➕ Thêm đáp án ({draft.choices.length}/6)
         </button>
 
-        <div className="mb-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2">
-          <div className="text-xs font-bold text-indigo-700">
-            🌐 Hệ thống sẽ tự phân loại vào Khung năng lực số (mục + bậc + miền) khi lưu.
-          </div>
-        </div>
+        {/* Không phân loại tự động — câu hỏi giáo viên nhập giữ nguyên. */}
 
         <div className="flex gap-2 items-center mb-2 flex-wrap">
           <label className="text-sm font-bold">Điểm thưởng (đ):</label>
@@ -599,9 +700,6 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{q.text || <span className="italic text-muted-foreground">(chỉ có ảnh)</span>}</div>
                     <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-2">
-                      <span className="bg-orange-100 px-2 py-0.5 rounded">{q.category === "history" ? "Lịch sử-VH" : "Năng lực số"}</span>
-                      {q.competencyLevel && <span className="bg-purple-100 px-2 py-0.5 rounded">Bậc {q.competencyLevel}</span>}
-                      {q.competencyDomain && <span className="bg-blue-100 px-2 py-0.5 rounded">{DOMAIN_LABELS[q.competencyDomain] ?? `Miền ${q.competencyDomain}`}</span>}
                       <span>{q.choices.length} đáp án · 🎁{q.reward}</span>
                       {q.enabled === false && <span className="bg-gray-200 px-2 py-0.5 rounded">Đang tắt</span>}
                     </div>
@@ -622,13 +720,17 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
 
 function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void }) {
   const [text, setText] = useState("");
-  const [format, setFormat] = useState<"csv" | "json">("csv");
+  const [format, setFormat] = useState<"csv" | "json" | "text">("csv");
   const [preview, setPreview] = useState<TeacherQuestion[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loadingFile, setLoadingFile] = useState(false);
 
   const doParse = () => {
     try {
-      const arr = format === "csv" ? parseQuestionsCSV(text) : parseQuestionsJSON(text);
+      const arr =
+        format === "csv" ? parseQuestionsCSV(text) :
+        format === "json" ? parseQuestionsJSON(text) :
+        parseQuestionsFromText(text);
       setPreview(arr);
       toast.success(`Đã đọc ${arr.length} câu hỏi`);
     } catch (e: any) {
@@ -641,29 +743,26 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     if (!f) return;
     const name = f.name.toLowerCase();
     const ext = name.slice(name.lastIndexOf(".") + 1);
-    if (["csv", "json", "txt"].includes(ext)) {
-      const t = await f.text();
-      setText(t);
-      setFormat(ext === "json" ? "json" : "csv");
-      return;
-    }
-    if (["docx", "pptx", "xlsx", "doc", "ppt", "xls", "pdf"].includes(ext)) {
-      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung vào ô văn bản theo định dạng CSV/JSON.");
-      return;
-    }
     if (["mp4", "mov", "webm", "avi", "mkv", "m4a", "mp3", "wav"].includes(ext)) {
       toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ đính kèm cho từng câu, không nhập hàng loạt.");
       return;
     }
+    setLoadingFile(true);
     try {
-      const t = await f.text();
-      setText(t);
-      setFormat("csv");
-      toast("Đã đọc tệp dạng văn bản. Kiểm tra định dạng trước khi nhập.");
-    } catch {
-      toast.error("Không đọc được tệp này.");
+      if (ext === "csv") { setText(await f.text()); setFormat("csv"); return; }
+      if (ext === "json") { setText(await f.text()); setFormat("json"); return; }
+      // Rich formats → extract as raw text and use heuristic parser
+      const raw = await extractTextFromFile(f);
+      setText(raw);
+      setFormat("text");
+      toast.success(`Đã đọc ${ext.toUpperCase()}. Bấm "Xem trước" để trích câu hỏi.`);
+    } catch (e: any) {
+      toast.error("Không đọc được tệp: " + (e?.message || ""));
+    } finally {
+      setLoadingFile(false);
     }
   };
+
 
   const doImport = async () => {
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }
@@ -690,14 +789,29 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     { text: "Máy tính viết tắt là gì?", options: ["PC","TV","AC","DC"], correct: 0, reward: 10 },
     { text: "Trận Bạch Đằng năm 938 do ai lãnh đạo?", options: ["Ngô Quyền","Lý Thường Kiệt","Trần Hưng Đạo","Lê Lợi"], correct: 0, reward: 15 },
   ], null, 2), []);
+  const textSample = useMemo(() => `Câu 1: Máy tính viết tắt là gì?
+A. PC *
+B. TV
+C. AC
+D. DC
+
+Câu 2: Trận Bạch Đằng năm 938 do ai lãnh đạo?
+A. Ngô Quyền
+B. Lý Thường Kiệt
+C. Trần Hưng Đạo
+D. Lê Lợi
+Đáp án: A`, []);
+
+  const sampleFor = (f: typeof format) => f === "csv" ? csvSample : f === "json" ? jsonSample : textSample;
 
   const downloadSample = () => {
-    const content = format === "csv" ? csvSample : jsonSample;
-    const mime = format === "csv" ? "text/csv" : "application/json";
+    const content = sampleFor(format);
+    const mime = format === "json" ? "application/json" : "text/plain";
+    const ext = format === "text" ? "txt" : format;
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `mau-cau-hoi.${format}`; a.click();
+    a.href = url; a.download = `mau-cau-hoi.${ext}`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -708,20 +822,21 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
         <select value={format} onChange={(e) => setFormat(e.target.value as any)} className="px-2 py-1 rounded-lg border-2 border-gray-200 font-bold">
           <option value="csv">CSV</option>
           <option value="json">JSON</option>
+          <option value="text">Văn bản (Word/PDF/PPTX)</option>
         </select>
-        <button onClick={downloadSample} className="toy-button text-xs">⬇️ Tải mẫu {format.toUpperCase()}</button>
+        <button onClick={downloadSample} className="toy-button text-xs">⬇️ Tải mẫu</button>
         <label className="toy-button text-xs cursor-pointer">
-          📁 Chọn file
-          <input type="file" accept=".csv,.json,.txt,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
+          {loadingFile ? "⏳ Đang đọc..." : "📁 Chọn file"}
+          <input type="file" accept=".csv,.json,.txt,.md,.docx,.pptx,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} disabled={loadingFile} />
         </label>
       </div>
       <p className="text-[11px] font-bold text-muted-foreground">
-        Cột bắt buộc: <b>text, option1..4, correct, reward</b>. Không cần điền miền/bậc — hệ thống sẽ tự phân loại sau khi lưu.
+        Hỗ trợ tải lên <b>CSV, JSON, TXT, DOCX (Word), PPTX (PowerPoint), PDF</b>. Với Word/PDF/PPTX, hệ thống trích văn bản rồi tự đọc theo mẫu "Câu 1 / A / B / C / D — Đáp án: X". Đánh dấu đáp án đúng bằng <code>*</code> hoặc dòng <code>Đáp án:</code>.
       </p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={format === "csv" ? csvSample : jsonSample}
+        placeholder={sampleFor(format)}
         rows={10}
         className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-mono text-xs"
       />
@@ -742,7 +857,7 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
       )}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 text-xs">
         <div className="font-black mb-1">📋 Mẫu {format.toUpperCase()}:</div>
-        <pre className="whitespace-pre-wrap font-mono">{format === "csv" ? csvSample : jsonSample}</pre>
+        <pre className="whitespace-pre-wrap font-mono">{sampleFor(format)}</pre>
       </div>
     </div>
   );

@@ -563,6 +563,51 @@ export type Database = {
           },
         ]
       }
+      question_attempts: {
+        Row: {
+          class_id: string | null
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_index: number
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          selected_index: number
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_attempts_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions_bank"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questions_bank: {
         Row: {
           answer_index: number
@@ -866,6 +911,18 @@ export type Database = {
       }
       get_my_email: { Args: never; Returns: string }
       get_or_create_my_class_code: { Args: never; Returns: string }
+      get_student_answer_stats: {
+        Args: { _class_id: string; _student_id: string }
+        Returns: {
+          attempts: number
+          correct_count: number
+          last_at: string
+          last_correct: boolean
+          question_id: string
+          question_text: string
+          wrong_count: number
+        }[]
+      }
       grade_answer: {
         Args: { qid: string; selected: number }
         Returns: {

@@ -370,8 +370,11 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
 
   const save = async () => {
     if (!editing) return;
-    if (!editing.text.trim()) { toast.error("Nhập câu hỏi"); return; }
-    if (editing.choices.filter((c) => c.text.trim()).length < 2) { toast.error("Cần ít nhất 2 đáp án"); return; }
+    const hasQ = !!editing.text.trim() || !!editing.imageUrl;
+    if (!hasQ) { toast.error("Nhập nội dung câu hỏi hoặc thêm ảnh"); return; }
+    const filled = editing.choices.filter((c) => (c.text || "").trim() || (c.imageUrl || "").trim());
+    if (filled.length < 2) { toast.error("Cần ít nhất 2 đáp án (chữ hoặc ảnh)"); return; }
+    if (!editing.correctIndexes || editing.correctIndexes.length === 0) { toast.error("Chọn ít nhất 1 đáp án đúng"); return; }
     try {
       const withClass = { ...editing, classId };
       if (editing.id) await updateMyQuestion(editing.id, withClass);

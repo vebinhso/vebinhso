@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, Html } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -8,6 +8,7 @@ import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
+import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 

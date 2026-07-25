@@ -430,16 +430,15 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
       .map((n) => indexMap.get(n))
       .filter((n): n is number => typeof n === "number");
     if (correct.length === 0) { toast.error("Tick ít nhất 1 đáp án đúng"); return null; }
-    const auto = classifyQuestion(text, kept.map((c) => c.text));
     return {
       ...draft,
       text,
       choices: kept,
       correctIndexes: Array.from(new Set(correct)).sort((a, b) => a - b),
       reward: Number(draft.reward) > 0 ? Number(draft.reward) : 10,
-      category: auto.category,
-      competencyLevel: auto.level,
-      competencyDomain: auto.domain,
+      category: "history",
+      competencyLevel: null,
+      competencyDomain: null,
       classId,
     };
   };

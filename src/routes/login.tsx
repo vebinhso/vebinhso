@@ -105,6 +105,7 @@ function GoogleButton() {
 
 function Login({ setView }: { setView: (v: View) => void }) {
   const navigate = useNavigate();
+  const next = useNextTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -116,11 +117,13 @@ function Login({ setView }: { setView: (v: View) => void }) {
     setBusy(true);
     try {
       await signInWithPassword(email.trim(), password);
+      if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
       setError(e?.message || "Đăng nhập thất bại");
     } finally { setBusy(false); }
   };
+
 
   return (
     <>
@@ -159,6 +162,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
 
 function Register({ setView }: { setView: (v: View) => void }) {
   const navigate = useNavigate();
+  const next = useNextTarget();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -176,13 +180,14 @@ function Register({ setView }: { setView: (v: View) => void }) {
     setBusy(true);
     try {
       await signUpWithPassword({ email: email.trim(), password, username: username.trim() });
-      // Confirm email đã tắt → đăng nhập luôn rồi vào game
       await signInWithPassword(email.trim(), password);
+      if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
       setError(e?.message || "Đăng ký thất bại");
     } finally { setBusy(false); }
   };
+
 
   return (
     <>

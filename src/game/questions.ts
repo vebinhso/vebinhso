@@ -213,12 +213,21 @@ export function randomQuestion(): Question {
   // Câu không bậc trong chủ đề đó sẽ KHÔNG hiện.
   const hasLevel = (q: Question) =>
     typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8;
-  const digitalPool = digitalOn
+  let digitalPool = digitalOn
     ? scope.filter((q) => q.category === "digital" && hasLevel(q))
     : [];
-  const historyPool = historyOn
+  let historyPool = historyOn
     ? scope.filter((q) => q.category !== "digital" && hasLevel(q))
     : [];
+  // Fallback: nếu chủ đề không có câu nào gắn bậc (ví dụ câu hỏi giáo
+  // viên nhập vào lớp học chưa được phân loại bậc), dùng toàn bộ câu
+  // của chủ đề đó để học sinh vẫn có bài để làm.
+  if (digitalOn && digitalPool.length === 0) {
+    digitalPool = scope.filter((q) => q.category === "digital");
+  }
+  if (historyOn && historyPool.length === 0) {
+    historyPool = scope.filter((q) => q.category !== "digital");
+  }
 
   const tryDigital = () =>
     digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool, "digital") : null;

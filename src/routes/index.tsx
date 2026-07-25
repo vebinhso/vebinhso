@@ -12,6 +12,7 @@ import {
   type LoginStreak,
 } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
+import { loadQuestionsFromDB } from "@/game/questions";
 import { isAdmin } from "@/lib/admin";
 import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {
@@ -261,6 +262,9 @@ function Home() {
                       try {
                         await setActiveClass(c.is_active ? null : c.class_id);
                         setMyClasses(await getMyClasses());
+                        // Nạp lại bộ câu hỏi để lần vào game kế tiếp
+                        // dùng ngân hàng lớp (khi bật) hoặc mặc định (khi tắt).
+                        loadQuestionsFromDB().catch(() => {});
                         toast.success(c.is_active ? "Đã tắt lớp đang hoạt động" : `Đang hoạt động: ${c.name}`);
                       } catch (e: any) { toast.error(e?.message || "Lỗi"); }
                     }}

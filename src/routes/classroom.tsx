@@ -43,6 +43,7 @@ function ClassroomPage() {
   const [classes, setClasses] = useState<TaughtClass[]>([]);
   const [selectedClass, setSelectedClass] = useState<TaughtClass | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
+  const [qVersion, setQVersion] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
 
   const reloadClasses = async () => {
@@ -197,10 +198,10 @@ function ClassroomPage() {
               </div>
             </nav>
             <main className="glass-card p-4 md:p-6 min-h-[60vh]">
-              {tab === "overview" && <OverviewPanel classId={selectedClass.id} />}
+              {tab === "overview" && <OverviewPanel classId={selectedClass.id} refreshKey={qVersion} />}
               {tab === "students" && <StudentsPanel classId={selectedClass.id} />}
-              {tab === "questions" && <QuestionsPanel classId={selectedClass.id} onCountChanged={reloadClasses} />}
-              {tab === "import" && <ImportPanel classId={selectedClass.id} onDone={reloadClasses} />}
+              {tab === "questions" && <QuestionsPanel classId={selectedClass.id} onCountChanged={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}
+              {tab === "import" && <ImportPanel classId={selectedClass.id} onDone={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}
             </main>
           </div>
         </div>
@@ -293,13 +294,13 @@ function ClassCodeCard({ code }: { code: string | null }) {
   );
 }
 
-function OverviewPanel({ classId }: { classId: string }) {
+function OverviewPanel({ classId, refreshKey }: { classId: string; refreshKey?: number }) {
   const [students, setStudents] = useState<ClassroomStudent[]>([]);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   useEffect(() => {
     getClassStudents(classId).then(setStudents).catch(() => {});
     listMyQuestions(classId).then(setQuestions).catch(() => {});
-  }, [classId]);
+  }, [classId, refreshKey]);
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <StatCard icon="👥" label="Học sinh" value={students.length} />

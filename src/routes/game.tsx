@@ -29,6 +29,9 @@ import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
 import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
+import { listFriendHouses, type FriendHouse } from "@/lib/friend-houses.functions";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 

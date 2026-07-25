@@ -29,7 +29,8 @@ import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
 import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
-import { listFriendHouses, getUsername, type FriendHouse } from "@/lib/friend-houses.functions";
+import { listFriendHouses, getUsername, setPresence, type FriendHouse } from "@/lib/friend-houses.functions";
+import { DuelController } from "@/components/DuelController";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -181,6 +182,23 @@ function GamePage() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, getUsernameFn]);
+
+  // Announce presence: I'm inside my own house (enables duel matchmaking).
+  const setPresenceFn = useServerFn(setPresence);
+  useEffect(() => {
+    if (!user) return;
+    setPresenceFn({ data: { online: true, in_house_owner: user.id } }).catch(() => {});
+    const beat = setInterval(() => {
+      setPresenceFn({ data: { online: true, in_house_owner: user.id } }).catch(() => {});
+    }, 30_000);
+    const clear = () => { setPresenceFn({ data: { in_house_owner: null } }).catch(() => {}); };
+    window.addEventListener("beforeunload", clear);
+    return () => {
+      clearInterval(beat);
+      window.removeEventListener("beforeunload", clear);
+      clear();
+    };
+  }, [user, setPresenceFn]);
 
   // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode
   useEffect(() => {

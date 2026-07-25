@@ -166,7 +166,7 @@ function ClassroomPage() {
 
   // Detail view for a specific class
   return (
-    <GameLayout showBack>
+    <GameLayout showBack backLabel="← TẤT CẢ LỚP" onBack={() => setSelectedClass(null)}>
       <div className="flex-1 p-3 md:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="glass-card p-4 mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">

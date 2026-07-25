@@ -45,9 +45,20 @@ export async function joinClass(code: string): Promise<string> {
   return (data as any) as string;
 }
 
-export async function leaveClass() {
-  const { error } = await supabase.rpc("leave_class");
+export async function leaveClass(teacherId?: string) {
+  const { error } = await supabase.rpc("leave_class", { tid: teacherId ?? null } as any);
   if (error) throw error;
+}
+
+export async function setActiveClass(teacherId: string | null) {
+  const { error } = await supabase.rpc("set_active_class", { tid: teacherId } as any);
+  if (error) throw error;
+}
+
+export async function getOrCreateMyClassCode(): Promise<string | null> {
+  const { data, error } = await supabase.rpc("get_or_create_my_class_code");
+  if (error) return null;
+  return (data as any) ?? null;
 }
 
 export type MyClassroom = { teacher_id: string; class_code: string; teacher_name: string; teacher_school: string; teacher_subject: string } | null;
@@ -57,6 +68,14 @@ export async function getMyClassroom(): Promise<MyClassroom> {
   const row = Array.isArray(data) ? data[0] : data;
   return row ?? null;
 }
+
+export type MyClass = { teacher_id: string; class_code: string; teacher_name: string; teacher_school: string; teacher_subject: string; is_active: boolean };
+export async function getMyClasses(): Promise<MyClass[]> {
+  const { data, error } = await supabase.rpc("get_my_classes");
+  if (error) return [];
+  return (data as any[]) || [];
+}
+
 
 export type ClassroomStudent = { user_id: string; username: string; display_name: string; email: string; joined_at: string };
 export async function getClassroomStudents(): Promise<ClassroomStudent[]> {

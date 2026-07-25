@@ -1412,7 +1412,7 @@ function RewardsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
       <h2 className="text-xl font-black mb-3">🎁 Phần thưởng & Sự kiện</h2>
 
       <h3 className="font-black mb-2">Thưởng đăng nhập hằng ngày</h3>
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
         {cfg.dailyRewards.map((d, i) => (
           <div key={d.day} className="bg-white/80 border-2 border-orange-200 rounded-xl p-2 text-center">
             <div className="font-black text-orange-600">Ngày {d.day}</div>

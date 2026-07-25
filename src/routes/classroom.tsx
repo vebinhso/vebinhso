@@ -269,7 +269,7 @@ function QuestionsPanel() {
                   <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-2">
                     <span className="bg-orange-100 px-2 py-0.5 rounded">{q.category === "history" ? "Lịch sử-Văn hóa" : "Năng lực số"}</span>
                     {q.competencyLevel && <span className="bg-purple-100 px-2 py-0.5 rounded">Bậc {q.competencyLevel}</span>}
-                    {q.competencyDomain && <span className="bg-blue-100 px-2 py-0.5 rounded">{DOMAIN_LABELS[q.competencyDomain - 1] ?? `Miền ${q.competencyDomain}`}</span>}
+                    {q.competencyDomain && <span className="bg-blue-100 px-2 py-0.5 rounded">{DOMAIN_LABELS[q.competencyDomain] ?? `Miền ${q.competencyDomain}`}</span>}
                     <span>{q.choices.length} đáp án · 🎁{q.reward}</span>
                   </div>
                 </div>

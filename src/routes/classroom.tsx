@@ -21,7 +21,7 @@ import {
   type MyTeacherProfile,
   type TaughtClass,
 } from "@/lib/teacher";
-import { DOMAIN_LABELS } from "@/lib/competency-classifier";
+import { DOMAIN_LABELS, classifyQuestion } from "@/lib/competency-classifier";
 import { ImageUploadField } from "@/components/ImageUploadField";
 
 export const Route = createFileRoute("/classroom")({

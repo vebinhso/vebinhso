@@ -892,6 +892,29 @@ function GamePage() {
       <WeatherOverlay powers={activePowers} />
       <TouchControls />
 
+      {visitConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setVisitConfirm(null)}>
+          <div className="glass-card p-6 max-w-sm w-full rounded-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-2xl font-black mb-2 text-center">🏠 {visitConfirm.name}</div>
+            <div className="text-sm text-center opacity-70 mb-5">Bạn có muốn vào thăm ngôi nhà này không?</div>
+            <div className="flex gap-2">
+              <button
+                className="toy-button toy-button-primary flex-1 !animate-none"
+                onClick={() => {
+                  const id = visitConfirm.ownerId;
+                  setVisitConfirm(null);
+                  navigate({ to: "/visit/$ownerId", params: { ownerId: id } });
+                }}
+              >🚪 Vào nhà</button>
+              <button
+                className="toy-button flex-1 !animate-none"
+                onClick={() => setVisitConfirm(null)}
+              >❌ Thoát</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <DuelController
         ownerId={user.id}
         me={{ userId: user.id, username: user.username, displayName: user.username, avatarUrl: null }}

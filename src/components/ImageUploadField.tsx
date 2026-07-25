@@ -42,8 +42,26 @@ export function ImageUploadField({ value, onChange, label = "Ảnh" }: Props) {
     }
   }
 
+  const onPaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (it.kind === "file") {
+        const f = it.getAsFile();
+        if (f) { e.preventDefault(); handleFile(f); return; }
+      }
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const f = e.dataTransfer?.files?.[0];
+    if (f) handleFile(f);
+  };
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" onPaste={onPaste} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
       <div className="flex items-center gap-2 flex-wrap">
         {value ? (
           <>
@@ -90,7 +108,7 @@ export function ImageUploadField({ value, onChange, label = "Ảnh" }: Props) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={`Hoặc dán link ${label.toLowerCase()}...`}
+        placeholder={`Dán link ảnh, hoặc Ctrl+V để dán ảnh, hoặc kéo thả tệp...`}
         className="w-full px-2 py-1 rounded border border-orange-100 text-xs"
       />
     </div>

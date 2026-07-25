@@ -266,7 +266,7 @@ function HousePopup({
   );
 }
 
-type MyHouse = MyHouseSettingsData;
+type MyHouse = MyHouseData;
 
 const PRIVACY_OPTIONS: { id: HousePrivacy; label: string; hint: string }[] = [
   { id: "public",  label: "🌐 Công khai", hint: "Mọi người chơi đã đăng nhập đều có thể vào thăm." },

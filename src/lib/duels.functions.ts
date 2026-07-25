@@ -163,10 +163,12 @@ export const startDuel = createServerFn({ method: "POST" })
     duelId: string;
     category: "digital" | "history";
     domain: number | null;
+    count?: number;
   }) => ({
     duelId: String(input.duelId),
     category: input.category === "digital" ? ("digital" as const) : ("history" as const),
     domain: typeof input.domain === "number" ? input.domain : null,
+    count: Math.min(30, Math.max(10, Math.floor(Number(input.count) || 10))),
   }))
   .handler(async ({ data, context }): Promise<DuelSnapshot> => {
     const { supabase, userId } = context;
@@ -196,7 +198,8 @@ export const startDuel = createServerFn({ method: "POST" })
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    const chosen = arr.slice(0, N_QUESTIONS);
+    const wanted = Math.min(data.count, arr.length);
+    const chosen = arr.slice(0, wanted);
     const ids = chosen.map((r) => String(r.id));
 
     const payout = await loadPayout(supabase);

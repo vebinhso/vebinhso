@@ -434,36 +434,49 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
 /* -------- Sub-components -------- */
 
 function ArenaHeader({
-  me, opp, scoreMine, scoreOpp, highlightMe, highlightOpp,
+  host, guest, hostScore, guestScore, meId, winnerUserId,
 }: {
-  me: DuelPlayerInfo | null;
-  opp: DuelPlayerInfo | null;
-  scoreMine: number;
-  scoreOpp: number;
-  highlightMe?: boolean;
-  highlightOpp?: boolean;
+  host: DuelPlayerInfo | null;
+  guest: DuelPlayerInfo | null;
+  hostScore: number;
+  guestScore: number;
+  meId: string;
+  winnerUserId?: string | null;
 }) {
   return (
     <div className="relative bg-gradient-to-r from-emerald-500/30 via-transparent to-rose-500/30 p-3 border-b-2 border-white/10">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <Fighter side="left" info={me} score={scoreMine} highlight={highlightMe} />
+        <Fighter
+          side="left"
+          info={host}
+          score={hostScore}
+          isMe={host?.userId === meId}
+          highlight={!!winnerUserId && winnerUserId === host?.userId}
+        />
         <div className="text-center shrink-0">
           <div className="text-2xl sm:text-3xl font-black text-white drop-shadow">⚔️</div>
           <div className="text-[10px] text-white/70 font-bold">VS</div>
         </div>
-        <Fighter side="right" info={opp} score={scoreOpp} highlight={highlightOpp} />
+        <Fighter
+          side="right"
+          info={guest}
+          score={guestScore}
+          isMe={guest?.userId === meId}
+          highlight={!!winnerUserId && winnerUserId === guest?.userId}
+        />
       </div>
     </div>
   );
 }
 
 function Fighter({
-  side, info, score, highlight,
+  side, info, score, highlight, isMe,
 }: {
   side: "left" | "right";
   info: DuelPlayerInfo | null;
   score: number;
   highlight?: boolean;
+  isMe?: boolean;
 }) {
   const align = side === "left" ? "items-start text-left" : "items-end text-right";
   const flexRow = side === "left" ? "" : "flex-row-reverse";
@@ -487,8 +500,9 @@ function Fighter({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-white font-black text-sm truncate">
-            @{info?.username ?? "…"}
+          <div className="text-white font-black text-sm truncate flex items-center gap-1">
+            {isMe && <span className="bg-yellow-300 text-stone-900 text-[9px] px-1 rounded">BẠN</span>}
+            <span className="truncate">@{info?.username ?? "…"}</span>
           </div>
           <div className={`text-lg font-black leading-none ${side === "left" ? "text-emerald-200" : "text-rose-200"}`}>
             {score}
@@ -498,6 +512,7 @@ function Fighter({
     </div>
   );
 }
+
 
 function Overlay({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (

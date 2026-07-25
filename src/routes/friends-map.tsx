@@ -165,6 +165,7 @@ function FriendsMapPage() {
           className="absolute top-0 left-0 origin-top-left"
           style={{ width: MAP_W, height: MAP_H, transform: `scale(${scale})` }}
         >
+          <MapDecorations />
           {houses.map((h) => (
             <HouseMarker
               key={h.user_id}
@@ -174,6 +175,7 @@ function FriendsMapPage() {
             />
           ))}
         </div>
+
       </div>
 
       {selected && (

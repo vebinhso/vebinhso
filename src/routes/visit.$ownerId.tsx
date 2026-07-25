@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Suspense, lazy } from "react";
 import { getVisitableHouse, setPresence } from "@/lib/friend-houses.functions";
+import { getCurrentUser } from "@/lib/auth";
+import { DuelController } from "@/components/DuelController";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
 
@@ -130,6 +132,19 @@ function VisitPage() {
           {...emptyHandlers}
         />
       </Suspense>
+
+      {(() => {
+        const me = getCurrentUser();
+        if (!me) return null;
+        return (
+          <DuelController
+            ownerId={ownerId}
+            me={{ userId: me.id, username: me.username, displayName: me.username, avatarUrl: null }}
+          />
+        );
+      })()}
+
+
 
       {/* HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 items-center pointer-events-none">

@@ -260,28 +260,52 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         {error && <p className="text-rose-600 text-sm mb-2">{error}</p>}
         {snap && isHost ? (
           <>
-            <p className="text-sm mb-3 text-stone-600">
-              Chọn 1 chủ đề để bắt đầu (10 câu × 10s · thưởng <b>{payout}đ</b>/câu đúng đầu tiên):
+            <p className="text-sm mb-2 text-stone-600">
+              Chọn <b>số câu</b> và <b>chủ đề</b> để bắt đầu (mỗi câu 10s · thưởng <b>{payout}đ</b>/câu đúng đầu tiên):
             </p>
-            <div className="grid gap-2 max-h-[42vh] overflow-y-auto text-left">
+            <div className="mb-3 bg-purple-50 border-2 border-purple-200 rounded-xl p-3 text-left">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-black text-purple-700">Số câu mỗi trận</span>
+                <span className="text-lg font-black text-purple-700">{qCount} câu</span>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={30}
+                step={1}
+                value={qCount}
+                onChange={(e) => setQCount(Number(e.target.value))}
+                className="w-full accent-purple-500"
+              />
+              <div className="flex justify-between text-[10px] text-purple-600 font-bold mt-1">
+                <span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+              </div>
+            </div>
+            <div className="grid gap-2 max-h-[38vh] overflow-y-auto text-left">
               {topics.length === 0 && <p className="text-sm text-stone-500">Đang tải chủ đề…</p>}
-              {topics.map((t) => (
-                <button
-                  key={`${t.category}|${t.domain ?? "null"}`}
-                  disabled={starting || !t.enough}
-                  onClick={() => chooseTopic(t)}
-                  className={`text-left px-3 py-2 rounded-xl border-2 font-bold transition ${
-                    t.enough
-                      ? "bg-white border-purple-300 hover:border-purple-500 hover:bg-purple-50"
-                      : "bg-stone-100 border-stone-300 opacity-60 cursor-not-allowed"
-                  }`}
-                >
-                  <div className="font-black text-sm">{t.label}</div>
-                  <div className="text-[11px] text-stone-500">
-                    {t.enough ? `${t.count} câu · sẵn sàng` : `Còn thiếu ${10 - t.count} câu`}
-                  </div>
-                </button>
-              ))}
+              {topics.map((t) => {
+                const wanted = Math.min(qCount, t.count);
+                const canStart = t.count >= 10;
+                return (
+                  <button
+                    key={`${t.category}|${t.domain ?? "null"}`}
+                    disabled={starting || !canStart}
+                    onClick={() => chooseTopic(t)}
+                    className={`text-left px-3 py-2 rounded-xl border-2 font-bold transition ${
+                      canStart
+                        ? "bg-white border-purple-300 hover:border-purple-500 hover:bg-purple-50"
+                        : "bg-stone-100 border-stone-300 opacity-60 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="font-black text-sm">{t.label}</div>
+                    <div className="text-[11px] text-stone-500">
+                      {canStart
+                        ? `${t.count} câu trong kho · sẽ chơi ${wanted} câu${wanted < qCount ? " (chưa đủ)" : ""}`
+                        : `Còn thiếu ${10 - t.count} câu (cần tối thiểu 10)`}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
             <button onClick={() => onClose()} className="toy-button toy-button-ghost mt-4 w-full">Huỷ</button>
           </>

@@ -110,6 +110,7 @@ function GamePage() {
   const [signLabels, setSignLabels] = useState<SignLabelMap>({});
   // id biển tên đang được sửa text (mở modal)
   const [signEditId, setSignEditId] = useState<string | null>(null);
+  const [visitConfirm, setVisitConfirm] = useState<{ ownerId: string; name: string } | null>(null);
   const [signDraft, setSignDraft] = useState("");
 
   const readyRef = useRef(false);

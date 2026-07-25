@@ -39,7 +39,8 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
       setPendingDuelId(r.duelId);
       sendInvite(peer.userId, r.duelId);
       notify(`📨 Đã gửi lời mời tới @${peer.username}`);
-      // Assume acceptance if guest starts sending duel signals; else timeout in 25s
+      // Wait for the guest to accept; useHouseDuel's "start" broadcast will
+      // set activeDuelId on both sides. Time out after 25s.
       setTimeout(() => {
         setPendingDuelId((cur) => {
           if (cur === r.duelId && !activeDuelId) {
@@ -50,9 +51,6 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
           return cur;
         });
       }, 25_000);
-      // Host proactively enters the room immediately to choose a topic.
-      announceStart(r.duelId, me.userId, peer.userId);
-      setActiveDuelId(r.duelId);
     } catch (e) {
       notify(`❌ ${(e as Error).message}`);
     } finally {

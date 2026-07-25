@@ -150,12 +150,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   /* -------- Timer expiry → reveal (no winner) -------- */
   useEffect(() => {
     if (remaining > 0) return;
-    setRound((cur) => cur.phase === "playing"
-      ? { phase: "revealed", correctIndexes: [], winnerUserId: null, myPick: null }
-      : cur);
-  }, [remaining]);
+    setRound((cur) => {
+      if (cur.phase !== "playing") return cur;
+      recordResult(qIndex, null);
+      return { phase: "revealed", correctIndexes: [], winnerUserId: null, myPick: null };
+    });
+  }, [remaining, qIndex, recordResult]);
 
-  /* -------- After reveal, auto-advance -------- */
+  /* -------- After reveal, auto-advance (both clients fire; idempotent max) -------- */
   useEffect(() => {
     if (round.phase !== "revealed") return;
     const t = setTimeout(() => {
@@ -163,13 +165,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       const next = qIndex + 1;
       if (next >= snap.questions.length) {
         void doFinish();
-      } else if (isHost) {
+      } else {
         chanRef.current?.send({ type: "broadcast", event: "advance", payload: { toIndex: next } });
-        setQIndex(next);
+        setQIndex((cur) => Math.max(cur, next));
       }
     }, REVEAL_MS);
     return () => clearTimeout(t);
-  }, [round.phase, isHost, snap?.questions.length, qIndex]);
+  }, [round.phase, snap?.questions.length, qIndex]);
+
 
   const doFinish = useCallback(async () => {
     if (finalizing || !snap) return;

@@ -42,8 +42,18 @@ function ClassroomPage() {
   useEffect(() => {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
-    getMyTeacherProfile().then(setProfile).catch(() => setProfile(null));
+    (async () => {
+      const p = await getMyTeacherProfile().catch(() => null);
+      if (!p) { setProfile(null); return; }
+      // Ensure the teacher has a class code (generate if missing)
+      if (p.isTeacher && !p.classCode) {
+        const code = await getOrCreateMyClassCode().catch(() => null);
+        if (code) p.classCode = code;
+      }
+      setProfile(p);
+    })();
   }, [navigate]);
+
 
   if (profile === null) return null;
 

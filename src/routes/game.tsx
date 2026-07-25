@@ -915,9 +915,9 @@ function GamePage() {
           <div className="glass-card p-6 max-w-sm w-full rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-2xl font-black mb-2 text-center">🏠 {visitConfirm.name}</div>
             <div className="text-sm text-center opacity-70 mb-5">Bạn có muốn vào thăm ngôi nhà này không?</div>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
-                className="toy-button toy-button-primary flex-1 !animate-none"
+                className="toy-button toy-button-primary min-w-0 !animate-none !rounded-2xl !border-b-4 !px-2 sm:!px-4 !py-2 !text-sm sm:!text-base !leading-none"
                 onClick={() => {
                   const id = visitConfirm.ownerId;
                   setVisitConfirm(null);
@@ -925,7 +925,7 @@ function GamePage() {
                 }}
               >🚪 Vào nhà</button>
               <button
-                className="toy-button flex-1 !animate-none"
+                className="toy-button min-w-0 !animate-none !rounded-2xl !border-b-4 !px-2 sm:!px-4 !py-2 !text-sm sm:!text-base !leading-none"
                 onClick={() => setVisitConfirm(null)}
               >❌ Thoát</button>
             </div>

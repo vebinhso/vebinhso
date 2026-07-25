@@ -276,16 +276,16 @@ const PRIVACY_OPTIONS: { id: HousePrivacy; label: string; hint: string }[] = [
 ];
 
 function MyHouseSettings({
-  initial, onClose, onSave,
+  initial: init, onClose, onSave,
 }: { initial: MyHouse; onClose: () => void; onSave: (p: any) => Promise<void> }) {
   const [privacy, setPrivacy] = useState<HousePrivacy>(
-    (initial.house_privacy === "private" ? "closed" : initial.house_privacy) as HousePrivacy,
+    (init.house_privacy === "private" ? "closed" : init.house_privacy) as HousePrivacy,
   );
-  const [name, setName] = useState(initial.house_name ?? "");
-  const [x, setX] = useState(initial.map_x);
-  const [y, setY] = useState(initial.map_y);
-  const [allowSet, setAllowSet] = useState<Set<string>>(new Set(initial.house_allow_list ?? []));
-  const [coop, setCoop] = useState<boolean>(!!initial.coop_build);
+  const [name, setName] = useState(init.house_name ?? "");
+  const [x, setX] = useState(init.map_x);
+  const [y, setY] = useState(init.map_y);
+  const [allowSet, setAllowSet] = useState<Set<string>>(new Set(init.house_allow_list ?? []));
+  const [coop, setCoop] = useState<boolean>(!!init.coop_build);
   const [busy, setBusy] = useState(false);
 
   const friendsFn = useServerFn(listMyFriendsForWhitelist);

@@ -303,11 +303,10 @@ function OverviewPanel({ classId, refreshKey }: { classId: string; refreshKey?: 
     listMyQuestions(classId).then(setQuestions).catch(() => {});
   }, [classId, refreshKey]);
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       <StatCard icon="👥" label="Học sinh" value={students.length} />
       <StatCard icon="❓" label="Câu hỏi" value={questions.length} />
       <StatCard icon="✅" label="Đang bật" value={questions.filter((q) => q.enabled !== false).length} />
-      <StatCard icon="⭐" label="Có gắn bậc" value={questions.filter((q) => q.competencyLevel != null).length} />
     </div>
   );
 }

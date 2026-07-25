@@ -233,9 +233,9 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       const s = await startFn({ data: { duelId, category: t.category, domain: t.domain, count } });
       setSnap(s);
       setQIndex(0);
-      setScoreMine(0);
-      setScoreOpp(0);
+      setRoundResults([]);
       chanRef.current?.send({ type: "broadcast", event: "start_active", payload: { snap: s } });
+
     } catch (e) {
       setError((e as Error).message);
     } finally {

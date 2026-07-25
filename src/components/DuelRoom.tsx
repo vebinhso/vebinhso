@@ -425,9 +425,9 @@ function ArenaHeader({
 }) {
   return (
     <div className="relative bg-gradient-to-r from-emerald-500/30 via-transparent to-rose-500/30 p-3 border-b-2 border-white/10">
-      <div className="grid grid-cols-3 items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <Fighter side="left" info={me} score={scoreMine} highlight={highlightMe} />
-        <div className="text-center">
+        <div className="text-center shrink-0">
           <div className="text-2xl sm:text-3xl font-black text-white drop-shadow">⚔️</div>
           <div className="text-[10px] text-white/70 font-bold">VS</div>
         </div>

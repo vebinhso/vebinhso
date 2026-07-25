@@ -1370,10 +1370,10 @@ function GamePage() {
       {shopOpen && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-2 md:p-4" onClick={() => setShopOpen(false)}>
           <div className="glass-card max-w-3xl w-full max-h-[92vh] md:max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="p-2 md:p-4 border-b-2 border-white/50 flex items-center justify-between gap-2">
-              <h2 className="text-lg md:text-2xl font-black">🛒 CỬA HÀNG</h2>
-              <div className="font-bold text-yellow-700 text-xs md:text-base">💰 {state.money}đ</div>
-              <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
+            <div className="p-2 md:p-4 border-b-2 border-white/50 flex flex-wrap items-center justify-between gap-2 min-w-0">
+              <h2 className="text-base md:text-2xl font-black truncate min-w-0">🛒 CỬA HÀNG</h2>
+              <div className="font-bold text-yellow-700 text-xs md:text-base whitespace-nowrap">💰 {state.money}đ</div>
+              <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3 shrink-0">Đóng</button>
             </div>
             <div className="flex flex-wrap gap-1 md:gap-2 p-2 md:p-3 border-b-2 border-white/50">
               {CATEGORIES.map((c) => (

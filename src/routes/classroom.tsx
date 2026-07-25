@@ -461,7 +461,7 @@ function ImportPanel() {
         </select>
         <label className="toy-button text-xs cursor-pointer">
           📁 Chọn file
-          <input type="file" accept=".csv,.json,.txt" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
+          <input type="file" accept=".csv,.json,.txt,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
         </label>
       </div>
       <textarea

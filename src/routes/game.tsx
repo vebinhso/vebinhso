@@ -188,18 +188,26 @@ function GamePage() {
   const setPresenceFn = useServerFn(setPresence);
   useEffect(() => {
     if (!user) return;
-    setPresenceFn({ data: { online: true, in_house_owner: user.id } }).catch(() => {});
-    const beat = setInterval(() => {
-      setPresenceFn({ data: { online: true, in_house_owner: user.id } }).catch(() => {});
-    }, 30_000);
-    const clear = () => { setPresenceFn({ data: { in_house_owner: null } }).catch(() => {}); };
+    let cancelled = false;
+    const call = async (payload: { online?: boolean; in_house_owner?: string | null }) => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled || !data.session?.access_token) return;
+        await setPresenceFn({ data: payload });
+      } catch { /* ignore */ }
+    };
+    call({ online: true, in_house_owner: user.id });
+    const beat = setInterval(() => { call({ online: true, in_house_owner: user.id }); }, 30_000);
+    const clear = () => { call({ in_house_owner: null }); };
     window.addEventListener("beforeunload", clear);
     return () => {
+      cancelled = true;
       clearInterval(beat);
       window.removeEventListener("beforeunload", clear);
       clear();
     };
   }, [user, setPresenceFn]);
+
 
   // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode
   useEffect(() => {

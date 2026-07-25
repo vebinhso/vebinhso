@@ -6,6 +6,14 @@ import { hydrateFromSession, setCurrentUserCache, getCurrentUser } from "@/lib/a
 import { resetGameCacheForLogout } from "@/lib/game";
 import { setPresence } from "@/lib/friend-houses.functions";
 
+async function safeSetPresence(payload: { online?: boolean; in_house_owner?: string | null }) {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session?.access_token) return;
+    await setPresence({ data: payload });
+  } catch { /* ignore */ }
+}
+
 /** Wires Supabase auth state to the app: hydrates cache, invalidates caches, and maintains online presence. */
 export function useAuthSync() {
   const router = useRouter();
@@ -19,7 +27,7 @@ export function useAuthSync() {
       } else {
         setTimeout(() => {
           hydrateFromSession()
-            .then(() => setPresence({ data: { online: true } }).catch(() => {}))
+            .then(() => safeSetPresence({ online: true }))
             .catch(() => {});
         }, 0);
       }
@@ -28,19 +36,17 @@ export function useAuthSync() {
     });
     // Initial hydrate
     hydrateFromSession()
-      .then(() => {
-        if (getCurrentUser()) setPresence({ data: { online: true } }).catch(() => {});
-      })
+      .then(() => { if (getCurrentUser()) safeSetPresence({ online: true }); })
       .catch(() => {});
 
     // Heartbeat every 60s so `last_seen` stays fresh & online resurfaces after tab sleep.
     const heartbeat = window.setInterval(() => {
-      if (getCurrentUser()) setPresence({ data: { online: true } }).catch(() => {});
+      if (getCurrentUser()) safeSetPresence({ online: true });
     }, 60_000);
 
     // Mark offline on tab close / hide.
-    const goOffline = () => { if (getCurrentUser()) setPresence({ data: { online: false } }).catch(() => {}); };
-    const onVis = () => { if (!getCurrentUser()) return; if (document.visibilityState === "hidden") goOffline(); else setPresence({ data: { online: true } }).catch(() => {}); };
+    const goOffline = () => { if (getCurrentUser()) safeSetPresence({ online: false }); };
+    const onVis = () => { if (!getCurrentUser()) return; if (document.visibilityState === "hidden") goOffline(); else safeSetPresence({ online: true }); };
     window.addEventListener("beforeunload", goOffline);
     document.addEventListener("visibilitychange", onVis);
 
@@ -53,3 +59,4 @@ export function useAuthSync() {
 
   }, [router, queryClient]);
 }
+

@@ -29,7 +29,8 @@ import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
 import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
-import { listFriendHouses, type FriendHouse } from "@/lib/friend-houses.functions";
+import { listFriendHouses, getUsername, type FriendHouse } from "@/lib/friend-houses.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -148,6 +149,38 @@ function GamePage() {
   useEffect(() => {
     if (state && readyRef.current) saveGame(state);
   }, [state]);
+
+  // Toast khi có ai đó vào thăm nhà mình
+  const getUsernameFn = useServerFn(getUsername);
+  useEffect(() => {
+    if (!user) return;
+    const seen = new Set<string>();
+    const channel = supabase
+      .channel(`visitors:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "presence" },
+        async (payload: any) => {
+          const row = (payload.new ?? payload.old) as { user_id?: string; in_house_owner?: string | null } | null;
+          if (!row) return;
+          if (row.user_id === user.id) return;
+          if (row.in_house_owner !== user.id) {
+            seen.delete(row.user_id ?? "");
+            return;
+          }
+          if (seen.has(row.user_id ?? "")) return;
+          seen.add(row.user_id ?? "");
+          try {
+            const info = await getUsernameFn({ data: { userId: row.user_id! } });
+            const name = info?.display_name || info?.username || "Một ai đó";
+            setToast(`👋 ${name} đang tham quan nhà bạn!`);
+            setTimeout(() => setToast(null), 3500);
+          } catch { /* noop */ }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, getUsernameFn]);
 
   // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode
   useEffect(() => {

@@ -86,27 +86,38 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         if (cur.phase !== "playing") return cur;
         const nextAns = new Set(cur.answered);
         nextAns.add(p.userId);
-        // If someone answered correctly OR both wrong → reveal
         if (p.winnerUserId || nextAns.size >= 2) {
-          if (p.winnerUserId && p.winnerUserId !== meId) setScoreOpp((s) => s + 1);
-          return { phase: "revealed", correctIndexes: p.correctIndexes, winnerUserId: p.winnerUserId, myPick: null };
+          recordResult(p.qIndex, p.winnerUserId ?? null);
+          return { phase: "revealed", correctIndexes: p.correctIndexes, winnerUserId: p.winnerUserId, myPick: cur.phase === "playing" ? null : null };
         }
         return { phase: "playing", answered: nextAns };
       });
     }).on("broadcast", { event: "advance" }, ({ payload }) => {
       const p = payload as { toIndex: number };
-      setQIndex(p.toIndex);
+      setQIndex((cur) => Math.max(cur, p.toIndex));
     }).on("broadcast", { event: "start_active" }, ({ payload }) => {
       const p = payload as { snap: DuelSnapshot };
       setSnap(p.snap);
       setQIndex(0);
-      setScoreMine(0); setScoreOpp(0);
+      setRoundResults([]);
     }).subscribe();
     return () => {
       supabase.removeChannel(ch);
       chanRef.current = null;
     };
   }, [duelId, meId]);
+
+  /** Idempotently record who won round qi (null = draw). */
+  const recordResult = useCallback((qi: number, winnerUserId: string | null) => {
+    setRoundResults((prev) => {
+      if (prev[qi] !== undefined) return prev;
+      const next = prev.slice();
+      while (next.length < qi) next.push(null);
+      next[qi] = winnerUserId;
+      return next;
+    });
+  }, []);
+
 
   /* -------- Countdown 3-2-1 when duel becomes active -------- */
   useEffect(() => {

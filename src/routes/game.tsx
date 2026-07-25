@@ -316,6 +316,13 @@ function GamePage() {
       flash(`🏠 +${qty} gạch mái ${style === "ton" ? "tôn" : "ngói"} vào kho`);
       return;
     }
+    if (kind === "paint") {
+      const add = (it.qty ?? 1) * times;
+      setState({ ...state, money: state.money - totalPrice, paint: state.paint + add });
+      playSfx("purchase", { duck: true });
+      flash(`🎨 +${add} xô sơn vào kho — dùng để nhuộm sàn theo màu tường`);
+      return;
+    }
     if (kind === "palette") {
       if (!state.ownedPalettes.length) {
         setState({ ...state, money: state.money - it.price, ownedPalettes: WALL_PALETTES.map((p) => p.id) });
@@ -558,15 +565,26 @@ function GamePage() {
         return;
       }
       const value = tilesNeeded * 4;
-      const seg: FloorSegment = { id: `f-${Date.now()}`, ax, az, bx, bz, value, floor: activeFloor };
+      const paintUsed = Math.min(tilesNeeded, state.paint);
+      const painted = paintUsed >= tilesNeeded;
+      const seg: FloorSegment = {
+        id: `f-${Date.now()}`, ax, az, bx, bz, value, floor: activeFloor,
+        ...(painted ? { color: state.wallColor } : {}),
+      };
       setState({
         ...state,
         concrete: state.concrete - tilesNeeded,
+        paint: state.paint - paintUsed,
         floors: [...state.floors, seg],
         netWorth: state.netWorth + value,
       });
       setFloorPicks([]);
-      flash(`🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.`, 2500);
+      flash(
+        painted
+          ? `🎨 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông + ${tilesNeeded} xô sơn (màu ${state.wallColor}).`
+          : `🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.${state.paint > 0 ? ` (Thiếu sơn: cần ${tilesNeeded}, đang có ${state.paint})` : ""}`,
+        2800,
+      );
       return;
     }
 

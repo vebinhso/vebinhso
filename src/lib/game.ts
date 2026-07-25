@@ -36,6 +36,7 @@ export type FloorSegment = {
   ax: number; az: number; bx: number; bz: number;
   value: number;
   floor: number;
+  color?: string;
 };
 
 export type GameState = {
@@ -55,6 +56,7 @@ export type GameState = {
   roofTilesTon: number;
   roofs: RoofSegment[];
   floors: FloorSegment[];
+  paint: number;
 };
 
 const DEFAULT: GameState = {
@@ -74,6 +76,7 @@ const DEFAULT: GameState = {
   roofTilesTon: 0,
   roofs: [],
   floors: [],
+  paint: 0,
 };
 
 // In-memory cache per session.
@@ -157,6 +160,7 @@ async function refreshFromDB(uid: string) {
     next.roofTilesTon = gs.data.roof_tiles_ton ?? 0;
     next.wallColor = gs.data.wall_color ?? "#f5e6c8";
     next.ownedPalettes = Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [];
+    next.paint = (gs.data as any).paint ?? 0;
   }
   if (items.data) {
     next.placed = items.data.map((r: any) => ({
@@ -178,6 +182,7 @@ async function refreshFromDB(uid: string) {
   if ((floors as any)?.data) {
     next.floors = (floors as any).data.map((r: any) => ({
       id: r.id, ax: Number(r.ax), az: Number(r.az), bx: Number(r.bx), bz: Number(r.bz), value: r.value, floor: r.floor ?? 0,
+      ...(r.color ? { color: r.color } : {}),
     }));
   }
   CACHE = next;
@@ -204,6 +209,7 @@ async function flushToDB(uid: string) {
     roof_tiles_ton: CACHE.roofTilesTon,
     wall_color: CACHE.wallColor,
     owned_palettes: CACHE.ownedPalettes,
+    paint: CACHE.paint,
   });
   // Items/walls/roofs: full replace strategy (simple, OK for small collections)
   await supabase.from("placed_items").delete().eq("user_id", uid);
@@ -231,7 +237,7 @@ async function flushToDB(uid: string) {
   await (supabase.from as any)("floors").delete().eq("user_id", uid);
   if (CACHE.floors.length) {
     await (supabase.from as any)("floors").insert(
-      CACHE.floors.map((f) => ({ user_id: uid, ax: f.ax, az: f.az, bx: f.bx, bz: f.bz, value: f.value ?? 0, floor: f.floor ?? 0 })),
+      CACHE.floors.map((f) => ({ user_id: uid, ax: f.ax, az: f.az, bx: f.bx, bz: f.bz, value: f.value ?? 0, floor: f.floor ?? 0, color: f.color ?? null })),
     );
   }
   if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved"));

@@ -2,6 +2,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export type HousePrivacy = "public" | "friends" | "custom" | "private" | "closed";
+
 export type FriendHouse = {
   user_id: string;
   username: string;
@@ -9,7 +11,7 @@ export type FriendHouse = {
   avatar_url: string | null;
   map_x: number;
   map_y: number;
-  house_privacy: "public" | "friends" | "private";
+  house_privacy: HousePrivacy;
   house_name: string | null;
   is_online: boolean;
   in_house_owner: string | null;
@@ -23,28 +25,56 @@ export const listFriendHouses = createServerFn({ method: "GET" })
     return (data ?? []) as FriendHouse[];
   });
 
+export type MyHouseSettings = {
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  map_x: number;
+  map_y: number;
+  house_privacy: HousePrivacy;
+  house_name: string | null;
+  house_allow_list: string[];
+  coop_build: boolean;
+};
+
 export const getMyHouseSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("profiles")
-      .select("user_id, username, display_name, avatar_url, map_x, map_y, house_privacy, house_name")
+    const { data, error } = await (context.supabase.from("profiles") as any)
+      .select("user_id, username, display_name, avatar_url, map_x, map_y, house_privacy, house_name, house_allow_list, coop_build")
       .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return data;
+    return data as MyHouseSettings | null;
+  });
+
+// Returns accepted friends for whitelist checklist.
+export const listMyFriendsForWhitelist = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase.rpc("get_friend_houses");
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as FriendHouse[]).map((f) => ({
+      user_id: f.user_id,
+      username: f.username,
+      display_name: f.display_name,
+      avatar_url: f.avatar_url,
+    }));
   });
 
 export const updateHouseSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: {
-    privacy?: "public" | "friends" | "private";
+    privacy?: HousePrivacy;
     house_name?: string | null;
     map_x?: number;
     map_y?: number;
+    house_allow_list?: string[];
+    coop_build?: boolean;
   }) => {
     const out: Record<string, unknown> = {};
-    if (input.privacy && ["public", "friends", "private"].includes(input.privacy)) {
+    if (input.privacy && ["public", "friends", "custom", "private", "closed"].includes(input.privacy)) {
       out.house_privacy = input.privacy;
     }
     if (input.house_name !== undefined) {
@@ -52,6 +82,12 @@ export const updateHouseSettings = createServerFn({ method: "POST" })
     }
     if (typeof input.map_x === "number") out.map_x = Math.max(40, Math.min(1960, input.map_x));
     if (typeof input.map_y === "number") out.map_y = Math.max(40, Math.min(1160, input.map_y));
+    if (Array.isArray(input.house_allow_list)) {
+      out.house_allow_list = input.house_allow_list
+        .filter((s) => typeof s === "string")
+        .slice(0, 200);
+    }
+    if (typeof input.coop_build === "boolean") out.coop_build = input.coop_build;
     return out;
   })
   .handler(async ({ data, context }) => {
@@ -96,7 +132,8 @@ export type HouseSnapshot = {
     display_name: string | null;
     avatar_url: string | null;
     house_name: string | null;
-    house_privacy: "public" | "friends" | "private";
+    house_privacy: HousePrivacy;
+    coop_build: boolean;
   };
   placed: Array<{
     id: string; itemId: string; x: number; z: number; rotation: number;
@@ -125,8 +162,8 @@ export const getVisitableHouse = createServerFn({ method: "POST" })
     if (!canVisit) throw new Error("Căn nhà này hiện không mở cho bạn tham quan.");
 
     const [prof, items, walls, roofs, floors, outfit] = await Promise.all([
-      supabase.from("profiles")
-        .select("user_id, username, display_name, avatar_url, house_name, house_privacy")
+      (supabase.from("profiles") as any)
+        .select("user_id, username, display_name, avatar_url, house_name, house_privacy, coop_build")
         .eq("user_id", data.ownerId).maybeSingle(),
       supabase.from("placed_items").select("*").eq("user_id", data.ownerId),
       supabase.from("walls").select("*").eq("user_id", data.ownerId),
@@ -155,4 +192,18 @@ export const getVisitableHouse = createServerFn({ method: "POST" })
       })),
       outfit: outfit?.data ? (outfit.data.outfit ?? null) : null,
     };
+  });
+
+// Look up a username by user_id (for toast "X đang tham quan").
+export const getUsername = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => ({ userId: String(input.userId) }))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("profiles")
+      .select("username, display_name, avatar_url")
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row as { username: string; display_name: string | null; avatar_url: string | null } | null;
   });

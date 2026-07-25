@@ -61,12 +61,19 @@ export async function signInWithPassword(email: string, password: string) {
 /** Email + password sign up with username metadata. */
 export async function signUpWithPassword(opts: {
   email: string; password: string; username: string;
+  isTeacher?: boolean; teacherSchool?: string; teacherSubject?: string;
 }) {
+  const meta: Record<string, any> = { username: opts.username, display_name: opts.username };
+  if (opts.isTeacher) {
+    meta.is_teacher = true;
+    meta.teacher_school = (opts.teacherSchool || "").trim();
+    meta.teacher_subject = (opts.teacherSubject || "").trim();
+  }
   const { error } = await supabase.auth.signUp({
     email: opts.email,
     password: opts.password,
     options: {
-      data: { username: opts.username, display_name: opts.username },
+      data: meta,
       emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
     },
   });

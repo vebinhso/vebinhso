@@ -8,6 +8,7 @@ import {
   getMyHouseSettings,
   updateHouseSettings,
   listMyFriendsForWhitelist,
+  getVisitableHouse,
   type FriendHouse,
   type HousePrivacy,
   type MyHouseSettings as MyHouseData,

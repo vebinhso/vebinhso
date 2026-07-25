@@ -38,8 +38,8 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const [round, setRound] = useState<RoundState>({ phase: "playing", answered: new Set() });
   const [remaining, setRemaining] = useState(QUESTION_MS);
   const startAtRef = useRef<number>(0);
-  const [scoreMine, setScoreMine] = useState(0);
-  const [scoreOpp, setScoreOpp] = useState(0);
+  /** winnerUserId per resolved round; null = draw. Shared identically across both clients. */
+  const [roundResults, setRoundResults] = useState<(string | null)[]>([]);
   const [starting, setStarting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +48,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const isHost = snap?.hostId === meId;
-  const meInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.host : snap.guest) : null;
-  const oppInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.guest : snap.host) : null;
+  const hostInfo: DuelPlayerInfo | null = snap?.host ?? null;
+  const guestInfo: DuelPlayerInfo | null = snap?.guest ?? null;
   const currentQ = snap?.questions?.[qIndex];
   const payout = snap?.payout ?? 30;
+  // Scores derived from shared roundResults so both clients render identically.
+  const hostScore = roundResults.filter((w) => w && w === snap?.hostId).length;
+  const guestScore = roundResults.filter((w) => w && w === snap?.guestId).length;
+
 
   /* -------- Load initial + topics -------- */
   useEffect(() => {
@@ -82,27 +86,38 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         if (cur.phase !== "playing") return cur;
         const nextAns = new Set(cur.answered);
         nextAns.add(p.userId);
-        // If someone answered correctly OR both wrong → reveal
         if (p.winnerUserId || nextAns.size >= 2) {
-          if (p.winnerUserId && p.winnerUserId !== meId) setScoreOpp((s) => s + 1);
-          return { phase: "revealed", correctIndexes: p.correctIndexes, winnerUserId: p.winnerUserId, myPick: null };
+          recordResult(p.qIndex, p.winnerUserId ?? null);
+          return { phase: "revealed", correctIndexes: p.correctIndexes, winnerUserId: p.winnerUserId, myPick: cur.phase === "playing" ? null : null };
         }
         return { phase: "playing", answered: nextAns };
       });
     }).on("broadcast", { event: "advance" }, ({ payload }) => {
       const p = payload as { toIndex: number };
-      setQIndex(p.toIndex);
+      setQIndex((cur) => Math.max(cur, p.toIndex));
     }).on("broadcast", { event: "start_active" }, ({ payload }) => {
       const p = payload as { snap: DuelSnapshot };
       setSnap(p.snap);
       setQIndex(0);
-      setScoreMine(0); setScoreOpp(0);
+      setRoundResults([]);
     }).subscribe();
     return () => {
       supabase.removeChannel(ch);
       chanRef.current = null;
     };
   }, [duelId, meId]);
+
+  /** Idempotently record who won round qi (null = draw). */
+  const recordResult = useCallback((qi: number, winnerUserId: string | null) => {
+    setRoundResults((prev) => {
+      if (prev[qi] !== undefined) return prev;
+      const next = prev.slice();
+      while (next.length < qi) next.push(null);
+      next[qi] = winnerUserId;
+      return next;
+    });
+  }, []);
+
 
   /* -------- Countdown 3-2-1 when duel becomes active -------- */
   useEffect(() => {
@@ -135,12 +150,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   /* -------- Timer expiry → reveal (no winner) -------- */
   useEffect(() => {
     if (remaining > 0) return;
-    setRound((cur) => cur.phase === "playing"
-      ? { phase: "revealed", correctIndexes: [], winnerUserId: null, myPick: null }
-      : cur);
-  }, [remaining]);
+    setRound((cur) => {
+      if (cur.phase !== "playing") return cur;
+      recordResult(qIndex, null);
+      return { phase: "revealed", correctIndexes: [], winnerUserId: null, myPick: null };
+    });
+  }, [remaining, qIndex, recordResult]);
 
-  /* -------- After reveal, auto-advance -------- */
+  /* -------- After reveal, auto-advance (both clients fire; idempotent max) -------- */
   useEffect(() => {
     if (round.phase !== "revealed") return;
     const t = setTimeout(() => {
@@ -148,13 +165,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       const next = qIndex + 1;
       if (next >= snap.questions.length) {
         void doFinish();
-      } else if (isHost) {
+      } else {
         chanRef.current?.send({ type: "broadcast", event: "advance", payload: { toIndex: next } });
-        setQIndex(next);
+        setQIndex((cur) => Math.max(cur, next));
       }
     }, REVEAL_MS);
     return () => clearTimeout(t);
-  }, [round.phase, isHost, snap?.questions.length, qIndex]);
+  }, [round.phase, snap?.questions.length, qIndex]);
+
 
   const doFinish = useCallback(async () => {
     if (finalizing || !snap) return;
@@ -195,7 +213,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         const answered = new Set(cur.answered);
         answered.add(meId);
         if (r.winnerUserId || answered.size >= 2) {
-          if (r.winnerUserId === meId) setScoreMine((s) => s + 1);
+          recordResult(qIndex, r.winnerUserId ?? null);
           return { phase: "revealed", correctIndexes: r.correctIndexes, winnerUserId: r.winnerUserId, myPick: idx };
         }
         return { phase: "playing", answered };
@@ -204,6 +222,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       setError((e as Error).message);
     }
   };
+
 
   const chooseTopic = async (t: DuelTopic) => {
     if (starting || !t.enough) return;
@@ -214,9 +233,9 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       const s = await startFn({ data: { duelId, category: t.category, domain: t.domain, count } });
       setSnap(s);
       setQIndex(0);
-      setScoreMine(0);
-      setScoreOpp(0);
+      setRoundResults([]);
       chanRef.current?.send({ type: "broadcast", event: "start_active", payload: { snap: s } });
+
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -255,7 +274,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   if (!snap || snap.status === "pending") {
     return (
       <Overlay wide>
-        <ArenaHeader me={meInfo} opp={oppInfo} scoreMine={0} scoreOpp={0} />
+        <ArenaHeader host={hostInfo} guest={guestInfo} hostScore={0} guestScore={0} meId={meId} />
         <h2 className="text-lg font-black mt-3 mb-1">⚔️ Phòng đấu 1vs1</h2>
         {error && <p className="text-rose-600 text-sm mb-2">{error}</p>}
         {snap && isHost ? (
@@ -331,13 +350,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     <div className="fixed inset-0 z-[70] p-2 sm:p-4 grid place-items-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
       <div className="w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gradient-to-b from-indigo-800/80 to-slate-800/90">
         <ArenaHeader
-          me={meInfo}
-          opp={oppInfo}
-          scoreMine={scoreMine}
-          scoreOpp={scoreOpp}
-          highlightMe={iWon}
-          highlightOpp={iLost}
+          host={hostInfo}
+          guest={guestInfo}
+          hostScore={hostScore}
+          guestScore={guestScore}
+          meId={meId}
+          winnerUserId={revealed ? round.winnerUserId : null}
         />
+
 
         {/* Header meta */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between text-xs sm:text-sm font-black text-white/90">
@@ -414,36 +434,49 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
 /* -------- Sub-components -------- */
 
 function ArenaHeader({
-  me, opp, scoreMine, scoreOpp, highlightMe, highlightOpp,
+  host, guest, hostScore, guestScore, meId, winnerUserId,
 }: {
-  me: DuelPlayerInfo | null;
-  opp: DuelPlayerInfo | null;
-  scoreMine: number;
-  scoreOpp: number;
-  highlightMe?: boolean;
-  highlightOpp?: boolean;
+  host: DuelPlayerInfo | null;
+  guest: DuelPlayerInfo | null;
+  hostScore: number;
+  guestScore: number;
+  meId: string;
+  winnerUserId?: string | null;
 }) {
   return (
     <div className="relative bg-gradient-to-r from-emerald-500/30 via-transparent to-rose-500/30 p-3 border-b-2 border-white/10">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <Fighter side="left" info={me} score={scoreMine} highlight={highlightMe} />
+        <Fighter
+          side="left"
+          info={host}
+          score={hostScore}
+          isMe={host?.userId === meId}
+          highlight={!!winnerUserId && winnerUserId === host?.userId}
+        />
         <div className="text-center shrink-0">
           <div className="text-2xl sm:text-3xl font-black text-white drop-shadow">⚔️</div>
           <div className="text-[10px] text-white/70 font-bold">VS</div>
         </div>
-        <Fighter side="right" info={opp} score={scoreOpp} highlight={highlightOpp} />
+        <Fighter
+          side="right"
+          info={guest}
+          score={guestScore}
+          isMe={guest?.userId === meId}
+          highlight={!!winnerUserId && winnerUserId === guest?.userId}
+        />
       </div>
     </div>
   );
 }
 
 function Fighter({
-  side, info, score, highlight,
+  side, info, score, highlight, isMe,
 }: {
   side: "left" | "right";
   info: DuelPlayerInfo | null;
   score: number;
   highlight?: boolean;
+  isMe?: boolean;
 }) {
   const align = side === "left" ? "items-start text-left" : "items-end text-right";
   const flexRow = side === "left" ? "" : "flex-row-reverse";
@@ -467,8 +500,9 @@ function Fighter({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-white font-black text-sm truncate">
-            @{info?.username ?? "…"}
+          <div className="text-white font-black text-sm truncate flex items-center gap-1">
+            {isMe && <span className="bg-yellow-300 text-stone-900 text-[9px] px-1 rounded">BẠN</span>}
+            <span className="truncate">@{info?.username ?? "…"}</span>
           </div>
           <div className={`text-lg font-black leading-none ${side === "left" ? "text-emerald-200" : "text-rose-200"}`}>
             {score}
@@ -478,6 +512,7 @@ function Fighter({
     </div>
   );
 }
+
 
 function Overlay({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   return (

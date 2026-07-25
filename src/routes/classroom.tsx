@@ -402,10 +402,35 @@ function ImportPanel() {
 
   const onFile = async (f: File | null) => {
     if (!f) return;
-    const t = await f.text();
-    setText(t);
-    setFormat(f.name.toLowerCase().endsWith(".json") ? "json" : "csv");
+    const name = f.name.toLowerCase();
+    const ext = name.slice(name.lastIndexOf(".") + 1);
+    // Text-based formats we can parse directly
+    if (["csv", "json", "txt"].includes(ext)) {
+      const t = await f.text();
+      setText(t);
+      setFormat(ext === "json" ? "json" : "csv");
+      return;
+    }
+    // Office / PDF / video: not auto-parsed on the client
+    if (["docx", "pptx", "xlsx", "doc", "ppt", "xls", "pdf"].includes(ext)) {
+      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung câu hỏi vào ô văn bản bên dưới theo định dạng CSV hoặc JSON.");
+      return;
+    }
+    if (["mp4", "mov", "webm", "avi", "mkv", "m4a", "mp3", "wav"].includes(ext)) {
+      toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ có thể được đính kèm cho từng câu hỏi, không nhập hàng loạt.");
+      return;
+    }
+    // Fallback: try to read as text
+    try {
+      const t = await f.text();
+      setText(t);
+      setFormat("csv");
+      toast("Đã đọc tệp dạng văn bản. Kiểm tra định dạng trước khi nhập.");
+    } catch {
+      toast.error("Không đọc được tệp này.");
+    }
   };
+
 
   const doImport = async () => {
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }

@@ -487,6 +487,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState<string | null>(null);
+  const [duelPayout, setDuelPayoutState] = useState<number>(30);
+  const [duelPayoutDraft, setDuelPayoutDraft] = useState<string>("30");
   const flashSaved = (msg: string = "✅ Đã lưu") => {
     setSavedFlash(msg);
     setTimeout(() => setSavedFlash(null), 1800);
@@ -496,10 +498,12 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   async function reload() {
     setLoading(true);
     try {
-      const [data, mode, toggles] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles()]);
+      const [data, mode, toggles, dp] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles(), getDuelPayout()]);
       setList(data);
       setPriorityModeOn(mode);
       setCatToggles(toggles);
+      setDuelPayoutState(dp);
+      setDuelPayoutDraft(String(dp));
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -507,6 +511,18 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function saveDuelPayout() {
+    const n = Math.max(1, Math.floor(Number(duelPayoutDraft) || 0));
+    try {
+      await setDuelPayout(n);
+      setDuelPayoutState(n);
+      setDuelPayoutDraft(String(n));
+      pushAdminLog(`Phần thưởng đấu 1vs1 → ${n}đ/câu`);
+      flashSaved(`✅ Đã lưu ${n}đ/câu`);
+    } catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
 
   async function toggleCategory(key: "digital" | "history") {
     const next = { ...catToggles, [key]: !catToggles[key] };

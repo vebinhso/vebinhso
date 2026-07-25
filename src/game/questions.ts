@@ -233,7 +233,7 @@ export function randomQuestion(): Question {
 
   for (const fn of order) {
     const q = fn();
-    if (q) return q;
+    if (q) return withShuffledChoices(q);
   }
 
   // Không có câu hợp lệ (thiếu bậc / thiếu ưu tiên) — placeholder rỗng.

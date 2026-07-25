@@ -888,6 +888,18 @@ function GamePage() {
       <WeatherOverlay powers={activePowers} />
       <TouchControls />
 
+      <DuelController
+        ownerId={user.id}
+        me={{ userId: user.id, username: user.username, displayName: user.username, avatarUrl: null }}
+        onPayout={(delta) => {
+          setState((s) => s ? {
+            ...s,
+            money: Math.max(0, s.money + delta),
+            netWorth: Math.max(0, s.netWorth + delta),
+          } : s);
+        }}
+      />
+
       {activePowers.some((id) => [1,2,3].includes(id)) && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 glass-card px-4 py-1.5 pointer-events-none z-40">
           <div className="text-xs font-black">

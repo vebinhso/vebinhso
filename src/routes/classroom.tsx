@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getMyTeacherProfile,
-  getClassroomStudents,
+  listMyTaughtClasses,
+  createClass,
+  deleteClass,
+  getClassStudents,
   listMyQuestions,
   createMyQuestion,
   updateMyQuestion,
@@ -13,13 +16,12 @@ import {
   parseQuestionsCSV,
   parseQuestionsJSON,
   requestTeacher,
-  getOrCreateMyClassCode,
   type ClassroomStudent,
   type TeacherQuestion,
   type MyTeacherProfile,
+  type TaughtClass,
 } from "@/lib/teacher";
 import { DOMAIN_LABELS } from "@/lib/competency-classifier";
-
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
@@ -37,7 +39,22 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 function ClassroomPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<MyTeacherProfile | null>(null);
+  const [classes, setClasses] = useState<TaughtClass[]>([]);
+  const [selectedClass, setSelectedClass] = useState<TaughtClass | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
+  const [addOpen, setAddOpen] = useState(false);
+
+  const reloadClasses = async () => {
+    try {
+      const list = await listMyTaughtClasses();
+      setClasses(list);
+      if (selectedClass) {
+        const updated = list.find((c) => c.id === selectedClass.id);
+        if (updated) setSelectedClass(updated);
+        else setSelectedClass(null);
+      }
+    } catch {}
+  };
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -45,15 +62,11 @@ function ClassroomPage() {
     (async () => {
       const p = await getMyTeacherProfile().catch(() => null);
       if (!p) { setProfile(null); return; }
-      // Ensure the teacher has a class code (generate if missing)
-      if (p.isTeacher && !p.classCode) {
-        const code = await getOrCreateMyClassCode().catch(() => null);
-        if (code) p.classCode = code;
-      }
       setProfile(p);
+      if (p.isTeacher) reloadClasses();
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
-
 
   if (profile === null) return null;
 
@@ -85,20 +98,86 @@ function ClassroomPage() {
     );
   }
 
+  // Class list view (no class selected)
+  if (!selectedClass) {
+    return (
+      <GameLayout showBack>
+        <div className="flex-1 p-3 md:p-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="glass-card p-4 mb-4 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-black">🧑‍🏫 LỚP HỌC CỦA TÔI</h1>
+                <p className="text-xs md:text-sm font-bold text-muted-foreground">
+                  {profile.teacherSchool || "—"} · {classes.length} lớp
+                </p>
+              </div>
+              <button onClick={() => setAddOpen(true)} className="toy-button toy-button-primary text-sm">
+                ➕ Thêm lớp học
+              </button>
+            </div>
+
+            {classes.length === 0 ? (
+              <div className="glass-card p-8 text-center">
+                <div className="text-4xl mb-2">📚</div>
+                <p className="font-bold text-muted-foreground mb-3">Bạn chưa có lớp học nào.</p>
+                <button onClick={() => setAddOpen(true)} className="toy-button toy-button-primary">
+                  ➕ Tạo lớp đầu tiên
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {classes.map((c) => (
+                  <div key={c.id} className="glass-card p-4 flex flex-col gap-2 hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-orange-300"
+                       onClick={() => { setSelectedClass(c); setTab("overview"); }}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-black text-lg truncate">{c.name}</div>
+                        <div className="text-xs font-bold text-muted-foreground truncate">{c.subject || "—"}</div>
+                      </div>
+                      <div className="bg-orange-100 border-2 border-orange-300 rounded-xl px-2 py-1 text-orange-700 font-black text-sm tracking-widest shrink-0">
+                        {c.code}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+                      <span>👥 {c.student_count} học sinh</span>
+                      <span>❓ {c.question_count} câu hỏi</span>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedClass(c); setTab("overview"); }}
+                              className="toy-button toy-button-primary text-xs flex-1">Mở lớp</button>
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!confirm(`Xoá lớp "${c.name}"? Học sinh sẽ bị gỡ khỏi lớp và các câu hỏi sẽ mất liên kết.`)) return;
+                        try { await deleteClass(c.id); toast.success("Đã xoá"); reloadClasses(); }
+                        catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                      }} className="toy-button text-xs bg-red-100">🗑️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {addOpen && <AddClassModal onClose={() => setAddOpen(false)} onCreated={(c) => { setAddOpen(false); reloadClasses(); setSelectedClass(c); setTab("overview"); }} />}
+      </GameLayout>
+    );
+  }
+
+  // Detail view for a specific class
   return (
     <GameLayout showBack>
       <div className="flex-1 p-3 md:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="glass-card p-4 mb-4 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black">🧑‍🏫 LỚP HỌC</h1>
-              <p className="text-xs md:text-sm font-bold text-muted-foreground">
-                {profile.teacherSchool || "—"}
+          <div className="glass-card p-4 mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+            <div className="min-w-0">
+              <button onClick={() => setSelectedClass(null)} className="text-xs font-bold text-orange-600 hover:underline mb-1">← Tất cả lớp</button>
+              <h1 className="text-xl md:text-2xl font-black truncate">{selectedClass.name}</h1>
+              <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
+                {selectedClass.subject || "—"}
               </p>
             </div>
-            <ClassCodeCard code={profile.classCode} />
+            <ClassCodeCard code={selectedClass.code} />
           </div>
-
 
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
             <nav className="glass-card p-2 h-fit md:sticky md:top-3">
@@ -117,15 +196,59 @@ function ClassroomPage() {
               </div>
             </nav>
             <main className="glass-card p-4 md:p-6 min-h-[60vh]">
-              {tab === "overview" && <OverviewPanel />}
-              {tab === "students" && <StudentsPanel />}
-              {tab === "questions" && <QuestionsPanel />}
-              {tab === "import" && <ImportPanel />}
+              {tab === "overview" && <OverviewPanel classId={selectedClass.id} />}
+              {tab === "students" && <StudentsPanel classId={selectedClass.id} />}
+              {tab === "questions" && <QuestionsPanel classId={selectedClass.id} onCountChanged={reloadClasses} />}
+              {tab === "import" && <ImportPanel classId={selectedClass.id} onDone={reloadClasses} />}
             </main>
           </div>
         </div>
       </div>
     </GameLayout>
+  );
+}
+
+function AddClassModal({ onClose, onCreated }: { onClose: () => void; onCreated: (c: TaughtClass) => void }) {
+  const [name, setName] = useState("");
+  const [subject, setSubject] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (!name.trim()) { toast.error("Nhập tên lớp"); return; }
+    setBusy(true);
+    try {
+      const c = await createClass(name.trim(), subject.trim());
+      toast.success(`Đã tạo lớp "${c.name}" — mã ${c.code}`);
+      onCreated(c);
+    } catch (e: any) { toast.error(e?.message || "Lỗi tạo lớp"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full border-4 border-orange-300" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-xl font-black mb-3">➕ Thêm lớp học</h3>
+        <div className="flex flex-col gap-3">
+          <label className="text-xs font-black">
+            Tên lớp <span className="text-red-500">*</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Lớp 10A1 – Tin học"
+              className="w-full mt-1 px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+          </label>
+          <label className="text-xs font-black">
+            Môn học
+            <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="VD: Tin học"
+              className="w-full mt-1 px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+          </label>
+          <p className="text-[11px] text-muted-foreground font-bold">
+            Mỗi lớp sẽ được cấp một mã tham gia riêng (tự động sinh).
+          </p>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <button onClick={onClose} className="toy-button flex-1">Huỷ</button>
+          <button onClick={submit} disabled={busy} className="toy-button toy-button-primary flex-1">
+            {busy ? "Đang tạo..." : "Tạo lớp"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -159,9 +282,9 @@ function ClassCodeCard({ code }: { code: string | null }) {
     try { await navigator.clipboard.writeText(code); toast.success("Đã sao chép mã lớp"); } catch {}
   };
   return (
-    <div className="bg-white/80 border-2 border-orange-300 rounded-2xl px-4 py-2 text-center">
+    <div className="bg-white/80 border-2 border-orange-300 rounded-2xl px-4 py-2 text-center shrink-0">
       <div className="text-[10px] font-black uppercase text-muted-foreground">Mã lớp</div>
-      <button onClick={copy} className="text-3xl font-black tracking-widest text-orange-600 hover:text-orange-500">
+      <button onClick={copy} className="text-2xl md:text-3xl font-black tracking-widest text-orange-600 hover:text-orange-500">
         {code || "—"}
       </button>
       <div className="text-[10px] font-bold text-muted-foreground">Bấm để sao chép</div>
@@ -169,13 +292,13 @@ function ClassCodeCard({ code }: { code: string | null }) {
   );
 }
 
-function OverviewPanel() {
+function OverviewPanel({ classId }: { classId: string }) {
   const [students, setStudents] = useState<ClassroomStudent[]>([]);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   useEffect(() => {
-    getClassroomStudents().then(setStudents).catch(() => {});
-    listMyQuestions().then(setQuestions).catch(() => {});
-  }, []);
+    getClassStudents(classId).then(setStudents).catch(() => {});
+    listMyQuestions(classId).then(setQuestions).catch(() => {});
+  }, [classId]);
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <StatCard icon="👥" label="Học sinh" value={students.length} />
@@ -196,12 +319,12 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
   );
 }
 
-function StudentsPanel() {
+function StudentsPanel({ classId }: { classId: string }) {
   const [rows, setRows] = useState<ClassroomStudent[]>([]);
   const [busy, setBusy] = useState(true);
   useEffect(() => {
-    getClassroomStudents().then((s) => { setRows(s); setBusy(false); }).catch(() => setBusy(false));
-  }, []);
+    getClassStudents(classId).then((s: ClassroomStudent[]) => { setRows(s); setBusy(false); }).catch(() => setBusy(false));
+  }, [classId]);
   if (busy) return <p className="font-bold">Đang tải...</p>;
   if (rows.length === 0) return <p className="font-bold text-muted-foreground">Chưa có học sinh nào tham gia. Chia sẻ mã lớp cho học sinh!</p>;
   return (
@@ -233,42 +356,44 @@ const EMPTY_Q: TeacherQuestion = {
   correctIndexes: [0], reward: 10, category: "digital", competencyLevel: null, competencyDomain: null, enabled: true,
 };
 
-function QuestionsPanel() {
+function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountChanged?: () => void }) {
   const [list, setList] = useState<TeacherQuestion[]>([]);
   const [busy, setBusy] = useState(true);
   const [editing, setEditing] = useState<TeacherQuestion | null>(null);
 
   const reload = async () => {
     setBusy(true);
-    try { setList(await listMyQuestions()); } catch (e: any) { toast.error(e?.message || "Lỗi tải"); }
+    try { setList(await listMyQuestions(classId)); } catch (e: any) { toast.error(e?.message || "Lỗi tải"); }
     setBusy(false);
   };
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [classId]);
 
   const save = async () => {
     if (!editing) return;
     if (!editing.text.trim()) { toast.error("Nhập câu hỏi"); return; }
     if (editing.choices.filter((c) => c.text.trim()).length < 2) { toast.error("Cần ít nhất 2 đáp án"); return; }
     try {
-      if (editing.id) await updateMyQuestion(editing.id, editing);
-      else await createMyQuestion(editing);
+      const withClass = { ...editing, classId };
+      if (editing.id) await updateMyQuestion(editing.id, withClass);
+      else await createMyQuestion(withClass);
       toast.success("Đã lưu");
       setEditing(null);
       reload();
+      onCountChanged?.();
     } catch (e: any) { toast.error(e?.message || "Lỗi lưu"); }
   };
 
   const remove = async (id: string) => {
     if (!confirm("Xoá câu hỏi này?")) return;
-    try { await deleteMyQuestion(id); toast.success("Đã xoá"); reload(); }
+    try { await deleteMyQuestion(id); toast.success("Đã xoá"); reload(); onCountChanged?.(); }
     catch (e: any) { toast.error(e?.message || "Lỗi"); }
   };
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="text-xl font-black">Câu hỏi của tôi ({list.length})</h2>
-        <button onClick={() => setEditing({ ...EMPTY_Q })} className="toy-button toy-button-primary text-sm">
+        <h2 className="text-xl font-black">Câu hỏi của lớp ({list.length})</h2>
+        <button onClick={() => setEditing({ ...EMPTY_Q, classId })} className="toy-button toy-button-primary text-sm">
           ➕ Thêm câu hỏi
         </button>
       </div>
@@ -383,7 +508,7 @@ function QuestionEditor({ q, setQ, onSave, onCancel }: {
   );
 }
 
-function ImportPanel() {
+function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void }) {
   const [text, setText] = useState("");
   const [format, setFormat] = useState<"csv" | "json">("csv");
   const [preview, setPreview] = useState<TeacherQuestion[]>([]);
@@ -404,23 +529,20 @@ function ImportPanel() {
     if (!f) return;
     const name = f.name.toLowerCase();
     const ext = name.slice(name.lastIndexOf(".") + 1);
-    // Text-based formats we can parse directly
     if (["csv", "json", "txt"].includes(ext)) {
       const t = await f.text();
       setText(t);
       setFormat(ext === "json" ? "json" : "csv");
       return;
     }
-    // Office / PDF / video: not auto-parsed on the client
     if (["docx", "pptx", "xlsx", "doc", "ppt", "xls", "pdf"].includes(ext)) {
-      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung câu hỏi vào ô văn bản bên dưới theo định dạng CSV hoặc JSON.");
+      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung vào ô văn bản theo định dạng CSV/JSON.");
       return;
     }
     if (["mp4", "mov", "webm", "avi", "mkv", "m4a", "mp3", "wav"].includes(ext)) {
-      toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ có thể được đính kèm cho từng câu hỏi, không nhập hàng loạt.");
+      toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ đính kèm cho từng câu, không nhập hàng loạt.");
       return;
     }
-    // Fallback: try to read as text
     try {
       const t = await f.text();
       setText(t);
@@ -431,17 +553,17 @@ function ImportPanel() {
     }
   };
 
-
   const doImport = async () => {
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }
     setBusy(true);
     let ok = 0;
     for (const q of preview) {
-      try { await createMyQuestion(q); ok++; } catch { /* skip */ }
+      try { await createMyQuestion({ ...q, classId }); ok++; } catch { /* skip */ }
     }
     setBusy(false);
     toast.success(`Đã nhập ${ok}/${preview.length} câu hỏi`);
     setText(""); setPreview([]);
+    onDone?.();
   };
 
   const csvSample = useMemo(() => `text,option1,option2,option3,option4,correct,reward,category,level,domain

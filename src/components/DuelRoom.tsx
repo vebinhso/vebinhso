@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
 import {
   listDuelTopics,
   startDuel,
@@ -8,6 +9,7 @@ import {
   finishDuel,
   type DuelSnapshot,
   type DuelTopic,
+  type DuelPlayerInfo,
 } from "@/lib/duels.functions";
 
 type Props = {
@@ -17,6 +19,11 @@ type Props = {
 };
 
 const QUESTION_MS = 10_000;
+const REVEAL_MS = 1500;
+
+type RoundState =
+  | { phase: "playing"; answered: Set<string> }
+  | { phase: "revealed"; correctIndexes: number[]; winnerUserId: string | null; myPick: number | null };
 
 export function DuelRoom({ duelId, meId, onClose }: Props) {
   const listTopicsFn = useServerFn(listDuelTopics);
@@ -28,8 +35,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const [snap, setSnap] = useState<DuelSnapshot | null>(null);
   const [topics, setTopics] = useState<DuelTopic[]>([]);
   const [qIndex, setQIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [reveal, setReveal] = useState<number[] | null>(null);
+  const [round, setRound] = useState<RoundState>({ phase: "playing", answered: new Set() });
   const [remaining, setRemaining] = useState(QUESTION_MS);
   const startAtRef = useRef<number>(0);
   const [scoreMine, setScoreMine] = useState(0);
@@ -37,8 +43,16 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const [starting, setStarting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null); // 3-2-1 GO
+  const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Load initial snapshot + topics
+  const isHost = snap?.hostId === meId;
+  const meInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.host : snap.guest) : null;
+  const oppInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.guest : snap.host) : null;
+  const currentQ = snap?.questions?.[qIndex];
+  const payout = snap?.payout ?? 30;
+
+  /* -------- Load initial + topics -------- */
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -50,69 +64,98 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
           const t = await listTopicsFn();
           if (alive) setTopics(t);
         }
-        if (s.status === "finished") {
-          const iAmWinner = s.winnerId === meId;
-          const iAmDraw = s.winnerId == null;
-          onClose({
-            win: iAmDraw ? null : iAmWinner,
-            delta: iAmDraw ? 0 : (iAmWinner ? s.payout : -s.payout),
-          });
-        }
       } catch (e) {
         setError((e as Error).message);
       }
     })();
     return () => { alive = false; };
-  }, [duelId, meId, getDuelFn, listTopicsFn, onClose]);
+  }, [duelId, meId, getDuelFn, listTopicsFn]);
 
-  // Guest polling: wait for host to start
+  /* -------- Realtime room channel -------- */
   useEffect(() => {
-    if (!snap || snap.status !== "pending") return;
-    if (snap.hostId === meId) return;
-    const t = setInterval(async () => {
-      try {
-        const s = await getDuelFn({ data: { duelId } });
-        setSnap(s);
-        if (s.status !== "pending") clearInterval(t);
-      } catch {}
-    }, 1200);
+    const ch = supabase.channel(`duel-room:${duelId}`, { config: { broadcast: { self: false } } });
+    chanRef.current = ch;
+    ch.on("broadcast", { event: "answered" }, ({ payload }) => {
+      const p = payload as { qIndex: number; userId: string; isCorrect: boolean; correctIndexes: number[]; winnerUserId: string | null };
+      setRound((cur) => {
+        if (cur.phase !== "playing") return cur;
+        const nextAns = new Set(cur.answered);
+        nextAns.add(p.userId);
+        // If someone answered correctly OR both wrong → reveal
+        if (p.winnerUserId || nextAns.size >= 2) {
+          if (p.winnerUserId && p.winnerUserId !== meId) setScoreOpp((s) => s + 1);
+          return { phase: "revealed", correctIndexes: p.correctIndexes, winnerUserId: p.winnerUserId, myPick: null };
+        }
+        return { phase: "playing", answered: nextAns };
+      });
+    }).on("broadcast", { event: "advance" }, ({ payload }) => {
+      const p = payload as { toIndex: number };
+      setQIndex(p.toIndex);
+    }).on("broadcast", { event: "start_active" }, ({ payload }) => {
+      const p = payload as { snap: DuelSnapshot };
+      setSnap(p.snap);
+      setQIndex(0);
+      setScoreMine(0); setScoreOpp(0);
+    }).subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+      chanRef.current = null;
+    };
+  }, [duelId, meId]);
+
+  /* -------- Countdown 3-2-1 when duel becomes active -------- */
+  useEffect(() => {
+    if (snap?.status !== "active") return;
+    setCountdown(3);
+    const t = setInterval(() => {
+      setCountdown((c) => {
+        if (c == null) return c;
+        if (c <= 1) { clearInterval(t); return null; }
+        return c - 1;
+      });
+    }, 1000);
     return () => clearInterval(t);
-  }, [snap?.status, snap?.hostId, meId, duelId, getDuelFn]);
+  }, [snap?.status]);
 
-  // Per-question countdown
+  /* -------- Per-question timer -------- */
   useEffect(() => {
-    if (!snap || snap.status !== "active") return;
-    setSelected(null);
-    setReveal(null);
+    if (!snap || snap.status !== "active" || countdown != null) return;
+    setRound({ phase: "playing", answered: new Set() });
     setRemaining(QUESTION_MS);
     startAtRef.current = Date.now();
     const iv = setInterval(() => {
       const left = QUESTION_MS - (Date.now() - startAtRef.current);
       setRemaining(Math.max(0, left));
-      if (left <= 0) {
-        clearInterval(iv);
-        // auto-advance after showing "hết giờ" 900ms
-        setTimeout(advance, 900);
-      }
+      if (left <= 0) clearInterval(iv);
     }, 100);
     return () => clearInterval(iv);
-  }, [qIndex, snap?.status]);
+  }, [qIndex, snap?.status, countdown]);
 
-  const currentQ = snap?.questions?.[qIndex];
-  const isHost = snap?.hostId === meId;
+  /* -------- Timer expiry → reveal (no winner) -------- */
+  useEffect(() => {
+    if (remaining > 0) return;
+    setRound((cur) => cur.phase === "playing"
+      ? { phase: "revealed", correctIndexes: [], winnerUserId: null, myPick: null }
+      : cur);
+  }, [remaining]);
 
-  const advance = () => {
-    setQIndex((i) => {
-      if (!snap) return i;
-      if (i + 1 >= snap.questions.length) {
+  /* -------- After reveal, auto-advance -------- */
+  useEffect(() => {
+    if (round.phase !== "revealed") return;
+    const t = setTimeout(() => {
+      if (!snap) return;
+      const next = qIndex + 1;
+      if (next >= snap.questions.length) {
         void doFinish();
-        return i;
+      } else if (isHost) {
+        chanRef.current?.send({ type: "broadcast", event: "advance", payload: { toIndex: next } });
+        setQIndex(next);
       }
-      return i + 1;
-    });
-  };
+    }, REVEAL_MS);
+    return () => clearTimeout(t);
+  }, [round.phase, isHost, snap?.questions.length, qIndex]);
 
-  const doFinish = async () => {
+  const doFinish = useCallback(async () => {
     if (finalizing || !snap) return;
     setFinalizing(true);
     try {
@@ -123,25 +166,46 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     } finally {
       setFinalizing(false);
     }
-  };
+  }, [finalizing, snap, finishFn, duelId]);
 
   const pick = async (idx: number) => {
-    if (selected != null || !snap || !currentQ) return;
-    setSelected(idx);
+    if (round.phase !== "playing" || !snap || !currentQ || remaining <= 0) return;
+    if (round.answered.has(meId)) return;
+    // Optimistically mark self as answered
+    const nextAns = new Set(round.answered);
+    nextAns.add(meId);
+    setRound({ phase: "playing", answered: nextAns });
     const ms = Date.now() - startAtRef.current;
     try {
       const r = await submitFn({ data: { duelId, qIndex, selected: idx, ms } });
-      setReveal(r.correctIndexes);
-      if (r.isCorrect) setScoreMine((s) => s + 1);
-      // Show result for 1.4s then advance
-      setTimeout(advance, 1400);
+      chanRef.current?.send({
+        type: "broadcast",
+        event: "answered",
+        payload: {
+          qIndex,
+          userId: meId,
+          isCorrect: r.isCorrect,
+          correctIndexes: r.correctIndexes,
+          winnerUserId: r.winnerUserId,
+        },
+      });
+      setRound((cur) => {
+        if (cur.phase !== "playing") return cur;
+        const answered = new Set(cur.answered);
+        answered.add(meId);
+        if (r.winnerUserId || answered.size >= 2) {
+          if (r.winnerUserId === meId) setScoreMine((s) => s + 1);
+          return { phase: "revealed", correctIndexes: r.correctIndexes, winnerUserId: r.winnerUserId, myPick: idx };
+        }
+        return { phase: "playing", answered };
+      });
     } catch (e) {
       setError((e as Error).message);
     }
   };
 
   const chooseTopic = async (t: DuelTopic) => {
-    if (starting) return;
+    if (starting || !t.enough) return;
     setStarting(true);
     setError(null);
     try {
@@ -150,6 +214,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       setQIndex(0);
       setScoreMine(0);
       setScoreOpp(0);
+      chanRef.current?.send({ type: "broadcast", event: "start_active", payload: { snap: s } });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -157,14 +222,16 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     }
   };
 
-  // Finished view
+  /* -------- Finished -------- */
   if (snap?.status === "finished") {
     const iAmWinner = snap.winnerId === meId;
     const iAmDraw = snap.winnerId == null;
     const mine = isHost ? snap.hostScore : snap.guestScore;
     const opp = isHost ? snap.guestScore : snap.hostScore;
+    const diff = Math.abs(snap.hostScore - snap.guestScore) * (snap.payout ?? 30);
+    const delta = iAmDraw ? 0 : (iAmWinner ? diff : -diff);
     return (
-      <Overlay>
+      <Overlay wide>
         <div className="text-6xl mb-2">{iAmDraw ? "🤝" : iAmWinner ? "🏆" : "😿"}</div>
         <h2 className="text-2xl font-black mb-1">
           {iAmDraw ? "HOÀ" : iAmWinner ? "BẠN THẮNG!" : "Bạn thua"}
@@ -173,40 +240,44 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
           Tỉ số: <span className="text-emerald-600">{mine}</span> - <span className="text-rose-600">{opp}</span>
         </p>
         <p className={`font-black mb-4 ${iAmDraw ? "text-stone-600" : iAmWinner ? "text-emerald-600" : "text-rose-600"}`}>
-          {iAmDraw ? "Không đổi số dư" : iAmWinner ? `💰 +${snap.payout}đ` : `💸 -${snap.payout}đ`}
+          {iAmDraw ? "Không đổi số dư" : iAmWinner ? `💰 +${diff}đ` : `💸 -${diff}đ`}
         </p>
-        <button
-          onClick={() => onClose({ win: iAmDraw ? null : iAmWinner, delta: iAmDraw ? 0 : (iAmWinner ? snap.payout : -snap.payout) })}
-          className="toy-button toy-button-primary"
-        >
+        <button onClick={() => onClose({ win: iAmDraw ? null : iAmWinner, delta })} className="toy-button toy-button-primary">
           Đóng
         </button>
       </Overlay>
     );
   }
 
-  // Waiting for host to pick / pending
+  /* -------- Pending / topic pick -------- */
   if (!snap || snap.status === "pending") {
     return (
-      <Overlay>
-        <h2 className="text-2xl font-black mb-2">⚔️ Phòng đấu</h2>
+      <Overlay wide>
+        <ArenaHeader me={meInfo} opp={oppInfo} scoreMine={0} scoreOpp={0} />
+        <h2 className="text-lg font-black mt-3 mb-1">⚔️ Phòng đấu 1vs1</h2>
         {error && <p className="text-rose-600 text-sm mb-2">{error}</p>}
         {snap && isHost ? (
           <>
-            <p className="text-sm mb-3 text-stone-600">Chọn một chủ đề để bắt đầu (10 câu × 10s):</p>
-            <div className="grid gap-2 max-h-[50vh] overflow-y-auto">
-              {topics.length === 0 && (
-                <p className="text-sm text-stone-500">Đang tải chủ đề…</p>
-              )}
+            <p className="text-sm mb-3 text-stone-600">
+              Chọn 1 chủ đề để bắt đầu (10 câu × 10s · thưởng <b>{payout}đ</b>/câu đúng đầu tiên):
+            </p>
+            <div className="grid gap-2 max-h-[42vh] overflow-y-auto text-left">
+              {topics.length === 0 && <p className="text-sm text-stone-500">Đang tải chủ đề…</p>}
               {topics.map((t) => (
                 <button
-                  key={`${t.category}|${t.domain ?? "all"}`}
-                  disabled={starting}
+                  key={`${t.category}|${t.domain ?? "null"}`}
+                  disabled={starting || !t.enough}
                   onClick={() => chooseTopic(t)}
-                  className="toy-button text-left !py-2 !px-3"
+                  className={`text-left px-3 py-2 rounded-xl border-2 font-bold transition ${
+                    t.enough
+                      ? "bg-white border-purple-300 hover:border-purple-500 hover:bg-purple-50"
+                      : "bg-stone-100 border-stone-300 opacity-60 cursor-not-allowed"
+                  }`}
                 >
-                  <div className="font-black">{t.label}</div>
-                  <div className="text-xs text-stone-500">{t.count} câu · nhấn để bắt đầu</div>
+                  <div className="font-black text-sm">{t.label}</div>
+                  <div className="text-[11px] text-stone-500">
+                    {t.enough ? `${t.count} câu · sẵn sàng` : `Còn thiếu ${10 - t.count} câu`}
+                  </div>
                 </button>
               ))}
             </div>
@@ -222,60 +293,163 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     );
   }
 
-  // Active — question
+  /* -------- Active (arena + question) -------- */
   if (!currentQ) return null;
   const timeRatio = remaining / QUESTION_MS;
+  const revealed = round.phase === "revealed";
+  const myPick = revealed ? round.myPick : null;
+  const iWon = revealed && round.winnerUserId === meId;
+  const iLost = revealed && round.winnerUserId != null && round.winnerUserId !== meId;
+
   return (
-    <Overlay wide>
-      <div className="w-full flex items-center justify-between mb-2 text-sm font-black">
-        <span className="text-emerald-700">Bạn: {scoreMine}</span>
-        <span className="text-stone-500">Câu {qIndex + 1}/{snap.questions.length}</span>
-        <span className="text-rose-700">Đối thủ: {scoreOpp}</span>
-      </div>
-      <div className="w-full h-2 bg-stone-200 rounded-full overflow-hidden mb-3">
-        <div
-          className={`h-full transition-all ${timeRatio > 0.4 ? "bg-emerald-500" : timeRatio > 0.2 ? "bg-amber-500" : "bg-rose-500"}`}
-          style={{ width: `${timeRatio * 100}%` }}
+    <div className="fixed inset-0 z-[70] p-2 sm:p-4 grid place-items-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
+      <div className="w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gradient-to-b from-indigo-800/80 to-slate-800/90">
+        <ArenaHeader
+          me={meInfo}
+          opp={oppInfo}
+          scoreMine={scoreMine}
+          scoreOpp={scoreOpp}
+          highlightMe={iWon}
+          highlightOpp={iLost}
         />
+
+        {/* Header meta */}
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between text-xs sm:text-sm font-black text-white/90">
+          <span className="bg-white/10 px-2 py-1 rounded-full">Câu {qIndex + 1}/{snap.questions.length}</span>
+          <span className="bg-white/10 px-2 py-1 rounded-full">💰 {payout}đ/câu</span>
+        </div>
+
+        {/* Timer bar */}
+        <div className="mx-4 mt-2 h-2 bg-white/20 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all ${timeRatio > 0.4 ? "bg-emerald-400" : timeRatio > 0.2 ? "bg-amber-400" : "bg-rose-500"}`}
+            style={{ width: `${timeRatio * 100}%` }}
+          />
+        </div>
+
+        {/* Question box */}
+        <div className="p-4 bg-white/95 m-3 rounded-2xl shadow-inner">
+          <h3 className="text-base sm:text-lg font-black mb-2 whitespace-pre-wrap">{currentQ.text}</h3>
+          {currentQ.imageUrl && (
+            <img src={currentQ.imageUrl} alt="" className="w-full max-h-40 object-contain rounded-lg mb-2" />
+          )}
+          <div className="grid gap-2 w-full">
+            {currentQ.options.map((opt, i) => {
+              const isCorrect = revealed && round.correctIndexes.includes(i);
+              const isMyPick = myPick === i;
+              const wrongPick = revealed && isMyPick && !isCorrect;
+              return (
+                <button
+                  key={i}
+                  disabled={round.phase !== "playing" || remaining <= 0 || round.answered?.has?.(meId)}
+                  onClick={() => pick(i)}
+                  className={`text-left px-3 py-2 rounded-lg border-2 font-bold transition ${
+                    isCorrect ? "bg-emerald-100 border-emerald-500" :
+                    wrongPick ? "bg-rose-100 border-rose-500" :
+                    isMyPick ? "bg-blue-100 border-blue-400" :
+                    "bg-white border-stone-300 hover:border-stone-500"
+                  } disabled:opacity-70 disabled:cursor-not-allowed`}
+                >
+                  <span className="mr-2">{String.fromCharCode(65 + i)}.</span>{opt}
+                </button>
+              );
+            })}
+          </div>
+          {revealed && (
+            <p className={`mt-2 font-black text-sm ${
+              round.winnerUserId == null ? "text-stone-600" :
+              iWon ? "text-emerald-600" : "text-rose-600"
+            }`}>
+              {round.winnerUserId == null
+                ? "⏰ Không ai trả lời đúng — hoà câu này"
+                : iWon
+                  ? `✅ Bạn nhanh nhất! +${payout}đ`
+                  : `❌ Đối thủ nhanh hơn — bạn mất ${payout}đ`}
+            </p>
+          )}
+        </div>
+
+        <div className="px-4 pb-4">
+          <button onClick={() => { void doFinish(); }} className="toy-button toy-button-ghost text-xs w-full">
+            🏳️ Bỏ cuộc
+          </button>
+        </div>
       </div>
-      <h3 className="text-base sm:text-lg font-black mb-2 whitespace-pre-wrap">{currentQ.text}</h3>
-      {currentQ.imageUrl && (
-        <img src={currentQ.imageUrl} alt="" className="w-full max-h-48 object-contain rounded-lg mb-2" />
+
+      {countdown != null && (
+        <div className="fixed inset-0 grid place-items-center pointer-events-none z-[80]">
+          <div className="text-white font-black text-[8rem] drop-shadow-2xl animate-pulse">{countdown}</div>
+        </div>
       )}
-      <div className="grid gap-2 w-full">
-        {currentQ.options.map((opt, i) => {
-          const isPicked = selected === i;
-          const isCorrect = reveal?.includes(i);
-          const isWrongPick = reveal != null && isPicked && !isCorrect;
-          return (
-            <button
-              key={i}
-              disabled={selected != null || remaining <= 0}
-              onClick={() => pick(i)}
-              className={`text-left px-3 py-2 rounded-lg border-2 font-bold transition ${
-                reveal != null && isCorrect ? "bg-emerald-100 border-emerald-500" :
-                isWrongPick ? "bg-rose-100 border-rose-500" :
-                isPicked ? "bg-blue-100 border-blue-400" :
-                "bg-white border-stone-300 hover:border-stone-500"
-              } ${(selected != null || remaining <= 0) && !isPicked && !isCorrect ? "opacity-70" : ""}`}
-            >
-              <span className="mr-2">{String.fromCharCode(65 + i)}.</span>{opt}
-            </button>
-          );
-        })}
+    </div>
+  );
+}
+
+/* -------- Sub-components -------- */
+
+function ArenaHeader({
+  me, opp, scoreMine, scoreOpp, highlightMe, highlightOpp,
+}: {
+  me: DuelPlayerInfo | null;
+  opp: DuelPlayerInfo | null;
+  scoreMine: number;
+  scoreOpp: number;
+  highlightMe?: boolean;
+  highlightOpp?: boolean;
+}) {
+  return (
+    <div className="relative bg-gradient-to-r from-emerald-500/30 via-transparent to-rose-500/30 p-3 border-b-2 border-white/10">
+      <div className="grid grid-cols-3 items-center gap-2">
+        <Fighter side="left" info={me} score={scoreMine} highlight={highlightMe} />
+        <div className="text-center">
+          <div className="text-2xl sm:text-3xl font-black text-white drop-shadow">⚔️</div>
+          <div className="text-[10px] text-white/70 font-bold">VS</div>
+        </div>
+        <Fighter side="right" info={opp} score={scoreOpp} highlight={highlightOpp} />
       </div>
-      {reveal != null && (
-        <p className={`mt-2 font-black text-sm ${reveal.includes(selected ?? -1) ? "text-emerald-600" : "text-rose-600"}`}>
-          {reveal.includes(selected ?? -1) ? "✅ Chính xác!" : "❌ Sai rồi"}
-        </p>
-      )}
-      {remaining <= 0 && selected == null && (
-        <p className="mt-2 font-black text-sm text-rose-600">⏰ Hết giờ</p>
-      )}
-      <button onClick={() => { void doFinish(); }} className="toy-button toy-button-ghost mt-3 text-xs">
-        Bỏ cuộc
-      </button>
-    </Overlay>
+    </div>
+  );
+}
+
+function Fighter({
+  side, info, score, highlight,
+}: {
+  side: "left" | "right";
+  info: DuelPlayerInfo | null;
+  score: number;
+  highlight?: boolean;
+}) {
+  const align = side === "left" ? "items-start text-left" : "items-end text-right";
+  const flexRow = side === "left" ? "" : "flex-row-reverse";
+  return (
+    <div className={`flex flex-col ${align} gap-1`}>
+      <div className={`flex items-center gap-2 ${flexRow}`}>
+        <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 shadow-lg transition-all ${
+          highlight ? "border-yellow-300 scale-110" : side === "left" ? "border-emerald-300" : "border-rose-300"
+        }`}>
+          {info?.avatarUrl ? (
+            <img src={info.avatarUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className={`w-full h-full grid place-items-center text-2xl font-black text-white ${
+              side === "left" ? "bg-emerald-500" : "bg-rose-500"
+            }`}>
+              {(info?.username || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          {highlight && (
+            <div className="absolute inset-0 bg-yellow-300/30 animate-pulse" />
+          )}
+        </div>
+        <div>
+          <div className="text-white font-black text-sm truncate max-w-[6.5rem]">
+            @{info?.username ?? "…"}
+          </div>
+          <div className={`text-lg font-black leading-none ${side === "left" ? "text-emerald-200" : "text-rose-200"}`}>
+            {score}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -313,7 +487,7 @@ export function DuelInviteDialog({
         <div className="text-5xl mb-2">⚔️</div>
         <h3 className="text-xl font-black mb-1">Lời mời đấu</h3>
         <p className="mb-3">
-          <b>@{fromName}</b> mời bạn vào <b>phòng đấu 1vs1</b> (10 câu, 30đ).
+          <b>@{fromName}</b> mời bạn vào <b>phòng đấu 1vs1</b>.
         </p>
         <p className="text-xs text-stone-500 mb-3">Tự huỷ sau {left}s</p>
         <div className="flex gap-2">

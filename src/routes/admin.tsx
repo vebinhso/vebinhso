@@ -23,6 +23,8 @@ import {
   setPriorityMode,
   getCategoryToggles,
   setCategoryToggles,
+  getDuelPayout,
+  setDuelPayout,
   bulkApplyClassification,
   type AdminConfig,
   type AdminQuestion,
@@ -485,6 +487,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState<string | null>(null);
+  const [duelPayout, setDuelPayoutState] = useState<number>(30);
+  const [duelPayoutDraft, setDuelPayoutDraft] = useState<string>("30");
   const flashSaved = (msg: string = "✅ Đã lưu") => {
     setSavedFlash(msg);
     setTimeout(() => setSavedFlash(null), 1800);
@@ -494,10 +498,12 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   async function reload() {
     setLoading(true);
     try {
-      const [data, mode, toggles] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles()]);
+      const [data, mode, toggles, dp] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles(), getDuelPayout()]);
       setList(data);
       setPriorityModeOn(mode);
       setCatToggles(toggles);
+      setDuelPayoutState(dp);
+      setDuelPayoutDraft(String(dp));
     } catch (e: any) {
       alert("Lỗi tải câu hỏi: " + (e?.message || e));
     } finally {
@@ -505,6 +511,18 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     }
   }
   useEffect(() => { reload(); }, []);
+
+  async function saveDuelPayout() {
+    const n = Math.max(1, Math.floor(Number(duelPayoutDraft) || 0));
+    try {
+      await setDuelPayout(n);
+      setDuelPayoutState(n);
+      setDuelPayoutDraft(String(n));
+      pushAdminLog(`Phần thưởng đấu 1vs1 → ${n}đ/câu`);
+      flashSaved(`✅ Đã lưu ${n}đ/câu`);
+    } catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+  }
+
 
   async function toggleCategory(key: "digital" | "history") {
     const next = { ...catToggles, [key]: !catToggles[key] };
@@ -834,6 +852,31 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           })}
         </div>
       </div>
+
+      {/* Duel payout */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-amber-300 bg-amber-50">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="font-black text-lg">⚔️ Phần thưởng phòng đấu 1vs1</div>
+            <div className="text-xs font-bold text-amber-800/80">
+              Người trả lời đúng đầu tiên mỗi câu được +N đ, đối thủ mất −N đ (không xuống dưới 0). Hiện tại: <b>{duelPayout}đ</b>/câu.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              value={duelPayoutDraft}
+              onChange={(e) => setDuelPayoutDraft(e.target.value)}
+              className="w-24 px-2 py-1.5 border-2 border-amber-300 rounded-lg font-black text-right"
+            />
+            <span className="font-black">đ</span>
+            <button onClick={saveDuelPayout} className="toy-button text-sm bg-amber-500">💾 Lưu</button>
+          </div>
+        </div>
+      </div>
+
+
 
       {/* Auto-classification suggestion */}
       <div className="rounded-2xl p-4 mb-4 border-2 border-purple-300 bg-purple-50">

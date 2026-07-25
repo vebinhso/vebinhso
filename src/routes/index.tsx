@@ -51,7 +51,7 @@ function Home() {
   const [renameBusy, setRenameBusy] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [teacherProfile, setTeacherProfile] = useState<MyTeacherProfile | null>(null);
-  const [myClass, setMyClass] = useState<MyClassroom>(null);
+  const [myClasses, setMyClasses] = useState<MyClass[]>([]);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
 

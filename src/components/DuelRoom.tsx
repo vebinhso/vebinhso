@@ -213,7 +213,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         const answered = new Set(cur.answered);
         answered.add(meId);
         if (r.winnerUserId || answered.size >= 2) {
-          if (r.winnerUserId === meId) setScoreMine((s) => s + 1);
+          recordResult(qIndex, r.winnerUserId ?? null);
           return { phase: "revealed", correctIndexes: r.correctIndexes, winnerUserId: r.winnerUserId, myPick: idx };
         }
         return { phase: "playing", answered };
@@ -222,6 +222,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
       setError((e as Error).message);
     }
   };
+
 
   const chooseTopic = async (t: DuelTopic) => {
     if (starting || !t.enough) return;

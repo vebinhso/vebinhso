@@ -29,6 +29,9 @@ import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
 import { loadPickupConfig, resolvePickups, loadCollected, saveCollected, type Pickup } from "@/lib/worldPickups";
 import { TouchControls } from "@/game/TouchControls";
 import { loadSignLabels, saveSignLabels, SIGN_LABEL_MAX, type SignLabelMap } from "@/lib/sign-labels";
+import { listFriendHouses, type FriendHouse } from "@/lib/friend-houses.functions";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -52,6 +55,14 @@ function GamePage() {
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
   const wt = useWorldToggles();
   const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
+  const listFriendsFn = useServerFn(listFriendHouses);
+  const friendHousesQ = useQuery({
+    queryKey: ["friend-houses", user?.id],
+    queryFn: () => listFriendsFn(),
+    enabled: !!user,
+    refetchInterval: 20_000,
+    staleTime: 10_000,
+  });
 
   // Wall-build flow
   const [wallMode, setWallMode] = useState(false);
@@ -804,6 +815,8 @@ function GamePage() {
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
           onPlayerPos={(x, z) => setPlayerPos({ x, z })}
+          friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
+          onVisitFriend={(ownerId) => navigate({ to: "/visit/$ownerId", params: { ownerId } })}
           onItemClick={(id) => {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;

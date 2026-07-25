@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, Html } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -8,6 +8,7 @@ import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
+import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 
@@ -52,6 +53,10 @@ type Props = {
   editingId?: string | null;
   /** Map placedItemId → label cho biển tên nhà */
   signLabels?: Record<string, string>;
+  /** Danh sách nhà bạn bè hiển thị quanh mảnh đất */
+  friendHouses?: FriendHouse[];
+  /** Bấm vào nhà bạn để tham quan */
+  onVisitFriend?: (ownerId: string) => void;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -594,7 +599,99 @@ function NeighborTree({ seed }: { seed: number }) {
   );
 }
 
-const Neighborhood = memo(function Neighborhood() {
+function initialLetter(s: string) {
+  return (s || "?").trim().charAt(0).toUpperCase();
+}
+
+function BuilderFigure() {
+  const ref = useRef<THREE.Group>(null!);
+  const armRef = useRef<THREE.Mesh>(null!);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (ref.current) {
+      // đi vòng nhỏ quanh trước nhà
+      ref.current.position.x = Math.cos(t * 1.2) * 1.4;
+      ref.current.position.z = 1.8 + Math.sin(t * 1.2) * 0.6;
+      ref.current.rotation.y = -t * 1.2 + Math.PI / 2;
+    }
+    if (armRef.current) armRef.current.rotation.x = Math.sin(t * 5) * 0.8;
+  });
+  return (
+    <group ref={ref} position={[0, 0, 1.8]}>
+      <mesh position={[0, 0.65, 0]} castShadow>
+        <boxGeometry args={[0.35, 0.6, 0.25]} />
+        <meshStandardMaterial color="#f97316" />
+      </mesh>
+      <mesh position={[0, 1.1, 0]} castShadow>
+        <sphereGeometry args={[0.18, 12, 12]} />
+        <meshStandardMaterial color="#fde68a" />
+      </mesh>
+      {/* mũ bảo hộ */}
+      <mesh position={[0, 1.25, 0]} castShadow>
+        <cylinderGeometry args={[0.2, 0.22, 0.12, 12]} />
+        <meshStandardMaterial color="#eab308" />
+      </mesh>
+      {/* búa */}
+      <mesh ref={armRef} position={[0.22, 0.85, 0]}>
+        <boxGeometry args={[0.08, 0.4, 0.08]} />
+        <meshStandardMaterial color="#7c3aed" />
+      </mesh>
+    </group>
+  );
+}
+
+function FriendNeighborHouse({
+  friend,
+  seed,
+  color,
+  roofColor,
+  onClick,
+}: {
+  friend: FriendHouse;
+  seed: number;
+  color: string;
+  roofColor: string;
+  onClick?: () => void;
+}) {
+  const building = friend.is_online && friend.in_house_owner === friend.user_id;
+  return (
+    <group onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
+      <NeighborHouse seed={seed} color={color} roofColor={roofColor} />
+      {building && <BuilderFigure />}
+      <Html position={[0, 4.2, 0]} center distanceFactor={14} zIndexRange={[10, 0]}>
+        <div
+          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+          className="pointer-events-auto cursor-pointer flex flex-col items-center gap-0.5 select-none"
+        >
+          <div className="flex items-center gap-1 bg-white/95 backdrop-blur px-2 py-0.5 rounded-full text-[11px] font-black shadow border-2 border-emerald-300 max-w-[160px]">
+            {friend.avatar_url ? (
+              <img src={friend.avatar_url} alt="" className="w-4 h-4 rounded-full" />
+            ) : (
+              <span className="w-4 h-4 rounded-full bg-orange-400 text-white grid place-items-center text-[9px] font-black">
+                {initialLetter(friend.username)}
+              </span>
+            )}
+            <span className="truncate text-slate-800">{friend.house_name || friend.username}</span>
+            <span className={`w-2 h-2 rounded-full ${friend.is_online ? "bg-emerald-500" : "bg-gray-400"}`} />
+          </div>
+          {building && (
+            <div className="bg-amber-400 text-amber-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow border border-amber-600 animate-pulse">
+              🔨 Đang xây
+            </div>
+          )}
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+const Neighborhood = memo(function Neighborhood({
+  friends,
+  onVisitFriend,
+}: {
+  friends?: FriendHouse[];
+  onVisitFriend?: (ownerId: string) => void;
+}) {
   // Mảnh trung tâm (mảnh đất người chơi) cần được chừa lại.
   // half mảnh + đường = 11 ô; thêm một dải an toàn nhỏ.
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12
@@ -612,12 +709,18 @@ const Neighborhood = memo(function Neighborhood() {
     { wall: "#fed7aa", roof: "#9a3412" },
     { wall: "#ffffff", roof: "#1f2937" },
   ];
-  const houses: ReactNode[] = [];
-  const trees: ReactNode[] = [];
+  // Thu thập trước danh sách slot nhà (sorted theo khoảng cách tới trung tâm)
+  // để gán nhà bạn bè vào những slot gần nhất trước, đẹp mắt hơn.
+  type Slot = {
+    gx: number; gz: number; seed: number; s: number;
+    jitterX: number; jitterZ: number; rot: number;
+    dist2: number;
+  };
+  const houseSlots: Slot[] = [];
+  const treeGroups: ReactNode[] = [];
   let i = 0;
   for (let gx = -worldHalf + STEP / 2; gx < worldHalf; gx += STEP) {
     for (let gz = -worldHalf + STEP / 2; gz < worldHalf; gz += STEP) {
-      // chừa khu vực mảnh đất người chơi
       if (Math.abs(gx) < innerHalf && Math.abs(gz) < innerHalf) continue;
       i++;
       const seed = (Math.floor(gx + 1000) * 73856093) ^ (Math.floor(gz + 1000) * 19349663);
@@ -625,31 +728,14 @@ const Neighborhood = memo(function Neighborhood() {
       const jitterX = ((s % 7) - 3) * 0.6;
       const jitterZ = (((s >> 3) % 7) - 3) * 0.6;
       const rot = ((s >> 6) % 4) * (Math.PI / 2);
-      const isHouse = s % 5 !== 0; // ~80% là nhà, 20% là cụm cây/đồng cỏ trống
+      const isHouse = s % 5 !== 0;
       if (isHouse) {
-        const p = palettes[s % palettes.length];
-        houses.push(
-          <group key={`h-${gx}-${gz}`} position={[gx + jitterX, 0, gz + jitterZ]} rotation={[0, rot, 0]}>
-            <NeighborHouse seed={s} color={p.wall} roofColor={p.roof} />
-          </group>
-        );
-        // thêm 1-2 cây trang trí cạnh nhà
-        const tCount = 1 + (s % 2);
-        for (let t = 0; t < tCount; t++) {
-          const tx = ((s >> (t * 2)) % 5) - 2;
-          const tz = ((s >> (t * 2 + 1)) % 5) - 2;
-          trees.push(
-            <group key={`t-${gx}-${gz}-${t}`} position={[gx + tx * 1.4, 0, gz + tz * 1.4]}>
-              <NeighborTree seed={s + t * 17} />
-            </group>
-          );
-        }
+        houseSlots.push({ gx, gz, seed, s, jitterX, jitterZ, rot, dist2: gx * gx + gz * gz });
       } else {
-        // cụm đồng cỏ + vài cây
         for (let t = 0; t < 3; t++) {
           const tx = ((s >> (t * 2)) % 9) - 4;
           const tz = ((s >> (t * 2 + 1)) % 9) - 4;
-          trees.push(
+          treeGroups.push(
             <group key={`gt-${gx}-${gz}-${t}`} position={[gx + tx * 1.2, 0, gz + tz * 1.2]}>
               <NeighborTree seed={s + t * 31} />
             </group>
@@ -659,15 +745,51 @@ const Neighborhood = memo(function Neighborhood() {
     }
     if (i > 800) break;
   }
-  // Vỉa hè / đường nhỏ chạy quanh khu trung tâm để có cảm giác phố
+  houseSlots.sort((a, b) => a.dist2 - b.dist2);
+
+  const houses: ReactNode[] = [];
+  const trees = treeGroups;
+  const fs = friends ?? [];
+  houseSlots.forEach((slot, idx) => {
+    const p = palettes[slot.s % palettes.length];
+    const friend = fs[idx];
+    houses.push(
+      <group
+        key={`h-${slot.gx}-${slot.gz}`}
+        position={[slot.gx + slot.jitterX, 0, slot.gz + slot.jitterZ]}
+        rotation={[0, slot.rot, 0]}
+      >
+        {friend ? (
+          <FriendNeighborHouse
+            friend={friend}
+            seed={slot.s}
+            color={p.wall}
+            roofColor={p.roof}
+            onClick={() => onVisitFriend?.(friend.user_id)}
+          />
+        ) : (
+          <NeighborHouse seed={slot.s} color={p.wall} roofColor={p.roof} />
+        )}
+      </group>
+    );
+    const tCount = 1 + (slot.s % 2);
+    for (let t = 0; t < tCount; t++) {
+      const tx = ((slot.s >> (t * 2)) % 5) - 2;
+      const tz = ((slot.s >> (t * 2 + 1)) % 5) - 2;
+      trees.push(
+        <group key={`t-${slot.gx}-${slot.gz}-${t}`} position={[slot.gx + tx * 1.4, 0, slot.gz + tz * 1.4]}>
+          <NeighborTree seed={slot.s + t * 17} />
+        </group>
+      );
+    }
+  });
+
   return (
     <group>
-      {/* Khu vực ngoài mảnh đất phủ cỏ xanh đậm hơn */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
         <planeGeometry args={[WORLD, WORLD]} />
         <meshStandardMaterial color="#7fb95e" />
       </mesh>
-      {/* Vành đai đường nhựa quanh khu phố */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]}>
         <ringGeometry args={[innerHalf + 0.5, innerHalf + 2.5, 64]} />
         <meshStandardMaterial color="#3f3f46" />
@@ -682,7 +804,7 @@ function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
-  activeFloor, onItemClick, editingId, signLabels,
+  activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -718,7 +840,7 @@ function PlotAndPlacement({
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
-      <Neighborhood />
+      <Neighborhood friends={friendHouses} onVisitFriend={onVisitFriend} />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />

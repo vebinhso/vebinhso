@@ -599,9 +599,6 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
                   <div className="flex-1 min-w-0">
                     <div className="font-bold truncate">{q.text || <span className="italic text-muted-foreground">(chỉ có ảnh)</span>}</div>
                     <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-2">
-                      <span className="bg-orange-100 px-2 py-0.5 rounded">{q.category === "history" ? "Lịch sử-VH" : "Năng lực số"}</span>
-                      {q.competencyLevel && <span className="bg-purple-100 px-2 py-0.5 rounded">Bậc {q.competencyLevel}</span>}
-                      {q.competencyDomain && <span className="bg-blue-100 px-2 py-0.5 rounded">{DOMAIN_LABELS[q.competencyDomain] ?? `Miền ${q.competencyDomain}`}</span>}
                       <span>{q.choices.length} đáp án · 🎁{q.reward}</span>
                       {q.enabled === false && <span className="bg-gray-200 px-2 py-0.5 rounded">Đang tắt</span>}
                     </div>

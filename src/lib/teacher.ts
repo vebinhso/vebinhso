@@ -147,17 +147,20 @@ export type TeacherQuestion = {
   competencyDomain?: number | null;
   enabled?: boolean;
   imageUrl?: string;
+  classId?: string | null;
 };
 
-export async function listMyQuestions(): Promise<TeacherQuestion[]> {
+export async function listMyQuestions(classId?: string): Promise<TeacherQuestion[]> {
   const { data: session } = await supabase.auth.getUser();
   const uid = session?.user?.id;
   if (!uid) return [];
-  const { data, error } = await supabase
+  let q = supabase
     .from("questions_bank")
-    .select("id,text,choices,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,created_at")
+    .select("id,text,choices,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,class_id,created_at")
     .eq("teacher_id", uid)
     .order("created_at", { ascending: false });
+  if (classId) q = q.eq("class_id", classId);
+  const { data, error } = await q;
   if (error) throw error;
   return ((data as any[]) || []).map((r) => ({
     id: r.id,
@@ -174,6 +177,7 @@ export async function listMyQuestions(): Promise<TeacherQuestion[]> {
     enabled: r.enabled ?? true,
     competencyLevel: r.competency_level ?? null,
     competencyDomain: r.competency_domain ?? null,
+    classId: r.class_id ?? null,
   }));
 }
 
@@ -192,6 +196,7 @@ function toRow(q: TeacherQuestion, teacherId: string) {
     competency_level: (typeof q.competencyLevel === "number" && q.competencyLevel >= 1 && q.competencyLevel <= 8) ? q.competencyLevel : null,
     competency_domain: (typeof q.competencyDomain === "number" && q.competencyDomain >= 1 && q.competencyDomain <= 6) ? q.competencyDomain : null,
     teacher_id: teacherId,
+    class_id: q.classId ?? null,
   };
 }
 

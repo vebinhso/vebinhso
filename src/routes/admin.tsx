@@ -44,13 +44,14 @@ export const Route = createFileRoute("/admin")({
 });
 
 type Tab =
-  | "dashboard" | "players" | "admins" | "questions" | "levels"
+  | "dashboard" | "players" | "admins" | "teachers" | "questions" | "levels"
   | "prices" | "rewards" | "content" | "maps" | "pickups" | "logs";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "dashboard", label: "Tổng quan", icon: "📊" },
   { id: "players", label: "Người chơi", icon: "👥" },
   { id: "admins", label: "Quản trị viên", icon: "🛡️" },
+  { id: "teachers", label: "Giáo viên", icon: "🧑‍🏫" },
   { id: "questions", label: "Câu hỏi", icon: "❓" },
   { id: "levels", label: "Cấp độ", icon: "⭐" },
   { id: "prices", label: "Giá cả", icon: "💰" },
@@ -131,6 +132,7 @@ function AdminPage() {
               {tab === "dashboard" && <DashboardPanel cfg={cfg} />}
               {tab === "players" && <PlayersPanel cfg={cfg} onChange={update} />}
               {tab === "admins" && <AdminsPanel cfg={cfg} onChange={update} />}
+              {tab === "teachers" && <TeachersPanel />}
               {tab === "questions" && <QuestionsPanel cfg={cfg} onChange={update} />}
               {tab === "levels" && <LevelsPanel cfg={cfg} onChange={update} />}
               {tab === "prices" && <PricesPanel cfg={cfg} onChange={update} />}

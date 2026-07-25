@@ -437,70 +437,70 @@ function QuestionEditor({ q, setQ, onSave, onCancel }: {
       <div className="bg-white rounded-2xl p-4 max-w-xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-black text-lg mb-3">{q.id ? "Sửa câu hỏi" : "Thêm câu hỏi"}</h3>
         <div className="flex flex-col gap-3">
-          <textarea value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })}
-            placeholder="Nội dung câu hỏi" rows={2}
-            className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
-          <div className="grid grid-cols-1 gap-2">
+          <div>
+            <label className="text-xs font-black block mb-1">Nội dung câu hỏi (có thể để trống nếu dùng ảnh)</label>
+            <textarea value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })}
+              placeholder="Nội dung câu hỏi..." rows={2}
+              className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+          </div>
+          <div>
+            <label className="text-xs font-black block mb-1">Ảnh minh hoạ cho câu hỏi</label>
+            <ImageUploadField value={q.imageUrl || ""} onChange={(u) => setQ({ ...q, imageUrl: u })} label="ảnh câu hỏi" />
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <div className="text-xs font-black">Đáp án (đánh dấu ✓ ở các đáp án đúng — có thể chọn nhiều)</div>
             {q.choices.map((c, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <input type="checkbox"
-                  checked={q.correctIndexes.includes(i)}
-                  onChange={(e) => {
-                    const s = new Set(q.correctIndexes);
-                    if (e.target.checked) s.add(i); else s.delete(i);
-                    setQ({ ...q, correctIndexes: Array.from(s).sort((a, b) => a - b) });
-                  }}
-                  className="w-5 h-5 accent-green-500" />
-                <input value={c.text}
-                  onChange={(e) => {
+              <div key={i} className="border-2 border-gray-200 rounded-xl p-2 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox"
+                    checked={q.correctIndexes.includes(i)}
+                    onChange={(e) => {
+                      const s = new Set(q.correctIndexes);
+                      if (e.target.checked) s.add(i); else s.delete(i);
+                      setQ({ ...q, correctIndexes: Array.from(s).sort((a, b) => a - b) });
+                    }}
+                    className="w-5 h-5 accent-green-500" />
+                  <span className="font-black text-sm w-6">{String.fromCharCode(65 + i)}.</span>
+                  <input value={c.text}
+                    onChange={(e) => {
+                      const cs = q.choices.slice();
+                      cs[i] = { ...cs[i], text: e.target.value };
+                      setQ({ ...q, choices: cs });
+                    }}
+                    placeholder={`Đáp án ${i + 1} (chữ, có thể để trống nếu dùng ảnh)`}
+                    className="flex-1 px-3 py-2 rounded-xl border-2 border-gray-200" />
+                  {q.choices.length > 2 && (
+                    <button onClick={() => setQ({
+                      ...q,
+                      choices: q.choices.filter((_, idx) => idx !== i),
+                      correctIndexes: q.correctIndexes.filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)),
+                    })} className="text-red-500 font-bold px-2">✕</button>
+                  )}
+                </div>
+                <ImageUploadField
+                  value={c.imageUrl || ""}
+                  onChange={(u) => {
                     const cs = q.choices.slice();
-                    cs[i] = { ...cs[i], text: e.target.value };
+                    cs[i] = { ...cs[i], imageUrl: u };
                     setQ({ ...q, choices: cs });
                   }}
-                  placeholder={`Đáp án ${i + 1}`}
-                  className="flex-1 px-3 py-2 rounded-xl border-2 border-gray-200" />
-                {q.choices.length > 2 && (
-                  <button onClick={() => setQ({ ...q, choices: q.choices.filter((_, idx) => idx !== i), correctIndexes: q.correctIndexes.filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)) })} className="text-red-500 font-bold px-2">✕</button>
-                )}
+                  label={`ảnh đáp án ${String.fromCharCode(65 + i)}`}
+                />
               </div>
             ))}
             <button onClick={() => setQ({ ...q, choices: [...q.choices, { text: "" }] })} className="toy-button text-xs w-fit">➕ Thêm đáp án</button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs font-black">
-              Danh mục
-              <select value={q.category || "digital"} onChange={(e) => setQ({ ...q, category: e.target.value })}
-                className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold">
-                <option value="digital">Năng lực số</option>
-                <option value="history">Lịch sử - Văn hoá</option>
-              </select>
-            </label>
-            <label className="text-xs font-black">
               Thưởng (đ)
               <input type="number" value={q.reward} onChange={(e) => setQ({ ...q, reward: Number(e.target.value) || 0 })}
                 className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold" />
             </label>
-            <label className="text-xs font-black">
-              Bậc (1-8)
-              <select value={q.competencyLevel ?? ""} onChange={(e) => setQ({ ...q, competencyLevel: e.target.value ? Number(e.target.value) : null })}
-                className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold">
-                <option value="">— chưa gắn —</option>
-                {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>Bậc {n}</option>)}
-              </select>
-            </label>
-            <label className="text-xs font-black">
-              Miền (1-6)
-              <select value={q.competencyDomain ?? ""} onChange={(e) => setQ({ ...q, competencyDomain: e.target.value ? Number(e.target.value) : null })}
-                className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold">
-                <option value="">— chưa gắn —</option>
-                {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{DOMAIN_LABELS[n]}</option>)}
-              </select>
+            <label className="flex items-center gap-2 text-sm font-bold mt-4">
+              <input type="checkbox" checked={q.enabled !== false} onChange={(e) => setQ({ ...q, enabled: e.target.checked })} />
+              Đang bật
             </label>
           </div>
-          <label className="flex items-center gap-2 text-sm font-bold">
-            <input type="checkbox" checked={q.enabled !== false} onChange={(e) => setQ({ ...q, enabled: e.target.checked })} />
-            Đang bật (học sinh sẽ gặp)
-          </label>
         </div>
         <div className="flex gap-2 mt-4">
           <button onClick={onCancel} className="toy-button flex-1">Huỷ</button>

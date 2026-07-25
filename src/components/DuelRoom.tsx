@@ -274,7 +274,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   if (!snap || snap.status === "pending") {
     return (
       <Overlay wide>
-        <ArenaHeader me={meInfo} opp={oppInfo} scoreMine={0} scoreOpp={0} />
+        <ArenaHeader host={hostInfo} guest={guestInfo} hostScore={0} guestScore={0} meId={meId} />
         <h2 className="text-lg font-black mt-3 mb-1">⚔️ Phòng đấu 1vs1</h2>
         {error && <p className="text-rose-600 text-sm mb-2">{error}</p>}
         {snap && isHost ? (

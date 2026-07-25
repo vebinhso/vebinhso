@@ -360,6 +360,8 @@ const EMPTY_Q: TeacherQuestion = {
 function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountChanged?: () => void }) {
   const [list, setList] = useState<TeacherQuestion[]>([]);
   const [busy, setBusy] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [draft, setDraft] = useState<TeacherQuestion>({ ...EMPTY_Q });
   const [editing, setEditing] = useState<TeacherQuestion | null>(null);
 
   const reload = async () => {
@@ -369,22 +371,67 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
   };
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [classId]);
 
-  const save = async () => {
-    if (!editing) return;
-    const hasQ = !!editing.text.trim() || !!editing.imageUrl;
-    if (!hasQ) { toast.error("Nhập nội dung câu hỏi hoặc thêm ảnh"); return; }
-    const filled = editing.choices.filter((c) => (c.text || "").trim() || (c.imageUrl || "").trim());
-    if (filled.length < 2) { toast.error("Cần ít nhất 2 đáp án (chữ hoặc ảnh)"); return; }
-    if (!editing.correctIndexes || editing.correctIndexes.length === 0) { toast.error("Chọn ít nhất 1 đáp án đúng"); return; }
+  const prepare = (q: TeacherQuestion): TeacherQuestion => {
+    const text = (q.text || "").trim();
+    const hasQ = !!text || !!(q.imageUrl || "").trim();
+    if (!hasQ) throw new Error("Nhập nội dung câu hỏi hoặc thêm ảnh");
+    const kept: { text: string; imageUrl?: string }[] = [];
+    const indexMap = new Map<number, number>();
+    q.choices.forEach((c, i) => {
+      const t = (c.text || "").trim();
+      const img = (c.imageUrl || "").trim();
+      if (t || img) { indexMap.set(i, kept.length); kept.push({ text: t, imageUrl: img || undefined }); }
+    });
+    if (kept.length < 2) throw new Error("Cần ít nhất 2 đáp án (chữ hoặc ảnh)");
+    const correct = (q.correctIndexes || []).map((n) => indexMap.get(n)).filter((n): n is number => typeof n === "number");
+    if (correct.length === 0) throw new Error("Chọn ít nhất 1 đáp án đúng (trong các đáp án đã nhập)");
+    const auto = classifyQuestion(text, kept.map((c) => c.text));
+    return {
+      ...q,
+      text,
+      choices: kept,
+      correctIndexes: Array.from(new Set(correct)).sort((a, b) => a - b),
+      reward: Number(q.reward) > 0 ? Number(q.reward) : 10,
+      category: auto.category,
+      competencyLevel: auto.level,
+      competencyDomain: auto.domain,
+      classId,
+    };
+  };
+
+  const saveDraft = async () => {
+    if (saving) return;
+    let cleaned: TeacherQuestion;
+    try { cleaned = prepare(draft); }
+    catch (e: any) { toast.error(e?.message || "Dữ liệu chưa hợp lệ"); return; }
+    setSaving(true);
     try {
-      const withClass = { ...editing, classId };
-      if (editing.id) await updateMyQuestion(editing.id, withClass);
-      else await createMyQuestion(withClass);
-      toast.success("Đã lưu");
-      setEditing(null);
-      reload();
+      await createMyQuestion(cleaned);
+      toast.success("Đã lưu câu hỏi vào lớp");
+      setDraft({ ...EMPTY_Q });
+      await reload();
       onCountChanged?.();
-    } catch (e: any) { toast.error(e?.message || "Lỗi lưu"); }
+    } catch (e: any) {
+      console.error("[classroom save]", e);
+      toast.error("Lỗi lưu: " + (e?.message || "không rõ"));
+    } finally { setSaving(false); }
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    let cleaned: TeacherQuestion;
+    try { cleaned = prepare(editing); }
+    catch (e: any) { toast.error(e?.message || "Dữ liệu chưa hợp lệ"); return; }
+    try {
+      await updateMyQuestion(editing.id!, cleaned);
+      toast.success("Đã cập nhật");
+      setEditing(null);
+      await reload();
+      onCountChanged?.();
+    } catch (e: any) {
+      console.error("[classroom update]", e);
+      toast.error("Lỗi cập nhật: " + (e?.message || "không rõ"));
+    }
   };
 
   const remove = async (id: string) => {
@@ -394,20 +441,32 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      <div className="bg-white/90 border-2 border-orange-200 rounded-2xl p-3">
+        <div className="font-black text-base mb-2">➕ Thêm câu hỏi vào lớp</div>
+        <QuestionEditorInline q={draft} setQ={setDraft} />
+        <div className="flex flex-wrap gap-2 mt-3">
+          <button onClick={saveDraft} disabled={saving}
+            className="toy-button toy-button-primary disabled:opacity-50">
+            {saving ? "Đang lưu..." : "💾 Lưu & Thêm câu mới"}
+          </button>
+          <button onClick={() => setDraft({ ...EMPTY_Q })} disabled={saving} className="toy-button">🧹 Xoá nội dung</button>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-2 font-bold">
+          Sau khi lưu, câu hỏi vào ngay lớp. Miền/bậc được hệ thống tự phân loại.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-xl font-black">Câu hỏi của lớp ({list.length})</h2>
-        <button onClick={() => setEditing({ ...EMPTY_Q, classId })} className="toy-button toy-button-primary text-sm">
-          ➕ Thêm câu hỏi
-        </button>
       </div>
       {busy ? <p className="font-bold">Đang tải...</p> : (
-        list.length === 0 ? <p className="text-muted-foreground font-bold">Chưa có câu hỏi. Bấm "Thêm câu hỏi" hoặc dùng tab "Nhập dữ liệu".</p> : (
+        list.length === 0 ? <p className="text-muted-foreground font-bold">Chưa có câu hỏi. Dùng biểu mẫu trên hoặc tab "Nhập dữ liệu".</p> : (
           <div className="grid gap-2">
             {list.map((q) => (
               <div key={q.id} className="bg-white/80 border-2 border-gray-200 rounded-2xl p-3 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{q.text}</div>
+                  <div className="font-bold truncate">{q.text || <span className="italic text-muted-foreground">(chỉ có ảnh)</span>}</div>
                   <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-2">
                     <span className="bg-orange-100 px-2 py-0.5 rounded">{q.category === "history" ? "Lịch sử-Văn hóa" : "Năng lực số"}</span>
                     {q.competencyLevel && <span className="bg-purple-100 px-2 py-0.5 rounded">Bậc {q.competencyLevel}</span>}
@@ -425,88 +484,88 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
         )
       )}
 
-      {editing && <QuestionEditor q={editing} setQ={setEditing} onSave={save} onCancel={() => setEditing(null)} />}
+      {editing && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-3" onClick={() => setEditing(null)}>
+          <div className="bg-white rounded-2xl p-4 max-w-xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-black text-lg mb-3">Sửa câu hỏi</h3>
+            <QuestionEditorInline q={editing} setQ={(q) => setEditing(q)} />
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setEditing(null)} className="toy-button flex-1">Huỷ</button>
+              <button onClick={saveEdit} className="toy-button toy-button-primary flex-1">💾 Lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function QuestionEditor({ q, setQ, onSave, onCancel }: {
-  q: TeacherQuestion; setQ: (q: TeacherQuestion) => void; onSave: () => void; onCancel: () => void;
-}) {
+function QuestionEditorInline({ q, setQ }: { q: TeacherQuestion; setQ: (q: TeacherQuestion) => void }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-3" onClick={onCancel}>
-      <div className="bg-white rounded-2xl p-4 max-w-xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-black text-lg mb-3">{q.id ? "Sửa câu hỏi" : "Thêm câu hỏi"}</h3>
-        <div className="flex flex-col gap-3">
-          <div>
-            <label className="text-xs font-black block mb-1">Nội dung câu hỏi (có thể để trống nếu dùng ảnh)</label>
-            <textarea value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })}
-              placeholder="Nội dung câu hỏi..." rows={2}
-              className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+    <div className="flex flex-col gap-3">
+      <div>
+        <label className="text-xs font-black block mb-1">Nội dung câu hỏi (có thể để trống nếu dùng ảnh)</label>
+        <textarea value={q.text} onChange={(e) => setQ({ ...q, text: e.target.value })}
+          placeholder="Nội dung câu hỏi..." rows={2}
+          className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+      </div>
+      <div>
+        <label className="text-xs font-black block mb-1">Ảnh minh hoạ cho câu hỏi</label>
+        <ImageUploadField value={q.imageUrl || ""} onChange={(u) => setQ({ ...q, imageUrl: u })} label="ảnh câu hỏi" />
+      </div>
+      <div className="grid grid-cols-1 gap-3">
+        <div className="text-xs font-black">Đáp án (đánh dấu ✓ ở các đáp án đúng — có thể chọn nhiều; các đáp án trống sẽ tự bỏ qua)</div>
+        {q.choices.map((c, i) => (
+          <div key={i} className="border-2 border-gray-200 rounded-xl p-2 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <input type="checkbox"
+                checked={q.correctIndexes.includes(i)}
+                onChange={(e) => {
+                  const s = new Set(q.correctIndexes);
+                  if (e.target.checked) s.add(i); else s.delete(i);
+                  setQ({ ...q, correctIndexes: Array.from(s).sort((a, b) => a - b) });
+                }}
+                className="w-5 h-5 accent-green-500" />
+              <span className="font-black text-sm w-6">{String.fromCharCode(65 + i)}.</span>
+              <input value={c.text}
+                onChange={(e) => {
+                  const cs = q.choices.slice();
+                  cs[i] = { ...cs[i], text: e.target.value };
+                  setQ({ ...q, choices: cs });
+                }}
+                placeholder={`Đáp án ${i + 1} (chữ hoặc bỏ trống nếu dùng ảnh)`}
+                className="flex-1 px-3 py-2 rounded-xl border-2 border-gray-200" />
+              {q.choices.length > 2 && (
+                <button onClick={() => setQ({
+                  ...q,
+                  choices: q.choices.filter((_, idx) => idx !== i),
+                  correctIndexes: q.correctIndexes.filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)),
+                })} className="text-red-500 font-bold px-2">✕</button>
+              )}
+            </div>
+            <ImageUploadField
+              value={c.imageUrl || ""}
+              onChange={(u) => {
+                const cs = q.choices.slice();
+                cs[i] = { ...cs[i], imageUrl: u };
+                setQ({ ...q, choices: cs });
+              }}
+              label={`ảnh đáp án ${String.fromCharCode(65 + i)}`}
+            />
           </div>
-          <div>
-            <label className="text-xs font-black block mb-1">Ảnh minh hoạ cho câu hỏi</label>
-            <ImageUploadField value={q.imageUrl || ""} onChange={(u) => setQ({ ...q, imageUrl: u })} label="ảnh câu hỏi" />
-          </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="text-xs font-black">Đáp án (đánh dấu ✓ ở các đáp án đúng — có thể chọn nhiều)</div>
-            {q.choices.map((c, i) => (
-              <div key={i} className="border-2 border-gray-200 rounded-xl p-2 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <input type="checkbox"
-                    checked={q.correctIndexes.includes(i)}
-                    onChange={(e) => {
-                      const s = new Set(q.correctIndexes);
-                      if (e.target.checked) s.add(i); else s.delete(i);
-                      setQ({ ...q, correctIndexes: Array.from(s).sort((a, b) => a - b) });
-                    }}
-                    className="w-5 h-5 accent-green-500" />
-                  <span className="font-black text-sm w-6">{String.fromCharCode(65 + i)}.</span>
-                  <input value={c.text}
-                    onChange={(e) => {
-                      const cs = q.choices.slice();
-                      cs[i] = { ...cs[i], text: e.target.value };
-                      setQ({ ...q, choices: cs });
-                    }}
-                    placeholder={`Đáp án ${i + 1} (chữ, có thể để trống nếu dùng ảnh)`}
-                    className="flex-1 px-3 py-2 rounded-xl border-2 border-gray-200" />
-                  {q.choices.length > 2 && (
-                    <button onClick={() => setQ({
-                      ...q,
-                      choices: q.choices.filter((_, idx) => idx !== i),
-                      correctIndexes: q.correctIndexes.filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)),
-                    })} className="text-red-500 font-bold px-2">✕</button>
-                  )}
-                </div>
-                <ImageUploadField
-                  value={c.imageUrl || ""}
-                  onChange={(u) => {
-                    const cs = q.choices.slice();
-                    cs[i] = { ...cs[i], imageUrl: u };
-                    setQ({ ...q, choices: cs });
-                  }}
-                  label={`ảnh đáp án ${String.fromCharCode(65 + i)}`}
-                />
-              </div>
-            ))}
-            <button onClick={() => setQ({ ...q, choices: [...q.choices, { text: "" }] })} className="toy-button text-xs w-fit">➕ Thêm đáp án</button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="text-xs font-black">
-              Thưởng (đ)
-              <input type="number" value={q.reward} onChange={(e) => setQ({ ...q, reward: Number(e.target.value) || 0 })}
-                className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold" />
-            </label>
-            <label className="flex items-center gap-2 text-sm font-bold mt-4">
-              <input type="checkbox" checked={q.enabled !== false} onChange={(e) => setQ({ ...q, enabled: e.target.checked })} />
-              Đang bật
-            </label>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-4">
-          <button onClick={onCancel} className="toy-button flex-1">Huỷ</button>
-          <button onClick={onSave} className="toy-button toy-button-primary flex-1">💾 Lưu</button>
-        </div>
+        ))}
+        <button onClick={() => setQ({ ...q, choices: [...q.choices, { text: "" }] })} className="toy-button text-xs w-fit">➕ Thêm đáp án</button>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="text-xs font-black">
+          Thưởng (đ)
+          <input type="number" value={q.reward} onChange={(e) => setQ({ ...q, reward: Number(e.target.value) || 0 })}
+            className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold" />
+        </label>
+        <label className="flex items-center gap-2 text-sm font-bold mt-4">
+          <input type="checkbox" checked={q.enabled !== false} onChange={(e) => setQ({ ...q, enabled: e.target.checked })} />
+          Đang bật
+        </label>
       </div>
     </div>
   );

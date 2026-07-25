@@ -200,11 +200,13 @@ function FriendsMapPage() {
   );
 }
 
-function HouseMarker({ house, onClick }: { house: FriendHouse; onClick: () => void }) {
+function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick: () => void; onHover?: () => void }) {
   const online = house.is_online;
   return (
     <button
       onClick={onClick}
+      onMouseEnter={onHover}
+      onTouchStart={onHover}
       className="absolute -translate-x-1/2 -translate-y-1/2 group animate-in fade-in slide-in-from-bottom-2 duration-300"
       style={{ left: house.map_x, top: house.map_y }}
       aria-label={`Nhà của ${house.username}`}

@@ -720,13 +720,17 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
 
 function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void }) {
   const [text, setText] = useState("");
-  const [format, setFormat] = useState<"csv" | "json">("csv");
+  const [format, setFormat] = useState<"csv" | "json" | "text">("csv");
   const [preview, setPreview] = useState<TeacherQuestion[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loadingFile, setLoadingFile] = useState(false);
 
   const doParse = () => {
     try {
-      const arr = format === "csv" ? parseQuestionsCSV(text) : parseQuestionsJSON(text);
+      const arr =
+        format === "csv" ? parseQuestionsCSV(text) :
+        format === "json" ? parseQuestionsJSON(text) :
+        parseQuestionsFromText(text);
       setPreview(arr);
       toast.success(`Đã đọc ${arr.length} câu hỏi`);
     } catch (e: any) {
@@ -739,29 +743,26 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     if (!f) return;
     const name = f.name.toLowerCase();
     const ext = name.slice(name.lastIndexOf(".") + 1);
-    if (["csv", "json", "txt"].includes(ext)) {
-      const t = await f.text();
-      setText(t);
-      setFormat(ext === "json" ? "json" : "csv");
-      return;
-    }
-    if (["docx", "pptx", "xlsx", "doc", "ppt", "xls", "pdf"].includes(ext)) {
-      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung vào ô văn bản theo định dạng CSV/JSON.");
-      return;
-    }
     if (["mp4", "mov", "webm", "avi", "mkv", "m4a", "mp3", "wav"].includes(ext)) {
       toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ đính kèm cho từng câu, không nhập hàng loạt.");
       return;
     }
+    setLoadingFile(true);
     try {
-      const t = await f.text();
-      setText(t);
-      setFormat("csv");
-      toast("Đã đọc tệp dạng văn bản. Kiểm tra định dạng trước khi nhập.");
-    } catch {
-      toast.error("Không đọc được tệp này.");
+      if (ext === "csv") { setText(await f.text()); setFormat("csv"); return; }
+      if (ext === "json") { setText(await f.text()); setFormat("json"); return; }
+      // Rich formats → extract as raw text and use heuristic parser
+      const raw = await extractTextFromFile(f);
+      setText(raw);
+      setFormat("text");
+      toast.success(`Đã đọc ${ext.toUpperCase()}. Bấm "Xem trước" để trích câu hỏi.`);
+    } catch (e: any) {
+      toast.error("Không đọc được tệp: " + (e?.message || ""));
+    } finally {
+      setLoadingFile(false);
     }
   };
+
 
   const doImport = async () => {
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }

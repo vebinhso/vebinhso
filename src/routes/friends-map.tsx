@@ -10,7 +10,7 @@ import {
   listMyFriendsForWhitelist,
   type FriendHouse,
   type HousePrivacy,
-  type MyHouseSettings as MyHouseSettingsData,
+  type MyHouseSettings as MyHouseData,
 } from "@/lib/friend-houses.functions";
 import { getCurrentUser } from "@/lib/auth";
 

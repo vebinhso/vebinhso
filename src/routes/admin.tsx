@@ -23,6 +23,8 @@ import {
   setPriorityMode,
   getCategoryToggles,
   setCategoryToggles,
+  getDuelPayout,
+  setDuelPayout,
   bulkApplyClassification,
   type AdminConfig,
   type AdminQuestion,

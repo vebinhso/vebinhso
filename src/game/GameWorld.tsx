@@ -53,6 +53,10 @@ type Props = {
   editingId?: string | null;
   /** Map placedItemId → label cho biển tên nhà */
   signLabels?: Record<string, string>;
+  /** Danh sách nhà bạn bè hiển thị quanh mảnh đất */
+  friendHouses?: FriendHouse[];
+  /** Bấm vào nhà bạn để tham quan */
+  onVisitFriend?: (ownerId: string) => void;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".

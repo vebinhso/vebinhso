@@ -1338,9 +1338,9 @@ function GamePage() {
               <button onClick={() => setAngle(180)} className="toy-button !text-xs !py-1 !px-2">180°</button>
               <button onClick={() => setAngle(270)} className="toy-button !text-xs !py-1 !px-2">270°</button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold w-12">Dịch:</span>
-              <div className="grid grid-cols-3 gap-1">
+            <div className="flex items-start gap-2 flex-wrap">
+              <span className="text-xs font-bold w-12 shrink-0">Dịch:</span>
+              <div className="grid grid-cols-3 gap-1 shrink-0">
                 <span />
                 <button onClick={() => nudge(0, -0.5)} className="toy-button !text-xs !py-1 !px-2">↑</button>
                 <span />
@@ -1351,7 +1351,7 @@ function GamePage() {
                 <button onClick={() => nudge(0, 0.5)} className="toy-button !text-xs !py-1 !px-2">↓</button>
                 <span />
               </div>
-              <div className="text-[10px] font-bold text-stone-600 flex-1">
+              <div className="text-[10px] font-bold text-stone-600 flex-1 min-w-0 basis-full sm:basis-0">
                 {moveMode ? "🟢 Click ô mới trên mảnh đất để dời vật tới đó" : "Bấm 📍 rồi click ô trong mảnh để dời, hoặc dùng mũi tên (0.5m)"}
               </div>
             </div>

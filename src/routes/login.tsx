@@ -7,7 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { PasswordChecklist } from "@/components/PasswordChecklist";
 import { isPasswordValid } from "@/lib/password";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") ? s.next : undefined,
+  }),
+  component: LoginPage,
+});
+
+function useNextTarget(): string {
+  try {
+    return Route.useSearch().next ?? "/";
+  } catch {
+    return "/";
+  }
+}
+
 
 type View = "login" | "register" | "forgot";
 
@@ -61,14 +75,17 @@ function Field({ label, type = "text", placeholder, value, onChange }: {
 
 function GoogleButton() {
   const [busy, setBusy] = useState(false);
+  const next = useNextTarget();
   const handle = async () => {
     setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth/callback` });
+    const cb = `${window.location.origin}/auth/callback${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`;
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: cb });
     if (r.error) {
       setBusy(false);
       alert("Lỗi đăng nhập Google: " + (r.error.message || "không rõ"));
     }
   };
+
   return (
     <button
       onClick={handle}
@@ -88,6 +105,7 @@ function GoogleButton() {
 
 function Login({ setView }: { setView: (v: View) => void }) {
   const navigate = useNavigate();
+  const next = useNextTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -99,11 +117,13 @@ function Login({ setView }: { setView: (v: View) => void }) {
     setBusy(true);
     try {
       await signInWithPassword(email.trim(), password);
+      if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
       setError(e?.message || "Đăng nhập thất bại");
     } finally { setBusy(false); }
   };
+
 
   return (
     <>
@@ -142,6 +162,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
 
 function Register({ setView }: { setView: (v: View) => void }) {
   const navigate = useNavigate();
+  const next = useNextTarget();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -159,13 +180,14 @@ function Register({ setView }: { setView: (v: View) => void }) {
     setBusy(true);
     try {
       await signUpWithPassword({ email: email.trim(), password, username: username.trim() });
-      // Confirm email đã tắt → đăng nhập luôn rồi vào game
       await signInWithPassword(email.trim(), password);
+      if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
       setError(e?.message || "Đăng ký thất bại");
     } finally { setBusy(false); }
   };
+
 
   return (
     <>

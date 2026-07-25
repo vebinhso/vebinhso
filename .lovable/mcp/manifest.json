@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://fdclnrswaulzkxtvrqra.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "ve-binh-so-mcp",
+      "version": "0.1.0",
+      "title": "Vệ Binh Số"
+    },
+    "tools": [
+      {
+        "name": "get_profile",
+        "title": "Lấy hồ sơ người chơi",
+        "description": "Trả về hồ sơ (username, display name, avatar) của user đang đăng nhập.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_game_state",
+        "title": "Lấy trạng thái game",
+        "description": "Trả về trạng thái game của người chơi đang đăng nhập: tiền, level, tài sản ròng, số câu đúng, streak, vật liệu xây (gạch, bê tông, ngói).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_leaderboard",
+        "title": "Bảng xếp hạng",
+        "description": "Trả về bảng xếp hạng người chơi (theo tài sản ròng / level).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 20,
+              "description": "Số lượng người chơi muốn lấy (1-100).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_friends",
+        "title": "Danh sách bạn bè",
+        "description": "Liệt kê bạn bè & trạng thái kết bạn của user đang đăng nhập.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_placed_items",
+        "title": "Danh sách vật đã đặt trong nhà",
+        "description": "Liệt kê tất cả vật thể (nội thất, cửa, cửa sổ…) mà user đang đăng nhập đã đặt trong bản đồ nhà.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

@@ -101,14 +101,14 @@ function AdminPage() {
     <GameLayout showBack>
       <div className="flex-1 p-3 md:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="glass-card p-4 mb-4 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black">🛡️ TRUNG TÂM QUẢN TRỊ</h1>
-              <p className="text-xs md:text-sm font-bold text-muted-foreground">
+          <div className="glass-card p-4 mb-4 flex items-center justify-between flex-wrap gap-2 min-w-0">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-3xl font-black truncate">🛡️ TRUNG TÂM QUẢN TRỊ</h1>
+              <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
                 Đăng nhập: {getCurrentUser()?.email}
               </p>
             </div>
-            <div className="text-xs font-bold text-muted-foreground">
+            <div className="text-[10px] md:text-xs font-bold text-muted-foreground max-w-full">
               ☁️ Câu hỏi lưu trên DB dùng chung · Một số cấu hình khác lưu cục bộ
             </div>
           </div>

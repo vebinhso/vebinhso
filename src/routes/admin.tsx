@@ -853,6 +853,31 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
       </div>
 
+      {/* Duel payout */}
+      <div className="rounded-2xl p-4 mb-4 border-2 border-amber-300 bg-amber-50">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="font-black text-lg">⚔️ Phần thưởng phòng đấu 1vs1</div>
+            <div className="text-xs font-bold text-amber-800/80">
+              Người trả lời đúng đầu tiên mỗi câu được +N đ, đối thủ mất −N đ (không xuống dưới 0). Hiện tại: <b>{duelPayout}đ</b>/câu.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              value={duelPayoutDraft}
+              onChange={(e) => setDuelPayoutDraft(e.target.value)}
+              className="w-24 px-2 py-1.5 border-2 border-amber-300 rounded-lg font-black text-right"
+            />
+            <span className="font-black">đ</span>
+            <button onClick={saveDuelPayout} className="toy-button text-sm bg-amber-500">💾 Lưu</button>
+          </div>
+        </div>
+      </div>
+
+
+
       {/* Auto-classification suggestion */}
       <div className="rounded-2xl p-4 mb-4 border-2 border-purple-300 bg-purple-50">
         <div className="flex items-center justify-between gap-2 flex-wrap">

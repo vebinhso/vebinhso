@@ -867,7 +867,10 @@ function GamePage() {
           sparkles={sparkles}
           onPlayerPos={(x, z) => setPlayerPos({ x, z })}
           friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
-          onVisitFriend={(ownerId) => navigate({ to: "/visit/$ownerId", params: { ownerId } })}
+          onVisitFriend={(ownerId) => {
+            const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
+            setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || "nhà bạn" });
+          }}
           onItemClick={(id) => {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;

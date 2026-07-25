@@ -881,6 +881,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_class: { Args: { code: string }; Returns: string }
       leave_class: { Args: { _class_id?: string }; Returns: undefined }
       list_my_taught_classes: {
         Args: never

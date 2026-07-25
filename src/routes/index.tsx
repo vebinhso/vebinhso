@@ -13,7 +13,7 @@ import {
 } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import { isAdmin } from "@/lib/admin";
-import { getMyTeacherProfile, joinClass, leaveClass, getMyClassroom, type MyTeacherProfile, type MyClassroom } from "@/lib/teacher";
+import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {
   findUserByName,
   sendRequest,

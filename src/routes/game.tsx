@@ -1012,8 +1012,8 @@ function GamePage() {
             <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
-          <div className="glass-card px-2 py-1.5 flex items-center gap-1">
-            <span className="text-[10px] font-black text-stone-700 mr-1">TẦNG:</span>
+          <div className="glass-card px-2 py-1.5 flex flex-wrap items-center gap-1 max-w-[85vw] sm:max-w-[360px]">
+            <span className="text-[10px] font-black text-stone-700 mr-1 shrink-0">TẦNG:</span>
             {Array.from({ length: MAX_FLOOR + 1 }, (_, f) => {
               const accessible = canAccessFloor(f);
               const active = activeFloor === f;
@@ -1021,7 +1021,7 @@ function GamePage() {
                 <button
                   key={f}
                   onClick={() => tryGoFloor(f)}
-                  className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
+                  className={`toy-button !text-[11px] !py-1 !px-2 shrink-0 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
                   title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp sàn tầng ${f - 1} trước`}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
@@ -1315,8 +1315,8 @@ function GamePage() {
                 >📦 Đặt vật trên {surfaceItem.name}</button>
               </div>
             )}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold w-12">Xoay:</span>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="text-xs font-bold w-12 shrink-0">Xoay:</span>
               <input
                 type="range"
                 min={0}
@@ -1324,9 +1324,9 @@ function GamePage() {
                 step={1}
                 value={normDeg}
                 onChange={(e) => setAngle(Number(e.target.value))}
-                className="flex-1 accent-cyan-500"
+                className="flex-1 min-w-0 accent-cyan-500"
               />
-              <span className="text-xs font-black w-12 text-right">{normDeg}°</span>
+              <span className="text-xs font-black w-12 text-right shrink-0">{normDeg}°</span>
             </div>
             <div className="flex items-center gap-1 mb-2 flex-wrap">
               <button onClick={() => setAngle(normDeg - 15)} className="toy-button !text-xs !py-1 !px-2">↺ -15°</button>
@@ -1338,9 +1338,9 @@ function GamePage() {
               <button onClick={() => setAngle(180)} className="toy-button !text-xs !py-1 !px-2">180°</button>
               <button onClick={() => setAngle(270)} className="toy-button !text-xs !py-1 !px-2">270°</button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold w-12">Dịch:</span>
-              <div className="grid grid-cols-3 gap-1">
+            <div className="flex items-start gap-2 flex-wrap">
+              <span className="text-xs font-bold w-12 shrink-0">Dịch:</span>
+              <div className="grid grid-cols-3 gap-1 shrink-0">
                 <span />
                 <button onClick={() => nudge(0, -0.5)} className="toy-button !text-xs !py-1 !px-2">↑</button>
                 <span />
@@ -1351,7 +1351,7 @@ function GamePage() {
                 <button onClick={() => nudge(0, 0.5)} className="toy-button !text-xs !py-1 !px-2">↓</button>
                 <span />
               </div>
-              <div className="text-[10px] font-bold text-stone-600 flex-1">
+              <div className="text-[10px] font-bold text-stone-600 flex-1 min-w-0 basis-full sm:basis-0">
                 {moveMode ? "🟢 Click ô mới trên mảnh đất để dời vật tới đó" : "Bấm 📍 rồi click ô trong mảnh để dời, hoặc dùng mũi tên (0.5m)"}
               </div>
             </div>
@@ -1370,10 +1370,10 @@ function GamePage() {
       {shopOpen && (
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-2 md:p-4" onClick={() => setShopOpen(false)}>
           <div className="glass-card max-w-3xl w-full max-h-[92vh] md:max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="p-2 md:p-4 border-b-2 border-white/50 flex items-center justify-between gap-2">
-              <h2 className="text-lg md:text-2xl font-black">🛒 CỬA HÀNG</h2>
-              <div className="font-bold text-yellow-700 text-xs md:text-base">💰 {state.money}đ</div>
-              <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
+            <div className="p-2 md:p-4 border-b-2 border-white/50 flex flex-wrap items-center justify-between gap-2 min-w-0">
+              <h2 className="text-base md:text-2xl font-black truncate min-w-0">🛒 CỬA HÀNG</h2>
+              <div className="font-bold text-yellow-700 text-xs md:text-base whitespace-nowrap">💰 {state.money}đ</div>
+              <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3 shrink-0">Đóng</button>
             </div>
             <div className="flex flex-wrap gap-1 md:gap-2 p-2 md:p-3 border-b-2 border-white/50">
               {CATEGORIES.map((c) => (

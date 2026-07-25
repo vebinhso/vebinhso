@@ -425,9 +425,9 @@ function ArenaHeader({
 }) {
   return (
     <div className="relative bg-gradient-to-r from-emerald-500/30 via-transparent to-rose-500/30 p-3 border-b-2 border-white/10">
-      <div className="grid grid-cols-3 items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <Fighter side="left" info={me} score={scoreMine} highlight={highlightMe} />
-        <div className="text-center">
+        <div className="text-center shrink-0">
           <div className="text-2xl sm:text-3xl font-black text-white drop-shadow">⚔️</div>
           <div className="text-[10px] text-white/70 font-bold">VS</div>
         </div>
@@ -448,9 +448,9 @@ function Fighter({
   const align = side === "left" ? "items-start text-left" : "items-end text-right";
   const flexRow = side === "left" ? "" : "flex-row-reverse";
   return (
-    <div className={`flex flex-col ${align} gap-1`}>
-      <div className={`flex items-center gap-2 ${flexRow}`}>
-        <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 shadow-lg transition-all ${
+    <div className={`flex flex-col ${align} gap-1 min-w-0`}>
+      <div className={`flex items-center gap-2 min-w-0 ${flexRow}`}>
+        <div className={`relative w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full overflow-hidden border-4 shadow-lg transition-all ${
           highlight ? "border-yellow-300 scale-110" : side === "left" ? "border-emerald-300" : "border-rose-300"
         }`}>
           {info?.avatarUrl ? (
@@ -466,8 +466,8 @@ function Fighter({
             <div className="absolute inset-0 bg-yellow-300/30 animate-pulse" />
           )}
         </div>
-        <div>
-          <div className="text-white font-black text-sm truncate max-w-[6.5rem]">
+        <div className="min-w-0 flex-1">
+          <div className="text-white font-black text-sm truncate">
             @{info?.username ?? "…"}
           </div>
           <div className={`text-lg font-black leading-none ${side === "left" ? "text-emerald-200" : "text-rose-200"}`}>

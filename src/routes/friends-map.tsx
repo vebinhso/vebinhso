@@ -223,15 +223,15 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
             title={online ? "Online" : "Offline"}
           />
         </div>
-        <div className="mt-2 flex items-center gap-3 bg-white/95 backdrop-blur px-5 py-3 rounded-full text-3xl font-black shadow-2xl border-4 border-emerald-400 max-w-[420px]">
+        <div className="mt-2 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-base sm:text-xl font-black shadow-2xl border-2 sm:border-4 border-emerald-400 max-w-[240px] sm:max-w-[320px] min-w-0">
           {house.avatar_url ? (
-            <img src={house.avatar_url} alt="" className="w-12 h-12 rounded-full border-2 border-emerald-300" />
+            <img src={house.avatar_url} alt="" className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 rounded-full border-2 border-emerald-300" />
           ) : (
-            <span className="w-12 h-12 rounded-full bg-orange-400 text-white grid place-items-center text-2xl font-black border-2 border-emerald-300">
+            <span className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 rounded-full bg-orange-400 text-white grid place-items-center text-sm sm:text-base font-black border-2 border-emerald-300">
               {initial(house.username)}
             </span>
           )}
-          <span className="truncate text-emerald-900 drop-shadow">{house.house_name || house.username}</span>
+          <span className="truncate text-emerald-900 drop-shadow min-w-0">{house.house_name || house.username}</span>
         </div>
       </div>
     </button>

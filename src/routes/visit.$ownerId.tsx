@@ -40,13 +40,20 @@ function VisitPage() {
   const [activeFloor, setActiveFloor] = useState(0);
 
   useEffect(() => {
+    if (!q.data) return;
     // Announce presence when snapshot loads
-    if (q.data) {
-      presenceFn({ data: { in_house_owner: ownerId } }).catch(() => {});
-    }
+    presenceFn({ data: { in_house_owner: ownerId } }).catch(() => {});
+    // R3F Canvas can boot at its default 300x150 when mounted inside Suspense
+    // on a fixed-position container — nudge it to remeasure once data is in.
+    const kick = () => window.dispatchEvent(new Event("resize"));
+    kick();
+    const t1 = setTimeout(kick, 60);
+    const t2 = setTimeout(kick, 300);
+    const t3 = setTimeout(kick, 900);
     const clear = () => { presenceFn({ data: { in_house_owner: null } }).catch(() => {}); };
     window.addEventListener("beforeunload", clear);
     return () => {
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
       window.removeEventListener("beforeunload", clear);
       clear();
     };

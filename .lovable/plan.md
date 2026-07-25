@@ -1,59 +1,60 @@
 
-## Mục tiêu
+# Phòng đấu (Duel Room)
 
-1. Bỏ trang `/friends-map` khỏi luồng "Rời nhà" — nút này quay về `/game` (nhà mình).
-2. Tên chủ căn nhà (khi đang thăm) hiển thị to, nổi bật hơn.
-3. 4 chế độ quyền riêng tư nhà: **Công khai / Bạn bè / Tùy chỉnh (whitelist) / Đóng cửa**.
-4. Khi có người vào nhà bạn: hiện toast `<tên người chơi> đang tham quan` cho chủ nhà.
-5. Real-time co-op: khách và chủ (nếu online cùng lúc) đều thấy avatar nhau di chuyển trong cùng ngôi nhà; mỗi người điều khiển nhân vật riêng.
-6. Khách được phép co-build: có thanh công cụ xây bên phải trong nhà bạn (chỉ khi chủ bật), đặt/xoá đồ áp vào state nhà chủ; **tiền và vật liệu trừ vào tài khoản của khách**.
+Thêm chức năng đấu câu hỏi 1vs1 khi hai người cùng online trong cùng một căn nhà (chủ nhà + khách, hoặc hai khách). Người thắng +30đ, người thua −30đ.
 
-## Thay đổi chính
+## Trải nghiệm người chơi
 
-### Database (một migration)
-- `profiles`: đổi kiểu `house_privacy` cho phép `'public' | 'friends' | 'custom' | 'closed'` (giữ cột text hiện có, chỉ mở rộng giá trị hợp lệ ở app-level; policy `can_visit_house` cập nhật).
-- `profiles.house_allow_list uuid[]` — whitelist cho chế độ `custom`.
-- `profiles.coop_build boolean default false` — chủ nhà bật/tắt cho khách xây.
-- `has_role`-style helper: cập nhật `can_visit_house(owner uuid)` xử lý `custom` (kiểm tra `auth.uid()` nằm trong `house_allow_list`) và `closed` (luôn false trừ chủ).
-- RLS `placed_items` / `walls` / `roofs` / `floors`: thêm policy INSERT/DELETE cho khách khi `owner.coop_build = true` và `can_visit_house(owner)`.
-- Bật realtime cho `placed_items`, `walls`, `roofs`, `floors`, `presence` (nếu chưa).
+1. Khi đang trong nhà (map nhà mình hoặc `/visit/:ownerId`) và có người khác cũng online trong cùng nhà đó, HUD hiện nút **"⚔️ Mời đấu"** kế bên avatar/tên của họ.
+2. Bấm → gửi lời mời. Người kia nhận toast/dialog: *"@X mời bạn vào phòng đấu"* với 2 nút **Đồng ý / Từ chối** (tự huỷ sau 20s).
+3. Đồng ý → cả hai vào modal **Phòng đấu**. Người mời là **chủ phòng**, chọn 1 trong các chủ đề (6 miền × 2 mục — chỉ hiện chủ đề có ≥10 câu hỏi active trong bank).
+4. Bấm **Bắt đầu** → server bốc 10 câu hỏi ngẫu nhiên của chủ đề đó, đếm ngược 3-2-1.
+5. Mỗi câu hiện đồng thời cho cả hai, có thanh đếm 10s. Ai bấm trả lời trước và đúng → được 1 điểm cho câu đó. Sai không bị trừ điểm câu; hết 10s không ai đúng → hoà câu đó.
+6. Sau 10 câu → công bố kết quả: điểm cả hai + thắng/thua/hoà. Server ghi kết quả và điều chỉnh tiền (+30 / −30, hoà 0).
+7. Toast lưu "💰 +30đ" hoặc "💸 −30đ" cho từng bên.
 
-### Server functions (`src/lib/friend-houses.functions.ts`)
-- `updateHouseSettings` nhận thêm `privacy: 'closed'`, `allow_list: string[]`, `coop_build: boolean`.
-- `listFriendsForWhitelist` — trả danh sách bạn bè (id, username, avatar) để checkbox.
-- `coopUpsertItem` / `coopDeleteItem` / `coopUpsertWall` / … — server fn đặt/xoá đồ trong nhà chủ với auth = khách; trừ tiền/vật liệu từ `game_state` của khách (transaction).
+## Kiến trúc kỹ thuật
 
-### UI
-- **`src/routes/visit.$ownerId.tsx`**:
-  - Nút "🚪 Rời nhà" → `navigate({ to: "/game" })`.
-  - Header tên chủ: font lớn (`text-2xl md:text-3xl`), có avatar, house_name làm tiêu đề chính.
-  - Nếu `coop_build = true`: bật panel công cụ xây (dùng lại `SettingsPanel` phần shop/place) ở góc phải; mọi hành động gọi coop server fn thay vì `saveGame` local.
-- **`src/routes/game.tsx`** (Settings nhà):
-  - Radio 4 chế độ; khi chọn `custom` mở list checkbox bạn bè.
-  - Toggle "Cho phép bạn bè cùng xây".
-- **Realtime avatar sync** (`src/lib/coop-presence.ts` mới):
-  - Supabase channel `house:<ownerId>` với broadcast `{ userId, x, z, angle, floor }` @ 10Hz.
-  - Ai đang trong nhà (kể cả chủ ở `/game`) subscribe kênh của chủ nhà và render `RemoteCharacter` cho mỗi user_id khác.
-  - `GameWorld` nhận `remotePlayers: {id, name, avatar, x, z, angle}[]` và render.
-- **Toast "đang tham quan"** cho chủ nhà: subscribe presence realtime, khi có `in_house_owner = mine` mới → toast tên.
+**Realtime**: Dùng Supabase channel `house-duel:<ownerId>` (broadcast). Sự kiện:
+- `invite` `{fromId, fromName, duelId}`
+- `invite_response` `{duelId, accept, toId}`
+- `duel_start` `{duelId, topic, questionIds[]}` (do server phát trả về sau khi chủ phòng bấm Bắt đầu)
+- `answer` `{duelId, qIndex, userId, ms}` (client broadcast — chỉ dùng để hiện "đối thủ đã trả lời")
 
-## Kỹ thuật
+Ground truth thắng/thua & payout xử lý ở **server function**, không dựa vào client broadcast.
 
-```text
-Broadcast pos ──┐         ┌── RemoteCharacter (khách)
-                ├─► channel:house:<ownerId>
-Broadcast pos ──┘         └── RemoteCharacter (chủ)
+**Bảng mới `duels`**:
+- `id uuid pk`, `host_id`, `guest_id`, `house_owner`, `topic_category` ('digital'|'history'), `topic_domain` (int 1–6, nullable), `question_ids uuid[]`, `status` ('pending'|'active'|'finished'|'cancelled'), `host_score int`, `guest_score int`, `winner_id uuid null`, `created_at`, `finished_at`.
+- Bảng `duel_answers` `(duel_id, q_index, user_id, selected int, is_correct bool, ms int, created_at)` — dùng để chấm điểm & chống gian lận.
+- RLS: chỉ host/guest xem/ghi được row của mình. GRANT authenticated + service_role.
 
-Coop edit:  visitor -> coopUpsertItem(ownerId,...) -> RLS check
-                    -> INSERT placed_items(user_id=ownerId)
-                    -> UPDATE game_state SET money=money-cost WHERE user_id=visitor
-                    -> realtime postgres_changes fires -> cả 2 client refetch
-```
+**Server functions** (`src/lib/duels.functions.ts`):
+- `createDuel({guestId, ownerId})` — validate cùng nhà (kiểm tra `presence.in_house_owner` của cả hai == ownerId), tạo row `pending`.
+- `startDuel({duelId, category, domain})` — chỉ host, bốc 10 questionIds từ `questions_bank` (filter category/domain, active, `answer_index` hoặc `correct_indexes` hợp lệ), chuyển `active`, trả về câu hỏi (không kèm đáp án).
+- `submitAnswer({duelId, qIndex, selected, ms})` — chấm bằng RPC `grade_answer`, ghi `duel_answers` (unique `(duel_id, q_index, user_id)`).
+- `finishDuel({duelId})` — gọi khi client báo xong 10 câu (idempotent). Server tính lại điểm từ `duel_answers` (đúng nhất, ai đúng trước tính điểm), set `winner_id`, cập nhật `game_state.net_worth` (+30/−30, không cho âm quá 0), trả về snapshot kết quả.
 
-## Phạm vi ngoài lần này
-- Voice chat, gesture emote — bỏ qua.
-- Xung đột đặt cùng ô: last-write-wins.
+**UI**:
+- `src/components/DuelInvite.tsx` — dialog nhận lời mời (dùng cho cả game.tsx và visit.$ownerId.tsx).
+- `src/components/DuelRoom.tsx` — modal fullscreen chứa: chọn chủ đề (host) / chờ (guest), countdown, câu hỏi + đáp án, thanh điểm 2 bên, màn kết quả.
+- Hook `useHouseDuelChannel(ownerId)` — quản lý channel, expose `sendInvite`, `respondInvite`, sự kiện đến.
 
-## Xác nhận trước khi build
+**Wiring**:
+- Trong `src/routes/game.tsx` và `src/routes/visit.$ownerId.tsx`: mount `useHouseDuelChannel` với `ownerId` tương ứng, render `DuelInvite` + `DuelRoom` khi có state.
+- HUD hiện nút "⚔️ Mời đấu @username" khi phát hiện người khác trong cùng nhà (lấy từ danh sách `presence` của những friend có `in_house_owner === ownerId`).
 
-Kế hoạch này khá lớn (migration + 5-6 server fn mới + realtime channel + UI co-build). Mình sẽ triển khai theo thứ tự: (1) migration + settings 4 chế độ, (2) đổi nút Rời nhà + header to, (3) toast đang tham quan, (4) realtime avatar sync, (5) co-build. OK để bắt đầu chứ?
+## Ràng buộc & bảo mật
+
+- Server luôn xác minh cả hai user đều có `presence.in_house_owner = ownerId` khi tạo/bắt đầu duel.
+- Không trả `answer_index`/`correct_indexes` cho client; client gọi `submitAnswer` để chấm.
+- `finishDuel` idempotent: nếu đã `finished` chỉ trả kết quả, không trả tiền lần 2.
+- Payout dùng cùng cột `net_worth` như hệ thống hiện tại; chú thích rõ trong bảng để admin kiểm tra.
+- Chủ đề chỉ liệt kê những nhóm có ≥10 câu active → tránh duel không đủ câu.
+
+## Các bước triển khai
+
+1. Migration: tạo `duels`, `duel_answers`, enable realtime cho channel (broadcast không cần publication), GRANT + RLS.
+2. Server functions `duels.functions.ts` (create/start/submit/finish + listTopics).
+3. Hook `useHouseDuelChannel` + components `DuelInvite`, `DuelRoom`.
+4. Cắm vào `game.tsx` và `visit.$ownerId.tsx`, thêm nút "⚔️ Mời đấu" ở HUD khi có bạn cùng nhà.
+5. Kiểm tra: mở 2 tab (2 tài khoản), vào cùng 1 nhà, mời → đấu → xác nhận payout +30/−30 trên `game_state`.

@@ -50,6 +50,98 @@ export type Database = {
         }
         Relationships: []
       }
+      duel_answers: {
+        Row: {
+          created_at: string
+          duel_id: string
+          id: string
+          is_correct: boolean
+          ms: number
+          q_index: number
+          selected: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duel_id: string
+          id?: string
+          is_correct: boolean
+          ms: number
+          q_index: number
+          selected: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duel_id?: string
+          id?: string
+          is_correct?: boolean
+          ms?: number
+          q_index?: number
+          selected?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duel_answers_duel_id_fkey"
+            columns: ["duel_id"]
+            isOneToOne: false
+            referencedRelation: "duels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      duels: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          guest_id: string
+          guest_score: number
+          host_id: string
+          host_score: number
+          house_owner: string
+          id: string
+          payout: number
+          question_ids: string[]
+          status: string
+          topic_category: string | null
+          topic_domain: number | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          guest_id: string
+          guest_score?: number
+          host_id: string
+          host_score?: number
+          house_owner: string
+          id?: string
+          payout?: number
+          question_ids?: string[]
+          status?: string
+          topic_category?: string | null
+          topic_domain?: number | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          guest_id?: string
+          guest_score?: number
+          host_id?: string
+          host_score?: number
+          house_owner?: string
+          id?: string
+          payout?: number
+          question_ids?: string[]
+          status?: string
+          topic_category?: string | null
+          topic_domain?: number | null
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       floors: {
         Row: {
           ax: number

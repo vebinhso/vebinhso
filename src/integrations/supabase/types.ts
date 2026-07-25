@@ -444,6 +444,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_teacher_id: string | null
           avatar: string | null
           avatar_url: string | null
           class_code: string | null
@@ -465,6 +466,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          active_teacher_id?: string | null
           avatar?: string | null
           avatar_url?: string | null
           class_code?: string | null
@@ -486,6 +488,7 @@ export type Database = {
           username: string
         }
         Update: {
+          active_teacher_id?: string | null
           avatar?: string | null
           avatar_url?: string | null
           class_code?: string | null
@@ -764,6 +767,17 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_classes: {
+        Args: never
+        Returns: {
+          class_code: string
+          is_active: boolean
+          teacher_id: string
+          teacher_name: string
+          teacher_school: string
+          teacher_subject: string
+        }[]
+      }
       get_my_classroom: {
         Args: never
         Returns: {
@@ -775,6 +789,7 @@ export type Database = {
         }[]
       }
       get_my_email: { Args: never; Returns: string }
+      get_or_create_my_class_code: { Args: never; Returns: string }
       grade_answer: {
         Args: { qid: string; selected: number }
         Returns: {
@@ -791,7 +806,9 @@ export type Database = {
         Returns: boolean
       }
       join_class: { Args: { code: string }; Returns: string }
-      leave_class: { Args: never; Returns: undefined }
+      leave_class:
+        | { Args: never; Returns: undefined }
+        | { Args: { tid?: string }; Returns: undefined }
       list_pending_teachers: {
         Args: never
         Returns: {
@@ -810,6 +827,7 @@ export type Database = {
         Args: { school: string; subject: string }
         Returns: undefined
       }
+      set_active_class: { Args: { tid: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "teacher"

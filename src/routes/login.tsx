@@ -149,7 +149,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
         <button
           onClick={handleLogin}
           disabled={busy}
-          className="toy-button toy-button-primary w-full !text-lg !py-3 disabled:opacity-60"
+          className="toy-button toy-button-primary w-full !text-base sm:!text-lg !py-3 disabled:opacity-60 truncate"
         >🔑 {busy ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}</button>
         <div className="text-center text-sm">
           Chưa có tài khoản?{" "}
@@ -240,7 +240,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
         {success && (
           <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-3">{success}</div>
         )}
-        <button onClick={handleRegister} disabled={busy} className="toy-button toy-button-green w-full !text-lg disabled:opacity-60">
+        <button onClick={handleRegister} disabled={busy} className="toy-button toy-button-green w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
           {busy ? "Đang tạo..." : "Tạo tài khoản ✨"}
         </button>
         <button onClick={() => setView("login")} className="toy-button w-full">Quay lại Đăng nhập</button>
@@ -272,7 +272,7 @@ function Forgot({ setView }: { setView: (v: View) => void }) {
         <Field label="Email đã đăng ký" type="email" value={email} onChange={setEmail} />
         {err && <div className="text-red-600 font-bold text-sm bg-red-50 rounded-xl p-2">{err}</div>}
         {msg && <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-2">{msg}</div>}
-        <button onClick={send} disabled={busy} className="toy-button toy-button-accent w-full !text-lg disabled:opacity-60">
+        <button onClick={send} disabled={busy} className="toy-button toy-button-accent w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
           {busy ? "Đang gửi..." : "Gửi email khôi phục 📧"}
         </button>
         <button onClick={() => setView("login")} className="toy-button w-full">Hủy bỏ</button>

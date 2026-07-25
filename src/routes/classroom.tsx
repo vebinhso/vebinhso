@@ -13,11 +13,13 @@ import {
   parseQuestionsCSV,
   parseQuestionsJSON,
   requestTeacher,
+  getOrCreateMyClassCode,
   type ClassroomStudent,
   type TeacherQuestion,
   type MyTeacherProfile,
 } from "@/lib/teacher";
 import { DOMAIN_LABELS } from "@/lib/competency-classifier";
+
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
@@ -40,8 +42,18 @@ function ClassroomPage() {
   useEffect(() => {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
-    getMyTeacherProfile().then(setProfile).catch(() => setProfile(null));
+    (async () => {
+      const p = await getMyTeacherProfile().catch(() => null);
+      if (!p) { setProfile(null); return; }
+      // Ensure the teacher has a class code (generate if missing)
+      if (p.isTeacher && !p.classCode) {
+        const code = await getOrCreateMyClassCode().catch(() => null);
+        if (code) p.classCode = code;
+      }
+      setProfile(p);
+    })();
   }, [navigate]);
+
 
   if (profile === null) return null;
 
@@ -81,11 +93,12 @@ function ClassroomPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-black">🧑‍🏫 LỚP HỌC</h1>
               <p className="text-xs md:text-sm font-bold text-muted-foreground">
-                {profile.teacherSchool || "—"} · Môn: {profile.teacherSubject || "—"}
+                {profile.teacherSchool || "—"}
               </p>
             </div>
             <ClassCodeCard code={profile.classCode} />
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
             <nav className="glass-card p-2 h-fit md:sticky md:top-3">
@@ -389,10 +402,35 @@ function ImportPanel() {
 
   const onFile = async (f: File | null) => {
     if (!f) return;
-    const t = await f.text();
-    setText(t);
-    setFormat(f.name.toLowerCase().endsWith(".json") ? "json" : "csv");
+    const name = f.name.toLowerCase();
+    const ext = name.slice(name.lastIndexOf(".") + 1);
+    // Text-based formats we can parse directly
+    if (["csv", "json", "txt"].includes(ext)) {
+      const t = await f.text();
+      setText(t);
+      setFormat(ext === "json" ? "json" : "csv");
+      return;
+    }
+    // Office / PDF / video: not auto-parsed on the client
+    if (["docx", "pptx", "xlsx", "doc", "ppt", "xls", "pdf"].includes(ext)) {
+      toast.error("Định dạng " + ext.toUpperCase() + " chưa hỗ trợ đọc tự động. Vui lòng sao chép nội dung câu hỏi vào ô văn bản bên dưới theo định dạng CSV hoặc JSON.");
+      return;
+    }
+    if (["mp4", "mov", "webm", "avi", "mkv", "m4a", "mp3", "wav"].includes(ext)) {
+      toast.error("Tệp media (" + ext.toUpperCase() + ") chỉ có thể được đính kèm cho từng câu hỏi, không nhập hàng loạt.");
+      return;
+    }
+    // Fallback: try to read as text
+    try {
+      const t = await f.text();
+      setText(t);
+      setFormat("csv");
+      toast("Đã đọc tệp dạng văn bản. Kiểm tra định dạng trước khi nhập.");
+    } catch {
+      toast.error("Không đọc được tệp này.");
+    }
   };
+
 
   const doImport = async () => {
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }
@@ -423,7 +461,7 @@ function ImportPanel() {
         </select>
         <label className="toy-button text-xs cursor-pointer">
           📁 Chọn file
-          <input type="file" accept=".csv,.json,.txt" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
+          <input type="file" accept=".csv,.json,.txt,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
         </label>
       </div>
       <textarea

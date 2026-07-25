@@ -294,13 +294,13 @@ function ClassCodeCard({ code }: { code: string | null }) {
   );
 }
 
-function OverviewPanel({ classId }: { classId: string }) {
+function OverviewPanel({ classId, refreshKey }: { classId: string; refreshKey?: number }) {
   const [students, setStudents] = useState<ClassroomStudent[]>([]);
   const [questions, setQuestions] = useState<TeacherQuestion[]>([]);
   useEffect(() => {
     getClassStudents(classId).then(setStudents).catch(() => {});
     listMyQuestions(classId).then(setQuestions).catch(() => {});
-  }, [classId]);
+  }, [classId, refreshKey]);
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <StatCard icon="👥" label="Học sinh" value={students.length} />

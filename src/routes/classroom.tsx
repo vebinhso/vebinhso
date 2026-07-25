@@ -13,11 +13,13 @@ import {
   parseQuestionsCSV,
   parseQuestionsJSON,
   requestTeacher,
+  getOrCreateMyClassCode,
   type ClassroomStudent,
   type TeacherQuestion,
   type MyTeacherProfile,
 } from "@/lib/teacher";
 import { DOMAIN_LABELS } from "@/lib/competency-classifier";
+
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,

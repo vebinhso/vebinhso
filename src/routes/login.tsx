@@ -7,7 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { PasswordChecklist } from "@/components/PasswordChecklist";
 import { isPasswordValid } from "@/lib/password";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") ? s.next : undefined,
+  }),
+  component: LoginPage,
+});
+
+function useNextTarget(): string {
+  try {
+    return Route.useSearch().next ?? "/";
+  } catch {
+    return "/";
+  }
+}
+
 
 type View = "login" | "register" | "forgot";
 
@@ -61,14 +75,17 @@ function Field({ label, type = "text", placeholder, value, onChange }: {
 
 function GoogleButton() {
   const [busy, setBusy] = useState(false);
+  const next = useNextTarget();
   const handle = async () => {
     setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth/callback` });
+    const cb = `${window.location.origin}/auth/callback${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`;
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: cb });
     if (r.error) {
       setBusy(false);
       alert("Lỗi đăng nhập Google: " + (r.error.message || "không rõ"));
     }
   };
+
   return (
     <button
       onClick={handle}

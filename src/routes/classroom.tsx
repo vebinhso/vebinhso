@@ -21,8 +21,9 @@ import {
   type MyTeacherProfile,
   type TaughtClass,
 } from "@/lib/teacher";
-import { DOMAIN_LABELS, classifyQuestion } from "@/lib/competency-classifier";
+import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,

@@ -2,10 +2,16 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/auth/callback")({ component: AuthCallbackPage });
+export const Route = createFileRoute("/auth/callback")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") ? s.next : undefined,
+  }),
+  component: AuthCallbackPage,
+});
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -13,21 +19,23 @@ function AuthCallbackPage() {
     const go = (path: string) => {
       if (done) return;
       done = true;
-      navigate({ to: path, replace: true });
+      const target = path === "/" && next ? next : path;
+      if (target !== "/" && next && target === next) {
+        window.location.href = target;
+        return;
+      }
+      navigate({ to: target, replace: true });
     };
 
-    // Listen for the SIGNED_IN event triggered after Supabase parses the URL
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) go("/");
     });
 
-    // Also check current session in case it's already established
     supabase.auth.getSession().then(({ data, error }) => {
       if (error) { setError(error.message); return; }
       if (data.session) go("/");
     });
 
-    // Safety fallback: if nothing happens in 6s, go back to /login
     const t = setTimeout(() => {
       if (!done) {
         supabase.auth.getSession().then(({ data }) => {
@@ -37,7 +45,7 @@ function AuthCallbackPage() {
     }, 6000);
 
     return () => { subscription.unsubscribe(); clearTimeout(t); };
-  }, [navigate]);
+  }, [navigate, next]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

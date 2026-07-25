@@ -789,14 +789,29 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     { text: "Máy tính viết tắt là gì?", options: ["PC","TV","AC","DC"], correct: 0, reward: 10 },
     { text: "Trận Bạch Đằng năm 938 do ai lãnh đạo?", options: ["Ngô Quyền","Lý Thường Kiệt","Trần Hưng Đạo","Lê Lợi"], correct: 0, reward: 15 },
   ], null, 2), []);
+  const textSample = useMemo(() => `Câu 1: Máy tính viết tắt là gì?
+A. PC *
+B. TV
+C. AC
+D. DC
+
+Câu 2: Trận Bạch Đằng năm 938 do ai lãnh đạo?
+A. Ngô Quyền
+B. Lý Thường Kiệt
+C. Trần Hưng Đạo
+D. Lê Lợi
+Đáp án: A`, []);
+
+  const sampleFor = (f: typeof format) => f === "csv" ? csvSample : f === "json" ? jsonSample : textSample;
 
   const downloadSample = () => {
-    const content = format === "csv" ? csvSample : jsonSample;
-    const mime = format === "csv" ? "text/csv" : "application/json";
+    const content = sampleFor(format);
+    const mime = format === "json" ? "application/json" : "text/plain";
+    const ext = format === "text" ? "txt" : format;
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `mau-cau-hoi.${format}`; a.click();
+    a.href = url; a.download = `mau-cau-hoi.${ext}`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -807,20 +822,21 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
         <select value={format} onChange={(e) => setFormat(e.target.value as any)} className="px-2 py-1 rounded-lg border-2 border-gray-200 font-bold">
           <option value="csv">CSV</option>
           <option value="json">JSON</option>
+          <option value="text">Văn bản (Word/PDF/PPTX)</option>
         </select>
-        <button onClick={downloadSample} className="toy-button text-xs">⬇️ Tải mẫu {format.toUpperCase()}</button>
+        <button onClick={downloadSample} className="toy-button text-xs">⬇️ Tải mẫu</button>
         <label className="toy-button text-xs cursor-pointer">
-          📁 Chọn file
-          <input type="file" accept=".csv,.json,.txt,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
+          {loadingFile ? "⏳ Đang đọc..." : "📁 Chọn file"}
+          <input type="file" accept=".csv,.json,.txt,.md,.docx,.pptx,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} disabled={loadingFile} />
         </label>
       </div>
       <p className="text-[11px] font-bold text-muted-foreground">
-        Cột bắt buộc: <b>text, option1..4, correct, reward</b>. Không cần điền miền/bậc — hệ thống sẽ tự phân loại sau khi lưu.
+        Hỗ trợ tải lên <b>CSV, JSON, TXT, DOCX (Word), PPTX (PowerPoint), PDF</b>. Với Word/PDF/PPTX, hệ thống trích văn bản rồi tự đọc theo mẫu "Câu 1 / A / B / C / D — Đáp án: X". Đánh dấu đáp án đúng bằng <code>*</code> hoặc dòng <code>Đáp án:</code>.
       </p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={format === "csv" ? csvSample : jsonSample}
+        placeholder={sampleFor(format)}
         rows={10}
         className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-mono text-xs"
       />
@@ -841,7 +857,7 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
       )}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 text-xs">
         <div className="font-black mb-1">📋 Mẫu {format.toUpperCase()}:</div>
-        <pre className="whitespace-pre-wrap font-mono">{format === "csv" ? csvSample : jsonSample}</pre>
+        <pre className="whitespace-pre-wrap font-mono">{sampleFor(format)}</pre>
       </div>
     </div>
   );

@@ -44,6 +44,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null); // 3-2-1 GO
+  const [qCount, setQCount] = useState<number>(10);
   const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const isHost = snap?.hostId === meId;

@@ -134,6 +134,8 @@ function Home() {
       setStreak(getLoginStreak(u.id));
       syncGame();
       refreshFriends(u.id);
+      getMyTeacherProfile().then((p) => { if (!cancelled) setTeacherProfile(p); }).catch(() => {});
+      getMyClassroom().then((c) => { if (!cancelled) setMyClass(c); }).catch(() => {});
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {
@@ -238,6 +240,32 @@ function Home() {
             <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white w-full justify-center">
               🛡️ ADMIN
             </Link>
+          )}
+          {teacherProfile?.isTeacher && (
+            <Link to="/classroom" className="toy-button text-sm bg-emerald-600 text-white w-full justify-center">
+              🧑‍🏫 LỚP HỌC
+            </Link>
+          )}
+          {teacherProfile && !teacherProfile.isTeacher && teacherProfile.teacherStatus === "pending" && (
+            <div className="text-[10px] font-black bg-yellow-100 text-yellow-800 rounded-xl px-2 py-1 text-center">
+              🧑‍🏫 Chờ duyệt giáo viên
+            </div>
+          )}
+          {myClass ? (
+            <div className="text-[10px] font-black bg-emerald-50 border-2 border-emerald-200 rounded-xl px-2 py-1 text-center">
+              🎟️ Lớp: <b>{myClass.class_code}</b>
+              <button
+                onClick={async () => {
+                  if (!confirm("Rời khỏi lớp này?")) return;
+                  try { await leaveClass(); setMyClass(null); toast.success("Đã rời lớp"); } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                }}
+                className="ml-1 text-red-500 hover:underline"
+              >rời</button>
+            </div>
+          ) : (
+            <button onClick={() => { setJoinCode(""); setJoinOpen(true); }} className="toy-button text-sm bg-blue-500 text-white w-full justify-center">
+              🎟️ VÀO LỚP
+            </button>
           )}
           <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
             🚪 ĐĂNG XUẤT

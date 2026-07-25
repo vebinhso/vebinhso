@@ -56,13 +56,13 @@ export const updateHouseSettings = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     if (Object.keys(data).length === 0) return { ok: true };
-    const { error } = await context.supabase
-      .from("profiles")
+    const { error } = await (context.supabase.from("profiles") as any)
       .update(data)
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const setPresence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -82,12 +82,12 @@ export const setPresence = createServerFn({ method: "POST" })
     };
     if (data.online !== undefined) row.is_online = data.online;
     if (data.in_house_owner !== undefined) row.in_house_owner = data.in_house_owner;
-    const { error } = await context.supabase
-      .from("presence")
+    const { error } = await (context.supabase.from("presence") as any)
       .upsert(row, { onConflict: "user_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export type HouseSnapshot = {
   owner: {

@@ -376,9 +376,6 @@ function Home() {
           <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
           </Link>
-          <Link to="/friends-map" className="toy-button toy-button-primary text-sm min-w-[140px] justify-center">
-            🗺️ BẢN ĐỒ BẠN BÈ
-          </Link>
           <button
             onClick={takeScreenshot}
             className="toy-button text-sm min-w-[140px] justify-center"

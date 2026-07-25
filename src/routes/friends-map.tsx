@@ -8,6 +8,7 @@ import {
   getMyHouseSettings,
   updateHouseSettings,
   listMyFriendsForWhitelist,
+  getVisitableHouse,
   type FriendHouse,
   type HousePrivacy,
   type MyHouseSettings as MyHouseData,
@@ -57,6 +58,17 @@ function FriendsMapPage() {
   const listFn = useServerFn(listFriendHouses);
   const mineFn = useServerFn(getMyHouseSettings);
   const updateFn = useServerFn(updateHouseSettings);
+  const visitFn = useServerFn(getVisitableHouse);
+
+  const prefetchVisit = (ownerId: string) => {
+    // Warm the 3D chunk + snapshot cache so entering a house feels instant.
+    import("@/game/GameWorld").catch(() => {});
+    qc.prefetchQuery({
+      queryKey: ["visit-house", ownerId],
+      queryFn: () => visitFn({ data: { ownerId } }),
+      staleTime: 30_000,
+    }).catch(() => {});
+  };
 
   const housesQ = useQuery({
     queryKey: ["friend-houses"],
@@ -157,7 +169,8 @@ function FriendsMapPage() {
             <HouseMarker
               key={h.user_id}
               house={h}
-              onClick={() => setSelected(h)}
+              onHover={() => prefetchVisit(h.user_id)}
+              onClick={() => { prefetchVisit(h.user_id); setSelected(h); }}
             />
           ))}
         </div>
@@ -187,11 +200,13 @@ function FriendsMapPage() {
   );
 }
 
-function HouseMarker({ house, onClick }: { house: FriendHouse; onClick: () => void }) {
+function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick: () => void; onHover?: () => void }) {
   const online = house.is_online;
   return (
     <button
       onClick={onClick}
+      onMouseEnter={onHover}
+      onTouchStart={onHover}
       className="absolute -translate-x-1/2 -translate-y-1/2 group animate-in fade-in slide-in-from-bottom-2 duration-300"
       style={{ left: house.map_x, top: house.map_y }}
       aria-label={`Nhà của ${house.username}`}

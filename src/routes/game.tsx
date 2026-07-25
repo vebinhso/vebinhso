@@ -887,6 +887,13 @@ function GamePage() {
             <div className="font-bold text-yellow-700 truncate">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
             <div className="text-[10px] sm:text-xs font-bold text-blue-700 truncate">Lv.{level} • ✅ {state.correctAnswers} • 🔥 {state.answerStreak}</div>
             <div className="text-[10px] sm:text-xs font-bold text-stone-700 truncate">🧱 {state.bricks} • 🪣 {state.concrete} • 🏠 {state.roofTiles} • 🟥 {state.roofTilesTon}</div>
+            <Link
+              to="/friends-map"
+              preload="intent"
+              className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-black text-emerald-800"
+            >
+              🗺️ Bản đồ bạn bè
+            </Link>
           </div>
         </div>
 

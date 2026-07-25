@@ -1,60 +1,64 @@
 
-# Phòng đấu (Duel Room)
+# Phòng thi đấu 1vs1 — bản nâng cấp
 
-Thêm chức năng đấu câu hỏi 1vs1 khi hai người cùng online trong cùng một căn nhà (chủ nhà + khách, hoặc hai khách). Người thắng +30đ, người thua −30đ.
+## Luồng người dùng
 
-## Trải nghiệm người chơi
+1. Trong nhà (của mình hoặc bạn), bấm biểu tượng ⚔️ → mở bảng "Chọn đối thủ".
+2. Chủ phòng chọn 1 người có mặt trong nhà và bấm "Mời". Không auto vào phòng — chỉ hiện màn hình chờ "Đang chờ đối thủ phản hồi…".
+3. Khách nhận popup lời mời (đồng ý / từ chối, tự huỷ sau 20s).
+4. Khi khách đồng ý → cả 2 cùng vào phòng đấu.
+5. Chủ phòng chọn 1 trong 7 chủ đề cố định:
+   - Năng lực số · Miền 1 → Miền 6 (6 chủ đề)
+   - Lịch sử – Văn hoá (1 chủ đề)
+   Chủ đề bị mờ nếu ngân hàng không đủ 10 câu; ghi rõ "còn thiếu N câu".
+6. Đếm ngược 3-2-1 rồi vào 10 câu × 10 giây.
+7. Mỗi câu: 2 người thấy cùng lúc; **người bấm đúng đầu tiên** được điểm và +tiền, người còn lại −tiền và mất lượt câu đó. Nếu người bấm đầu tiên sai → đối thủ vẫn còn cơ hội trong thời gian còn lại. Hết giờ mà không ai đúng → hoà câu đó.
+8. Sau khi câu đóng: hiện đáp án đúng, ai được/mất tiền, đợi 1.5s, tự sang câu mới.
+9. Hết 10 câu: tổng kết Thắng/Hoà/Thua + tổng tiền chênh lệch.
 
-1. Khi đang trong nhà (map nhà mình hoặc `/visit/:ownerId`) và có người khác cũng online trong cùng nhà đó, HUD hiện nút **"⚔️ Mời đấu"** kế bên avatar/tên của họ.
-2. Bấm → gửi lời mời. Người kia nhận toast/dialog: *"@X mời bạn vào phòng đấu"* với 2 nút **Đồng ý / Từ chối** (tự huỷ sau 20s).
-3. Đồng ý → cả hai vào modal **Phòng đấu**. Người mời là **chủ phòng**, chọn 1 trong các chủ đề (6 miền × 2 mục — chỉ hiện chủ đề có ≥10 câu hỏi active trong bank).
-4. Bấm **Bắt đầu** → server bốc 10 câu hỏi ngẫu nhiên của chủ đề đó, đếm ngược 3-2-1.
-5. Mỗi câu hiện đồng thời cho cả hai, có thanh đếm 10s. Ai bấm trả lời trước và đúng → được 1 điểm cho câu đó. Sai không bị trừ điểm câu; hết 10s không ai đúng → hoà câu đó.
-6. Sau 10 câu → công bố kết quả: điểm cả hai + thắng/thua/hoà. Server ghi kết quả và điều chỉnh tiền (+30 / −30, hoà 0).
-7. Toast lưu "💰 +30đ" hoặc "💸 −30đ" cho từng bên.
+## Giao diện phòng đấu
 
-## Kiến trúc kỹ thuật
+- Nền phòng đấu phong cách "arena" (gradient tím-xanh, sàn cỏ), 2 avatar/nhân vật đối diện nhau, tên + số điểm trên đầu mỗi bên.
+- Nhân vật dùng đúng ngoại hình đang mặc trong game (đọc từ `character_outfit`) — không dùng ảnh mẫu.
+- Trên cùng: đồng hồ đếm ngược, số câu (VD "Câu 4/10"), chủ đề.
+- Câu hỏi + 4 đáp án dạng nút to ở giữa; ảnh minh hoạ (nếu có).
+- Hiệu ứng nhẹ khi ghi điểm: nhân vật thắng nhảy 1 nhịp + tia sáng; người thua rung.
 
-**Realtime**: Dùng Supabase channel `house-duel:<ownerId>` (broadcast). Sự kiện:
-- `invite` `{fromId, fromName, duelId}`
-- `invite_response` `{duelId, accept, toId}`
-- `duel_start` `{duelId, topic, questionIds[]}` (do server phát trả về sau khi chủ phòng bấm Bắt đầu)
-- `answer` `{duelId, qIndex, userId, ms}` (client broadcast — chỉ dùng để hiện "đối thủ đã trả lời")
+## Cơ chế tính tiền
 
-Ground truth thắng/thua & payout xử lý ở **server function**, không dựa vào client broadcast.
+- Payout mỗi câu = giá trị **"Phần thưởng đấu"** cấu hình trong trang admin (`admin_config` key `duel_payout`, mặc định 30đ). Bỏ hằng số cứng.
+- Người đúng đầu tiên: +payout. Đối thủ: −payout (không xuống dưới 0). Câu hoà: không đổi.
+- Tổng kết cộng dồn từ từng câu, hiển thị đồng bộ cho cả 2 bên.
 
-**Bảng mới `duels`**:
-- `id uuid pk`, `host_id`, `guest_id`, `house_owner`, `topic_category` ('digital'|'history'), `topic_domain` (int 1–6, nullable), `question_ids uuid[]`, `status` ('pending'|'active'|'finished'|'cancelled'), `host_score int`, `guest_score int`, `winner_id uuid null`, `created_at`, `finished_at`.
-- Bảng `duel_answers` `(duel_id, q_index, user_id, selected int, is_correct bool, ms int, created_at)` — dùng để chấm điểm & chống gian lận.
-- RLS: chỉ host/guest xem/ghi được row của mình. GRANT authenticated + service_role.
+## Chi tiết kỹ thuật
 
-**Server functions** (`src/lib/duels.functions.ts`):
-- `createDuel({guestId, ownerId})` — validate cùng nhà (kiểm tra `presence.in_house_owner` của cả hai == ownerId), tạo row `pending`.
-- `startDuel({duelId, category, domain})` — chỉ host, bốc 10 questionIds từ `questions_bank` (filter category/domain, active, `answer_index` hoặc `correct_indexes` hợp lệ), chuyển `active`, trả về câu hỏi (không kèm đáp án).
-- `submitAnswer({duelId, qIndex, selected, ms})` — chấm bằng RPC `grade_answer`, ghi `duel_answers` (unique `(duel_id, q_index, user_id)`).
-- `finishDuel({duelId})` — gọi khi client báo xong 10 câu (idempotent). Server tính lại điểm từ `duel_answers` (đúng nhất, ai đúng trước tính điểm), set `winner_id`, cập nhật `game_state.net_worth` (+30/−30, không cho âm quá 0), trả về snapshot kết quả.
+- **DB / cấu hình**
+  - Không đổi schema `duels`/`duel_answers`.
+  - Thêm khoá `duel_payout` vào bảng `admin_config` (số nguyên, mặc định 30). Trang admin (tab "Phần thưởng") thêm ô nhập.
 
-**UI**:
-- `src/components/DuelInvite.tsx` — dialog nhận lời mời (dùng cho cả game.tsx và visit.$ownerId.tsx).
-- `src/components/DuelRoom.tsx` — modal fullscreen chứa: chọn chủ đề (host) / chờ (guest), countdown, câu hỏi + đáp án, thanh điểm 2 bên, màn kết quả.
-- Hook `useHouseDuelChannel(ownerId)` — quản lý channel, expose `sendInvite`, `respondInvite`, sự kiện đến.
+- **Realtime đồng bộ câu**
+  - Dùng Supabase Broadcast channel `duel:<duelId>` cho 2 sự kiện:
+    - `question_locked { qIndex, winnerUserId | null, correctIndexes }` — phát khi server ghi nhận người đầu tiên đúng hoặc hết giờ.
+    - `round_advance { qIndex }` — phát sau 1.5s để đồng bộ chuyển câu.
+  - Server function `submitDuelAnswer` trả thêm `firstCorrectAt` từ DB (query MIN(ms) WHERE is_correct); client dùng làm nguồn sự thật, phát broadcast khi đúng.
+  - Không polling nữa; huỷ interval 1.2s hiện có.
 
-**Wiring**:
-- Trong `src/routes/game.tsx` và `src/routes/visit.$ownerId.tsx`: mount `useHouseDuelChannel` với `ownerId` tương ứng, render `DuelInvite` + `DuelRoom` khi có state.
-- HUD hiện nút "⚔️ Mời đấu @username" khi phát hiện người khác trong cùng nhà (lấy từ danh sách `presence` của những friend có `in_house_owner === ownerId`).
+- **Server functions (`src/lib/duels.functions.ts`)**
+  - `listDuelTopics`: luôn trả 7 mục cố định (6 miền digital + 1 history), kèm `count` và `enough: count >= 10`.
+  - `startDuel`: nếu là "history" thì bỏ điều kiện domain, chọn ngẫu nhiên 10 câu enabled thuộc `category='history'`. Giữ nguyên phần shuffle & lưu `question_ids`.
+  - Thêm `resolveRound({duelId, qIndex})`: server chốt câu (winner theo MIN(ms) trong bảng `duel_answers`), cập nhật `host_score`/`guest_score` và trả về `{winnerUserId, correctIndexes}`. Được gọi khi có người đúng đầu tiên hoặc hết giờ.
+  - `finishDuel`: giữ nguyên; đọc `duel_payout` từ `admin_config` thay cho hằng số.
 
-## Ràng buộc & bảo mật
+- **Client (`src/components/DuelRoom.tsx`, `DuelController.tsx`)**
+  - `DuelController`: khi mời, KHÔNG gọi `announceStart` ngay. Chờ khách phản hồi qua broadcast `duel_response`; chỉ khi accept mới cùng `setActiveDuelId`.
+  - `DuelRoom`: viết lại layout theo "arena" ở trên, subscribe realtime channel, dùng snapshot server để render điểm; điểm cục bộ chỉ hiển thị tức thời rồi bị snapshot đè.
+  - Hiển thị nhân vật: tái sử dụng `PetModels`/`Models` avatar tĩnh 2D (nếu có sẵn) hoặc render `<CharacterBadge outfit={...}/>` mới bao gồm màu tóc/áo/mũ.
 
-- Server luôn xác minh cả hai user đều có `presence.in_house_owner = ownerId` khi tạo/bắt đầu duel.
-- Không trả `answer_index`/`correct_indexes` cho client; client gọi `submitAnswer` để chấm.
-- `finishDuel` idempotent: nếu đã `finished` chỉ trả kết quả, không trả tiền lần 2.
-- Payout dùng cùng cột `net_worth` như hệ thống hiện tại; chú thích rõ trong bảng để admin kiểm tra.
-- Chủ đề chỉ liệt kê những nhóm có ≥10 câu active → tránh duel không đủ câu.
+- **Trang admin**
+  - Tab "Phần thưởng": ô "Phần thưởng phòng đấu (đ/câu)" với nút Lưu — cập nhật `admin_config.duel_payout`.
 
-## Các bước triển khai
+## Phạm vi không thay đổi
 
-1. Migration: tạo `duels`, `duel_answers`, enable realtime cho channel (broadcast không cần publication), GRANT + RLS.
-2. Server functions `duels.functions.ts` (create/start/submit/finish + listTopics).
-3. Hook `useHouseDuelChannel` + components `DuelInvite`, `DuelRoom`.
-4. Cắm vào `game.tsx` và `visit.$ownerId.tsx`, thêm nút "⚔️ Mời đấu" ở HUD khi có bạn cùng nhà.
-5. Kiểm tra: mở 2 tab (2 tài khoản), vào cùng 1 nhà, mời → đấu → xác nhận payout +30/−30 trên `game_state`.
+- Không đổi cách vào/ra nhà, presence, hay quyền riêng tư.
+- Không đổi logic câu hỏi ngoài phòng đấu (map, kiếm tiền, boom).
+- Không đổi giá tiền các vật phẩm khác.

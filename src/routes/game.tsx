@@ -1012,8 +1012,8 @@ function GamePage() {
             <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
-          <div className="glass-card px-2 py-1.5 flex items-center gap-1">
-            <span className="text-[10px] font-black text-stone-700 mr-1">TẦNG:</span>
+          <div className="glass-card px-2 py-1.5 flex flex-wrap items-center gap-1 max-w-[85vw] sm:max-w-[360px]">
+            <span className="text-[10px] font-black text-stone-700 mr-1 shrink-0">TẦNG:</span>
             {Array.from({ length: MAX_FLOOR + 1 }, (_, f) => {
               const accessible = canAccessFloor(f);
               const active = activeFloor === f;
@@ -1021,7 +1021,7 @@ function GamePage() {
                 <button
                   key={f}
                   onClick={() => tryGoFloor(f)}
-                  className={`toy-button !text-[11px] !py-1 !px-2 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
+                  className={`toy-button !text-[11px] !py-1 !px-2 shrink-0 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
                   title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp sàn tầng ${f - 1} trước`}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}

@@ -352,7 +352,7 @@ function QuestionEditor({ q, setQ, onSave, onCancel }: {
               <select value={q.competencyDomain ?? ""} onChange={(e) => setQ({ ...q, competencyDomain: e.target.value ? Number(e.target.value) : null })}
                 className="w-full mt-1 px-2 py-2 rounded-xl border-2 border-gray-200 font-bold">
                 <option value="">— chưa gắn —</option>
-                {DOMAIN_LABELS.map((lbl, i) => <option key={i} value={i + 1}>{lbl}</option>)}
+                {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{DOMAIN_LABELS[n]}</option>)}
               </select>
             </label>
           </div>

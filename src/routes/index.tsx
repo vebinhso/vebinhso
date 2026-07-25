@@ -520,9 +520,10 @@ function Home() {
                   if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
                   try {
                     await joinClass(joinCode.trim().toLowerCase());
-                    const c = await getMyClassroom();
-                    setMyClass(c);
-                    toast.success(`Đã vào lớp ${c?.class_code ?? ""}`);
+                    const cs = await getMyClasses();
+                    setMyClasses(cs);
+                    toast.success("Đã vào lớp");
+
                     setJoinOpen(false);
                   } catch (e: any) {
                     toast.error(e?.message || "Mã lớp không hợp lệ");

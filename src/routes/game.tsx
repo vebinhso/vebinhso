@@ -815,6 +815,8 @@ function GamePage() {
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
           onPlayerPos={(x, z) => setPlayerPos({ x, z })}
+          friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
+          onVisitFriend={(ownerId) => navigate({ to: "/visit/$ownerId", params: { ownerId } })}
           onItemClick={(id) => {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;

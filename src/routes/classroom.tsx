@@ -93,11 +93,12 @@ function ClassroomPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-black">🧑‍🏫 LỚP HỌC</h1>
               <p className="text-xs md:text-sm font-bold text-muted-foreground">
-                {profile.teacherSchool || "—"} · Môn: {profile.teacherSubject || "—"}
+                {profile.teacherSchool || "—"}
               </p>
             </div>
             <ClassCodeCard code={profile.classCode} />
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
             <nav className="glass-card p-2 h-fit md:sticky md:top-3">

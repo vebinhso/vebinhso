@@ -22,6 +22,7 @@ import {
   type TaughtClass,
 } from "@/lib/teacher";
 import { DOMAIN_LABELS } from "@/lib/competency-classifier";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,

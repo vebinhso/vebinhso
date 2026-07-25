@@ -12,6 +12,7 @@ import {
   type LoginStreak,
 } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
+import { loadQuestionsFromDB } from "@/game/questions";
 import { isAdmin } from "@/lib/admin";
 import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {

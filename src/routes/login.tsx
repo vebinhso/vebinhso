@@ -240,7 +240,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
         {success && (
           <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-3">{success}</div>
         )}
-        <button onClick={handleRegister} disabled={busy} className="toy-button toy-button-green w-full !text-lg disabled:opacity-60">
+        <button onClick={handleRegister} disabled={busy} className="toy-button toy-button-green w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
           {busy ? "Đang tạo..." : "Tạo tài khoản ✨"}
         </button>
         <button onClick={() => setView("login")} className="toy-button w-full">Quay lại Đăng nhập</button>

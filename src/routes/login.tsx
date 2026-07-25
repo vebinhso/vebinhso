@@ -272,7 +272,7 @@ function Forgot({ setView }: { setView: (v: View) => void }) {
         <Field label="Email đã đăng ký" type="email" value={email} onChange={setEmail} />
         {err && <div className="text-red-600 font-bold text-sm bg-red-50 rounded-xl p-2">{err}</div>}
         {msg && <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-2">{msg}</div>}
-        <button onClick={send} disabled={busy} className="toy-button toy-button-accent w-full !text-lg disabled:opacity-60">
+        <button onClick={send} disabled={busy} className="toy-button toy-button-accent w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
           {busy ? "Đang gửi..." : "Gửi email khôi phục 📧"}
         </button>
         <button onClick={() => setView("login")} className="toy-button w-full">Hủy bỏ</button>

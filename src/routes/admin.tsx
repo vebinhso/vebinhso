@@ -1581,3 +1581,99 @@ function LogsPanel() {
     </div>
   );
 }
+
+/* ===================== TEACHERS ===================== */
+import { listPendingTeachers, approveTeacher, rejectTeacher, type PendingTeacher } from "@/lib/teacher";
+
+function TeachersPanel() {
+  const [rows, setRows] = useState<PendingTeacher[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [filter, setFilter] = useState<"pending" | "approved" | "all">("pending");
+
+  const reload = async () => {
+    setBusy(true);
+    try { setRows(await listPendingTeachers()); } catch (e) { console.error(e); }
+    setBusy(false);
+  };
+  useEffect(() => { reload(); }, []);
+
+  const filtered = rows.filter((r) => filter === "all" ? true : r.teacher_status === filter);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="text-xl font-black">🧑‍🏫 Duyệt giáo viên</h2>
+        <div className="flex gap-1">
+          {(["pending","approved","all"] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1 rounded-lg text-xs font-black ${filter === f ? "bg-orange-500 text-white" : "bg-orange-100"}`}>
+              {f === "pending" ? "Chờ duyệt" : f === "approved" ? "Đã duyệt" : "Tất cả"}
+            </button>
+          ))}
+          <button onClick={reload} className="toy-button text-xs">🔄</button>
+        </div>
+      </div>
+      {busy ? <p className="font-bold">Đang tải...</p> : filtered.length === 0 ? (
+        <p className="font-bold text-muted-foreground">Không có mục nào.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left border-b-2 border-orange-200">
+              <tr className="font-black">
+                <th className="py-2">Giáo viên</th><th>Trường</th><th>Môn</th><th>Trạng thái</th><th>Mã lớp</th><th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.user_id} className="border-b border-gray-100 align-top">
+                  <td className="py-2">
+                    <div className="font-bold">{r.display_name || r.username}</div>
+                    <div className="text-xs text-muted-foreground">{r.email}</div>
+                  </td>
+                  <td>{r.teacher_school || "—"}</td>
+                  <td>{r.teacher_subject || "—"}</td>
+                  <td>
+                    <span className={`px-2 py-0.5 rounded text-xs font-black ${
+                      r.teacher_status === "pending" ? "bg-yellow-100 text-yellow-800"
+                      : r.teacher_status === "approved" ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                    }`}>{r.teacher_status}</span>
+                  </td>
+                  <td className="font-mono font-black text-orange-600">{r.class_code || "—"}</td>
+                  <td>
+                    <div className="flex gap-1 flex-wrap">
+                      {r.teacher_status !== "approved" && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              const code = await approveTeacher(r.user_id);
+                              pushAdminLog(`Duyệt giáo viên ${r.email} (mã ${code})`);
+                              reload();
+                            } catch (e: any) { alert(e?.message || "Lỗi"); }
+                          }}
+                          className="toy-button text-xs bg-green-500 text-white">✅ Duyệt</button>
+                      )}
+                      {r.teacher_status !== "rejected" && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Từ chối yêu cầu này?")) return;
+                            try {
+                              await rejectTeacher(r.user_id);
+                              pushAdminLog(`Từ chối giáo viên ${r.email}`);
+                              reload();
+                            } catch (e: any) { alert(e?.message || "Lỗi"); }
+                          }}
+                          className="toy-button text-xs bg-red-100">❌ Từ chối</button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+

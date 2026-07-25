@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -60,8 +60,39 @@ export function ImageUploadField({ value, onChange, label = "Ảnh" }: Props) {
     if (f) handleFile(f);
   };
 
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [focused, setFocused] = useState(false);
+
+  // Global paste capture: khi vùng này đang focus, mọi paste ảnh sẽ đổ vào đây
+  useEffect(() => {
+    if (!focused) return;
+    const handler = (ev: ClipboardEvent) => {
+      const items = ev.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (it.kind === "file" && it.type.startsWith("image/")) {
+          const f = it.getAsFile();
+          if (f) { ev.preventDefault(); handleFile(f); return; }
+        }
+      }
+    };
+    window.addEventListener("paste", handler);
+    return () => window.removeEventListener("paste", handler);
+  }, [focused]);
+
   return (
-    <div className="space-y-1" onPaste={onPaste} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
+    <div
+      ref={wrapRef}
+      tabIndex={0}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => { if (!wrapRef.current?.contains(e.relatedTarget as Node)) setFocused(false); }}
+      className={`space-y-1 rounded outline-none ${focused ? "ring-2 ring-orange-300" : ""}`}
+      onPaste={onPaste}
+      onDrop={onDrop}
+      onDragOver={(e) => e.preventDefault()}
+      onClick={() => wrapRef.current?.focus()}
+    >
       <div className="flex items-center gap-2 flex-wrap">
         {value ? (
           <>
@@ -108,7 +139,8 @@ export function ImageUploadField({ value, onChange, label = "Ảnh" }: Props) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={`Dán link ảnh, hoặc Ctrl+V để dán ảnh, hoặc kéo thả tệp...`}
+        onFocus={() => setFocused(true)}
+        placeholder={`Dán link ảnh, hoặc bấm vào đây rồi Ctrl+V để dán ảnh, hoặc kéo thả tệp...`}
         className="w-full px-2 py-1 rounded border border-orange-100 text-xs"
       />
     </div>

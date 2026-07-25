@@ -4,7 +4,7 @@ export type Question = {
   id?: string;
   q: string;
   options: string[];
-  answer: number; // index (first correct)
+  answer: number; // index (first correct) — in current display order
   reward: number;
   imageUrl?: string;
   correctIndexes?: number[];
@@ -15,6 +15,8 @@ export type Question = {
   category?: string; // "digital" | "history"
   competencyLevel?: number | null; // 1..8
   competencyDomain?: number | null; // 1..6
+  /** Mapping displayIndex -> originalIndex (in DB `choices` order). Present when answers were shuffled. */
+  optionOrder?: number[];
 };
 
 export const DEFAULT_QUESTIONS: Question[] = [];
@@ -116,6 +118,15 @@ export async function gradeAnswer(
   question: Question,
   selected: number,
 ): Promise<{ isCorrect: boolean; correctIndexes: number[]; reward: number }> {
+  // Nếu options đã bị xáo trộn, dịch index hiển thị -> index gốc trước khi chấm
+  const order = question.optionOrder;
+  const selectedOriginal = order && order[selected] != null ? order[selected] : selected;
+  const toDisplay = (origIdx: number) => {
+    if (!order) return origIdx;
+    const j = order.indexOf(origIdx);
+    return j >= 0 ? j : origIdx;
+  };
+
   if (!question.id) {
     const ci = question.correctIndexes && question.correctIndexes.length > 0
       ? question.correctIndexes
@@ -123,18 +134,38 @@ export async function gradeAnswer(
     return { isCorrect: ci.includes(selected), correctIndexes: ci, reward: question.reward ?? 10 };
   }
   try {
-    const { data, error } = await supabase.rpc("grade_answer", { qid: question.id, selected });
+    const { data, error } = await supabase.rpc("grade_answer", { qid: question.id, selected: selectedOriginal });
     if (error) throw error;
     const row: any = Array.isArray(data) ? data[0] : data;
     if (!row) throw new Error("no grade result");
-    const ci: number[] = Array.isArray(row.correct_indexes) ? row.correct_indexes.map((x: any) => Number(x)) : [];
-    question.correctIndexes = ci;
-    question.answer = ci[0] ?? -1;
-    return { isCorrect: !!row.is_correct, correctIndexes: ci, reward: Number(row.reward ?? question.reward ?? 10) };
+    const ciOrig: number[] = Array.isArray(row.correct_indexes) ? row.correct_indexes.map((x: any) => Number(x)) : [];
+    const ciDisplay = ciOrig.map(toDisplay);
+    question.correctIndexes = ciDisplay;
+    question.answer = ciDisplay[0] ?? -1;
+    return { isCorrect: !!row.is_correct, correctIndexes: ciDisplay, reward: Number(row.reward ?? question.reward ?? 10) };
   } catch (e) {
     console.error("[questions] gradeAnswer failed", e);
     return { isCorrect: false, correctIndexes: [], reward: question.reward ?? 10 };
   }
+}
+
+/** Trả về một bản sao câu hỏi với các đáp án đã được xáo trộn ngẫu nhiên. */
+function withShuffledChoices(q: Question): Question {
+  if (!q.options || q.options.length <= 1) return q;
+  const n = q.options.length;
+  const idx = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return {
+    ...q,
+    options: idx.map((i) => q.options[i]),
+    optionImages: q.optionImages ? idx.map((i) => q.optionImages![i] ?? "") : q.optionImages,
+    optionOrder: idx,
+    correctIndexes: [],
+    answer: -1,
+  };
 }
 
 export function getQuestions(): Question[] {
@@ -202,7 +233,7 @@ export function randomQuestion(): Question {
 
   for (const fn of order) {
     const q = fn();
-    if (q) return q;
+    if (q) return withShuffledChoices(q);
   }
 
   // Không có câu hợp lệ (thiếu bậc / thiếu ưu tiên) — placeholder rỗng.

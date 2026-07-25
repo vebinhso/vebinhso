@@ -31,6 +31,10 @@ function VisitPage() {
     queryKey: ["visit-house", ownerId],
     queryFn: () => fetchFn({ data: { ownerId } }),
     retry: false,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const [activeFloor, setActiveFloor] = useState(0);

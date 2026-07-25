@@ -324,31 +324,137 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
 function StudentsPanel({ classId }: { classId: string }) {
   const [rows, setRows] = useState<ClassroomStudent[]>([]);
   const [busy, setBusy] = useState(true);
+  const [openStudent, setOpenStudent] = useState<ClassroomStudent | null>(null);
   useEffect(() => {
     getClassStudents(classId).then((s: ClassroomStudent[]) => { setRows(s); setBusy(false); }).catch(() => setBusy(false));
   }, [classId]);
   if (busy) return <p className="font-bold">Đang tải...</p>;
   if (rows.length === 0) return <p className="font-bold text-muted-foreground">Chưa có học sinh nào tham gia. Chia sẻ mã lớp cho học sinh!</p>;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="text-left border-b-2 border-orange-200">
-          <tr className="font-black">
-            <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={r.user_id} className="border-b border-gray-100">
-              <td className="py-2 font-bold">{i + 1}</td>
-              <td className="font-bold">{r.display_name || r.username}</td>
-              <td>{r.username}</td>
-              <td className="text-muted-foreground">{r.email}</td>
-              <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+    <>
+      <p className="text-xs font-bold text-muted-foreground mb-2">💡 Bấm vào tên học sinh để xem thống kê câu trả lời.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-left border-b-2 border-orange-200">
+            <tr className="font-black">
+              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.user_id} className="border-b border-gray-100 hover:bg-orange-50 cursor-pointer" onClick={() => setOpenStudent(r)}>
+                <td className="py-2 font-bold">{i + 1}</td>
+                <td className="font-bold text-orange-600 hover:underline">{r.display_name || r.username}</td>
+                <td>{r.username}</td>
+                <td className="text-muted-foreground">{r.email}</td>
+                <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {openStudent && (
+        <StudentStatsModal classId={classId} student={openStudent} onClose={() => setOpenStudent(null)} />
+      )}
+    </>
+  );
+}
+
+function StudentStatsModal({ classId, student, onClose }: { classId: string; student: ClassroomStudent; onClose: () => void }) {
+  const [rows, setRows] = useState<StudentAnswerStat[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    getStudentAnswerStats(classId, student.user_id)
+      .then(setRows)
+      .catch((e) => setErr(e?.message || "Lỗi tải"));
+  }, [classId, student.user_id]);
+
+  const totals = useMemo(() => {
+    const list = rows || [];
+    const attempts = list.reduce((s, r) => s + (r.attempts || 0), 0);
+    const correct = list.reduce((s, r) => s + (r.correct_count || 0), 0);
+    const wrong = list.reduce((s, r) => s + (r.wrong_count || 0), 0);
+    const answered = list.filter((r) => (r.attempts || 0) > 0).length;
+    return { attempts, correct, wrong, answered, totalQ: list.length };
+  }, [rows]);
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3" onClick={onClose}>
+      <div className="bg-white rounded-3xl border-4 border-orange-300 max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b-2 border-orange-200 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-xl font-black truncate">📊 {student.display_name || student.username}</h3>
+            <p className="text-xs text-muted-foreground font-bold truncate">{student.email}</p>
+          </div>
+          <button onClick={onClose} className="toy-button text-sm">✕</button>
+        </div>
+
+        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-2 border-b border-orange-100">
+          <MiniStat label="Đã làm" value={`${totals.answered}/${totals.totalQ}`} tone="orange" />
+          <MiniStat label="Tổng lượt" value={totals.attempts} tone="gray" />
+          <MiniStat label="Đúng" value={totals.correct} tone="green" />
+          <MiniStat label="Sai" value={totals.wrong} tone="red" />
+          <MiniStat
+            label="Tỉ lệ đúng"
+            value={totals.attempts > 0 ? `${Math.round((totals.correct / totals.attempts) * 100)}%` : "—"}
+            tone="purple"
+          />
+        </div>
+
+        <div className="p-4 overflow-y-auto flex-1">
+          {err && <p className="text-red-600 font-bold">{err}</p>}
+          {!rows && !err && <p className="font-bold">Đang tải...</p>}
+          {rows && rows.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có câu hỏi để thống kê.</p>}
+          {rows && rows.length > 0 && (
+            <table className="w-full text-sm">
+              <thead className="text-left border-b-2 border-orange-200 sticky top-0 bg-white">
+                <tr className="font-black">
+                  <th className="py-2">#</th><th>Câu hỏi</th>
+                  <th className="text-center">Lượt</th>
+                  <th className="text-center text-green-700">Đúng</th>
+                  <th className="text-center text-red-700">Sai</th>
+                  <th className="text-center">Lần cuối</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => {
+                  const done = (r.attempts || 0) > 0;
+                  return (
+                    <tr key={r.question_id} className={`border-b border-gray-100 ${!done ? "opacity-60" : ""}`}>
+                      <td className="py-2 font-bold">{i + 1}</td>
+                      <td className="max-w-[24ch] truncate" title={r.question_text}>{r.question_text}</td>
+                      <td className="text-center font-bold">{r.attempts}</td>
+                      <td className="text-center font-bold text-green-700">{r.correct_count}</td>
+                      <td className="text-center font-bold text-red-700">{r.wrong_count}</td>
+                      <td className="text-center text-xs">
+                        {!done ? <span className="text-muted-foreground">chưa làm</span> :
+                          r.last_correct ? <span className="text-green-700 font-black">✓</span> :
+                          <span className="text-red-700 font-black">✗</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string | number; tone: "orange" | "green" | "red" | "gray" | "purple" }) {
+  const bg = {
+    orange: "bg-orange-50 border-orange-200 text-orange-700",
+    green: "bg-green-50 border-green-200 text-green-700",
+    red: "bg-red-50 border-red-200 text-red-700",
+    gray: "bg-gray-50 border-gray-200 text-gray-700",
+    purple: "bg-purple-50 border-purple-200 text-purple-700",
+  }[tone];
+  return (
+    <div className={`rounded-xl border-2 p-2 text-center ${bg}`}>
+      <div className="text-[10px] font-black uppercase opacity-70">{label}</div>
+      <div className="text-lg md:text-xl font-black">{value}</div>
     </div>
   );
 }

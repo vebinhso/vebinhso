@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth";
 import { loadGame } from "@/lib/game";
 import { isAdmin } from "@/lib/admin";
+import { getMyTeacherProfile, joinClass, leaveClass, getMyClassroom, type MyTeacherProfile, type MyClassroom } from "@/lib/teacher";
 import {
   findUserByName,
   sendRequest,
@@ -49,6 +50,10 @@ function Home() {
   const [renameVal, setRenameVal] = useState("");
   const [renameBusy, setRenameBusy] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
+  const [teacherProfile, setTeacherProfile] = useState<MyTeacherProfile | null>(null);
+  const [myClass, setMyClass] = useState<MyClassroom>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
 
   const syncGame = () => {
     const g = loadGame();

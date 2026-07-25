@@ -17,6 +17,8 @@ function PlayPage() {
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
     setHasOutfit(!!loadOutfit());
+    // Preload the heavy 3D chunk so entering the house map feels instant.
+    import("@/game/GameWorld").catch(() => {});
   }, [navigate]);
 
   if (!user) return null;

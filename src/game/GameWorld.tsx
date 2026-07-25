@@ -506,17 +506,19 @@ function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRem
   const baseY = ((f.floor ?? 0) + 1) * WALL_HEIGHT;
   const opacity = dim ? 0.35 : 1;
   const THICK = 0.12;
+  const slabColor = f.color ?? "#cbd5e1";
+  const edgeColor = f.color ?? "#94a3b8";
   return (
     <group position={[cx, baseY, cz]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
-      {/* slab bê tông */}
+      {/* slab bê tông (đã sơn nếu có màu) */}
       <mesh receiveShadow castShadow position={[0, -THICK / 2 + 0.005, 0]}>
         <boxGeometry args={[w + 0.2, THICK, d + 0.2]} />
-        <meshStandardMaterial color="#cbd5e1" roughness={0.95} metalness={0.02} transparent={dim} opacity={opacity} />
+        <meshStandardMaterial color={slabColor} roughness={0.9} metalness={0.02} transparent={dim} opacity={opacity} />
       </mesh>
       {/* viền nhẹ trên mặt sàn */}
       <mesh position={[0, 0.011, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[w + 0.18, d + 0.18]} />
-        <meshStandardMaterial color="#94a3b8" roughness={0.9} transparent opacity={dim ? 0.2 : 0.45} />
+        <meshStandardMaterial color={edgeColor} roughness={0.85} transparent opacity={dim ? 0.2 : 0.45} />
       </mesh>
     </group>
   );

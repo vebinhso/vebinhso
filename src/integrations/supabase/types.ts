@@ -148,6 +148,7 @@ export type Database = {
           az: number
           bx: number
           bz: number
+          color: string | null
           created_at: string
           floor: number
           id: string
@@ -160,6 +161,7 @@ export type Database = {
           az: number
           bx: number
           bz: number
+          color?: string | null
           created_at?: string
           floor?: number
           id?: string
@@ -172,6 +174,7 @@ export type Database = {
           az?: number
           bx?: number
           bz?: number
+          color?: string | null
           created_at?: string
           floor?: number
           id?: string
@@ -213,6 +216,7 @@ export type Database = {
           money: number
           net_worth: number
           owned_palettes: Json
+          paint: number
           roof_tiles: number
           roof_tiles_ton: number
           sign_labels: Json
@@ -232,6 +236,7 @@ export type Database = {
           money?: number
           net_worth?: number
           owned_palettes?: Json
+          paint?: number
           roof_tiles?: number
           roof_tiles_ton?: number
           sign_labels?: Json
@@ -251,6 +256,7 @@ export type Database = {
           money?: number
           net_worth?: number
           owned_palettes?: Json
+          paint?: number
           roof_tiles?: number
           roof_tiles_ton?: number
           sign_labels?: Json

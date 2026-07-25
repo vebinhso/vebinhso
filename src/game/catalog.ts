@@ -21,7 +21,7 @@ export type CatalogItem = {
   shape?: "box" | "cylinder";
   // "place" (mặc định): chọn rồi đặt; "brick"/"concrete": mua dồn kho vật liệu;
   // "palette": mở khung chọn màu sơn tường
-  kind?: "place" | "brick" | "concrete" | "palette" | "rooftile";
+  kind?: "place" | "brick" | "concrete" | "palette" | "rooftile" | "paint";
   qty?: number; // số lượng cộng vào kho mỗi lần mua
   roofStyle?: "tile" | "ton"; // chỉ áp dụng khi kind = "rooftile"
 };
@@ -151,7 +151,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "tile_waterproof", name: "Gạch chống thấm", category: "Vật liệu", price: 8, w: 1, d: 1, h: 0.1, color: "#a8a29e", icon: "🟦" },
   { id: "tile_pattern", name: "Gạch hoạ tiết", category: "Vật liệu", price: 12, w: 1, d: 1, h: 0.1, color: "#fcd34d", icon: "🟨" },
   { id: "tile_pattern_wp", name: "Gạch hoạ tiết chống thấm", category: "Vật liệu", price: 18, w: 1, d: 1, h: 0.1, color: "#fb923c", icon: "🟧" },
-  { id: "paint", name: "Sơn (xô)", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.5, color: "#f43f5e", icon: "🎨", shape: "cylinder" },
+  { id: "paint", name: "Sơn (xô)", category: "Vật liệu", price: 5, w: 1, d: 1, h: 0.5, color: "#f43f5e", icon: "🎨", shape: "cylinder", kind: "paint", qty: 1 },
   { id: "palette", name: "Palette màu tường (mở khung chọn)", category: "Vật liệu", price: 100, w: 1, d: 1, h: 0.2, color: "#a78bfa", icon: "🎨", kind: "palette" },
 ];
 

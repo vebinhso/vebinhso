@@ -149,7 +149,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
         <button
           onClick={handleLogin}
           disabled={busy}
-          className="toy-button toy-button-primary w-full !text-lg !py-3 disabled:opacity-60"
+          className="toy-button toy-button-primary w-full !text-base sm:!text-lg !py-3 disabled:opacity-60 truncate"
         >🔑 {busy ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}</button>
         <div className="text-center text-sm">
           Chưa có tài khoản?{" "}

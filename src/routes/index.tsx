@@ -262,6 +262,9 @@ function Home() {
                       try {
                         await setActiveClass(c.is_active ? null : c.class_id);
                         setMyClasses(await getMyClasses());
+                        // Nạp lại bộ câu hỏi để lần vào game kế tiếp
+                        // dùng ngân hàng lớp (khi bật) hoặc mặc định (khi tắt).
+                        loadQuestionsFromDB().catch(() => {});
                         toast.success(c.is_active ? "Đã tắt lớp đang hoạt động" : `Đang hoạt động: ${c.name}`);
                       } catch (e: any) { toast.error(e?.message || "Lỗi"); }
                     }}

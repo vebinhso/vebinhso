@@ -1,85 +1,59 @@
-# Bản đồ bạn bè & tham quan nhà
 
-Tính năng lớn, đụng vào DB + realtime + 3D scene. Chia làm 4 mốc để dễ kiểm tra từng bước.
+## Mục tiêu
 
-## 1. Dữ liệu & quyền riêng tư (migration)
+1. Bỏ trang `/friends-map` khỏi luồng "Rời nhà" — nút này quay về `/game` (nhà mình).
+2. Tên chủ căn nhà (khi đang thăm) hiển thị to, nổi bật hơn.
+3. 4 chế độ quyền riêng tư nhà: **Công khai / Bạn bè / Tùy chỉnh (whitelist) / Đóng cửa**.
+4. Khi có người vào nhà bạn: hiện toast `<tên người chơi> đang tham quan` cho chủ nhà.
+5. Real-time co-op: khách và chủ (nếu online cùng lúc) đều thấy avatar nhau di chuyển trong cùng ngôi nhà; mỗi người điều khiển nhân vật riêng.
+6. Khách được phép co-build: có thanh công cụ xây bên phải trong nhà bạn (chỉ khi chủ bật), đặt/xoá đồ áp vào state nhà chủ; **tiền và vật liệu trừ vào tài khoản của khách**.
 
-Thêm cột / bảng mới:
+## Thay đổi chính
 
-- `profiles`:
-  - `map_x float`, `map_y float` — toạ độ nhà trên bản đồ (mặc định random 1 lần).
-  - `house_privacy text` — `public | friends | private` (mặc định `friends`).
-  - `house_name text` — tên căn nhà hiển thị dưới icon (nếu null → dùng username).
-- `presence` (bảng mới): `user_id PK`, `is_online bool`, `in_house_owner uuid null`, `last_seen timestamptz`.
-  - Cập nhật qua Realtime + heartbeat 30s (tận dụng `startSessionTracker` sẵn có).
-- RPC `get_friend_houses()` (SECURITY DEFINER):
-  - Trả về danh sách nhà của các user có `friends.status='accepted'` với `auth.uid()`.
-  - Kèm `username, avatar_url, map_x, map_y, house_privacy, house_name, is_online, in_house_owner`.
-- RPC `can_visit_house(owner uuid)`:
-  - `true` nếu `public`, hoặc `friends` + đã kết bạn, hoặc chính chủ.
-  - `false` nếu `private` hoặc không đủ quyền.
-- RLS: cho `authenticated` SELECT các cột public của `profiles` (username, avatar, map coords, privacy, house_name) — vẫn giấu email.
-- GRANT chuẩn cho bảng `presence` (owner-only INSERT/UPDATE, SELECT cho authenticated để bạn bè thấy trạng thái).
+### Database (một migration)
+- `profiles`: đổi kiểu `house_privacy` cho phép `'public' | 'friends' | 'custom' | 'closed'` (giữ cột text hiện có, chỉ mở rộng giá trị hợp lệ ở app-level; policy `can_visit_house` cập nhật).
+- `profiles.house_allow_list uuid[]` — whitelist cho chế độ `custom`.
+- `profiles.coop_build boolean default false` — chủ nhà bật/tắt cho khách xây.
+- `has_role`-style helper: cập nhật `can_visit_house(owner uuid)` xử lý `custom` (kiểm tra `auth.uid()` nằm trong `house_allow_list`) và `closed` (luôn false trừ chủ).
+- RLS `placed_items` / `walls` / `roofs` / `floors`: thêm policy INSERT/DELETE cho khách khi `owner.coop_build = true` và `can_visit_house(owner)`.
+- Bật realtime cho `placed_items`, `walls`, `roofs`, `floors`, `presence` (nếu chưa).
 
-## 2. Server functions
+### Server functions (`src/lib/friend-houses.functions.ts`)
+- `updateHouseSettings` nhận thêm `privacy: 'closed'`, `allow_list: string[]`, `coop_build: boolean`.
+- `listFriendsForWhitelist` — trả danh sách bạn bè (id, username, avatar) để checkbox.
+- `coopUpsertItem` / `coopDeleteItem` / `coopUpsertWall` / … — server fn đặt/xoá đồ trong nhà chủ với auth = khách; trừ tiền/vật liệu từ `game_state` của khách (transaction).
 
-Tạo `src/lib/friend-houses.functions.ts` (dùng `requireSupabaseAuth`):
+### UI
+- **`src/routes/visit.$ownerId.tsx`**:
+  - Nút "🚪 Rời nhà" → `navigate({ to: "/game" })`.
+  - Header tên chủ: font lớn (`text-2xl md:text-3xl`), có avatar, house_name làm tiêu đề chính.
+  - Nếu `coop_build = true`: bật panel công cụ xây (dùng lại `SettingsPanel` phần shop/place) ở góc phải; mọi hành động gọi coop server fn thay vì `saveGame` local.
+- **`src/routes/game.tsx`** (Settings nhà):
+  - Radio 4 chế độ; khi chọn `custom` mở list checkbox bạn bè.
+  - Toggle "Cho phép bạn bè cùng xây".
+- **Realtime avatar sync** (`src/lib/coop-presence.ts` mới):
+  - Supabase channel `house:<ownerId>` với broadcast `{ userId, x, z, angle, floor }` @ 10Hz.
+  - Ai đang trong nhà (kể cả chủ ở `/game`) subscribe kênh của chủ nhà và render `RemoteCharacter` cho mỗi user_id khác.
+  - `GameWorld` nhận `remotePlayers: {id, name, avatar, x, z, angle}[]` và render.
+- **Toast "đang tham quan"** cho chủ nhà: subscribe presence realtime, khi có `in_house_owner = mine` mới → toast tên.
 
-- `listFriendHouses()` → gọi RPC `get_friend_houses`.
-- `getVisitableHouse({ ownerId })` → check `can_visit_house`; nếu OK trả về snapshot chỉ đọc: outfit, floors, walls, roofs, placed_items, sign labels của chủ nhà. Nếu không → throw lỗi "Nơi ở riêng tư".
-- `updateHousePrivacy({ privacy, house_name?, map_x?, map_y? })` — cập nhật `profiles`.
-- `setPresenceInHouse({ ownerId | null })` — set/clear `in_house_owner`.
+## Kỹ thuật
 
-## 3. Bản đồ bạn bè (UI mới `/friends-map`)
+```text
+Broadcast pos ──┐         ┌── RemoteCharacter (khách)
+                ├─► channel:house:<ownerId>
+Broadcast pos ──┘         └── RemoteCharacter (chủ)
 
-Route mới `src/routes/friends-map.tsx`:
+Coop edit:  visitor -> coopUpsertItem(ownerId,...) -> RLS check
+                    -> INSERT placed_items(user_id=ownerId)
+                    -> UPDATE game_state SET money=money-cost WHERE user_id=visitor
+                    -> realtime postgres_changes fires -> cả 2 client refetch
+```
 
-- Canvas 2D (SVG hoặc div absolute positioning) rộng ~2000x1200, có pan/zoom bằng chuột & pinch trên mobile.
-- Render mỗi nhà bạn bè = icon 🏠 + avatar tròn + tên + chấm trạng thái 🟢/⚪.
-- Hover / tap → popup nhỏ: avatar, tên, online, đang ở trong nhà (nếu có), nút **🏠 Vào nhà** hoặc **🔒 Nơi ở riêng tư** (disabled).
-- Chống chồng: chạy layout đơn giản (jitter theo hash user_id) khi 2 nhà quá gần.
-- Animation `animate-in fade-in slide-in-from-bottom-2` khi icon xuất hiện.
-- Nút **⚙️ Cài đặt nhà của tôi** mở modal chọn privacy (Public / Friends / Private) + đổi `house_name` + kéo icon nhà mình để đổi vị trí.
-- Realtime: subscribe kênh `presence-map` → khi có `is_online` / `in_house_owner` đổi thì refetch chỉ 1 hàng.
+## Phạm vi ngoài lần này
+- Voice chat, gesture emote — bỏ qua.
+- Xung đột đặt cùng ô: last-write-wins.
 
-Thêm entry point vào trang chủ + trong menu game: nút "🗺️ BẢN ĐỒ BẠN BÈ".
+## Xác nhận trước khi build
 
-## 4. Chế độ tham quan nhà bạn (read-only)
-
-Trong `src/routes/game.tsx`:
-
-- Thêm search param `visit=<ownerId>`. Nếu có:
-  - Gọi `getVisitableHouse({ ownerId })`; lỗi → toast "Căn nhà này hiện không mở cho bạn tham quan." rồi `navigate` về `/friends-map`.
-  - Load snapshot vào state riêng (không đè `useGame`); disable mọi mutation (mua, đặt, xoá, di chuyển, xoay, đổi vật liệu).
-  - HUD hiển thị: avatar + tên chủ nhà, "Đang tham quan", nút **🚪 Rời nhà** (quay lại `/friends-map`).
-  - Gọi `setPresenceInHouse({ ownerId })` khi vào, clear khi rời (cả unmount + `beforeunload`).
-- `GameWorld` nhận thêm prop `readOnly` để bỏ tất cả click-to-edit + edit panel.
-- Hiển thị các visitor khác cùng chủ nhà: dùng Realtime `presence` channel `house:<ownerId>` (chỉ danh sách, chưa render 3D vị trí — tiết kiệm phạm vi giai đoạn 1).
-- Chat trong nhà: dùng lại `messages` bảng sẵn có, filter theo `to_user = ownerId` như "phòng khách" (giai đoạn 2, chưa làm nếu vượt phạm vi).
-
-## 5. NGOÀI phạm vi lần này (làm sau)
-
-- Đồng bộ vị trí 3D theo thời gian thực của visitor bên trong nhà (multiplayer thật).
-- Chat riêng theo phòng nhà.
-- Chỉnh sửa nội thất khi được chủ nhà cấp quyền.
-
-## Chi tiết kỹ thuật
-
-- Realtime hiện tại chỉ bật cho `messages`. Migration sẽ `ALTER PUBLICATION supabase_realtime ADD TABLE presence, profiles` (chỉ các cột an toàn — vì Realtime phát full row, nên tạo bảng phụ `profiles_public` view hoặc chỉ dùng `presence` cho realtime; sẽ dùng `presence` để tránh leak email).
-- Không dùng WebSocket riêng; Supabase Realtime đủ dùng.
-- Toạ độ nhà mặc định: hash `user_id` → toạ độ ổn định trong khung [80..1920]×[80..1120] để user chưa set vị trí vẫn có chỗ hiện lên.
-- Tất cả server fn dùng `requireSupabaseAuth` → RLS bảo vệ; không có endpoint public.
-
-## Thứ tự thực thi
-
-1. Migration (bảng + cột + RPC + RLS + realtime publication).
-2. Server functions + refactor `friends.ts` để expose danh sách accepted.
-3. Route `/friends-map` (bản đồ + popup + modal cài đặt).
-4. Chế độ `?visit=` trong `/game` (read-only) + nút "Rời nhà".
-5. Cắm entry vào trang chủ + menu game.
-6. Test end-to-end: 2 tài khoản kết bạn → thấy nhau trên map → thăm nhà theo từng chế độ privacy.
-
-## Cảnh báo
-
-- Đây là feature ~10 file mới/sửa, ảnh hưởng game route lớn nhất. Sau khi làm xong, cần test lại flow xây nhà cũ không bị regression.
-- Chi phí Realtime tăng do thêm `presence` channel — sẽ scope hẹp (chỉ user + bạn bè, không phát toàn cầu).
+Kế hoạch này khá lớn (migration + 5-6 server fn mới + realtime channel + UI co-build). Mình sẽ triển khai theo thứ tự: (1) migration + settings 4 chế độ, (2) đổi nút Rời nhà + header to, (3) toast đang tham quan, (4) realtime avatar sync, (5) co-build. OK để bắt đầu chứ?

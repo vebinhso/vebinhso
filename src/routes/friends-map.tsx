@@ -7,7 +7,10 @@ import {
   listFriendHouses,
   getMyHouseSettings,
   updateHouseSettings,
+  listMyFriendsForWhitelist,
   type FriendHouse,
+  type HousePrivacy,
+  type MyHouseSettings as MyHouseData,
 } from "@/lib/friend-houses.functions";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -224,7 +227,8 @@ function HousePopup({
   const canVisit =
     house.user_id === myId ||
     house.house_privacy === "public" ||
-    house.house_privacy === "friends"; // friends implicit — server re-validates
+    house.house_privacy === "friends" ||
+    house.house_privacy === "custom"; // server re-validates whitelist
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
@@ -262,59 +266,126 @@ function HousePopup({
   );
 }
 
-type MyHouse = {
-  user_id: string; username: string; display_name: string | null; avatar_url: string | null;
-  map_x: number; map_y: number; house_privacy: "public" | "friends" | "private"; house_name: string | null;
-};
+type MyHouse = MyHouseData;
+
+const PRIVACY_OPTIONS: { id: HousePrivacy; label: string; hint: string }[] = [
+  { id: "public",  label: "🌐 Công khai", hint: "Mọi người chơi đã đăng nhập đều có thể vào thăm." },
+  { id: "friends", label: "👥 Bạn bè",    hint: "Chỉ bạn bè đã chấp nhận mới vào được." },
+  { id: "custom",  label: "✅ Tuỳ chỉnh", hint: "Chỉ những người bạn bạn tick chọn mới vào được." },
+  { id: "closed",  label: "🚪 Đóng cửa", hint: "Không ai vào thăm được, kể cả bạn bè." },
+];
 
 function MyHouseSettings({
-  initial, onClose, onSave,
+  initial: init, onClose, onSave,
 }: { initial: MyHouse; onClose: () => void; onSave: (p: any) => Promise<void> }) {
-  const [privacy, setPrivacy] = useState(initial.house_privacy);
-  const [name, setName] = useState(initial.house_name ?? "");
-  const [x, setX] = useState(initial.map_x);
-  const [y, setY] = useState(initial.map_y);
+  const [privacy, setPrivacy] = useState<HousePrivacy>(
+    (init.house_privacy === "private" ? "closed" : init.house_privacy) as HousePrivacy,
+  );
+  const [name, setName] = useState(init.house_name ?? "");
+  const [x, setX] = useState(init.map_x);
+  const [y, setY] = useState(init.map_y);
+  const [allowSet, setAllowSet] = useState<Set<string>>(new Set(init.house_allow_list ?? []));
+  const [coop, setCoop] = useState<boolean>(!!init.coop_build);
   const [busy, setBusy] = useState(false);
+
+  const friendsFn = useServerFn(listMyFriendsForWhitelist);
+  const friendsQ = useQuery({
+    queryKey: ["my-friends-whitelist"],
+    queryFn: () => friendsFn(),
+    enabled: privacy === "custom",
+    staleTime: 30_000,
+  });
 
   const save = async () => {
     setBusy(true);
     try {
-      await onSave({ privacy, house_name: name.trim() || null, map_x: x, map_y: y });
+      await onSave({
+        privacy,
+        house_name: name.trim() || null,
+        map_x: x,
+        map_y: y,
+        house_allow_list: Array.from(allowSet),
+        coop_build: coop,
+      });
       onClose();
     } finally { setBusy(false); }
   };
 
+  const toggleFriend = (id: string) => {
+    setAllowSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
-      <div className="glass-card w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="glass-card w-full max-w-md p-5 max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-xl font-black mb-3">⚙️ Cài đặt nhà của tôi</h2>
 
         <label className="block text-sm font-bold mb-1">Tên căn nhà</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 40))}
-          placeholder={initial.username}
+          placeholder={init.username}
           className="w-full mb-3 px-3 py-2 rounded-xl border-2 border-orange-200 focus:border-orange-400 outline-none"
         />
 
         <label className="block text-sm font-bold mb-1">Quyền tham quan</label>
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          {(["public", "friends", "private"] as const).map((p) => (
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          {PRIVACY_OPTIONS.map((p) => (
             <button
-              key={p}
-              onClick={() => setPrivacy(p)}
+              key={p.id}
+              onClick={() => setPrivacy(p.id)}
               className={`rounded-xl border-2 py-2 text-sm font-black transition ${
-                privacy === p ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-200"
+                privacy === p.id ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-200"
               }`}
             >
-              {p === "public" ? "🌐 Công khai" : p === "friends" ? "👥 Bạn bè" : "🔒 Riêng tư"}
+              {p.label}
             </button>
           ))}
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {privacy === "public" && "Mọi người chơi đã đăng nhập đều có thể vào thăm."}
-          {privacy === "friends" && "Chỉ bạn bè đã chấp nhận mới vào được."}
-          {privacy === "private" && "Không ai vào thăm được, kể cả bạn bè."}
+          {PRIVACY_OPTIONS.find((p) => p.id === privacy)?.hint}
+        </p>
+
+        {privacy === "custom" && (
+          <div className="mb-3">
+            <div className="text-sm font-bold mb-1">Chọn bạn bè được phép vào</div>
+            <div className="rounded-xl border-2 border-orange-200 max-h-48 overflow-y-auto divide-y">
+              {friendsQ.isLoading && <div className="p-2 text-xs">Đang tải danh sách bạn bè…</div>}
+              {friendsQ.data && friendsQ.data.length === 0 && (
+                <div className="p-2 text-xs text-muted-foreground">Chưa có bạn bè để chọn.</div>
+              )}
+              {(friendsQ.data ?? []).map((f) => (
+                <label key={f.user_id} className="flex items-center gap-2 p-2 cursor-pointer hover:bg-orange-50">
+                  <input
+                    type="checkbox"
+                    checked={allowSet.has(f.user_id)}
+                    onChange={() => toggleFriend(f.user_id)}
+                  />
+                  {f.avatar_url ? (
+                    <img src={f.avatar_url} className="w-6 h-6 rounded-full" alt="" />
+                  ) : (
+                    <span className="w-6 h-6 rounded-full bg-orange-400 text-white grid place-items-center text-xs font-black">
+                      {initial(f.username)}
+                    </span>
+                  )}
+                  <span className="text-sm">{f.display_name || f.username}</span>
+                </label>
+              ))}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">Đã chọn: {allowSet.size} bạn</div>
+          </div>
+        )}
+
+        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+          <input type="checkbox" checked={coop} onChange={(e) => setCoop(e.target.checked)} />
+          <span className="text-sm font-bold">🔨 Cho phép bạn bè cùng xây khi vào thăm</span>
+        </label>
+        <p className="text-xs text-muted-foreground -mt-2 mb-3">
+          Khi bật, khách được phép đặt/xoá đồ trong nhà bạn — tiền và vật liệu sẽ trừ vào tài khoản của khách.
         </p>
 
         <label className="block text-sm font-bold mb-1">Vị trí trên bản đồ</label>

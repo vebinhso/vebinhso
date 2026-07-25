@@ -327,9 +327,11 @@ export type Database = {
         Row: {
           avatar: string | null
           avatar_url: string | null
+          coop_build: boolean
           created_at: string
           display_name: string | null
           email: string | null
+          house_allow_list: string[]
           house_name: string | null
           house_privacy: string
           map_x: number
@@ -342,9 +344,11 @@ export type Database = {
         Insert: {
           avatar?: string | null
           avatar_url?: string | null
+          coop_build?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null
+          house_allow_list?: string[]
           house_name?: string | null
           house_privacy?: string
           map_x?: number
@@ -357,9 +361,11 @@ export type Database = {
         Update: {
           avatar?: string | null
           avatar_url?: string | null
+          coop_build?: boolean
           created_at?: string
           display_name?: string | null
           email?: string | null
+          house_allow_list?: string[]
           house_name?: string | null
           house_privacy?: string
           map_x?: number
@@ -581,6 +587,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      can_coop_build: { Args: { owner: string }; Returns: boolean }
       can_visit_house: { Args: { owner: string }; Returns: boolean }
       get_friend_houses: {
         Args: never

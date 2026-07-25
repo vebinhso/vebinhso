@@ -561,21 +561,37 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     if (preview.length === 0) { toast.error("Chưa có câu hỏi để nhập"); return; }
     setBusy(true);
     let ok = 0;
-    for (const q of preview) {
-      try { await createMyQuestion({ ...q, classId }); ok++; } catch { /* skip */ }
+    const errs: string[] = [];
+    for (let i = 0; i < preview.length; i++) {
+      try { await createMyQuestion({ ...preview[i], classId }); ok++; }
+      catch (e: any) { errs.push(`Câu ${i + 1}: ${e?.message || "lỗi không rõ"}`); }
     }
     setBusy(false);
-    toast.success(`Đã nhập ${ok}/${preview.length} câu hỏi`);
-    setText(""); setPreview([]);
-    onDone?.();
+    if (ok > 0) toast.success(`Đã nhập ${ok}/${preview.length} câu hỏi`);
+    if (errs.length) {
+      toast.error(errs[0]);
+      console.error("[import errors]", errs);
+    }
+    if (ok > 0) { setText(""); setPreview([]); onDone?.(); }
   };
 
-  const csvSample = useMemo(() => `text,option1,option2,option3,option4,correct,reward,category,level,domain
-"Máy tính viết tắt là gì?",PC,TV,AC,DC,1,10,digital,1,1
-"Trận Bạch Đằng năm nào?",938,1288,1789,1288,"1,4",15,history,,`, []);
+  const csvSample = useMemo(() => `text,option1,option2,option3,option4,correct,reward
+"Máy tính viết tắt là gì?",PC,TV,AC,DC,1,10
+"Trận Bạch Đằng năm 938 do ai lãnh đạo?","Ngô Quyền","Lý Thường Kiệt","Trần Hưng Đạo","Lê Lợi",1,15`, []);
   const jsonSample = useMemo(() => JSON.stringify([
-    { text: "Máy tính viết tắt là gì?", options: ["PC","TV","AC","DC"], correct: 0, reward: 10, category: "digital", level: 1, domain: 1 },
+    { text: "Máy tính viết tắt là gì?", options: ["PC","TV","AC","DC"], correct: 0, reward: 10 },
+    { text: "Trận Bạch Đằng năm 938 do ai lãnh đạo?", options: ["Ngô Quyền","Lý Thường Kiệt","Trần Hưng Đạo","Lê Lợi"], correct: 0, reward: 15 },
   ], null, 2), []);
+
+  const downloadSample = () => {
+    const content = format === "csv" ? csvSample : jsonSample;
+    const mime = format === "csv" ? "text/csv" : "application/json";
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `mau-cau-hoi.${format}`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -585,11 +601,15 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
           <option value="csv">CSV</option>
           <option value="json">JSON</option>
         </select>
+        <button onClick={downloadSample} className="toy-button text-xs">⬇️ Tải mẫu {format.toUpperCase()}</button>
         <label className="toy-button text-xs cursor-pointer">
           📁 Chọn file
           <input type="file" accept=".csv,.json,.txt,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.pdf,.mp4,.mov,.webm,.mp3,.wav,.m4a" hidden onChange={(e) => onFile(e.target.files?.[0] || null)} />
         </label>
       </div>
+      <p className="text-[11px] font-bold text-muted-foreground">
+        Cột bắt buộc: <b>text, option1..4, correct, reward</b>. Không cần điền miền/bậc — hệ thống sẽ tự phân loại sau khi lưu.
+      </p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -597,7 +617,7 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
         rows={10}
         className="w-full px-3 py-2 rounded-xl border-2 border-gray-200 font-mono text-xs"
       />
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button onClick={doParse} className="toy-button">🔍 Xem trước</button>
         <button onClick={doImport} disabled={busy || preview.length === 0} className="toy-button toy-button-primary disabled:opacity-50">
           {busy ? "Đang nhập..." : `📥 Nhập ${preview.length} câu`}
@@ -607,7 +627,7 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
         <div className="border-2 border-orange-200 rounded-2xl p-3 max-h-60 overflow-y-auto">
           <div className="font-black text-sm mb-2">Xem trước ({preview.length}):</div>
           <ol className="text-xs list-decimal pl-5 space-y-1">
-            {preview.slice(0, 20).map((q, i) => <li key={i}><b>{q.text}</b> — {q.choices.length} đáp án · {q.category}</li>)}
+            {preview.slice(0, 20).map((q, i) => <li key={i}><b>{q.text}</b> — {q.choices.length} đáp án · đúng: {q.correctIndexes.map((n) => String.fromCharCode(65 + n)).join(",")}</li>)}
             {preview.length > 20 && <li className="italic">... còn {preview.length - 20} câu</li>}
           </ol>
         </div>
@@ -619,3 +639,4 @@ function ImportPanel({ classId, onDone }: { classId: string; onDone?: () => void
     </div>
   );
 }
+

@@ -2,14 +2,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const PAYOUT = 30;
+const DEFAULT_PAYOUT = 30;
 const N_QUESTIONS = 10;
 
 export type DuelTopic = {
   category: "digital" | "history";
-  domain: number | null; // 1..6 or null (mixed)
+  domain: number | null; // 1..6 or null (history)
   label: string;
-  count: number;
+  count: number;   // số câu enabled trong DB
+  enough: boolean; // >= N_QUESTIONS
 };
 
 export type DuelQuestion = {
@@ -20,10 +21,19 @@ export type DuelQuestion = {
   optionImages?: (string | null)[];
 };
 
+export type DuelPlayerInfo = {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
 export type DuelSnapshot = {
   id: string;
   hostId: string;
   guestId: string;
+  host: DuelPlayerInfo | null;
+  guest: DuelPlayerInfo | null;
   status: "pending" | "active" | "finished" | "cancelled";
   category: string | null;
   domain: number | null;
@@ -35,13 +45,30 @@ export type DuelSnapshot = {
 };
 
 const DOMAIN_LABELS: Record<number, string> = {
-  1: "Miền 1",
-  2: "Miền 2",
-  3: "Miền 3",
-  4: "Miền 4",
-  5: "Miền 5",
-  6: "Miền 6",
+  1: "Miền 1 – Vận hành thiết bị & phần mềm",
+  2: "Miền 2 – Khai thác thông tin & dữ liệu",
+  3: "Miền 3 – Giao tiếp & hợp tác số",
+  4: "Miền 4 – An toàn số",
+  5: "Miền 5 – Sáng tạo nội dung số",
+  6: "Miền 6 – Học tập & phát triển số",
 };
+
+/** Fixed 7 topics: 6 digital domains + 1 history-culture. */
+const FIXED_TOPICS: Array<{ category: "digital" | "history"; domain: number | null; label: string }> = [
+  ...([1, 2, 3, 4, 5, 6] as const).map((d) => ({
+    category: "digital" as const,
+    domain: d as number,
+    label: `🌐 ${DOMAIN_LABELS[d]}`,
+  })),
+  { category: "history", domain: null, label: "🏛️ Lịch sử – Văn hoá" },
+];
+
+async function loadPayout(supabase: any): Promise<number> {
+  const { data } = await supabase.from("admin_config").select("value").eq("key", "duel_payout").maybeSingle();
+  const v = (data as any)?.value;
+  const n = typeof v === "number" ? v : (v && typeof v.amount === "number" ? v.amount : NaN);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : DEFAULT_PAYOUT;
+}
 
 /** Host creates a pending duel with a guest inside the same house. */
 export const createDuel = createServerFn({ method: "POST" })
@@ -54,7 +81,6 @@ export const createDuel = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ duelId: string }> => {
     if (data.guestId === context.userId) throw new Error("Không thể mời chính mình");
     const { supabase, userId } = context;
-    // Verify both users' presence points to the same house owner.
     const { data: rows, error: pErr } = await (supabase.from("presence") as any)
       .select("user_id, in_house_owner")
       .in("user_id", [userId, data.guestId]);
@@ -65,13 +91,14 @@ export const createDuel = createServerFn({ method: "POST" })
     if (!me || me.in_house_owner !== data.ownerId) throw new Error("Bạn không ở trong căn nhà này");
     if (!them || them.in_house_owner !== data.ownerId) throw new Error("Đối thủ đã rời căn nhà này");
 
+    const payout = await loadPayout(supabase);
     const { data: ins, error } = await (supabase.from("duels") as any)
       .insert({
         host_id: userId,
         guest_id: data.guestId,
         house_owner: data.ownerId,
         status: "pending",
-        payout: PAYOUT,
+        payout,
       })
       .select("id")
       .single();
@@ -79,7 +106,7 @@ export const createDuel = createServerFn({ method: "POST" })
     return { duelId: String(ins.id) };
   });
 
-/** Guest responds to invite: accept -> keep pending; decline -> cancelled. */
+/** Guest responds to invite. */
 export const respondDuel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { duelId: string; accept: boolean }) => ({
@@ -103,7 +130,7 @@ export const respondDuel = createServerFn({ method: "POST" })
     return { ok: true, status: "accepted" as const };
   });
 
-/** List topics that have at least 10 enabled questions. */
+/** List the 7 fixed topics; disabled when the pool is smaller than N_QUESTIONS. */
 export const listDuelTopics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DuelTopic[]> => {
@@ -112,28 +139,24 @@ export const listDuelTopics = createServerFn({ method: "GET" })
       .eq("enabled", true);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as Array<{ category: string | null; competency_domain: number | null }>;
-    const counter = new Map<string, { cat: "digital" | "history"; dom: number | null; n: number }>();
+    const counter = new Map<string, number>();
     for (const r of rows) {
-      const cat: "digital" | "history" = r.category === "digital" ? "digital" : "history";
-      const dom = typeof r.competency_domain === "number" ? r.competency_domain : null;
-      for (const key of [`${cat}|all`, `${cat}|${dom ?? "none"}`]) {
-        const cur = counter.get(key) ?? { cat, dom: key.endsWith("|all") ? null : dom, n: 0 };
-        cur.n++;
-        counter.set(key, cur);
+      const cat = r.category === "digital" ? "digital" : "history";
+      if (cat === "history") {
+        counter.set("history|null", (counter.get("history|null") ?? 0) + 1);
+      } else if (typeof r.competency_domain === "number") {
+        const k = `digital|${r.competency_domain}`;
+        counter.set(k, (counter.get(k) ?? 0) + 1);
       }
     }
-    const out: DuelTopic[] = [];
-    for (const [, v] of counter) {
-      if (v.n < N_QUESTIONS) continue;
-      const catLabel = v.cat === "digital" ? "Năng lực số" : "Lịch sử - Văn hoá";
-      const label = v.dom == null ? `${catLabel} · Tất cả miền` : `${catLabel} · ${DOMAIN_LABELS[v.dom] ?? `Miền ${v.dom}`}`;
-      out.push({ category: v.cat, domain: v.dom, label, count: v.n });
-    }
-    out.sort((a, b) => a.label.localeCompare(b.label));
-    return out;
+    return FIXED_TOPICS.map((t) => {
+      const k = `${t.category}|${t.domain ?? "null"}`;
+      const count = counter.get(k) ?? 0;
+      return { ...t, count, enough: count >= N_QUESTIONS };
+    });
   });
 
-/** Host picks a topic and starts the duel. Returns questions (without answers). */
+/** Host picks a topic and starts the duel. */
 export const startDuel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: {
@@ -155,19 +178,20 @@ export const startDuel = createServerFn({ method: "POST" })
     if (!duel) throw new Error("Không tìm thấy phòng đấu");
     if (duel.host_id !== userId) throw new Error("Chỉ chủ phòng mới bắt đầu được");
     if (duel.status === "active" || duel.status === "finished") {
-      return snapshotFromRow(duel, await loadQuestions(supabase, duel.question_ids));
+      return snapshotFromRow(supabase, duel, await loadQuestions(supabase, duel.question_ids));
     }
-    // Pick 10 random enabled questions.
+
     let q = (supabase.from("questions_bank") as any)
       .select("id, text, choices, image_url, category, competency_domain, enabled")
       .eq("enabled", true)
       .eq("category", data.category);
-    if (data.domain != null) q = q.eq("competency_domain", data.domain);
+    if (data.category === "digital" && data.domain != null) {
+      q = q.eq("competency_domain", data.domain);
+    }
     const { data: pool, error: qErr } = await q.limit(500);
     if (qErr) throw new Error(qErr.message);
     const arr = ((pool ?? []) as any[]).filter((r) => Array.isArray(r.choices) && r.choices.length >= 2);
-    if (arr.length < N_QUESTIONS) throw new Error("Không đủ câu hỏi cho chủ đề này");
-    // Fisher-Yates shuffle, pick first 10
+    if (arr.length < N_QUESTIONS) throw new Error(`Chủ đề chưa đủ ${N_QUESTIONS} câu (chỉ có ${arr.length})`);
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -175,21 +199,22 @@ export const startDuel = createServerFn({ method: "POST" })
     const chosen = arr.slice(0, N_QUESTIONS);
     const ids = chosen.map((r) => String(r.id));
 
+    const payout = await loadPayout(supabase);
     const { data: updated, error: uErr } = await (supabase.from("duels") as any)
       .update({
         status: "active",
         topic_category: data.category,
         topic_domain: data.domain,
         question_ids: ids,
+        payout,
       })
       .eq("id", data.duelId)
       .select("*")
       .single();
     if (uErr) throw new Error(uErr.message);
-    return snapshotFromRow(updated, chosen.map(mapQuestion));
+    return snapshotFromRow(supabase, updated, chosen.map(mapQuestion));
   });
 
-/** Get current duel snapshot (for guests who join after start). */
 export const getDuel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { duelId: string }) => ({ duelId: String(input.duelId) }))
@@ -200,10 +225,10 @@ export const getDuel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!duel) throw new Error("Không tìm thấy phòng đấu");
     const qs = await loadQuestions(supabase, duel.question_ids ?? []);
-    return snapshotFromRow(duel, qs);
+    return snapshotFromRow(supabase, duel, qs);
   });
 
-/** Submit an answer. Graded server-side. */
+/** Submit an answer. Server grades and reports the first-correct winner for that round. */
 export const submitDuelAnswer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { duelId: string; qIndex: number; selected: number; ms: number }) => ({
@@ -212,7 +237,11 @@ export const submitDuelAnswer = createServerFn({ method: "POST" })
     selected: Math.floor(Number(input.selected) || 0),
     ms: Math.max(0, Math.floor(Number(input.ms) || 0)),
   }))
-  .handler(async ({ data, context }): Promise<{ isCorrect: boolean; correctIndexes: number[] }> => {
+  .handler(async ({ data, context }): Promise<{
+    isCorrect: boolean;
+    correctIndexes: number[];
+    winnerUserId: string | null;
+  }> => {
     const { supabase, userId } = context;
     const { data: duel, error } = await (supabase.from("duels") as any)
       .select("id, host_id, guest_id, question_ids, status")
@@ -231,7 +260,6 @@ export const submitDuelAnswer = createServerFn({ method: "POST" })
     const isCorrect = !!gr?.is_correct;
     const ci: number[] = Array.isArray(gr?.correct_indexes) ? gr.correct_indexes.map((x: any) => Number(x)) : [];
 
-    // Idempotent insert: unique on (duel_id, q_index, user_id).
     await (supabase.from("duel_answers") as any).insert({
       duel_id: data.duelId,
       q_index: data.qIndex,
@@ -240,10 +268,21 @@ export const submitDuelAnswer = createServerFn({ method: "POST" })
       is_correct: isCorrect,
       ms: data.ms,
     });
-    return { isCorrect, correctIndexes: ci };
+
+    // Fetch first correct answer for this round (server-authoritative winner).
+    const { data: winRows } = await (supabase.from("duel_answers") as any)
+      .select("user_id, is_correct, ms")
+      .eq("duel_id", data.duelId)
+      .eq("q_index", data.qIndex)
+      .eq("is_correct", true)
+      .order("ms", { ascending: true })
+      .limit(1);
+    const winnerUserId = (winRows?.[0]?.user_id as string | undefined) ?? null;
+
+    return { isCorrect, correctIndexes: ci, winnerUserId };
   });
 
-/** Finalize duel: compute winner and payout (idempotent). */
+/** Finalize duel; per-round payout accumulates. */
 export const finishDuel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { duelId: string }) => ({ duelId: String(input.duelId) }))
@@ -255,9 +294,8 @@ export const finishDuel = createServerFn({ method: "POST" })
     if (!duel) throw new Error("Không tìm thấy phòng đấu");
     const qs = await loadQuestions(supabase, duel.question_ids ?? []);
 
-    if (duel.status === "finished") return snapshotFromRow(duel, qs);
+    if (duel.status === "finished") return snapshotFromRow(supabase, duel, qs);
 
-    // Fetch all answers, group by q_index, award point to first correct answer per question.
     const { data: ansRows, error: aErr } = await (supabase.from("duel_answers") as any)
       .select("q_index, user_id, is_correct, ms")
       .eq("duel_id", data.duelId)
@@ -267,7 +305,7 @@ export const finishDuel = createServerFn({ method: "POST" })
     const perQ = new Map<number, Array<{ user_id: string; is_correct: boolean; ms: number }>>();
     for (const r of answers) {
       const list = perQ.get(r.q_index) ?? [];
-      list.push({ user_id: r.user_id, is_correct: r.is_correct, ms: r.ms });
+      list.push(r);
       perQ.set(r.q_index, list);
     }
     let hostScore = 0;
@@ -283,9 +321,10 @@ export const finishDuel = createServerFn({ method: "POST" })
     if (hostScore > guestScore) winner = duel.host_id;
     else if (guestScore > hostScore) winner = duel.guest_id;
 
-    // Payout via service role (net_worth adjust). Draw = no payout.
+    const payout = Number(duel.payout ?? DEFAULT_PAYOUT) || DEFAULT_PAYOUT;
     if (winner) {
       const loser = winner === duel.host_id ? duel.guest_id : duel.host_id;
+      const diff = Math.abs(hostScore - guestScore) * payout;
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const [{ data: wRow }, { data: lRow }] = await Promise.all([
         (supabaseAdmin.from("game_state") as any).select("net_worth, money").eq("user_id", winner).maybeSingle(),
@@ -297,12 +336,12 @@ export const finishDuel = createServerFn({ method: "POST" })
       const lMoney = Number(lRow?.money ?? 0);
       await Promise.all([
         (supabaseAdmin.from("game_state") as any).update({
-          net_worth: wNw + PAYOUT,
-          money: wMoney + PAYOUT,
+          net_worth: wNw + diff,
+          money: wMoney + diff,
         }).eq("user_id", winner),
         (supabaseAdmin.from("game_state") as any).update({
-          net_worth: Math.max(0, lNw - PAYOUT),
-          money: Math.max(0, lMoney - PAYOUT),
+          net_worth: Math.max(0, lNw - diff),
+          money: Math.max(0, lMoney - diff),
         }).eq("user_id", loser),
       ]);
     }
@@ -319,7 +358,7 @@ export const finishDuel = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (fErr) throw new Error(fErr.message);
-    return snapshotFromRow(fin, qs);
+    return snapshotFromRow(supabase, fin, qs);
   });
 
 /* ------------------------- helpers ------------------------- */
@@ -347,18 +386,38 @@ async function loadQuestions(supabase: any, ids: string[]): Promise<DuelQuestion
   return ids.map((id) => map.get(id)).filter(Boolean) as DuelQuestion[];
 }
 
-function snapshotFromRow(row: any, questions: DuelQuestion[]): DuelSnapshot {
+async function loadPlayers(supabase: any, ids: string[]): Promise<Map<string, DuelPlayerInfo>> {
+  const map = new Map<string, DuelPlayerInfo>();
+  if (!ids.length) return map;
+  const { data } = await (supabase.from("profiles") as any)
+    .select("user_id, username, display_name, avatar_url")
+    .in("user_id", ids);
+  for (const r of ((data ?? []) as any[])) {
+    map.set(String(r.user_id), {
+      userId: String(r.user_id),
+      username: String(r.username ?? "player"),
+      displayName: r.display_name ?? null,
+      avatarUrl: r.avatar_url ?? null,
+    });
+  }
+  return map;
+}
+
+async function snapshotFromRow(supabase: any, row: any, questions: DuelQuestion[]): Promise<DuelSnapshot> {
+  const players = await loadPlayers(supabase, [row.host_id, row.guest_id]);
   return {
     id: String(row.id),
     hostId: String(row.host_id),
     guestId: String(row.guest_id),
+    host: players.get(String(row.host_id)) ?? null,
+    guest: players.get(String(row.guest_id)) ?? null,
     status: row.status,
     category: row.topic_category ?? null,
     domain: row.topic_domain ?? null,
     hostScore: Number(row.host_score ?? 0),
     guestScore: Number(row.guest_score ?? 0),
     winnerId: row.winner_id ?? null,
-    payout: Number(row.payout ?? PAYOUT),
+    payout: Number(row.payout ?? DEFAULT_PAYOUT),
     questions,
   };
 }

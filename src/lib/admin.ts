@@ -341,6 +341,26 @@ export async function setCategoryToggles(t: CategoryToggles): Promise<void> {
   if (error) throw error;
 }
 
+// ===== Duel payout (đ / câu đúng đầu tiên) =====
+export async function getDuelPayout(): Promise<number> {
+  const { data } = await supabase
+    .from("admin_config")
+    .select("value")
+    .eq("key", "duel_payout")
+    .maybeSingle();
+  const v = (data as any)?.value;
+  const n = typeof v === "number" ? v : (v && typeof v.amount === "number" ? v.amount : NaN);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 30;
+}
+
+export async function setDuelPayout(amount: number): Promise<void> {
+  const n = Math.max(1, Math.floor(Number(amount) || 0));
+  const { error } = await supabase
+    .from("admin_config")
+    .upsert({ key: "duel_payout", value: { amount: n } as any, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
+  if (error) throw error;
+}
+
 /** Áp dụng đề xuất phân loại tự động cho toàn bộ câu hỏi. */
 export async function bulkApplyClassification(
   updates: { id: string; category: string; competencyLevel: number | null; competencyDomain: number | null }[]

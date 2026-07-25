@@ -222,6 +222,23 @@ export async function deleteMyQuestion(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// ===== Student answer stats (teacher view) =====
+export type StudentAnswerStat = {
+  question_id: string;
+  question_text: string;
+  attempts: number;
+  correct_count: number;
+  wrong_count: number;
+  last_correct: boolean | null;
+  last_at: string | null;
+};
+
+export async function getStudentAnswerStats(classId: string, studentId: string): Promise<StudentAnswerStat[]> {
+  const { data, error } = await supabase.rpc("get_student_answer_stats", { _class_id: classId, _student_id: studentId } as any);
+  if (error) throw error;
+  return (data as any[]) || [];
+}
+
 // ===== Bulk import parsers =====
 /**
  * CSV format:

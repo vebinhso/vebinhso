@@ -45,13 +45,13 @@ export async function joinClass(code: string): Promise<string> {
   return (data as any) as string;
 }
 
-export async function leaveClass(teacherId?: string) {
-  const { error } = await supabase.rpc("leave_class", { tid: teacherId ?? null } as any);
+export async function leaveClass(classId?: string) {
+  const { error } = await supabase.rpc("leave_class", { _class_id: classId ?? null } as any);
   if (error) throw error;
 }
 
-export async function setActiveClass(teacherId: string | null) {
-  const { error } = await supabase.rpc("set_active_class", { tid: teacherId } as any);
+export async function setActiveClass(classId: string | null) {
+  const { error } = await supabase.rpc("set_active_class", { _class_id: classId } as any);
   if (error) throw error;
 }
 
@@ -61,25 +61,54 @@ export async function getOrCreateMyClassCode(): Promise<string | null> {
   return (data as any) ?? null;
 }
 
-export type MyClassroom = { teacher_id: string; class_code: string; teacher_name: string; teacher_school: string; teacher_subject: string } | null;
-export async function getMyClassroom(): Promise<MyClassroom> {
-  const { data, error } = await supabase.rpc("get_my_classroom");
-  if (error) return null;
-  const row = Array.isArray(data) ? data[0] : data;
-  return row ?? null;
-}
-
-export type MyClass = { teacher_id: string; class_code: string; teacher_name: string; teacher_school: string; teacher_subject: string; is_active: boolean };
+// Student-side: joined classes
+export type MyClass = {
+  class_id: string;
+  code: string;
+  name: string;
+  subject: string | null;
+  teacher_id: string;
+  teacher_name: string;
+  teacher_school: string | null;
+  is_active: boolean;
+};
 export async function getMyClasses(): Promise<MyClass[]> {
   const { data, error } = await supabase.rpc("get_my_classes");
   if (error) return [];
   return (data as any[]) || [];
 }
 
+// Teacher-side: owned classes
+export type TaughtClass = {
+  id: string;
+  code: string;
+  name: string;
+  subject: string | null;
+  student_count: number;
+  question_count: number;
+  created_at: string;
+};
+export async function listMyTaughtClasses(): Promise<TaughtClass[]> {
+  const { data, error } = await supabase.rpc("list_my_taught_classes");
+  if (error) throw error;
+  return (data as any[]) || [];
+}
+
+export async function createClass(name: string, subject: string): Promise<TaughtClass> {
+  const { data, error } = await supabase.rpc("create_class", { _name: name, _subject: subject } as any);
+  if (error) throw error;
+  const row: any = Array.isArray(data) ? data[0] : data;
+  return { id: row.id, code: row.code, name: row.name, subject: row.subject, student_count: 0, question_count: 0, created_at: row.created_at };
+}
+
+export async function deleteClass(classId: string): Promise<void> {
+  const { error } = await supabase.rpc("delete_class", { _class_id: classId } as any);
+  if (error) throw error;
+}
 
 export type ClassroomStudent = { user_id: string; username: string; display_name: string; email: string; joined_at: string };
-export async function getClassroomStudents(): Promise<ClassroomStudent[]> {
-  const { data, error } = await supabase.rpc("get_classroom_students");
+export async function getClassStudents(classId: string): Promise<ClassroomStudent[]> {
+  const { data, error } = await supabase.rpc("get_class_students", { _class_id: classId } as any);
   if (error) throw error;
   return (data as any[]) || [];
 }
@@ -118,17 +147,20 @@ export type TeacherQuestion = {
   competencyDomain?: number | null;
   enabled?: boolean;
   imageUrl?: string;
+  classId?: string | null;
 };
 
-export async function listMyQuestions(): Promise<TeacherQuestion[]> {
+export async function listMyQuestions(classId?: string): Promise<TeacherQuestion[]> {
   const { data: session } = await supabase.auth.getUser();
   const uid = session?.user?.id;
   if (!uid) return [];
-  const { data, error } = await supabase
+  let q = supabase
     .from("questions_bank")
-    .select("id,text,choices,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,created_at")
+    .select("id,text,choices,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,class_id,created_at")
     .eq("teacher_id", uid)
     .order("created_at", { ascending: false });
+  if (classId) q = q.eq("class_id", classId);
+  const { data, error } = await q;
   if (error) throw error;
   return ((data as any[]) || []).map((r) => ({
     id: r.id,
@@ -145,6 +177,7 @@ export async function listMyQuestions(): Promise<TeacherQuestion[]> {
     enabled: r.enabled ?? true,
     competencyLevel: r.competency_level ?? null,
     competencyDomain: r.competency_domain ?? null,
+    classId: r.class_id ?? null,
   }));
 }
 
@@ -163,6 +196,7 @@ function toRow(q: TeacherQuestion, teacherId: string) {
     competency_level: (typeof q.competencyLevel === "number" && q.competencyLevel >= 1 && q.competencyLevel <= 8) ? q.competencyLevel : null,
     competency_domain: (typeof q.competencyDomain === "number" && q.competencyDomain >= 1 && q.competencyDomain <= 6) ? q.competencyDomain : null,
     teacher_id: teacherId,
+    class_id: q.classId ?? null,
   };
 }
 

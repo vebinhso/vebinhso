@@ -50,26 +50,67 @@ export type Database = {
         }
         Relationships: []
       }
+      classes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          subject: string | null
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          subject?: string | null
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string | null
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       classroom_members: {
         Row: {
+          class_id: string
           id: string
           joined_at: string
           student_id: string
           teacher_id: string
         }
         Insert: {
+          class_id: string
           id?: string
           joined_at?: string
           student_id: string
           teacher_id: string
         }
         Update: {
+          class_id?: string
           id?: string
           joined_at?: string
           student_id?: string
           teacher_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "classroom_members_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       duel_answers: {
         Row: {
@@ -444,6 +485,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_class_id: string | null
           active_teacher_id: string | null
           avatar: string | null
           avatar_url: string | null
@@ -466,6 +508,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          active_class_id?: string | null
           active_teacher_id?: string | null
           avatar?: string | null
           avatar_url?: string | null
@@ -488,6 +531,7 @@ export type Database = {
           username: string
         }
         Update: {
+          active_class_id?: string | null
           active_teacher_id?: string | null
           avatar?: string | null
           avatar_url?: string | null
@@ -509,13 +553,22 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_class_id_fkey"
+            columns: ["active_class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       questions_bank: {
         Row: {
           answer_index: number
           category: string | null
           choices: Json
+          class_id: string | null
           competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
@@ -534,6 +587,7 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
           correct_indexes?: Json
@@ -552,6 +606,7 @@ export type Database = {
           answer_index?: number
           category?: string | null
           choices?: Json
+          class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
           correct_indexes?: Json
@@ -566,7 +621,15 @@ export type Database = {
           text?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "questions_bank_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roofs: {
         Row: {
@@ -679,6 +742,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          class_id: string | null
           competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
@@ -706,6 +770,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          class_id: string | null
           competency_domain: number | null
           competency_level: number | null
           correct_indexes: Json
@@ -730,8 +795,27 @@ export type Database = {
       approve_teacher: { Args: { uid: string }; Returns: string }
       can_coop_build: { Args: { owner: string }; Returns: boolean }
       can_visit_house: { Args: { owner: string }; Returns: boolean }
-      get_classroom_students: {
-        Args: never
+      create_class: {
+        Args: { _name: string; _subject: string }
+        Returns: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          subject: string | null
+          teacher_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "classes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      delete_class: { Args: { _class_id: string }; Returns: undefined }
+      get_class_students: {
+        Args: { _class_id: string }
         Returns: {
           display_name: string
           email: string
@@ -770,22 +854,14 @@ export type Database = {
       get_my_classes: {
         Args: never
         Returns: {
-          class_code: string
+          class_id: string
+          code: string
           is_active: boolean
+          name: string
+          subject: string
           teacher_id: string
           teacher_name: string
           teacher_school: string
-          teacher_subject: string
-        }[]
-      }
-      get_my_classroom: {
-        Args: never
-        Returns: {
-          class_code: string
-          teacher_id: string
-          teacher_name: string
-          teacher_school: string
-          teacher_subject: string
         }[]
       }
       get_my_email: { Args: never; Returns: string }
@@ -806,9 +882,19 @@ export type Database = {
         Returns: boolean
       }
       join_class: { Args: { code: string }; Returns: string }
-      leave_class:
-        | { Args: never; Returns: undefined }
-        | { Args: { tid?: string }; Returns: undefined }
+      leave_class: { Args: { _class_id?: string }; Returns: undefined }
+      list_my_taught_classes: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          question_count: number
+          student_count: number
+          subject: string
+        }[]
+      }
       list_pending_teachers: {
         Args: never
         Returns: {
@@ -827,7 +913,7 @@ export type Database = {
         Args: { school: string; subject: string }
         Returns: undefined
       }
-      set_active_class: { Args: { tid: string }; Returns: undefined }
+      set_active_class: { Args: { _class_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "teacher"

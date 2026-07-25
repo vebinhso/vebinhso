@@ -255,24 +255,25 @@ function Home() {
             <div className="flex flex-col gap-1 bg-emerald-50 border-2 border-emerald-200 rounded-xl p-2">
               <div className="text-[10px] font-black text-emerald-700 uppercase text-center">Lớp đã tham gia</div>
               {myClasses.map((c) => (
-                <div key={c.teacher_id} className="flex items-center justify-between gap-1 text-[10px] font-bold">
+                <div key={c.class_id} className="flex items-center justify-between gap-1 text-[10px] font-bold">
                   <button
                     onClick={async () => {
                       try {
-                        await setActiveClass(c.is_active ? null : c.teacher_id);
+                        await setActiveClass(c.is_active ? null : c.class_id);
                         setMyClasses(await getMyClasses());
-                        toast.success(c.is_active ? "Đã tắt lớp đang hoạt động" : `Đang hoạt động lớp ${c.class_code}`);
+                        toast.success(c.is_active ? "Đã tắt lớp đang hoạt động" : `Đang hoạt động: ${c.name}`);
                       } catch (e: any) { toast.error(e?.message || "Lỗi"); }
                     }}
                     className={`flex-1 text-left truncate px-2 py-1 rounded-lg ${c.is_active ? "bg-emerald-600 text-white" : "bg-white hover:bg-emerald-100"}`}
-                    title={c.teacher_name}
+                    title={`${c.name} · ${c.teacher_name}`}
                   >
-                    {c.is_active ? "✅ " : "🎟️ "}<b>{c.class_code}</b>
+                    {c.is_active ? "✅ " : "🎟️ "}<b className="truncate">{c.name}</b>
+                    <span className="opacity-70 ml-1">({c.code})</span>
                   </button>
                   <button
                     onClick={async () => {
-                      if (!confirm(`Rời lớp ${c.class_code}?`)) return;
-                      try { await leaveClass(c.teacher_id); setMyClasses(await getMyClasses()); toast.success("Đã rời lớp"); } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                      if (!confirm(`Rời lớp ${c.name}?`)) return;
+                      try { await leaveClass(c.class_id); setMyClasses(await getMyClasses()); toast.success("Đã rời lớp"); } catch (e: any) { toast.error(e?.message || "Lỗi"); }
                     }}
                     className="text-red-500 hover:underline px-1"
                   >rời</button>
@@ -280,9 +281,10 @@ function Home() {
               ))}
             </div>
           )}
-          <button onClick={() => { setJoinCode(""); setJoinOpen(true); }} className="toy-button text-sm bg-blue-500 text-white w-full justify-center">
+          <button onClick={() => { setJoinCode(""); setJoinOpen(true); }} className="toy-button text-xs bg-blue-500 text-white w-full justify-center whitespace-nowrap">
             🎟️ VÀO LỚP
           </button>
+
 
           <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
             🚪 ĐĂNG XUẤT

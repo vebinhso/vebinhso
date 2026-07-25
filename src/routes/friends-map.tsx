@@ -58,6 +58,17 @@ function FriendsMapPage() {
   const listFn = useServerFn(listFriendHouses);
   const mineFn = useServerFn(getMyHouseSettings);
   const updateFn = useServerFn(updateHouseSettings);
+  const visitFn = useServerFn(getVisitableHouse);
+
+  const prefetchVisit = (ownerId: string) => {
+    // Warm the 3D chunk + snapshot cache so entering a house feels instant.
+    import("@/game/GameWorld").catch(() => {});
+    qc.prefetchQuery({
+      queryKey: ["visit-house", ownerId],
+      queryFn: () => visitFn({ data: { ownerId } }),
+      staleTime: 30_000,
+    }).catch(() => {});
+  };
 
   const housesQ = useQuery({
     queryKey: ["friend-houses"],

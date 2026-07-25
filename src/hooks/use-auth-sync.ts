@@ -14,8 +14,6 @@ export function useAuthSync() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        // Best-effort offline before we drop the session
-        setPresence({ data: { online: false } }).catch(() => {});
         setCurrentUserCache(null);
         resetGameCacheForLogout();
       } else {
@@ -41,8 +39,8 @@ export function useAuthSync() {
     }, 60_000);
 
     // Mark offline on tab close / hide.
-    const goOffline = () => { setPresence({ data: { online: false } }).catch(() => {}); };
-    const onVis = () => { if (document.visibilityState === "hidden") goOffline(); else if (getCurrentUser()) setPresence({ data: { online: true } }).catch(() => {}); };
+    const goOffline = () => { if (getCurrentUser()) setPresence({ data: { online: false } }).catch(() => {}); };
+    const onVis = () => { if (!getCurrentUser()) return; if (document.visibilityState === "hidden") goOffline(); else setPresence({ data: { online: true } }).catch(() => {}); };
     window.addEventListener("beforeunload", goOffline);
     document.addEventListener("visibilitychange", onVis);
 
@@ -52,5 +50,6 @@ export function useAuthSync() {
       window.removeEventListener("beforeunload", goOffline);
       document.removeEventListener("visibilitychange", onVis);
     };
+
   }, [router, queryClient]);
 }

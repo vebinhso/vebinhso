@@ -122,28 +122,33 @@ function VisitPage() {
 
       {/* HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 items-center pointer-events-none">
-        <div className="pointer-events-auto glass-card px-3 py-2 flex items-center gap-2 shadow">
+        <div className="pointer-events-auto glass-card px-4 py-3 flex items-center gap-3 shadow-lg border-4 border-orange-300">
           {snap.owner.avatar_url ? (
-            <img src={snap.owner.avatar_url} className="w-8 h-8 rounded-full" alt="" />
+            <img src={snap.owner.avatar_url} className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-orange-400" alt="" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-orange-400 text-white grid place-items-center font-black">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-400 text-white grid place-items-center font-black text-xl md:text-2xl border-2 border-orange-500">
               {(snap.owner.username || "?").charAt(0).toUpperCase()}
             </div>
           )}
           <div className="leading-tight">
-            <div className="text-sm font-black">🏠 {snap.owner.house_name || `Nhà của ${snap.owner.username}`}</div>
-            <div className="text-[11px] text-muted-foreground">Đang tham quan · chỉ xem</div>
+            <div className="text-lg md:text-2xl font-black text-orange-700">
+              🏠 {snap.owner.house_name || `Nhà của ${snap.owner.display_name || snap.owner.username}`}
+            </div>
+            <div className="text-xs md:text-sm text-muted-foreground font-bold">
+              Chủ nhà: <span className="text-orange-600">@{snap.owner.username}</span>
+              {snap.owner.coop_build && <> · 🔨 Cho phép cùng xây</>}
+            </div>
           </div>
         </div>
 
         <div className="flex-1" />
 
-        <Link
-          to="/friends-map"
+        <button
+          onClick={() => navigate({ to: "/game" })}
           className="pointer-events-auto toy-button toy-button-primary !text-sm"
         >
           🚪 Rời nhà
-        </Link>
+        </button>
       </div>
 
       {maxFloor > 0 && (

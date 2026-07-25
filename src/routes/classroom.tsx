@@ -43,6 +43,7 @@ function ClassroomPage() {
   const [classes, setClasses] = useState<TaughtClass[]>([]);
   const [selectedClass, setSelectedClass] = useState<TaughtClass | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
+  const [qVersion, setQVersion] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
 
   const reloadClasses = async () => {

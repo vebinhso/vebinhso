@@ -350,13 +350,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
     <div className="fixed inset-0 z-[70] p-2 sm:p-4 grid place-items-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
       <div className="w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gradient-to-b from-indigo-800/80 to-slate-800/90">
         <ArenaHeader
-          me={meInfo}
-          opp={oppInfo}
-          scoreMine={scoreMine}
-          scoreOpp={scoreOpp}
-          highlightMe={iWon}
-          highlightOpp={iLost}
+          host={hostInfo}
+          guest={guestInfo}
+          hostScore={hostScore}
+          guestScore={guestScore}
+          meId={meId}
+          winnerUserId={revealed ? round.winnerUserId : null}
         />
+
 
         {/* Header meta */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between text-xs sm:text-sm font-black text-white/90">

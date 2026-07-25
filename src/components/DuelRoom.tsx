@@ -38,8 +38,8 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const [round, setRound] = useState<RoundState>({ phase: "playing", answered: new Set() });
   const [remaining, setRemaining] = useState(QUESTION_MS);
   const startAtRef = useRef<number>(0);
-  const [scoreMine, setScoreMine] = useState(0);
-  const [scoreOpp, setScoreOpp] = useState(0);
+  /** winnerUserId per resolved round; null = draw. Shared identically across both clients. */
+  const [roundResults, setRoundResults] = useState<(string | null)[]>([]);
   const [starting, setStarting] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +48,14 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const isHost = snap?.hostId === meId;
-  const meInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.host : snap.guest) : null;
-  const oppInfo: DuelPlayerInfo | null = snap ? (isHost ? snap.guest : snap.host) : null;
+  const hostInfo: DuelPlayerInfo | null = snap?.host ?? null;
+  const guestInfo: DuelPlayerInfo | null = snap?.guest ?? null;
   const currentQ = snap?.questions?.[qIndex];
   const payout = snap?.payout ?? 30;
+  // Scores derived from shared roundResults so both clients render identically.
+  const hostScore = roundResults.filter((w) => w && w === snap?.hostId).length;
+  const guestScore = roundResults.filter((w) => w && w === snap?.guestId).length;
+
 
   /* -------- Load initial + topics -------- */
   useEffect(() => {

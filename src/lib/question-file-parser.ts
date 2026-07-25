@@ -9,7 +9,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
   if (["csv", "json", "txt", "md"].includes(ext)) return await file.text();
 
   if (ext === "docx") {
-    const mammoth = await import("mammoth/mammoth.browser");
+    const mammoth: any = await import("mammoth/mammoth.browser" as any);
     const arrayBuffer = await file.arrayBuffer();
     const res = await (mammoth as any).extractRawText({ arrayBuffer });
     return String(res?.value || "");

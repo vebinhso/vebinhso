@@ -24,15 +24,17 @@ import {
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
+import { ClassroomPanel } from "@/components/ClassroomPanel";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
   head: () => ({ meta: [{ title: "LỚP HỌC — VeBinhSo" }] }),
 });
 
-type Tab = "overview" | "students" | "questions" | "import";
+type Tab = "overview" | "students" | "questions" | "import" | "stream";
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Tổng quan", icon: "📊" },
+  { id: "stream", label: "Học liệu & Bài tập", icon: "📚" },
   { id: "students", label: "Học sinh", icon: "👥" },
   { id: "questions", label: "Câu hỏi", icon: "❓" },
   { id: "import", label: "Nhập dữ liệu", icon: "📥" },
@@ -200,6 +202,7 @@ function ClassroomPage() {
             </nav>
             <main className="glass-card p-4 md:p-6 min-h-[60vh]">
               {tab === "overview" && <OverviewPanel classId={selectedClass.id} refreshKey={qVersion} />}
+              {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
               {tab === "students" && <StudentsPanel classId={selectedClass.id} />}
               {tab === "questions" && <QuestionsPanel classId={selectedClass.id} onCountChanged={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}
               {tab === "import" && <ImportPanel classId={selectedClass.id} onDone={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}

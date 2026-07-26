@@ -57,19 +57,36 @@ export async function loadPriorityMode(): Promise<boolean> {
   }
 }
 
+async function getActiveClassId(): Promise<string | null> {
+  try {
+    const { data: session } = await supabase.auth.getUser();
+    const uid = session?.user?.id;
+    if (!uid) return null;
+    const { data } = await supabase.from("profiles").select("active_class_id").eq("user_id", uid).maybeSingle();
+    return ((data as any)?.active_class_id as string | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
   try {
-    const [{ data, error }] = await Promise.all([
+    const [{ data, error }, , , activeClassId] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
       loadCategoryToggles(),
+      getActiveClassId(),
     ]);
     if (error) throw error;
-    const rows = data ?? [];
+    // Khi học sinh đang tham gia một lớp: chỉ dùng câu hỏi của lớp đó.
+    // Khi không tham gia lớp nào: dùng ngân hàng câu hỏi mặc định.
+    const rows = (data ?? []).filter((r: any) =>
+      activeClassId ? r.class_id === activeClassId : !r.class_id,
+    );
     const mapped: Question[] = rows.map((row: any) => {
       const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));

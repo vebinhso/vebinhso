@@ -50,6 +50,113 @@ export type Database = {
         }
         Relationships: []
       }
+      class_posts: {
+        Row: {
+          class_id: string
+          content: string | null
+          created_at: string
+          due_at: string | null
+          file_url: string | null
+          id: string
+          kind: string
+          link_url: string | null
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          content?: string | null
+          created_at?: string
+          due_at?: string | null
+          file_url?: string | null
+          id?: string
+          kind?: string
+          link_url?: string | null
+          teacher_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          content?: string | null
+          created_at?: string
+          due_at?: string | null
+          file_url?: string | null
+          id?: string
+          kind?: string
+          link_url?: string | null
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_posts_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_submissions: {
+        Row: {
+          class_id: string
+          created_at: string
+          feedback: string | null
+          file_name: string | null
+          file_url: string | null
+          grade: string | null
+          id: string
+          note: string | null
+          post_id: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          feedback?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          grade?: string | null
+          id?: string
+          note?: string | null
+          post_id: string
+          student_id?: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          feedback?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          grade?: string | null
+          id?: string
+          note?: string | null
+          post_id?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_submissions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_submissions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "class_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           code: string
@@ -859,6 +966,15 @@ export type Database = {
         }
       }
       delete_class: { Args: { _class_id: string }; Returns: undefined }
+      get_class_roster: {
+        Args: { _class_id: string }
+        Returns: {
+          display_name: string
+          is_teacher: boolean
+          user_id: string
+          username: string
+        }[]
+      }
       get_class_students: {
         Args: { _class_id: string }
         Returns: {

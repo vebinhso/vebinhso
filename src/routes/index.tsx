@@ -14,6 +14,7 @@ import {
 import { loadGame } from "@/lib/game";
 import { loadQuestionsFromDB } from "@/game/questions";
 import { isAdmin } from "@/lib/admin";
+import { ClassroomPanel } from "@/components/ClassroomPanel";
 import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {
   findUserByName,

@@ -23,6 +23,8 @@ export const DEFAULT_QUESTIONS: Question[] = [];
 
 
 let QUESTION_CACHE: Question[] = [];
+let CLASS_MODE = false;      // đang nhận câu hỏi của lớp
+let CLASS_QUEUE: number[] = []; // hàng đợi index trong QUESTION_CACHE
 let PRIORITY_MODE = false;
 let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
@@ -117,6 +119,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
     QUESTION_CACHE = enabledOnly;
+    CLASS_MODE = !!activeClassId;
+    CLASS_QUEUE = [];
     RECENT_IDS = [];
     return enabledOnly;
   } catch (e) {

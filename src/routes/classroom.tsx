@@ -31,9 +31,10 @@ export const Route = createFileRoute("/classroom")({
   head: () => ({ meta: [{ title: "LỚP HỌC — VeBinhSo" }] }),
 });
 
-type Tab = "overview" | "students" | "questions" | "import";
+type Tab = "overview" | "students" | "questions" | "import" | "stream";
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Tổng quan", icon: "📊" },
+  { id: "stream", label: "Học liệu & Bài tập", icon: "📚" },
   { id: "students", label: "Học sinh", icon: "👥" },
   { id: "questions", label: "Câu hỏi", icon: "❓" },
   { id: "import", label: "Nhập dữ liệu", icon: "📥" },

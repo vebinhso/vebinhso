@@ -55,6 +55,7 @@ function Home() {
   const [myClasses, setMyClasses] = useState<MyClass[]>([]);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [detailClass, setDetailClass] = useState<MyClass | null>(null);
 
   const syncGame = () => {
     const g = loadGame();

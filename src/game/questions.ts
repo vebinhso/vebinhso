@@ -23,6 +23,8 @@ export const DEFAULT_QUESTIONS: Question[] = [];
 
 
 let QUESTION_CACHE: Question[] = [];
+let CLASS_MODE = false;      // đang nhận câu hỏi của lớp
+let CLASS_QUEUE: number[] = []; // hàng đợi index trong QUESTION_CACHE
 let PRIORITY_MODE = false;
 let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
@@ -117,6 +119,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
     QUESTION_CACHE = enabledOnly;
+    CLASS_MODE = !!activeClassId;
+    CLASS_QUEUE = [];
     RECENT_IDS = [];
     return enabledOnly;
   } catch (e) {
@@ -220,8 +224,25 @@ function pickAvoidingRecent(pool: Question[]): Question | null {
 
 export function randomQuestion(): Question {
   const arr = getQuestions();
+
+  // Chế độ lớp học: chỉ dùng câu hỏi của lớp, lần lượt hết mới lặp lại.
+  if (CLASS_MODE) {
+    if (arr.length === 0) return { q: "", options: [], answer: -1, reward: 0 };
+    if (CLASS_QUEUE.length === 0) {
+      const idx = arr.map((_, i) => i);
+      for (let i = idx.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [idx[i], idx[j]] = [idx[j], idx[i]];
+      }
+      CLASS_QUEUE = idx;
+    }
+    const next = CLASS_QUEUE.shift()!;
+    return withShuffledChoices(arr[next] ?? arr[0]);
+  }
+
   const digitalOn = CAT_TOGGLES.digital;
   const historyOn = CAT_TOGGLES.history;
+
 
   // ƯU TIÊN là trên hết: khi bật, CHỈ dùng câu có priority > 0.
   const scope = PRIORITY_MODE ? arr.filter((q) => (q.priority ?? 0) > 0) : arr;

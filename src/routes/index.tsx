@@ -476,36 +476,95 @@ function Home() {
       )}
 
       {joinOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setJoinOpen(false)}>
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-blue-300" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-black mb-2">🎟️ Vào lớp học</h3>
-            <p className="text-xs text-muted-foreground font-bold mb-3">Nhập mã lớp giáo viên cung cấp (4–6 ký tự).</p>
-            <input
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.trim())}
-              placeholder="VD: ab12cd"
-              maxLength={8}
-              className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 font-black text-center text-2xl tracking-widest uppercase mb-3"
-            />
-            <div className="flex gap-2">
-              <button onClick={() => setJoinOpen(false)} className="toy-button flex-1">Huỷ</button>
-              <button
-                onClick={async () => {
-                  if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
-                  try {
-                    await joinClass(joinCode.trim().toLowerCase());
-                    const cs = await getMyClasses();
-                    setMyClasses(cs);
-                    toast.success("Đã vào lớp");
+        <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-3 overflow-y-auto" onClick={() => { setJoinOpen(false); setDetailClass(null); }}>
+          <div className="bg-white rounded-3xl p-5 max-w-2xl w-full border-4 border-blue-300 my-6 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {detailClass ? (
+              <>
+                <div className="flex items-center gap-2 mb-3">
+                  <button onClick={() => setDetailClass(null)} className="toy-button !text-xs !py-1.5">← Lớp học</button>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-black truncate">{detailClass.name}</h3>
+                    <p className="text-[11px] font-bold text-muted-foreground truncate">
+                      🧑‍🏫 {detailClass.teacher_name} · mã {detailClass.code}
+                    </p>
+                  </div>
+                </div>
+                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact />
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-black mb-2">🎓 Lớp học</h3>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 mb-4">
+                  <p className="text-xs font-black text-blue-700 mb-2">Nhập mã lớp giáo viên cung cấp để tham gia</p>
+                  <div className="flex gap-2">
+                    <input
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value.trim())}
+                      placeholder="VD: ab12cd"
+                      maxLength={8}
+                      className="flex-1 min-w-0 px-3 py-2 rounded-2xl border-2 border-gray-200 font-black text-center text-lg tracking-widest uppercase"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
+                        try {
+                          await joinClass(joinCode.trim().toLowerCase());
+                          setMyClasses(await getMyClasses());
+                          setJoinCode("");
+                          toast.success("Đã vào lớp");
+                        } catch (e: any) {
+                          toast.error(e?.message || "Mã lớp không hợp lệ");
+                        }
+                      }}
+                      className="toy-button toy-button-primary !text-sm whitespace-nowrap"
+                    >Tham gia</button>
+                  </div>
+                </div>
 
-                    setJoinOpen(false);
-                  } catch (e: any) {
-                    toast.error(e?.message || "Mã lớp không hợp lệ");
-                  }
-                }}
-                className="toy-button toy-button-primary flex-1"
-              >Vào lớp</button>
-            </div>
+                {myClasses.length === 0 ? (
+                  <p className="text-sm font-bold text-muted-foreground text-center py-4">Bạn chưa tham gia lớp nào.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {myClasses.map((c) => (
+                      <div key={c.class_id} className={`rounded-2xl p-3 border-2 min-w-0 ${c.is_active ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>
+                        <button onClick={() => setDetailClass(c)} className="text-left w-full min-w-0">
+                          <div className="font-black truncate">{c.name}</div>
+                          <div className="text-[11px] font-bold text-muted-foreground truncate">
+                            🧑‍🏫 {c.teacher_name} · mã {c.code}
+                          </div>
+                        </button>
+                        <label className="flex items-center gap-2 mt-2 text-[11px] font-black cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={c.is_active}
+                            onChange={async () => {
+                              try {
+                                await setActiveClass(c.is_active ? null : c.class_id);
+                                setMyClasses(await getMyClasses());
+                                loadQuestionsFromDB().catch(() => {});
+                                toast.success(c.is_active ? "Đã tắt — dùng câu hỏi mặc định" : `Đang tham gia: ${c.name}`);
+                              } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                            }}
+                          />
+                          {c.is_active ? "Đang tham gia (nhận câu hỏi lớp)" : "Chưa tham gia nhận câu hỏi"}
+                        </label>
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={() => setDetailClass(c)} className="toy-button !text-[11px] !py-1 flex-1 justify-center">Mở lớp</button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Rời lớp ${c.name}?`)) return;
+                              try { await leaveClass(c.class_id); setMyClasses(await getMyClasses()); loadQuestionsFromDB().catch(() => {}); toast.success("Đã rời lớp"); } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+                            }}
+                            className="toy-button !text-[11px] !py-1 text-red-600"
+                          >Rời</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button onClick={() => setJoinOpen(false)} className="toy-button w-full mt-4 justify-center">Đóng</button>
+              </>
+            )}
           </div>
         </div>
       )}

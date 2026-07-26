@@ -24,6 +24,7 @@ import {
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
+import { ClassroomPanel } from "@/components/ClassroomPanel";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,

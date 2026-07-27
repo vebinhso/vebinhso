@@ -468,8 +468,7 @@ function Home() {
 
         <button onClick={handleLogout} className="toy-button toy-button-accent min-w-[180px] justify-center">
           🚪 ĐĂNG XUẤT
-
-        </Link>
+        </button>
       </footer>
 
       {renameOpen && (

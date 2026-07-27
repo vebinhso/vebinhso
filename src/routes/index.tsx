@@ -58,6 +58,22 @@ function Home() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [annAt, setAnnAt] = useState<Record<string, string>>({});
+  const annNew = useMemo(() => {
+    const out: Record<string, boolean> = {};
+    for (const [cid, at] of Object.entries(annAt)) {
+      const seen = getSeenAnnouncement(cid);
+      out[cid] = !seen || new Date(at) > new Date(seen);
+    }
+    return out;
+  }, [annAt]);
+  const hasAnyNew = Object.values(annNew).some(Boolean);
+  const openClassDetail = (c: MyClass) => {
+    const at = annAt[c.class_id];
+    if (at) markAnnouncementSeen(c.class_id, at);
+    setAnnAt((m) => ({ ...m }));
+    setDetailClass(c);
+  };
   const [detailClass, setDetailClass] = useState<MyClass | null>(null);
 
   const syncGame = () => {
@@ -140,7 +156,11 @@ function Home() {
       syncGame();
       refreshFriends(u.id);
       getMyTeacherProfile().then((p) => { if (!cancelled) setTeacherProfile(p); }).catch(() => {});
-      getMyClasses().then((cs) => { if (!cancelled) setMyClasses(cs); }).catch(() => {});
+      getMyClasses().then((cs) => {
+        if (cancelled) return;
+        setMyClasses(cs);
+        latestAnnouncementAt(cs.map((c) => c.class_id)).then((m) => { if (!cancelled) setAnnAt(m); }).catch(() => {});
+      }).catch(() => {});
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {
@@ -256,8 +276,11 @@ function Home() {
               🧑‍🏫 Chờ duyệt giáo viên
             </div>
           )}
-          <button onClick={() => setJoinOpen(true)} className="toy-button text-sm bg-blue-500 text-white w-full justify-center whitespace-nowrap">
+          <button onClick={() => setJoinOpen(true)} className="relative toy-button text-sm bg-blue-500 text-white w-full justify-center whitespace-nowrap">
             🎓 LỚP HỌC{myClasses.length > 0 ? ` (${myClasses.length})` : ""}
+            {hasAnyNew && (
+              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title="Có thông báo mới từ giáo viên" />
+            )}
           </button>
 
 

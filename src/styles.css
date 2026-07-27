@@ -66,6 +66,16 @@
     margin: 0;
     overflow-x: hidden;
   }
+  button, a, [role="button"], summary, label, input, select, textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, [role="button"] {
+    transition-duration: 0.06s;
+  }
+  button:active, [role="button"]:active {
+    transform: scale(0.97);
+  }
 }
 
 @layer components {

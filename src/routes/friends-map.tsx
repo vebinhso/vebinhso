@@ -73,7 +73,10 @@ function FriendsMapPage() {
   const housesQ = useQuery({
     queryKey: ["friend-houses"],
     queryFn: () => listFn(),
-    refetchInterval: 20_000,
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
     enabled: !!me,
   });
   const mineQ = useQuery({

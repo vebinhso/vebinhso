@@ -449,8 +449,13 @@ function Home() {
 
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
         <div className="flex gap-2 flex-wrap">
-          <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
+          <Link to="/chat" className="relative toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
+            {unreadChat > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 rounded-full bg-red-500 text-white text-[11px] font-black flex items-center justify-center border-2 border-white shadow animate-pulse">
+                {unreadChat > 99 ? "99+" : unreadChat}
+              </span>
+            )}
           </Link>
           <button
             onClick={takeScreenshot}
@@ -461,8 +466,9 @@ function Home() {
           </button>
         </div>
 
-        <Link to="/events" className="toy-button toy-button-accent min-w-[180px] justify-center">
-          SỰ KIỆN HOT 🔥
+        <button onClick={handleLogout} className="toy-button toy-button-accent min-w-[180px] justify-center">
+          🚪 ĐĂNG XUẤT
+
         </Link>
       </footer>
 

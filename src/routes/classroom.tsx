@@ -22,7 +22,7 @@ import {
   type TaughtClass,
 } from "@/lib/teacher";
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
-import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, type JoinRequest } from "@/lib/teacher";
+import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, removeClassStudent, type JoinRequest } from "@/lib/teacher";
 
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";

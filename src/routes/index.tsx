@@ -15,6 +15,7 @@ import { loadGame } from "@/lib/game";
 import { loadQuestionsFromDB } from "@/game/questions";
 import { isAdmin } from "@/lib/admin";
 import { ClassroomPanel } from "@/components/ClassroomPanel";
+import { latestAnnouncementAt, getSeenAnnouncement, markAnnouncementSeen } from "@/lib/classroom-posts";
 import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {
   findUserByName,
@@ -492,7 +493,7 @@ function Home() {
                     </p>
                   </div>
                 </div>
-                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact />
+                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact defaultTab="announcement" />
               </>
             ) : (
               <>
@@ -558,8 +559,11 @@ function Home() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {myClasses.map((c) => (
-                      <div key={c.class_id} className={`rounded-2xl p-3 border-2 min-w-0 ${c.is_active ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>
-                        <button onClick={() => setDetailClass(c)} className="text-left w-full min-w-0">
+                      <div key={c.class_id} className={`relative rounded-2xl p-3 border-2 min-w-0 ${c.is_active ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>
+                        {annNew[c.class_id] && (
+                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title="Có thông báo mới từ giáo viên" />
+                        )}
+                        <button onClick={() => openClassDetail(c)} className="text-left w-full min-w-0">
                           <div className="font-black truncate">{c.name}</div>
                           <div className="text-[11px] font-bold text-muted-foreground truncate">
                             🧑‍🏫 {c.teacher_name} · mã {c.code}
@@ -581,7 +585,7 @@ function Home() {
                           {c.is_active ? "Đang tham gia (nhận câu hỏi lớp)" : "Chưa tham gia nhận câu hỏi"}
                         </label>
                         <div className="flex gap-2 mt-2">
-                          <button onClick={() => setDetailClass(c)} className="toy-button !text-[11px] !py-1 flex-1 justify-center">Mở lớp</button>
+                          <button onClick={() => openClassDetail(c)} className="toy-button !text-[11px] !py-1 flex-1 justify-center">Mở lớp</button>
                           <button
                             onClick={async () => {
                               if (!confirm(`Rời lớp ${c.name}?`)) return;

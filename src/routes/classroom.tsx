@@ -220,7 +220,7 @@ function ClassroomPage() {
               {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
               {tab === "students" && (
                 <div className="flex flex-col gap-4">
-                  <JoinRequestsPanel classId={selectedClass.id} />
+                  <JoinRequestsPanel classId={selectedClass.id} onChanged={() => pendingRequestCounts().then(setPending).catch(() => {})} />
                   <StudentsPanel classId={selectedClass.id} />
                 </div>
               )}
@@ -382,7 +382,7 @@ function ClassVisibilityToggle({ classId }: { classId: string }) {
   );
 }
 
-function JoinRequestsPanel({ classId }: { classId: string }) {
+function JoinRequestsPanel({ classId, onChanged }: { classId: string; onChanged?: () => void }) {
   const [reqs, setReqs] = useState<JoinRequest[]>([]);
 
   const load = () => { listJoinRequests(classId).then(setReqs).catch(() => setReqs([])); };
@@ -392,6 +392,7 @@ function JoinRequestsPanel({ classId }: { classId: string }) {
     setReqs((rs) => rs.filter((r) => r.student_id !== studentId));
     try {
       await decideJoinRequest(classId, studentId, approve);
+      onChanged?.();
       toast.success(approve ? "Đã phê duyệt" : "Đã từ chối");
     } catch (e: any) { toast.error(e?.message || "Lỗi"); load(); }
   };

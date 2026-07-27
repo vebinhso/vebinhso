@@ -26,6 +26,7 @@ import {
   declineRequest,
   getFriendship,
 } from "@/lib/friends";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -40,6 +41,8 @@ function Home() {
   const [level, setLevel] = useState(0);
   const [netWorth, setNetWorth] = useState(0);
   const [ready, setReady] = useState(false);
+  const [unreadChat, setUnreadChat] = useState(0);
+
 
   const [friends, setFriends] = useState<Account[]>([]);
   const [incoming, setIncoming] = useState<{ from: Account; created_at: number }[]>([]);
@@ -138,6 +141,27 @@ function Home() {
     setFriends(listFriends(uid));
     setIncoming(listIncomingRequests(uid));
   };
+
+  // Unread chat messages badge
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const load = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("to_id", user.id)
+        .is("seen_at", null);
+      if (!cancelled) setUnreadChat(count || 0);
+    };
+    load();
+    const ch = supabase
+      .channel(`home-unread-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `to_id=eq.${user.id}` }, () => load())
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(ch); };
+  }, [user]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -286,9 +310,6 @@ function Home() {
 
 
 
-          <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
-            🚪 ĐĂNG XUẤT
-          </button>
         </div>
       </header>
 
@@ -425,8 +446,13 @@ function Home() {
 
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
         <div className="flex gap-2 flex-wrap">
-          <Link to="/chat" className="toy-button text-sm min-w-[140px] justify-center">
+          <Link to="/chat" className="relative toy-button text-sm min-w-[140px] justify-center">
             💬 TRÒ CHUYỆN
+            {unreadChat > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 rounded-full bg-red-500 text-white text-[11px] font-black flex items-center justify-center border-2 border-white shadow animate-pulse">
+                {unreadChat > 99 ? "99+" : unreadChat}
+              </span>
+            )}
           </Link>
           <button
             onClick={takeScreenshot}
@@ -437,9 +463,9 @@ function Home() {
           </button>
         </div>
 
-        <Link to="/events" className="toy-button toy-button-accent min-w-[180px] justify-center">
-          SỰ KIỆN HOT 🔥
-        </Link>
+        <button onClick={handleLogout} className="toy-button toy-button-accent min-w-[180px] justify-center">
+          🚪 ĐĂNG XUẤT
+        </button>
       </footer>
 
       {renameOpen && (

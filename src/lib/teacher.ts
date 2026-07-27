@@ -64,6 +64,11 @@ export async function decideJoinRequest(classId: string, studentId: string, appr
   if (error) throw error;
 }
 
+export async function removeClassStudent(classId: string, studentId: string) {
+  const { error } = await supabase.rpc("remove_class_student", { _class_id: classId, _student_id: studentId } as any);
+  if (error) throw error;
+}
+
 export async function getClassVisibility(classId: string): Promise<"public" | "private"> {
   const { data } = await supabase.from("classes").select("visibility").eq("id", classId).maybeSingle();
   return (((data as any)?.visibility as string) === "private" ? "private" : "public");

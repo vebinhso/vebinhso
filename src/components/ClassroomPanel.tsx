@@ -285,11 +285,12 @@ function PostCard({
           {post.file_url && (
             <button
               onClick={() => openClassFile(post.file_url!)}
-              className="text-xs font-black text-emerald-700 text-left"
+              className="w-full text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl px-3 py-2 shadow border-2 border-emerald-700 text-center"
             >
-              📎 Tải tệp đính kèm
+              📎 TẢI TỆP ĐÍNH KÈM
             </button>
           )}
+
 
           {post.kind === "assignment" && (
             <div className="border-t-2 border-orange-100 pt-2">

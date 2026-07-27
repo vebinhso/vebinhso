@@ -1135,6 +1135,10 @@ export type Database = {
         }[]
       }
       reject_teacher: { Args: { uid: string }; Returns: undefined }
+      remove_class_student: {
+        Args: { _class_id: string; _student_id: string }
+        Returns: undefined
+      }
       request_teacher: {
         Args: { school: string; subject: string }
         Returns: undefined

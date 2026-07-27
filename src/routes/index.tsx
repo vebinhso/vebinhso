@@ -40,6 +40,8 @@ function Home() {
   const [level, setLevel] = useState(0);
   const [netWorth, setNetWorth] = useState(0);
   const [ready, setReady] = useState(false);
+  const [unreadChat, setUnreadChat] = useState(0);
+
 
   const [friends, setFriends] = useState<Account[]>([]);
   const [incoming, setIncoming] = useState<{ from: Account; created_at: number }[]>([]);

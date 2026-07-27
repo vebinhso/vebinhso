@@ -416,7 +416,7 @@ function StudentsPanel({ classId }: { classId: string }) {
         <table className="w-full text-sm">
           <thead className="text-left border-b-2 border-orange-200">
             <tr className="font-black">
-              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
+              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -427,6 +427,23 @@ function StudentsPanel({ classId }: { classId: string }) {
                 <td>{r.username}</td>
                 <td className="text-muted-foreground">{r.email}</td>
                 <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+                <td className="text-right">
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm(`Xoá học sinh "${r.display_name || r.username}" khỏi lớp?`)) return;
+                      setRows((rs) => rs.filter((x) => x.user_id !== r.user_id));
+                      try { await removeClassStudent(classId, r.user_id); toast.success("Đã xoá học sinh khỏi lớp"); }
+                      catch (err: any) {
+                        toast.error(err?.message || "Lỗi");
+                        getClassStudents(classId).then(setRows).catch(() => {});
+                      }
+                    }}
+                    className="text-xs font-black text-red-600 px-2 py-1 rounded-lg hover:bg-red-50"
+                  >
+                    🗑️ Xoá
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

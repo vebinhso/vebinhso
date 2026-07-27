@@ -56,6 +56,7 @@ function Home() {
   const [myClasses, setMyClasses] = useState<MyClass[]>([]);
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [joining, setJoining] = useState(false);
   const [detailClass, setDetailClass] = useState<MyClass | null>(null);
 
   const syncGame = () => {
@@ -498,42 +499,58 @@ function Home() {
                 <h3 className="text-xl font-black mb-2">🎓 Lớp học</h3>
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 mb-4">
                   <p className="text-xs font-black text-blue-700 mb-2">Nhập mã lớp giáo viên cung cấp để tham gia</p>
-                  <div className="flex gap-2">
-                    <input
-                      value={joinCode}
-                      onChange={(e) => setJoinCode(e.target.value.trim())}
-                      placeholder="VD: ab12Cd"
-                      maxLength={8}
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      className="flex-1 min-w-0 px-3 py-2 rounded-2xl border-2 border-gray-200 font-black text-center text-lg tracking-widest normal-case"
-                    />
-                    <button
-                      onClick={async () => {
-                        if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
+                  {(() => {
+                    const doJoin = async () => {
+                      const code = joinCode.trim();
+                      if (!code) { toast.error("Nhập mã lớp"); return; }
+                      if (joining) return;
+                      setJoining(true);
+                      try {
+                        let res: any;
                         try {
-                          const res = await joinClass(joinCode.trim());
-                          if (res?.status === "joined") {
-                            setMyClasses(await getMyClasses());
-                            setJoinCode("");
-                            toast.success("ĐÃ THAM GIA LỚP HỌC THÀNH CÔNG");
-                          } else if (res?.status === "pending") {
-                            setJoinCode("");
-                            toast.success("ĐÃ GỬI YÊU CẦU — chờ giáo viên phê duyệt");
-                          } else if (res?.status === "own") {
-                            toast.error("Đây là lớp của bạn");
-                          } else {
-                            toast.error("MÃ LỚP SAI / KHÔNG TỒN TẠI");
-                          }
-                        } catch (e: any) {
-                          toast.error(e?.message || "MÃ LỚP SAI / KHÔNG TỒN TẠI");
+                          res = await joinClass(code);
+                        } catch {
+                          // phiên đăng nhập vừa khôi phục — thử lại 1 lần
+                          res = await joinClass(code);
                         }
-                      }}
-
-                      className="toy-button toy-button-primary !text-sm whitespace-nowrap"
-                    >Tham gia</button>
-                  </div>
+                        if (res?.status === "joined") {
+                          setMyClasses(await getMyClasses());
+                          setJoinCode("");
+                          toast.success("ĐÃ THAM GIA LỚP HỌC THÀNH CÔNG");
+                        } else if (res?.status === "pending") {
+                          setJoinCode("");
+                          toast.success("ĐÃ GỬI YÊU CẦU — chờ giáo viên phê duyệt");
+                        } else if (res?.status === "own") {
+                          toast.error("Đây là lớp của bạn");
+                        } else {
+                          toast.error("MÃ LỚP SAI / KHÔNG TỒN TẠI");
+                        }
+                      } catch (e: any) {
+                        toast.error(e?.message || "MÃ LỚP SAI / KHÔNG TỒN TẠI");
+                      }
+                      setJoining(false);
+                    };
+                    return (
+                      <div className="flex gap-2">
+                        <input
+                          value={joinCode}
+                          onChange={(e) => setJoinCode(e.target.value.replace(/\s+/g, ""))}
+                          onKeyDown={(e) => { if (e.key === "Enter") doJoin(); }}
+                          placeholder="VD: ab12Cd"
+                          maxLength={10}
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          className="flex-1 min-w-0 px-3 py-2 rounded-2xl border-2 border-gray-200 font-black text-center text-lg tracking-widest normal-case"
+                        />
+                        <button
+                          onClick={doJoin}
+                          disabled={joining}
+                          className="toy-button toy-button-primary !text-sm whitespace-nowrap disabled:opacity-60"
+                        >{joining ? "Đang vào..." : "Tham gia"}</button>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {myClasses.length === 0 ? (

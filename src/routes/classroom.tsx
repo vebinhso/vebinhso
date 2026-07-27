@@ -22,7 +22,7 @@ import {
   type TaughtClass,
 } from "@/lib/teacher";
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
-import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, type JoinRequest } from "@/lib/teacher";
+import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, removeClassStudent, type JoinRequest } from "@/lib/teacher";
 
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
@@ -178,6 +178,7 @@ function ClassroomPage() {
           <div className="glass-card p-4 mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
             <div className="min-w-0">
               <button onClick={() => setSelectedClass(null)} className="text-xs font-bold text-orange-600 hover:underline mb-1">← Tất cả lớp</button>
+              <ClassVisibilityToggle classId={selectedClass.id} />
               <h1 className="text-xl md:text-2xl font-black truncate">{selectedClass.name}</h1>
               <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
                 {selectedClass.subject || "—"}
@@ -207,7 +208,7 @@ function ClassroomPage() {
               {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
               {tab === "students" && (
                 <div className="flex flex-col gap-4">
-                  <ClassAccessPanel classId={selectedClass.id} />
+                  <JoinRequestsPanel classId={selectedClass.id} />
                   <StudentsPanel classId={selectedClass.id} />
                 </div>
               )}
@@ -331,62 +332,69 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
   );
 }
 
-function ClassAccessPanel({ classId }: { classId: string }) {
+function ClassVisibilityToggle({ classId }: { classId: string }) {
   const [vis, setVis] = useState<"public" | "private">("public");
-  const [reqs, setReqs] = useState<JoinRequest[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const load = () => {
-    getClassVisibility(classId).then(setVis).catch(() => {});
-    listJoinRequests(classId).then(setReqs).catch(() => setReqs([]));
-  };
-  useEffect(load, [classId]);
+  useEffect(() => {
+    let alive = true;
+    getClassVisibility(classId).then((v) => { if (alive) setVis(v); }).catch(() => {});
+    return () => { alive = false; };
+  }, [classId]);
 
   const change = async (v: "public" | "private") => {
+    if (v === vis || busy) return;
     setBusy(true);
-    try { await setClassVisibility(classId, v); setVis(v); toast.success(v === "public" ? "Lớp đang CÔNG KHAI" : "Lớp đang RIÊNG TƯ (cần duyệt)"); }
-    catch (e: any) { toast.error(e?.message || "Lỗi"); }
+    setVis(v);
+    try { await setClassVisibility(classId, v); toast.success(v === "public" ? "Lớp đang CÔNG KHAI" : "Lớp đang RIÊNG TƯ (cần duyệt)"); }
+    catch (e: any) { setVis(v === "public" ? "private" : "public"); toast.error(e?.message || "Lỗi"); }
     setBusy(false);
   };
 
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+      <span className="text-[10px] font-black uppercase text-muted-foreground">Chế độ lớp</span>
+      {(["public", "private"] as const).map((v) => (
+        <button
+          key={v}
+          disabled={busy}
+          onClick={() => change(v)}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition disabled:opacity-50 ${
+            vis === v ? "bg-orange-500 text-white shadow" : "bg-white hover:bg-orange-100 border-2 border-orange-200"
+          }`}
+        >
+          {v === "public" ? "🌍 Công khai" : "🔒 Riêng tư (cần duyệt)"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function JoinRequestsPanel({ classId }: { classId: string }) {
+  const [reqs, setReqs] = useState<JoinRequest[]>([]);
+
+  const load = () => { listJoinRequests(classId).then(setReqs).catch(() => setReqs([])); };
+  useEffect(load, [classId]);
+
   const decide = async (studentId: string, approve: boolean) => {
+    setReqs((rs) => rs.filter((r) => r.student_id !== studentId));
     try {
       await decideJoinRequest(classId, studentId, approve);
       toast.success(approve ? "Đã phê duyệt" : "Đã từ chối");
-      load();
-    } catch (e: any) { toast.error(e?.message || "Lỗi"); }
+    } catch (e: any) { toast.error(e?.message || "Lỗi"); load(); }
   };
 
+  if (reqs.length === 0) return null;
   return (
-    <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4 flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-black uppercase text-muted-foreground">Chế độ vào lớp</span>
-        {(["public", "private"] as const).map((v) => (
-          <button
-            key={v}
-            disabled={busy}
-            onClick={() => change(v)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition disabled:opacity-50 ${
-              vis === v ? "bg-orange-500 text-white shadow" : "bg-white hover:bg-orange-100 border-2 border-orange-200"
-            }`}
-          >
-            {v === "public" ? "🌍 Công khai (có mã là vào)" : "🔒 Riêng tư (cần duyệt)"}
-          </button>
-        ))}
-      </div>
-      {vis === "private" && (
-        <div className="flex flex-col gap-1.5">
-          <div className="text-xs font-black">Yêu cầu tham gia ({reqs.length})</div>
-          {reqs.length === 0 && <p className="text-xs font-bold text-muted-foreground">Chưa có yêu cầu nào.</p>}
-          {reqs.map((r) => (
-            <div key={r.student_id} className="flex items-center gap-2 bg-orange-50 rounded-xl px-3 py-2 text-sm font-bold">
-              <span className="truncate flex-1">🧑‍🎓 {r.display_name || r.username}</span>
-              <button onClick={() => decide(r.student_id, true)} className="text-xs font-black text-emerald-700">Duyệt</button>
-              <button onClick={() => decide(r.student_id, false)} className="text-xs font-black text-red-600">Từ chối</button>
-            </div>
-          ))}
+    <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4 flex flex-col gap-1.5">
+      <div className="text-xs font-black">🔔 Yêu cầu tham gia ({reqs.length})</div>
+      {reqs.map((r) => (
+        <div key={r.student_id} className="flex items-center gap-2 bg-orange-50 rounded-xl px-3 py-2 text-sm font-bold">
+          <span className="truncate flex-1">🧑‍🎓 {r.display_name || r.username}</span>
+          <button onClick={() => decide(r.student_id, true)} className="text-xs font-black text-white bg-emerald-600 rounded-lg px-2 py-1">Duyệt</button>
+          <button onClick={() => decide(r.student_id, false)} className="text-xs font-black text-red-600">Từ chối</button>
         </div>
-      )}
+      ))}
     </div>
   );
 }
@@ -408,7 +416,7 @@ function StudentsPanel({ classId }: { classId: string }) {
         <table className="w-full text-sm">
           <thead className="text-left border-b-2 border-orange-200">
             <tr className="font-black">
-              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th>
+              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -419,6 +427,23 @@ function StudentsPanel({ classId }: { classId: string }) {
                 <td>{r.username}</td>
                 <td className="text-muted-foreground">{r.email}</td>
                 <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+                <td className="text-right">
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!confirm(`Xoá học sinh "${r.display_name || r.username}" khỏi lớp?`)) return;
+                      setRows((rs) => rs.filter((x) => x.user_id !== r.user_id));
+                      try { await removeClassStudent(classId, r.user_id); toast.success("Đã xoá học sinh khỏi lớp"); }
+                      catch (err: any) {
+                        toast.error(err?.message || "Lỗi");
+                        getClassStudents(classId).then(setRows).catch(() => {});
+                      }
+                    }}
+                    className="text-xs font-black text-red-600 px-2 py-1 rounded-lg hover:bg-red-50"
+                  >
+                    🗑️ Xoá
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -39,11 +39,36 @@ export async function requestTeacher(school: string, subject: string) {
   if (error) throw error;
 }
 
-export async function joinClass(code: string): Promise<string> {
+export type JoinResult = { status: "joined" | "pending" | "invalid" | "own"; class_id?: string };
+export async function joinClass(code: string): Promise<JoinResult> {
   const { data, error } = await supabase.rpc("join_class", { code });
   if (error) throw error;
-  return (data as any) as string;
+  return (data as any) as JoinResult;
 }
+
+// Chế độ lớp: công khai / riêng tư
+export async function setClassVisibility(classId: string, visibility: "public" | "private") {
+  const { error } = await supabase.rpc("set_class_visibility", { _class_id: classId, _visibility: visibility } as any);
+  if (error) throw error;
+}
+
+export type JoinRequest = { student_id: string; display_name: string; username: string; status: string; created_at: string };
+export async function listJoinRequests(classId: string): Promise<JoinRequest[]> {
+  const { data, error } = await supabase.rpc("list_join_requests", { _class_id: classId } as any);
+  if (error) return [];
+  return ((data as any[]) || []) as JoinRequest[];
+}
+
+export async function decideJoinRequest(classId: string, studentId: string, approve: boolean) {
+  const { error } = await supabase.rpc("decide_join_request", { _class_id: classId, _student_id: studentId, _approve: approve } as any);
+  if (error) throw error;
+}
+
+export async function getClassVisibility(classId: string): Promise<"public" | "private"> {
+  const { data } = await supabase.from("classes").select("visibility").eq("id", classId).maybeSingle();
+  return (((data as any)?.visibility as string) === "private" ? "private" : "public");
+}
+
 
 export async function leaveClass(classId?: string) {
   const { error } = await supabase.rpc("leave_class", { _class_id: classId ?? null } as any);

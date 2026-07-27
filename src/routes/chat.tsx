@@ -35,6 +35,9 @@ function Chat() {
   const lastTypingSentRef = useRef(0);
   const peerTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [classMode, setClassMode] = useState<{ id: string; name: string; memberIds: Set<string>; teacher: Account | null } | null>(null);
+  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
+
   useEffect(() => {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
@@ -44,6 +47,58 @@ function Chat() {
     window.addEventListener("friends-change", load);
     return () => window.removeEventListener("friends-change", load);
   }, [navigate]);
+
+  // Class mode: restrict conversations to classmates + teacher
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: prof } = await supabase
+          .from("profiles").select("active_class_id").eq("user_id", user.id).maybeSingle();
+        const classId = (prof as any)?.active_class_id as string | null;
+        if (!classId) { if (!cancelled) setClassMode(null); return; }
+        const [{ data: cls }, { data: members }] = await Promise.all([
+          supabase.from("classes").select("id, name, teacher_id").eq("id", classId).maybeSingle(),
+          supabase.from("classroom_members").select("student_id").eq("class_id", classId),
+        ]);
+        const ids = new Set<string>((members || []).map((m: any) => m.student_id));
+        let teacher: Account | null = null;
+        const tId = (cls as any)?.teacher_id as string | undefined;
+        if (tId && tId !== user.id) {
+          const { data: tp } = await supabase
+            .from("profiles").select("user_id, username").eq("user_id", tId).maybeSingle();
+          if (tp) teacher = { id: (tp as any).user_id, username: (tp as any).username, email: "", createdAt: "" } as Account;
+        }
+        if (!cancelled) setClassMode({ id: classId, name: (cls as any)?.name || "Lớp học", memberIds: ids, teacher });
+      } catch {
+        if (!cancelled) setClassMode(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  // Unread counts per sender
+  const loadUnread = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("messages").select("from_id").eq("to_id", user.id).is("seen_at", null);
+    const m: Record<string, number> = {};
+    (data || []).forEach((r: any) => { m[r.from_id] = (m[r.from_id] || 0) + 1; });
+    setUnreadMap(m);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    loadUnread();
+    const ch = supabase
+      .channel(`unread-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `to_id=eq.${user.id}` }, () => loadUnread())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
 
   // Presence: track online users globally
   useEffect(() => {

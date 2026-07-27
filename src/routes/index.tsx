@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   getCurrentUser,
@@ -15,6 +15,7 @@ import { loadGame } from "@/lib/game";
 import { loadQuestionsFromDB } from "@/game/questions";
 import { isAdmin } from "@/lib/admin";
 import { ClassroomPanel } from "@/components/ClassroomPanel";
+import { latestAnnouncementAt, getSeenAnnouncement, markAnnouncementSeen } from "@/lib/classroom-posts";
 import { getMyTeacherProfile, joinClass, leaveClass, getMyClasses, setActiveClass, type MyTeacherProfile, type MyClass } from "@/lib/teacher";
 import {
   findUserByName,
@@ -57,6 +58,22 @@ function Home() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [annAt, setAnnAt] = useState<Record<string, string>>({});
+  const annNew = useMemo(() => {
+    const out: Record<string, boolean> = {};
+    for (const [cid, at] of Object.entries(annAt)) {
+      const seen = getSeenAnnouncement(cid);
+      out[cid] = !seen || new Date(at) > new Date(seen);
+    }
+    return out;
+  }, [annAt]);
+  const hasAnyNew = Object.values(annNew).some(Boolean);
+  const openClassDetail = (c: MyClass) => {
+    const at = annAt[c.class_id];
+    if (at) markAnnouncementSeen(c.class_id, at);
+    setAnnAt((m) => ({ ...m }));
+    setDetailClass(c);
+  };
   const [detailClass, setDetailClass] = useState<MyClass | null>(null);
 
   const syncGame = () => {
@@ -139,7 +156,11 @@ function Home() {
       syncGame();
       refreshFriends(u.id);
       getMyTeacherProfile().then((p) => { if (!cancelled) setTeacherProfile(p); }).catch(() => {});
-      getMyClasses().then((cs) => { if (!cancelled) setMyClasses(cs); }).catch(() => {});
+      getMyClasses().then((cs) => {
+        if (cancelled) return;
+        setMyClasses(cs);
+        latestAnnouncementAt(cs.map((c) => c.class_id)).then((m) => { if (!cancelled) setAnnAt(m); }).catch(() => {});
+      }).catch(() => {});
       setReady(true);
       // Cập nhật lại streak khi session hydrate xong (recordLoginDay chạy async).
       const refresh = () => {
@@ -255,8 +276,11 @@ function Home() {
               🧑‍🏫 Chờ duyệt giáo viên
             </div>
           )}
-          <button onClick={() => setJoinOpen(true)} className="toy-button text-sm bg-blue-500 text-white w-full justify-center whitespace-nowrap">
+          <button onClick={() => setJoinOpen(true)} className="relative toy-button text-sm bg-blue-500 text-white w-full justify-center whitespace-nowrap">
             🎓 LỚP HỌC{myClasses.length > 0 ? ` (${myClasses.length})` : ""}
+            {hasAnyNew && (
+              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title="Có thông báo mới từ giáo viên" />
+            )}
           </button>
 
 
@@ -492,7 +516,7 @@ function Home() {
                     </p>
                   </div>
                 </div>
-                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact />
+                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact defaultTab="announcement" />
               </>
             ) : (
               <>
@@ -558,8 +582,11 @@ function Home() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {myClasses.map((c) => (
-                      <div key={c.class_id} className={`rounded-2xl p-3 border-2 min-w-0 ${c.is_active ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>
-                        <button onClick={() => setDetailClass(c)} className="text-left w-full min-w-0">
+                      <div key={c.class_id} className={`relative rounded-2xl p-3 border-2 min-w-0 ${c.is_active ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>
+                        {annNew[c.class_id] && (
+                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title="Có thông báo mới từ giáo viên" />
+                        )}
+                        <button onClick={() => openClassDetail(c)} className="text-left w-full min-w-0">
                           <div className="font-black truncate">{c.name}</div>
                           <div className="text-[11px] font-bold text-muted-foreground truncate">
                             🧑‍🏫 {c.teacher_name} · mã {c.code}
@@ -581,7 +608,7 @@ function Home() {
                           {c.is_active ? "Đang tham gia (nhận câu hỏi lớp)" : "Chưa tham gia nhận câu hỏi"}
                         </label>
                         <div className="flex gap-2 mt-2">
-                          <button onClick={() => setDetailClass(c)} className="toy-button !text-[11px] !py-1 flex-1 justify-center">Mở lớp</button>
+                          <button onClick={() => openClassDetail(c)} className="toy-button !text-[11px] !py-1 flex-1 justify-center">Mở lớp</button>
                           <button
                             onClick={async () => {
                               if (!confirm(`Rời lớp ${c.name}?`)) return;

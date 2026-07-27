@@ -285,11 +285,12 @@ function PostCard({
           {post.file_url && (
             <button
               onClick={() => openClassFile(post.file_url!)}
-              className="text-xs font-black text-emerald-700 text-left"
+              className="w-full text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl px-3 py-2 shadow border-2 border-emerald-700 text-center"
             >
-              📎 Tải tệp đính kèm
+              📎 TẢI TỆP ĐÍNH KÈM
             </button>
           )}
+
 
           {post.kind === "assignment" && (
             <div className="border-t-2 border-orange-100 pt-2">
@@ -300,11 +301,15 @@ function PostCard({
                     <div key={s.id} className="text-xs bg-orange-50 rounded-lg px-2 py-1 flex items-center gap-2">
                       <span className="truncate flex-1">{s.file_name || s.note || "(không có tệp)"}</span>
                       {s.file_url && (
-                        <button onClick={() => openClassFile(s.file_url!)} className="font-black text-emerald-700">
-                          tải
+                        <button
+                          onClick={() => openClassFile(s.file_url!)}
+                          className="font-black text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg px-2 py-1 shrink-0"
+                        >
+                          📥 TẢI
                         </button>
                       )}
                     </div>
+
                   ))}
                   {subs.length === 0 && <p className="text-xs text-muted-foreground">Chưa có bài nộp.</p>}
                 </div>

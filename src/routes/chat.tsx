@@ -33,6 +33,7 @@ function Chat() {
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
+  const sendingRef = useRef(false);
   const peerTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [classMode, setClassMode] = useState<{ id: string; name: string; memberIds: Set<string>; teacher: Account | null } | null>(null);
@@ -194,14 +195,20 @@ function Chat() {
   if (!user) return null;
 
   const send = async () => {
-    if (!text.trim() || activeId == null || !user) return;
-    const tk = threadKey(user.id, activeId);
+    if (sendingRef.current) return;
     const content = text.trim();
+    if (!content || activeId == null || !user) return;
+    sendingRef.current = true;
+    const tk = threadKey(user.id, activeId);
     setText("");
-    await supabase.from("messages").insert({
-      thread_key: tk, from_id: user.id, to_id: activeId, text: content,
-    });
-    loadMsgs();
+    try {
+      await supabase.from("messages").insert({
+        thread_key: tk, from_id: user.id, to_id: activeId, text: content,
+      });
+      await loadMsgs();
+    } finally {
+      sendingRef.current = false;
+    }
   };
 
   const handleTextChange = (v: string) => {

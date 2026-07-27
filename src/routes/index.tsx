@@ -310,9 +310,6 @@ function Home() {
 
 
 
-          <button onClick={handleLogout} className="toy-button text-sm w-full justify-center">
-            🚪 ĐĂNG XUẤT
-          </button>
         </div>
       </header>
 

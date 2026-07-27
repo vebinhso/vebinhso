@@ -205,7 +205,12 @@ function ClassroomPage() {
             <main className="glass-card p-4 md:p-6 min-h-[60vh]">
               {tab === "overview" && <OverviewPanel classId={selectedClass.id} refreshKey={qVersion} />}
               {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
-              {tab === "students" && <StudentsPanel classId={selectedClass.id} />}
+              {tab === "students" && (
+                <div className="flex flex-col gap-4">
+                  <ClassAccessPanel classId={selectedClass.id} />
+                  <StudentsPanel classId={selectedClass.id} />
+                </div>
+              )}
               {tab === "questions" && <QuestionsPanel classId={selectedClass.id} onCountChanged={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}
               {tab === "import" && <ImportPanel classId={selectedClass.id} onDone={() => { setQVersion((v) => v + 1); reloadClasses(); }} />}
             </main>

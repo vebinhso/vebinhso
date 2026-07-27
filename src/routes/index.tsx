@@ -58,6 +58,7 @@ function Home() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [joinMsg, setJoinMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [annAt, setAnnAt] = useState<Record<string, string>>({});
   const annNew = useMemo(() => {
     const out: Record<string, boolean> = {};
@@ -526,7 +527,8 @@ function Home() {
                   {(() => {
                     const doJoin = async () => {
                       const code = joinCode.trim();
-                      if (!code) { toast.error("Nhập mã lớp"); return; }
+                      if (!code) { setJoinMsg({ ok: false, text: "VUI LÒNG NHẬP MÃ LỚP" }); toast.error("Nhập mã lớp"); return; }
+                      setJoinMsg(null);
                       if (joining) return;
                       setJoining(true);
                       try {
@@ -540,16 +542,21 @@ function Home() {
                         if (res?.status === "joined") {
                           setMyClasses(await getMyClasses());
                           setJoinCode("");
+                          setJoinMsg({ ok: true, text: "ĐÃ THAM GIA LỚP HỌC THÀNH CÔNG" });
                           toast.success("ĐÃ THAM GIA LỚP HỌC THÀNH CÔNG");
                         } else if (res?.status === "pending") {
                           setJoinCode("");
+                          setJoinMsg({ ok: true, text: "ĐÃ GỬI YÊU CẦU — chờ giáo viên phê duyệt" });
                           toast.success("ĐÃ GỬI YÊU CẦU — chờ giáo viên phê duyệt");
                         } else if (res?.status === "own") {
+                          setJoinMsg({ ok: false, text: "ĐÂY LÀ LỚP CỦA BẠN" });
                           toast.error("Đây là lớp của bạn");
                         } else {
+                          setJoinMsg({ ok: false, text: "MÃ LỚP SAI / KHÔNG TỒN TẠI" });
                           toast.error("MÃ LỚP SAI / KHÔNG TỒN TẠI");
                         }
                       } catch (e: any) {
+                        setJoinMsg({ ok: false, text: "MÃ LỚP SAI / KHÔNG TỒN TẠI" });
                         toast.error(e?.message || "MÃ LỚP SAI / KHÔNG TỒN TẠI");
                       }
                       setJoining(false);
@@ -575,6 +582,13 @@ function Home() {
                       </div>
                     );
                   })()}
+                  {joinMsg && (
+                    <div className={`mt-2 rounded-xl px-3 py-2 text-xs font-black text-center border-2 ${
+                      joinMsg.ok ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-red-50 border-red-300 text-red-600"
+                    }`}>
+                      {joinMsg.ok ? "✅ " : "❌ "}{joinMsg.text}
+                    </div>
+                  )}
                 </div>
 
                 {myClasses.length === 0 ? (

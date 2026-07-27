@@ -50,6 +50,41 @@ export type Database = {
         }
         Relationships: []
       }
+      class_join_requests: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_join_requests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_posts: {
         Row: {
           class_id: string
@@ -166,6 +201,7 @@ export type Database = {
           subject: string | null
           teacher_id: string
           updated_at: string
+          visibility: string
         }
         Insert: {
           code: string
@@ -175,6 +211,7 @@ export type Database = {
           subject?: string | null
           teacher_id: string
           updated_at?: string
+          visibility?: string
         }
         Update: {
           code?: string
@@ -184,6 +221,7 @@ export type Database = {
           subject?: string | null
           teacher_id?: string
           updated_at?: string
+          visibility?: string
         }
         Relationships: []
       }
@@ -957,6 +995,7 @@ export type Database = {
           subject: string | null
           teacher_id: string
           updated_at: string
+          visibility: string
         }
         SetofOptions: {
           from: "*"
@@ -964,6 +1003,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      decide_join_request: {
+        Args: { _approve: boolean; _class_id: string; _student_id: string }
+        Returns: undefined
       }
       delete_class: { Args: { _class_id: string }; Returns: undefined }
       get_class_roster: {
@@ -1054,8 +1097,18 @@ export type Database = {
         }
         Returns: boolean
       }
-      join_class: { Args: { code: string }; Returns: string }
+      join_class: { Args: { code: string }; Returns: Json }
       leave_class: { Args: { _class_id?: string }; Returns: undefined }
+      list_join_requests: {
+        Args: { _class_id: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          status: string
+          student_id: string
+          username: string
+        }[]
+      }
       list_my_taught_classes: {
         Args: never
         Returns: {
@@ -1087,6 +1140,10 @@ export type Database = {
         Returns: undefined
       }
       set_active_class: { Args: { _class_id: string }; Returns: undefined }
+      set_class_visibility: {
+        Args: { _class_id: string; _visibility: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "teacher"

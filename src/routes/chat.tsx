@@ -219,6 +219,14 @@ function Chat() {
     typingTimeoutRef.current = setTimeout(() => { lastTypingSentRef.current = 0; }, 1500);
   };
 
+  const className = classMode?.name || null;
+  const visibleFriends: Account[] = classMode
+    ? [
+        ...(classMode.teacher ? [{ ...classMode.teacher, isTeacher: true } as Account] : []),
+        ...friends.filter((f) => classMode.memberIds.has(f.id)),
+      ]
+    : friends;
+
   const activeFriend = visibleFriends.find((f) => f.id === activeId) || null;
 
   return (

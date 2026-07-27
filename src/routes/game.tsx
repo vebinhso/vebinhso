@@ -59,11 +59,11 @@ function GamePage() {
   const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
   const listFriendsFn = useServerFn(listFriendHouses);
   const friendHousesQ = useQuery({
-    queryKey: ["friend-houses", user?.id],
+    queryKey: ["friend-houses"],
     queryFn: () => listFriendsFn(),
     enabled: !!user,
     refetchInterval: 20_000,
-    staleTime: 10_000,
+    staleTime: 15_000,
   });
 
   // Wall-build flow
@@ -972,8 +972,9 @@ function GamePage() {
             <div className="text-[10px] sm:text-xs font-bold text-stone-700 truncate">🧱 {state.bricks} • 🪣 {state.concrete} • 🏠 {state.roofTiles} • 🟥 {state.roofTilesTon}</div>
             <Link
               to="/friends-map"
-              preload="intent"
-              className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-black text-emerald-800"
+              preload="render"
+              onPointerDown={() => { void friendHousesQ.refetch(); }}
+              className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-black text-emerald-800 active:scale-95 transition-transform duration-75 touch-manipulation"
             >
               🗺️ Bản đồ bạn bè
             </Link>

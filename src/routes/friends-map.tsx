@@ -73,7 +73,10 @@ function FriendsMapPage() {
   const housesQ = useQuery({
     queryKey: ["friend-houses"],
     queryFn: () => listFn(),
-    refetchInterval: 20_000,
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
     enabled: !!me,
   });
   const mineQ = useQuery({
@@ -82,17 +85,26 @@ function FriendsMapPage() {
     enabled: !!me,
   });
 
-  // Realtime: refresh on any presence change of a friend (list is scoped server-side)
+  // Realtime: refresh on presence changes (throttled to avoid refetch storms)
   useEffect(() => {
     if (!me) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const ch = supabase
       .channel("presence-map")
       .on("postgres_changes", { event: "*", schema: "public", table: "presence" }, () => {
-        qc.invalidateQueries({ queryKey: ["friend-houses"] });
+        if (timer) return;
+        timer = setTimeout(() => {
+          timer = null;
+          qc.invalidateQueries({ queryKey: ["friend-houses"] });
+        }, 6000);
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(ch);
+    };
   }, [me, qc]);
+
 
   const { ref, size } = useContainerSize<HTMLDivElement>();
   const scale = Math.min(size.w / MAP_W, size.h / MAP_H, 1);

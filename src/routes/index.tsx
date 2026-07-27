@@ -141,6 +141,27 @@ function Home() {
     setIncoming(listIncomingRequests(uid));
   };
 
+  // Unread chat messages badge
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const load = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("to_id", user.id)
+        .is("seen_at", null);
+      if (!cancelled) setUnreadChat(count || 0);
+    };
+    load();
+    const ch = supabase
+      .channel(`home-unread-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `to_id=eq.${user.id}` }, () => load())
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(ch); };
+  }, [user]);
+
+
   useEffect(() => {
     let cancelled = false;
     let cleanup: (() => void) | undefined;

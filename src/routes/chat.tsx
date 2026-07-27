@@ -164,7 +164,7 @@ function Chat() {
     typingTimeoutRef.current = setTimeout(() => { lastTypingSentRef.current = 0; }, 1500);
   };
 
-  const activeFriend = friends.find((f) => f.id === activeId) || null;
+  const activeFriend = visibleFriends.find((f) => f.id === activeId) || null;
 
   return (
     <GameLayout showBack>
@@ -172,19 +172,27 @@ function Chat() {
         <div className="glass-card p-4 flex-1 flex flex-col md:flex-row gap-3 min-h-[60vh]">
           {/* Friends list */}
           <aside className="md:w-[220px] border-b-2 md:border-b-0 md:border-r-2 border-white/60 pb-3 md:pb-0 md:pr-3">
-            <h2 className="font-black text-center mb-3">💬 BẠN BÈ</h2>
-            {friends.length === 0 ? (
-              <p className="text-xs text-center text-muted-foreground italic">Chưa có bạn bè để trò chuyện.</p>
+            <h2 className="font-black text-center mb-1">💬 BẠN BÈ</h2>
+            {className && (
+              <p className="text-[10px] text-center font-bold text-emerald-700 mb-2">
+                🎓 Chế độ lớp: {className}
+              </p>
+            )}
+            {visibleFriends.length === 0 ? (
+              <p className="text-xs text-center text-muted-foreground italic">
+                {className ? "Chưa có bạn bè nào trong lớp này." : "Chưa có bạn bè để trò chuyện."}
+              </p>
             ) : (
               <div className="flex md:flex-col gap-2 overflow-x-auto">
-                {friends.map((f) => {
+                {visibleFriends.map((f) => {
                   const active = activeId === f.id;
                   const online = onlineIds.has(f.id);
+                  const unread = active ? 0 : (unreadMap[f.id] || 0);
                   return (
                     <button
                       key={f.id}
                       onClick={() => setActiveId(f.id)}
-                      className={`text-left px-3 py-2 rounded-xl border-2 transition min-w-[160px] ${
+                      className={`relative text-left px-3 py-2 rounded-xl border-2 transition min-w-[160px] ${
                         active ? "bg-orange-400 text-white border-orange-600" : "bg-white/80 border-white hover:bg-white"
                       }`}
                     >
@@ -196,8 +204,17 @@ function Chat() {
                           title={online ? "Online" : "Offline"}
                         />
                         <span className="truncate">{f.username}</span>
+                        {(f as any).isTeacher && (
+                          <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 rounded px-1">GV</span>
+                        )}
+                        {unread > 0 && (
+                          <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shadow">
+                            {unread > 99 ? "99+" : unread}
+                          </span>
+                        )}
                       </div>
                       <div className={`text-[10px] truncate ${active ? "text-white/80" : "text-muted-foreground"}`}>
+
                         {online ? "Đang online" : "Offline"}
                       </div>
                     </button>

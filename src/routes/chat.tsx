@@ -351,7 +351,13 @@ function Chat() {
                   <input
                     value={text}
                     onChange={(e) => handleTextChange(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && send()}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      // Bỏ qua Enter khi đang gõ tiếng Việt (IME composition)
+                      if (e.nativeEvent.isComposing || (e.nativeEvent as any).keyCode === 229) return;
+                      e.preventDefault();
+                      send();
+                    }}
                     placeholder="Nhập tin nhắn..."
                     className="flex-1 px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold"
                   />

@@ -59,11 +59,11 @@ function GamePage() {
   const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
   const listFriendsFn = useServerFn(listFriendHouses);
   const friendHousesQ = useQuery({
-    queryKey: ["friend-houses", user?.id],
+    queryKey: ["friend-houses"],
     queryFn: () => listFriendsFn(),
     enabled: !!user,
     refetchInterval: 20_000,
-    staleTime: 10_000,
+    staleTime: 15_000,
   });
 
   // Wall-build flow

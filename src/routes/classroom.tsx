@@ -178,6 +178,7 @@ function ClassroomPage() {
           <div className="glass-card p-4 mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
             <div className="min-w-0">
               <button onClick={() => setSelectedClass(null)} className="text-xs font-bold text-orange-600 hover:underline mb-1">← Tất cả lớp</button>
+              <ClassVisibilityToggle classId={selectedClass.id} />
               <h1 className="text-xl md:text-2xl font-black truncate">{selectedClass.name}</h1>
               <p className="text-xs md:text-sm font-bold text-muted-foreground truncate">
                 {selectedClass.subject || "—"}
@@ -207,7 +208,7 @@ function ClassroomPage() {
               {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
               {tab === "students" && (
                 <div className="flex flex-col gap-4">
-                  <ClassAccessPanel classId={selectedClass.id} />
+                  <JoinRequestsPanel classId={selectedClass.id} />
                   <StudentsPanel classId={selectedClass.id} />
                 </div>
               )}

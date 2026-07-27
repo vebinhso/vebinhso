@@ -502,22 +502,35 @@ function Home() {
                     <input
                       value={joinCode}
                       onChange={(e) => setJoinCode(e.target.value.trim())}
-                      placeholder="VD: ab12cd"
+                      placeholder="VD: ab12Cd"
                       maxLength={8}
-                      className="flex-1 min-w-0 px-3 py-2 rounded-2xl border-2 border-gray-200 font-black text-center text-lg tracking-widest uppercase"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      className="flex-1 min-w-0 px-3 py-2 rounded-2xl border-2 border-gray-200 font-black text-center text-lg tracking-widest normal-case"
                     />
                     <button
                       onClick={async () => {
                         if (!joinCode.trim()) { toast.error("Nhập mã lớp"); return; }
                         try {
-                          await joinClass(joinCode.trim().toLowerCase());
-                          setMyClasses(await getMyClasses());
-                          setJoinCode("");
-                          toast.success("Đã vào lớp");
+                          const res = await joinClass(joinCode.trim());
+                          if (res?.status === "joined") {
+                            setMyClasses(await getMyClasses());
+                            setJoinCode("");
+                            toast.success("ĐÃ THAM GIA LỚP HỌC THÀNH CÔNG");
+                          } else if (res?.status === "pending") {
+                            setJoinCode("");
+                            toast.success("ĐÃ GỬI YÊU CẦU — chờ giáo viên phê duyệt");
+                          } else if (res?.status === "own") {
+                            toast.error("Đây là lớp của bạn");
+                          } else {
+                            toast.error("MÃ LỚP SAI / KHÔNG TỒN TẠI");
+                          }
                         } catch (e: any) {
-                          toast.error(e?.message || "Mã lớp không hợp lệ");
+                          toast.error(e?.message || "MÃ LỚP SAI / KHÔNG TỒN TẠI");
                         }
                       }}
+
                       className="toy-button toy-button-primary !text-sm whitespace-nowrap"
                     >Tham gia</button>
                   </div>

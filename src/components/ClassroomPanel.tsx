@@ -14,22 +14,25 @@ import {
   type RosterMember,
 } from "@/lib/classroom-posts";
 
-type Tab = "material" | "assignment" | "people";
+type Tab = "announcement" | "material" | "assignment" | "people";
 
 export function ClassroomPanel({
   classId,
   canPost,
   compact,
+  defaultTab,
 }: {
   classId: string;
   canPost: boolean;
   compact?: boolean;
+  defaultTab?: Tab;
 }) {
-  const [tab, setTab] = useState<Tab>("material");
+  const [tab, setTab] = useState<Tab>(defaultTab ?? "material");
   return (
     <div className="flex flex-col gap-3 min-w-0">
       <div className="flex gap-1 flex-wrap">
         {([
+          { id: "announcement", label: "📢 Thông báo" },
           { id: "material", label: "📚 Học liệu" },
           { id: "assignment", label: "📝 Bài tập" },
           { id: "people", label: "👥 Thành viên" },
@@ -87,7 +90,7 @@ function PostsTab({
   compact,
 }: {
   classId: string;
-  kind: "material" | "assignment";
+  kind: "material" | "assignment" | "announcement";
   canPost: boolean;
   compact?: boolean;
 }) {
@@ -140,7 +143,7 @@ function PostsTab({
       {canPost && (
         <div className="bg-white/80 rounded-2xl p-3 border-2 border-orange-200">
           <button onClick={() => setOpenForm((v) => !v)} className="text-xs font-black text-orange-600">
-            {openForm ? "▲ Đóng" : `➕ Đăng ${kind === "material" ? "học liệu" : "bài tập"}`}
+            {openForm ? "▲ Đóng" : `➕ Đăng ${kind === "material" ? "học liệu" : kind === "assignment" ? "bài tập" : "thông báo"}`}
           </button>
           {openForm && (
             <div className="flex flex-col gap-2 mt-2">
@@ -189,7 +192,7 @@ function PostsTab({
 
       {posts.length === 0 && (
         <p className="text-xs font-bold text-muted-foreground">
-          Chưa có {kind === "material" ? "học liệu" : "bài tập"} nào.
+          Chưa có {kind === "material" ? "học liệu" : kind === "assignment" ? "bài tập" : "thông báo"} nào.
         </p>
       )}
       {posts.map((p) => (
@@ -245,7 +248,7 @@ function PostCard({
   return (
     <div className="bg-white/90 rounded-2xl p-3 border-2 border-white shadow-sm min-w-0">
       <div className="flex items-start gap-2">
-        <span className="text-lg">{post.kind === "material" ? "📚" : "📝"}</span>
+        <span className="text-lg">{post.kind === "material" ? "📚" : post.kind === "announcement" ? "📢" : "📝"}</span>
         <div className="flex-1 min-w-0">
           <button onClick={() => setOpen((v) => !v)} className="text-left w-full">
             <div className="font-black text-sm truncate">{post.title}</div>

@@ -27,6 +27,7 @@ import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinReq
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";
 import { ClassroomPanel } from "@/components/ClassroomPanel";
+import { pendingRequestCounts } from "@/lib/classroom-posts";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
@@ -50,11 +51,13 @@ function ClassroomPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [qVersion, setQVersion] = useState(0);
   const [addOpen, setAddOpen] = useState(false);
+  const [pending, setPending] = useState<Record<string, number>>({});
 
   const reloadClasses = async () => {
     try {
       const list = await listMyTaughtClasses();
       setClasses(list);
+      pendingRequestCounts().then(setPending).catch(() => {});
       if (selectedClass) {
         const updated = list.find((c) => c.id === selectedClass.id);
         if (updated) setSelectedClass(updated);
@@ -134,8 +137,14 @@ function ClassroomPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {classes.map((c) => (
-                  <div key={c.id} className="glass-card p-4 flex flex-col gap-2 hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-orange-300"
+                  <div key={c.id} className="relative glass-card p-4 flex flex-col gap-2 hover:shadow-lg transition cursor-pointer border-2 border-transparent hover:border-orange-300"
                        onClick={() => { setSelectedClass(c); setTab("overview"); }}>
+                    {(pending[c.id] || 0) > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 z-10 flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-full bg-emerald-500 text-white text-[11px] font-black border-2 border-white shadow animate-pulse"
+                            title={`${pending[c.id]} yêu cầu tham gia`}>
+                        {pending[c.id]}
+                      </span>
+                    )}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="font-black text-lg truncate">{c.name}</div>
@@ -194,11 +203,14 @@ function ClassroomPage() {
                   <button
                     key={t.id}
                     onClick={() => setTab(t.id)}
-                    className={`text-left whitespace-nowrap px-3 py-2 rounded-xl font-bold text-sm transition ${
+                    className={`relative text-left whitespace-nowrap px-3 py-2 rounded-xl font-bold text-sm transition ${
                       tab === t.id ? "bg-orange-500 text-white shadow" : "hover:bg-orange-100"
                     }`}
                   >
                     <span className="mr-2">{t.icon}</span>{t.label}
+                    {t.id === "students" && (pending[selectedClass.id] || 0) > 0 && (
+                      <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
                   </button>
                 ))}
               </div>

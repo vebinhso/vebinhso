@@ -26,6 +26,7 @@ import {
   declineRequest,
   getFriendship,
 } from "@/lib/friends";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: Home,

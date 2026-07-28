@@ -76,34 +76,50 @@ function RoleplayPage() {
           </div>
 
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {LESSONS.map((l, i) => (
-              <Component
-                key={l.id}
-                {...(l.ready && l.to ? { to: l.to } : { onClick: () => setPicked(l) })}
-                className="group text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform"
-              >
-                <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
-                  <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
-                    {l.level}
-                  </span>
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
-                    #{i + 1}
-                  </span>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
-                  <p className="text-xs font-bold text-muted-foreground leading-snug mb-3 line-clamp-2">{l.desc}</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
-                    <span className="text-[10px] font-black px-2 py-1 rounded-full bg-amber-400/25 text-amber-700 dark:text-amber-300">
-                      🔒 Sắp ra mắt
+            {LESSONS.map((l, i) => {
+              const cardClass =
+                "group block text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform";
+              const inner = (
+                <>
+                  <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
+                    <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
+                      {l.level}
+                    </span>
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
+                      #{i + 1}
                     </span>
                   </div>
-                </div>
-              </button>
-            ))}
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
+                    <p className="text-xs font-bold text-muted-foreground leading-snug mb-3 line-clamp-2">{l.desc}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
+                      {l.ready ? (
+                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-emerald-500/25 text-emerald-700 dark:text-emerald-300">
+                          ▶ Chơi ngay
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-amber-400/25 text-amber-700 dark:text-amber-300">
+                          🔒 Sắp ra mắt
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+              return l.ready && l.to === "/roleplay/scam-police" ? (
+                <Link key={l.id} to="/roleplay/scam-police" className={cardClass}>
+                  {inner}
+                </Link>
+              ) : (
+                <button key={l.id} onClick={() => setPicked(l)} className={cardClass}>
+                  {inner}
+                </button>
+              );
+            })}
           </div>
+
 
           <div className="mt-5 rounded-2xl border-2 border-dashed border-border p-5 text-center">
             <div className="text-3xl mb-1">✨</div>

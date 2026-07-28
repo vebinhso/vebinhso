@@ -111,8 +111,14 @@ function FriendsMapPage() {
 
   // De-collision: jitter positions that are too close (simple grid bucketing).
   const houses = useMemo<FriendHouse[]>(() => {
-    const raw = housesQ.data ?? [];
+    let raw = housesQ.data ?? [];
+    // Always show my own house so the privacy toggle sits next to my name.
+    const mine = mineQ.data as FriendHouse | undefined;
+    if (me && mine && !raw.some((h) => h.user_id === me.id)) {
+      raw = [...raw, { ...mine, user_id: me.id } as FriendHouse];
+    }
     const seen = new Map<string, number>();
+
     return raw.map((h) => {
       const key = `${Math.round(h.map_x / 90)},${Math.round(h.map_y / 90)}`;
       const n = (seen.get(key) ?? 0) + 1;
@@ -126,7 +132,7 @@ function FriendsMapPage() {
         map_y: Math.max(60, Math.min(MAP_H - 60, h.map_y + Math.sin(ang) * offset)),
       };
     });
-  }, [housesQ.data]);
+  }, [housesQ.data, mineQ.data, me]);
 
   const [selected, setSelected] = useState<FriendHouse | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -145,9 +151,10 @@ function FriendsMapPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-sky-100">
       <header className="p-3 sm:p-4 flex items-center gap-2 flex-wrap">
-        <button className="toy-button toy-button-primary !text-sm" onClick={() => setSettingsOpen(true)}>
-          ⚙️ Nhà của tôi
-        </button>
+        <Link to="/game" className="toy-button toy-button-primary !text-sm">
+          🏠 Nhà của tôi
+        </Link>
+
         <h1 className="text-xl sm:text-2xl font-black flex-1 text-center">🗺️ Bản đồ bạn bè</h1>
         <Link to="/" className="toy-button toy-button-ghost !text-sm">Trang chủ →</Link>
       </header>

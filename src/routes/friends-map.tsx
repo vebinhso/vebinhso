@@ -145,9 +145,10 @@ function FriendsMapPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-sky-100">
       <header className="p-3 sm:p-4 flex items-center gap-2 flex-wrap">
-        <button className="toy-button toy-button-primary !text-sm" onClick={() => setSettingsOpen(true)}>
-          ⚙️ Nhà của tôi
-        </button>
+        <Link to="/game" className="toy-button toy-button-primary !text-sm">
+          🏠 Nhà của tôi
+        </Link>
+
         <h1 className="text-xl sm:text-2xl font-black flex-1 text-center">🗺️ Bản đồ bạn bè</h1>
         <Link to="/" className="toy-button toy-button-ghost !text-sm">Trang chủ →</Link>
       </header>

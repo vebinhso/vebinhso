@@ -49,7 +49,7 @@ function FilmPage() {
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
-  // Typewriter subtitle
+  // Typewriter subtitle — tốc độ kể chuyện tự nhiên như xem phim
   useEffect(() => {
     if (!started) return;
     setTyped("");
@@ -57,16 +57,17 @@ function FilmPage() {
     let i = 0;
     const text = node.text;
     const id = window.setInterval(() => {
-      i += 2;
+      i += 1;
       setTyped(text.slice(0, i));
       if (i >= text.length) {
         window.clearInterval(id);
         setTyped(text);
         setDone(true);
       }
-    }, 22);
+    }, 42);
     return () => window.clearInterval(id);
   }, [nodeId, started, node.text]);
+
 
   // AI voice
   useEffect(() => {

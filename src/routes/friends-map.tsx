@@ -111,8 +111,14 @@ function FriendsMapPage() {
 
   // De-collision: jitter positions that are too close (simple grid bucketing).
   const houses = useMemo<FriendHouse[]>(() => {
-    const raw = housesQ.data ?? [];
+    let raw = housesQ.data ?? [];
+    // Always show my own house so the privacy toggle sits next to my name.
+    const mine = mineQ.data as FriendHouse | undefined;
+    if (me && mine && !raw.some((h) => h.user_id === me.id)) {
+      raw = [...raw, { ...mine, user_id: me.id } as FriendHouse];
+    }
     const seen = new Map<string, number>();
+
     return raw.map((h) => {
       const key = `${Math.round(h.map_x / 90)},${Math.round(h.map_y / 90)}`;
       const n = (seen.get(key) ?? 0) + 1;

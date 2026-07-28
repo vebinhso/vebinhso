@@ -198,7 +198,8 @@ function FilmPage() {
 
 
       {/* Top bar */}
-      <div className="absolute top-0 inset-x-0 p-3 flex items-center gap-2">
+      <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
+
         <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">
           ← Thoát
         </Link>

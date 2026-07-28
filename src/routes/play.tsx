@@ -62,9 +62,15 @@ function PlayPage() {
               <span>BẢN ĐỒ LÂU ĐÀI MA THUẬT</span>
               <span className="text-[10px] sm:text-xs font-bold opacity-90">Hành lang 10 cánh cửa — Đấu boss</span>
             </Link>
+            <Link to="/roleplay" className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white whitespace-normal !leading-tight">
+              <span className="text-2xl sm:text-3xl">🎭</span>
+              <span>NHẬP VAI TÌNH HUỐNG</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-90">Các bài chơi tình huống số — chọn & quyết định</span>
+            </Link>
             <Link to="/character" className="toy-button w-full !text-xs sm:!text-sm">
               🎨 Đổi trang phục
             </Link>
+
           </div>
         </div>
       </div>

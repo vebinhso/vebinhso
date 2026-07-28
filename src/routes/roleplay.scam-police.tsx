@@ -168,17 +168,32 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
-      {/* Backdrop */}
-      <img
-        key={node.image}
-        src={node.image}
-        alt=""
-        width={1280}
-        height={720}
-        className="absolute inset-0 w-full h-full object-cover opacity-90 animate-[filmIn_.6s_ease-out]"
-        style={{ animation: "none" }}
-      />
+      {/* Backdrop — video thật nếu có, nếu không thì ảnh với chuyển động máy quay */}
+      {clip ? (
+        <video
+          key={clip}
+          src={clip}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-95 animate-[filmFade_.7s_ease-out]"
+        />
+      ) : (
+        <img
+          key={node.image}
+          src={node.image}
+          alt=""
+          width={1280}
+          height={720}
+          className="absolute inset-0 w-full h-full object-cover opacity-90 animate-[kenBurns_18s_ease-in-out_infinite_alternate]"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/90" />
+      {/* Thanh đen điện ảnh */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
 
       {/* Top bar */}
       <div className="absolute top-0 inset-x-0 p-3 flex items-center gap-2">

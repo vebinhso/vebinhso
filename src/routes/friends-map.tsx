@@ -182,8 +182,10 @@ function FriendsMapPage() {
             <HouseMarker
               key={h.user_id}
               house={h}
+              isMine={h.user_id === me.id}
               onHover={() => prefetchVisit(h.user_id)}
               onClick={() => { prefetchVisit(h.user_id); setSelected(h); }}
+              onSettings={() => setSettingsOpen(true)}
             />
           ))}
         </div>

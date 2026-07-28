@@ -379,3 +379,17 @@ export const FILM: Record<string, FilmNode> = {
 };
 
 export const FILM_START = "intro";
+
+// ---- Cinematic footage: một số cảnh có video thật thay cho ảnh tĩnh ----
+import v1 from "@/assets/film/v1-peaceful.mp4.asset.json";
+import v2 from "@/assets/film/v2-call.mp4.asset.json";
+import v3 from "@/assets/film/v3-scammer.mp4.asset.json";
+import v4 from "@/assets/film/v4-collapse.mp4.asset.json";
+
+/** image src -> video url (phát loop thay ảnh) */
+export const VIDEO_FOR_IMAGE: Record<string, string> = {
+  [s1]: v1.url,
+  [s2]: v2.url,
+  [s3]: v3.url,
+  [s8]: v4.url,
+};

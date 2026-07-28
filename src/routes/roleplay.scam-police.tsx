@@ -30,6 +30,8 @@ function FilmPage() {
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
+  const [autoPlay, setAutoPlay] = useState(true);
+
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());

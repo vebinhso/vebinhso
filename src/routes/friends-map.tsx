@@ -132,7 +132,7 @@ function FriendsMapPage() {
         map_y: Math.max(60, Math.min(MAP_H - 60, h.map_y + Math.sin(ang) * offset)),
       };
     });
-  }, [housesQ.data]);
+  }, [housesQ.data, mineQ.data, me]);
 
   const [selected, setSelected] = useState<FriendHouse | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);

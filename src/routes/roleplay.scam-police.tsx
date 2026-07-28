@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
-import { FILM, FILM_START, FILM_TITLE, SPEAKER_META, type FilmNode } from "@/lib/film-scam-police";
+import { FILM, FILM_START, FILM_TITLE, SPEAKER_META, VIDEO_FOR_IMAGE, type FilmNode } from "@/lib/film-scam-police";
+
 
 export const Route = createFileRoute("/roleplay/scam-police")({
   component: FilmPage,

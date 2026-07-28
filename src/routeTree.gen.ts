@@ -34,6 +34,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as RoleplayIndexRouteImport } from './routes/roleplay.index'
 import { Route as RoleplayScamPoliceRouteImport } from './routes/roleplay.scam-police'
 import { Route as VisitOwnerIdRouteImport } from './routes/visit.$ownerId'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -166,6 +167,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoleplayIndexRoute = RoleplayIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RoleplayRoute,
+} as any)
 const RoleplayScamPoliceRoute = RoleplayScamPoliceRouteImport.update({
   id: '/scam-police',
   path: '/scam-police',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
+  '/roleplay/': typeof RoleplayIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -238,7 +245,6 @@ export interface FileRoutesByTo {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -247,6 +253,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
+  '/roleplay': typeof RoleplayIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -279,6 +286,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
+  '/roleplay/': typeof RoleplayIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -312,6 +320,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
+    | '/roleplay/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
@@ -334,7 +343,6 @@ export interface FileRouteTypes {
     | '/project-code-guide'
     | '/ranking'
     | '/reset-password'
-    | '/roleplay'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -343,6 +351,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
+    | '/roleplay'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   id:
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
+    | '/roleplay/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
@@ -586,6 +596,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roleplay/': {
+      id: '/roleplay/'
+      path: '/'
+      fullPath: '/roleplay/'
+      preLoaderRoute: typeof RoleplayIndexRouteImport
+      parentRoute: typeof RoleplayRoute
+    }
     '/roleplay/scam-police': {
       id: '/roleplay/scam-police'
       path: '/scam-police'
@@ -619,10 +636,12 @@ declare module '@tanstack/react-router' {
 
 interface RoleplayRouteChildren {
   RoleplayScamPoliceRoute: typeof RoleplayScamPoliceRoute
+  RoleplayIndexRoute: typeof RoleplayIndexRoute
 }
 
 const RoleplayRouteChildren: RoleplayRouteChildren = {
   RoleplayScamPoliceRoute: RoleplayScamPoliceRoute,
+  RoleplayIndexRoute: RoleplayIndexRoute,
 }
 
 const RoleplayRouteWithChildren = RoleplayRoute._addFileChildren(

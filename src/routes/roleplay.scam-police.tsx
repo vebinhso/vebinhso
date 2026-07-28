@@ -38,6 +38,8 @@ function FilmPage() {
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
+  const clip = VIDEO_FOR_IMAGE[node.image];
+
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });

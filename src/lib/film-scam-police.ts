@@ -6,6 +6,9 @@ import s5 from "@/assets/film/s5-warrant.jpg";
 import s6 from "@/assets/film/s6-transfer.jpg";
 import s7 from "@/assets/film/s7-hacked.jpg";
 import s8 from "@/assets/film/s8-collapse.jpg";
+import s9 from "@/assets/film/s9-bank.jpg";
+import s10 from "@/assets/film/s10-fear.jpg";
+import s11 from "@/assets/film/s11-warning.jpg";
 
 export type Speaker = "K" | "N" | "narrator";
 
@@ -96,7 +99,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   n2: {
     id: "n2",
-    image: s2,
+    image: s10,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng mếu máo",
     text: "Cán bộ ơi có nhầm lẫn gì rồi! Tôi cả đời chưa bước chân vào đồn công an. Bây giờ tôi phải làm gì đây? Hiện tại tôi không ở Việt Nam, làm sao lên phường được...",
@@ -126,7 +129,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   n3: {
     id: "n3",
-    image: s4,
+    image: s10,
     speaker: "N",
     action: "Vội vàng chốt cửa phòng ngủ",
     text: "Vâng vâng, tôi vào phòng rồi. Cán bộ bảo gì tôi làm nấy, xin đừng bắt tôi!",
@@ -141,7 +144,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   n4: {
     id: "n4",
-    image: s4,
+    image: s10,
     speaker: "N",
     text: "Tôi phải đóng bao nhiêu tiền hả cán bộ? Cán bộ muốn bao nhiêu tôi cũng đóng, để chứng minh tôi vô tội.",
     next: "k5",
@@ -162,7 +165,7 @@ export const FILM: Record<string, FilmNode> = {
   /* ===== Nhánh 1.1 — phản ứng tỉnh táo ===== */
   b1_n5: {
     id: "b1_n5",
-    image: s4,
+    image: s10,
     speaker: "N",
     action: "Ngập ngừng rồi lấy lại bình tĩnh",
     text: "Dạ cán bộ cho tôi hỏi, công an bây giờ chuyển đổi số hết rồi hả cán bộ? Hiện đại ghê á cán bộ.",
@@ -178,7 +181,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b1_n6: {
     id: "b1_n6",
-    image: s4,
+    image: s10,
     speaker: "N",
     text: "Dạ em xin lỗi cán bộ. Nhưng mà em không xài Zalo cán bộ ơi. Cán bộ có xài Instagram hay Threads không ạ, tại em toàn xài mấy nền tảng đó không à.",
     next: "b1_k7",
@@ -192,7 +195,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b1_n7: {
     id: "b1_n7",
-    image: s4,
+    image: s10,
     speaker: "N",
     text: "Em vẫn nghiêm túc mà cán bộ. Mà tại em không có Zalo, điện thoại em hết tiền nữa...",
     next: "b1_hangup",
@@ -231,7 +234,7 @@ export const FILM: Record<string, FilmNode> = {
   /* ===== Nhánh 1.2 — xin trả góp ===== */
   b2_n8: {
     id: "b2_n8",
-    image: s4,
+    image: s9,
     speaker: "N",
     text: "Cán bộ ơi, bây giờ tôi không đủ tiền để chuyển ngay thì sao ạ? Tôi còn đang dành dụm mua Macbook nữa. Cán bộ làm vậy không sợ tôi hết tiền hả?",
     next: "b2_k9",
@@ -246,7 +249,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b2_n9: {
     id: "b2_n9",
-    image: s4,
+    image: s10,
     speaker: "N",
     action: "Cảm động giả tạo",
     text: "Nhưng mà giờ tôi không có tiền... cán bộ có nhận trả góp không ạ?",
@@ -254,7 +257,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b2_hangup: {
     id: "b2_hangup",
-    image: s3,
+    image: s10,
     speaker: "narrator",
     action: "K cúp máy...",
     text: "Im lặng. Rồi K gọi lại, giọng gấp gáp hơn, ép bạn phải hành động ngay trong 10 phút.",
@@ -278,7 +281,7 @@ export const FILM: Record<string, FilmNode> = {
   /* ===== Nhánh 2.1 — đã chuyển tiền ===== */
   b3_transfer: {
     id: "b3_transfer",
-    image: s6,
+    image: s9,
     speaker: "N",
     action: "Tay run rẩy mở app ngân hàng",
     text: "Tôi... tôi chuyển đủ 300 triệu vào số tài khoản mà cán bộ gửi rồi ạ! Cán bộ kiểm tra giúp tôi với!",
@@ -294,7 +297,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b3_n10: {
     id: "b3_n10",
-    image: s6,
+    image: s9,
     speaker: "N",
     action: "Hoảng loạn gấp đôi",
     text: "Trời ơi sao lại thế! Mất 300 triệu thì tôi chết mất... Để tôi đi vay mượn họ hàng chuyển tiếp ạ!",
@@ -304,7 +307,7 @@ export const FILM: Record<string, FilmNode> = {
   /* ===== Nhánh 3.1 — app giả mạo ===== */
   b4_link: {
     id: "b4_link",
-    image: s3,
+    image: s11,
     speaker: "K",
     action: "Gửi một đường link lạ",
     text: "Bây giờ để không mất phí chuyển tiền và bảo mật thông tin, anh truy cập đường link này để tải ứng dụng 'Bảo mật Công an' về máy. Mở app lên và nhập thông tin tài khoản ngân hàng vào đó để máy chủ tự quét.",
@@ -315,7 +318,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b4_install: {
     id: "b4_install",
-    image: s7,
+    image: s11,
     speaker: "N",
     text: "Tôi tải xong rồi cán bộ. Nó hiện thông báo đòi quyền 'Trợ năng' với 'Đọc tin nhắn SMS', tôi bấm Đồng ý hết rồi nhé.",
     next: "b4_k11",
@@ -350,7 +353,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b5_refuse: {
     id: "b5_refuse",
-    image: s7,
+    image: s11,
     speaker: "N",
     action: "Điện thoại hiện cảnh báo đỏ",
     text: "Ủa cán bộ ơi, máy tôi sắp hết dung lượng rồi thì sao mà tải. À với lại điện thoại tôi đang báo ứng dụng lạ, cần quét vi-rút ạ.",
@@ -366,7 +369,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   b5_n12: {
     id: "b5_n12",
-    image: s4,
+    image: s10,
     speaker: "N",
     action: "Ngộ ra bản chất lừa đảo",
     text: "Công an gì mà ăn nói hồ đồ vậy? Tôi khỏi chuyển tiền bây giờ à. Công an mà nói với dân như thế, có tin tôi mách lại công an thật không hả?",

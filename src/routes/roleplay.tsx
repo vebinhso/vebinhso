@@ -26,10 +26,11 @@ type Lesson = {
   gradient: string;
   level: string;
   ready: boolean;
+  to?: string;
 };
 
 const LESSONS: Lesson[] = [
-  { id: "fake-news", emoji: "📰", title: "Bài 1 · Tin giả lan truyền", desc: "Bạn là phóng viên nhí. Một tin nóng đang lan khắp lớp — thật hay giả?", tag: "Năng lực số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: false },
+  { id: "scam-police", emoji: "🚨", title: "Bài 1 · Giả danh Công an", desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.", tag: "An toàn số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: true, to: "/roleplay/scam-police" },
   { id: "password", emoji: "🔐", title: "Bài 2 · Mật khẩu bị lộ", desc: "Tài khoản game của bạn có dấu hiệu lạ. Xử lý sao cho an toàn?", tag: "An toàn số", level: "Cấp độ 2", gradient: "from-sky-500 to-indigo-600", ready: false },
   { id: "cyberbully", emoji: "🛡️", title: "Bài 3 · Bắt nạt trên mạng", desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?", tag: "Ứng xử số", level: "Cấp độ 3", gradient: "from-emerald-500 to-teal-600", ready: false },
   { id: "shopping", emoji: "🛒", title: "Bài 4 · Cú lừa mua hàng", desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.", tag: "Giao dịch số", level: "Cấp độ 4", gradient: "from-amber-500 to-yellow-600", ready: false },
@@ -76,9 +77,9 @@ function RoleplayPage() {
 
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {LESSONS.map((l, i) => (
-              <button
+              <Component
                 key={l.id}
-                onClick={() => setPicked(l)}
+                {...(l.ready && l.to ? { to: l.to } : { onClick: () => setPicked(l) })}
                 className="group text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform"
               >
                 <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>

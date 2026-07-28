@@ -34,6 +34,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as RoleplayScamPoliceRouteImport } from './routes/roleplay.scam-police'
 import { Route as VisitOwnerIdRouteImport } from './routes/visit.$ownerId'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -165,6 +166,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoleplayScamPoliceRoute = RoleplayScamPoliceRouteImport.update({
+  id: '/scam-police',
+  path: '/scam-police',
+  getParentRoute: () => RoleplayRoute,
+} as any)
 const VisitOwnerIdRoute = VisitOwnerIdRouteImport.update({
   id: '/visit/$ownerId',
   path: '/visit/$ownerId',
@@ -201,13 +207,14 @@ export interface FileRoutesByFullPath {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/roleplay': typeof RoleplayRoute
+  '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -231,13 +238,14 @@ export interface FileRoutesByTo {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/roleplay': typeof RoleplayRoute
+  '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -262,13 +270,14 @@ export interface FileRoutesById {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/roleplay': typeof RoleplayRoute
+  '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -361,6 +372,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -385,7 +397,7 @@ export interface RootRouteChildren {
   ProjectCodeGuideRoute: typeof ProjectCodeGuideRoute
   RankingRoute: typeof RankingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  RoleplayRoute: typeof RoleplayRoute
+  RoleplayRoute: typeof RoleplayRouteWithChildren
   ShopRoute: typeof ShopRoute
   TutorialRoute: typeof TutorialRoute
   VerifyRoute: typeof VerifyRoute
@@ -574,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roleplay/scam-police': {
+      id: '/roleplay/scam-police'
+      path: '/scam-police'
+      fullPath: '/roleplay/scam-police'
+      preLoaderRoute: typeof RoleplayScamPoliceRouteImport
+      parentRoute: typeof RoleplayRoute
+    }
     '/visit/$ownerId': {
       id: '/visit/$ownerId'
       path: '/visit/$ownerId'
@@ -598,6 +617,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface RoleplayRouteChildren {
+  RoleplayScamPoliceRoute: typeof RoleplayScamPoliceRoute
+}
+
+const RoleplayRouteChildren: RoleplayRouteChildren = {
+  RoleplayScamPoliceRoute: RoleplayScamPoliceRoute,
+}
+
+const RoleplayRouteWithChildren = RoleplayRoute._addFileChildren(
+  RoleplayRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -617,7 +648,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectCodeGuideRoute: ProjectCodeGuideRoute,
   RankingRoute: RankingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  RoleplayRoute: RoleplayRoute,
+  RoleplayRoute: RoleplayRouteWithChildren,
   ShopRoute: ShopRoute,
   TutorialRoute: TutorialRoute,
   VerifyRoute: VerifyRoute,

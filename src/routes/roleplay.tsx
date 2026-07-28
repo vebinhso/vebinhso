@@ -26,10 +26,11 @@ type Lesson = {
   gradient: string;
   level: string;
   ready: boolean;
+  to?: string;
 };
 
 const LESSONS: Lesson[] = [
-  { id: "fake-news", emoji: "📰", title: "Bài 1 · Tin giả lan truyền", desc: "Bạn là phóng viên nhí. Một tin nóng đang lan khắp lớp — thật hay giả?", tag: "Năng lực số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: false },
+  { id: "scam-police", emoji: "🚨", title: "Bài 1 · Giả danh Công an", desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.", tag: "An toàn số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: true, to: "/roleplay/scam-police" },
   { id: "password", emoji: "🔐", title: "Bài 2 · Mật khẩu bị lộ", desc: "Tài khoản game của bạn có dấu hiệu lạ. Xử lý sao cho an toàn?", tag: "An toàn số", level: "Cấp độ 2", gradient: "from-sky-500 to-indigo-600", ready: false },
   { id: "cyberbully", emoji: "🛡️", title: "Bài 3 · Bắt nạt trên mạng", desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?", tag: "Ứng xử số", level: "Cấp độ 3", gradient: "from-emerald-500 to-teal-600", ready: false },
   { id: "shopping", emoji: "🛒", title: "Bài 4 · Cú lừa mua hàng", desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.", tag: "Giao dịch số", level: "Cấp độ 4", gradient: "from-amber-500 to-yellow-600", ready: false },
@@ -75,34 +76,50 @@ function RoleplayPage() {
           </div>
 
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {LESSONS.map((l, i) => (
-              <button
-                key={l.id}
-                onClick={() => setPicked(l)}
-                className="group text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform"
-              >
-                <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
-                  <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
-                    {l.level}
-                  </span>
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
-                    #{i + 1}
-                  </span>
-                </div>
-                <div className="p-3 sm:p-4">
-                  <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
-                  <p className="text-xs font-bold text-muted-foreground leading-snug mb-3 line-clamp-2">{l.desc}</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
-                    <span className="text-[10px] font-black px-2 py-1 rounded-full bg-amber-400/25 text-amber-700 dark:text-amber-300">
-                      🔒 Sắp ra mắt
+            {LESSONS.map((l, i) => {
+              const cardClass =
+                "group block text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform";
+              const inner = (
+                <>
+                  <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
+                    <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
+                      {l.level}
+                    </span>
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
+                      #{i + 1}
                     </span>
                   </div>
-                </div>
-              </button>
-            ))}
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
+                    <p className="text-xs font-bold text-muted-foreground leading-snug mb-3 line-clamp-2">{l.desc}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
+                      {l.ready ? (
+                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-emerald-500/25 text-emerald-700 dark:text-emerald-300">
+                          ▶ Chơi ngay
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black px-2 py-1 rounded-full bg-amber-400/25 text-amber-700 dark:text-amber-300">
+                          🔒 Sắp ra mắt
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+              return l.ready && l.to === "/roleplay/scam-police" ? (
+                <Link key={l.id} to="/roleplay/scam-police" className={cardClass}>
+                  {inner}
+                </Link>
+              ) : (
+                <button key={l.id} onClick={() => setPicked(l)} className={cardClass}>
+                  {inner}
+                </button>
+              );
+            })}
           </div>
+
 
           <div className="mt-5 rounded-2xl border-2 border-dashed border-border p-5 text-center">
             <div className="text-3xl mb-1">✨</div>

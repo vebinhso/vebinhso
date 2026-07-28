@@ -231,7 +231,13 @@ function FilmPage() {
             <>
               <div
                 className="rounded-2xl bg-black/70 backdrop-blur-md px-4 py-3 border border-white/10 cursor-pointer"
-                onClick={() => !done && setTyped(node.text) === undefined && setDone(true)}
+                onClick={() => {
+                  if (!done) {
+                    setTyped(node.text);
+                    setDone(true);
+                  }
+                }}
+
               >
                 {node.action && (
                   <p className="text-[11px] font-bold italic text-white/50 mb-0.5">({node.action})</p>

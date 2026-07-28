@@ -128,6 +128,17 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 14) * 100)), [history.length]);
 
+  // Tự động sang cảnh kế tiếp như một bộ phim đang chạy
+  useEffect(() => {
+    if (!started || !autoPlay || !done) return;
+    if (node.choices || node.ending || !node.next) return;
+    const nxt = node.next;
+    const id = window.setTimeout(() => go(nxt), 1800);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, nodeId, autoPlay, started]);
+
+
   if (!started) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">

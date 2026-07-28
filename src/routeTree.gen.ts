@@ -27,6 +27,7 @@ import { Route as PlayRouteImport } from './routes/play'
 import { Route as ProjectCodeGuideRouteImport } from './routes/project-code-guide'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RoleplayRouteImport } from './routes/roleplay'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -127,6 +128,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoleplayRoute = RoleplayRouteImport.update({
+  id: '/roleplay',
+  path: '/roleplay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roleplay': typeof RoleplayRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roleplay': typeof RoleplayRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/project-code-guide': typeof ProjectCodeGuideRoute
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roleplay': typeof RoleplayRoute
   '/shop': typeof ShopRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/project-code-guide'
     | '/ranking'
     | '/reset-password'
+    | '/roleplay'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/project-code-guide'
     | '/ranking'
     | '/reset-password'
+    | '/roleplay'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/project-code-guide'
     | '/ranking'
     | '/reset-password'
+    | '/roleplay'
     | '/shop'
     | '/tutorial'
     | '/verify'
@@ -373,6 +385,7 @@ export interface RootRouteChildren {
   ProjectCodeGuideRoute: typeof ProjectCodeGuideRoute
   RankingRoute: typeof RankingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RoleplayRoute: typeof RoleplayRoute
   ShopRoute: typeof ShopRoute
   TutorialRoute: typeof TutorialRoute
   VerifyRoute: typeof VerifyRoute
@@ -512,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roleplay': {
+      id: '/roleplay'
+      path: '/roleplay'
+      fullPath: '/roleplay'
+      preLoaderRoute: typeof RoleplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -597,6 +617,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectCodeGuideRoute: ProjectCodeGuideRoute,
   RankingRoute: RankingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RoleplayRoute: RoleplayRoute,
   ShopRoute: ShopRoute,
   TutorialRoute: TutorialRoute,
   VerifyRoute: VerifyRoute,

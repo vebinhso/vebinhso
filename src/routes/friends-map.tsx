@@ -182,8 +182,10 @@ function FriendsMapPage() {
             <HouseMarker
               key={h.user_id}
               house={h}
+              isMine={h.user_id === me.id}
               onHover={() => prefetchVisit(h.user_id)}
               onClick={() => { prefetchVisit(h.user_id); setSelected(h); }}
+              onSettings={() => setSettingsOpen(true)}
             />
           ))}
         </div>
@@ -214,8 +216,31 @@ function FriendsMapPage() {
   );
 }
 
-function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick: () => void; onHover?: () => void }) {
+function HouseMarker({
+  house,
+  isMine,
+  onClick,
+  onHover,
+  onSettings,
+}: {
+  house: FriendHouse;
+  isMine?: boolean;
+  onClick: () => void;
+  onHover?: () => void;
+  onSettings?: () => void;
+}) {
   const online = house.is_online;
+  const privacyIcon =
+    house.house_privacy === "public" ? "🌐" :
+    house.house_privacy === "friends" ? "👥" :
+    house.house_privacy === "custom" ? "✅" :
+    house.house_privacy === "closed" || house.house_privacy === "private" ? "🚪" : "🔒";
+  const privacyLabel =
+    house.house_privacy === "public" ? "Công khai" :
+    house.house_privacy === "friends" ? "Bạn bè" :
+    house.house_privacy === "custom" ? "Tuỳ chỉnh" :
+    house.house_privacy === "closed" || house.house_privacy === "private" ? "Đóng cửa" : "Riêng tư";
+
   return (
     <button
       onClick={onClick}
@@ -235,7 +260,7 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
             title={online ? "Online" : "Offline"}
           />
         </div>
-        <div className="mt-2 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-base sm:text-xl font-black shadow-2xl border-2 sm:border-4 border-emerald-400 max-w-[240px] sm:max-w-[320px] min-w-0">
+        <div className="mt-2 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-base sm:text-xl font-black shadow-2xl border-2 sm:border-4 border-emerald-400 max-w-[260px] sm:max-w-[360px] min-w-0">
           {house.avatar_url ? (
             <img src={house.avatar_url} alt="" className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 rounded-full border-2 border-emerald-300" />
           ) : (
@@ -244,6 +269,19 @@ function HouseMarker({ house, onClick, onHover }: { house: FriendHouse; onClick:
             </span>
           )}
           <span className="truncate text-emerald-900 drop-shadow min-w-0">{house.house_name || house.username}</span>
+          {isMine && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSettings?.();
+              }}
+              title={`Chế độ nhà: ${privacyLabel} — bấm để điều chỉnh`}
+              className="ml-1 shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 grid place-items-center text-sm sm:text-base active:scale-90 transition-transform"
+            >
+              {privacyIcon}
+            </button>
+          )}
         </div>
       </div>
     </button>

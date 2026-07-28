@@ -214,6 +214,13 @@ function FilmPage() {
           ↩
         </button>
         <button
+          onClick={() => setAutoPlay((a) => !a)}
+          title={autoPlay ? "Đang tự chạy như phim" : "Đang chạy thủ công"}
+          className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
+        >
+          {autoPlay ? "▶ Tự chạy" : "⏸ Thủ công"}
+        </button>
+        <button
           onClick={() => {
             setMuted((m) => !m);
             stopAudio();
@@ -222,6 +229,7 @@ function FilmPage() {
         >
           {muted ? "🔇" : "🔊"}
         </button>
+
       </div>
 
       {/* Subtitle + interaction */}

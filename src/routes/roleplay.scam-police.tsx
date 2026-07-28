@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
-import { FILM, FILM_START, FILM_TITLE, SPEAKER_META, type FilmNode } from "@/lib/film-scam-police";
+import { FILM, FILM_START, FILM_TITLE, SPEAKER_META, VIDEO_FOR_IMAGE, type FilmNode } from "@/lib/film-scam-police";
+
 
 export const Route = createFileRoute("/roleplay/scam-police")({
   component: FilmPage,
@@ -29,12 +30,16 @@ function FilmPage() {
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
+  const [autoPlay, setAutoPlay] = useState(true);
+
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
+  const clip = VIDEO_FOR_IMAGE[node.image];
+
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -48,7 +53,7 @@ function FilmPage() {
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
-  // Typewriter subtitle
+  // Typewriter subtitle — tốc độ kể chuyện tự nhiên như xem phim
   useEffect(() => {
     if (!started) return;
     setTyped("");
@@ -56,16 +61,17 @@ function FilmPage() {
     let i = 0;
     const text = node.text;
     const id = window.setInterval(() => {
-      i += 2;
+      i += 1;
       setTyped(text.slice(0, i));
       if (i >= text.length) {
         window.clearInterval(id);
         setTyped(text);
         setDone(true);
       }
-    }, 22);
+    }, 42);
     return () => window.clearInterval(id);
   }, [nodeId, started, node.text]);
+
 
   // AI voice
   useEffect(() => {
@@ -126,6 +132,17 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 14) * 100)), [history.length]);
 
+  // Tự động sang cảnh kế tiếp như một bộ phim đang chạy
+  useEffect(() => {
+    if (!started || !autoPlay || !done) return;
+    if (node.choices || node.ending || !node.next) return;
+    const nxt = node.next;
+    const id = window.setTimeout(() => go(nxt), 1800);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, nodeId, autoPlay, started]);
+
+
   if (!started) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
@@ -153,20 +170,36 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
-      {/* Backdrop */}
-      <img
-        key={node.image}
-        src={node.image}
-        alt=""
-        width={1280}
-        height={720}
-        className="absolute inset-0 w-full h-full object-cover opacity-90 animate-[filmIn_.6s_ease-out]"
-        style={{ animation: "none" }}
-      />
+      {/* Backdrop — video thật nếu có, nếu không thì ảnh với chuyển động máy quay */}
+      {clip ? (
+        <video
+          key={clip}
+          src={clip}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-95 animate-[filmFade_.7s_ease-out]"
+        />
+      ) : (
+        <img
+          key={node.image}
+          src={node.image}
+          alt=""
+          width={1280}
+          height={720}
+          className="absolute inset-0 w-full h-full object-cover opacity-90 animate-[kenBurns_18s_ease-in-out_infinite_alternate]"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/90" />
+      {/* Thanh đen điện ảnh */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
 
       {/* Top bar */}
-      <div className="absolute top-0 inset-x-0 p-3 flex items-center gap-2">
+      <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
+
         <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">
           ← Thoát
         </Link>
@@ -181,6 +214,13 @@ function FilmPage() {
           ↩
         </button>
         <button
+          onClick={() => setAutoPlay((a) => !a)}
+          title={autoPlay ? "Đang tự chạy như phim" : "Đang chạy thủ công"}
+          className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
+        >
+          {autoPlay ? "▶ Tự chạy" : "⏸ Thủ công"}
+        </button>
+        <button
           onClick={() => {
             setMuted((m) => !m);
             stopAudio();
@@ -189,6 +229,7 @@ function FilmPage() {
         >
           {muted ? "🔇" : "🔊"}
         </button>
+
       </div>
 
       {/* Subtitle + interaction */}

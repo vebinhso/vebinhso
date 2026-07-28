@@ -185,3 +185,13 @@
   filter: blur(0.5px);
   box-shadow: 0 0 14px 4px currentColor;
 }
+
+/* Interactive film: chuyển động máy quay cho cảnh tĩnh */
+@keyframes kenBurns {
+  from { transform: scale(1.06) translate3d(-1.5%, 1%, 0); }
+  to   { transform: scale(1.16) translate3d(1.5%, -1%, 0); }
+}
+@keyframes filmFade {
+  from { opacity: 0; transform: scale(1.03); }
+  to   { opacity: .95; transform: scale(1); }
+}

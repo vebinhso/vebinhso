@@ -31,6 +31,7 @@ function FilmPage() {
   const [started, setStarted] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
+  const [speaking, setSpeaking] = useState(false);
 
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -50,6 +51,7 @@ function FilmPage() {
       audioRef.current.pause();
       audioRef.current = null;
     }
+    setSpeaking(false);
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
@@ -91,10 +93,16 @@ function FilmPage() {
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audioRef.current = audio;
-        await audio.play().catch(() => {});
+        // Tắt nhạc nền khi có giọng đọc, bật lại khi đọc xong
+        setSpeaking(true);
+        audio.onended = () => setSpeaking(false);
+        audio.onerror = () => setSpeaking(false);
+        await audio.play().catch(() => setSpeaking(false));
       } catch {
         if (cancelled || typeof window === "undefined" || !window.speechSynthesis) return;
+        setSpeaking(true);
         const u = new SpeechSynthesisUtterance(node.text);
+        u.onend = () => setSpeaking(false);
         u.lang = "vi-VN";
         u.rate = node.speaker === "K" ? 1.05 : 1;
         u.pitch = node.speaker === "K" ? 0.8 : 1.1;
@@ -177,8 +185,11 @@ function FilmPage() {
           src={clip}
           autoPlay
           loop
-          muted
+          muted={muted || speaking}
           playsInline
+          ref={(el) => {
+            if (el) el.volume = 0.35;
+          }}
           className="absolute inset-0 w-full h-full object-cover opacity-95 animate-[filmFade_.7s_ease-out]"
         />
       ) : (

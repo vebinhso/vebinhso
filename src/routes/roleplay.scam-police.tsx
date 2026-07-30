@@ -205,12 +205,14 @@ function FilmPage() {
 
   const go = (next: string) => {
     stopAudio();
+    setPrevImage(node.image);
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
+    setPrevImage(node.image);
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -219,6 +221,7 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
+    setPrevImage(node.image);
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);
@@ -226,15 +229,16 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 16) * 100)), [history.length]);
 
-  // Tự động sang cảnh kế tiếp như một bộ phim đang chạy
+  // Tự động sang cảnh kế tiếp: chỉ chuyển khi giọng đọc đã dứt hẳn
   useEffect(() => {
-    if (!started || !autoPlay || !done) return;
+    if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 1600);
+    const id = window.setTimeout(() => go(nxt), 1500);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, nodeId, autoPlay, started]);
+  }, [done, speechDone, nodeId, autoPlay, started]);
+
 
   if (!started) {
     return (

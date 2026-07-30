@@ -36,11 +36,32 @@ export const Route = createFileRoute("/roleplay/scam-police")({
 });
 
 const MOTION_CLASS: Record<string, string> = {
-  kenburns: "animate-[kenBurns_18s_ease-in-out_infinite_alternate]",
-  push: "animate-[filmPush_9s_ease-out_forwards]",
-  shake: "animate-[filmShake_.16s_linear_infinite]",
-  freeze: "",
+  kenburns: "animate-[kenBurns_26s_ease-in-out_infinite_alternate]",
+  push: "animate-[filmPush_20s_ease-out_forwards]",
+  pull: "animate-[filmPull_20s_ease-out_forwards]",
+  panL: "animate-[filmPanL_24s_linear_forwards]",
+  panR: "animate-[filmPanR_24s_linear_forwards]",
+  shake: "animate-[filmShake_.18s_linear_infinite]",
+  freeze: "animate-[filmBreathe_9s_ease-in-out_infinite]",
 };
+
+/** Đổi hướng chuyển động theo cảnh để không cảnh nào giống cảnh nào */
+function motionClassFor(id: string, motion?: string) {
+  if (motion === "shake") return MOTION_CLASS.shake;
+  if (motion === "freeze") return MOTION_CLASS.freeze;
+  if (motion === "push") return MOTION_CLASS.push;
+  const pool = [MOTION_CLASS.kenburns, MOTION_CLASS.panL, MOTION_CLASS.panR, MOTION_CLASS.pull];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+  return pool[h % pool.length];
+}
+
+const DUSTS = Array.from({ length: 14 }, (_, i) => ({
+  left: `${(i * 7.3 + 4) % 96}%`,
+  delay: `${(i * 1.37) % 9}s`,
+  dur: `${9 + ((i * 3) % 7)}s`,
+}));
+
 
 function FilmPage() {
   const navigate = useNavigate();

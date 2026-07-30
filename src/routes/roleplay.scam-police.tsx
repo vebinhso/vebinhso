@@ -287,7 +287,7 @@ function FilmPage() {
           src={prevImage}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-[900ms] scale-105"
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_.9s_ease-in_forwards] scale-105"
         />
       )}
 

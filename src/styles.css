@@ -195,3 +195,12 @@
   from { opacity: 0; transform: scale(1.03); }
   to   { opacity: .95; transform: scale(1); }
 }
+@keyframes filmPush {
+  from { transform: scale(1.02); }
+  to   { transform: scale(1.14); }
+}
+@keyframes filmShake {
+  0%   { transform: scale(1.08) translate3d(-2px, 1px, 0); }
+  50%  { transform: scale(1.08) translate3d(2px, -1px, 0); }
+  100% { transform: scale(1.08) translate3d(-2px, 1px, 0); }
+}

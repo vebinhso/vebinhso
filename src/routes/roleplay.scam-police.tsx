@@ -75,9 +75,14 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  /** thời lượng lồng tiếng (ms) để phụ đề chạy khớp giọng đọc */
+  const [voiceMs, setVoiceMs] = useState(0);
+  const [speechDone, setSpeechDone] = useState(false);
+  const [prevImage, setPrevImage] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
+
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];

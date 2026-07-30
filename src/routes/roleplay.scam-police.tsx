@@ -271,21 +271,65 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
+      {/* Nền mờ lấp đầy khung hình */}
+      <img
+        key={"bg" + node.id}
+        src={node.image}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
+      />
+
+      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
+      {prevImage && (
+        <img
+          key={"prev" + prevImage}
+          src={prevImage}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-[900ms] scale-105"
+        />
+      )}
+
+      {/* Cảnh hiện tại */}
       <img
         key={node.id + node.image}
         src={node.image}
         alt=""
-        className={`absolute inset-0 w-full h-full object-cover opacity-95 ${MOTION_CLASS[node.motion ?? "kenburns"] ?? ""}`}
+        className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
       />
+
       {node.mood && node.mood !== "neutral" && (
         <div
           className="pointer-events-none absolute inset-0 mix-blend-overlay"
           style={{ backgroundColor: node.mood === "danger" ? "#0b3d5c" : "#f0b429", opacity: 0.35 }}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/90" />
+
+      {/* Bụi bay trong luồng sáng */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {DUSTS.map((d, i) => (
+          <span
+            key={i}
+            className="film-dust"
+            style={{
+              left: d.left,
+              bottom: 0,
+              animation: `filmDust ${d.dur} linear ${d.delay} infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Hạt phim, nhấp nháy đèn chiếu, vignette */}
+      <div className="pointer-events-none absolute inset-0 film-grain" />
+      <div className="pointer-events-none absolute inset-0 bg-white animate-[filmFlicker_2.4s_steps(4,end)_infinite] mix-blend-soft-light opacity-10" />
+      <div className="pointer-events-none absolute inset-0 film-vignette" />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/5 to-black/90" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
 
       {/* Top bar */}
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">

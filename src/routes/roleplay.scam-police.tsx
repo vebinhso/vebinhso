@@ -99,28 +99,29 @@ function FilmPage() {
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
-  // Phụ đề chạy chữ theo nhịp kể chuyện
+  // Reset nhịp cảnh mới + hiệu ứng hoà hình (crossfade)
   useEffect(() => {
-    if (!started) return;
     setTyped("");
     setDone(false);
-    let i = 0;
-    const text = node.text;
-    const id = window.setInterval(() => {
-      i += 1;
-      setTyped(text.slice(0, i));
-      if (i >= text.length) {
-        window.clearInterval(id);
-        setTyped(text);
-        setDone(true);
-      }
-    }, 38);
-    return () => window.clearInterval(id);
-  }, [nodeId, started, node.text]);
+    setSpeechDone(false);
+    setVoiceMs(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeId]);
 
-  // Lồng tiếng AI — tốc độ 1.0x, khớp với hình
   useEffect(() => {
-    if (!started || muted) return;
+    if (!prevImage) return;
+    const id = window.setTimeout(() => setPrevImage(null), 1000);
+    return () => window.clearTimeout(id);
+  }, [prevImage]);
+
+  // Lồng tiếng AI — chậm rãi (0.92x); đo thời lượng để phụ đề chạy khớp giọng
+  useEffect(() => {
+    if (!started) return;
+    if (muted) {
+      setVoiceMs(0);
+      setSpeechDone(true);
+      return;
+    }
     let cancelled = false;
     stopAudio();
 
@@ -134,24 +135,71 @@ function FilmPage() {
         }
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
-        audio.playbackRate = 1;
+        audio.playbackRate = 0.92;
+        audio.onloadedmetadata = () => {
+          if (!cancelled && Number.isFinite(audio.duration)) setVoiceMs((audio.duration / 0.92) * 1000);
+        };
+        audio.onended = () => {
+          if (!cancelled) setSpeechDone(true);
+        };
         audioRef.current = audio;
-        await audio.play().catch(() => {});
+        await audio.play().catch(() => setSpeechDone(true));
       } catch {
-        if (cancelled || typeof window === "undefined" || !window.speechSynthesis) return;
+        if (cancelled) return;
+        if (typeof window === "undefined" || !window.speechSynthesis) {
+          setSpeechDone(true);
+          return;
+        }
         const u = new SpeechSynthesisUtterance(node.text);
         u.lang = "vi-VN";
-        u.rate = 1;
+        u.rate = 0.92;
         u.pitch = node.speaker === "K" ? 0.8 : 1.1;
+        u.onend = () => setSpeechDone(true);
         window.speechSynthesis.speak(u);
       }
     };
     void play();
+
+    // tải sẵn giọng cho cảnh kế tiếp để không bị trễ khi chuyển cảnh
+    const nxt = node.next ? FILM[node.next] : undefined;
+    if (nxt && !cacheRef.current.get(nxt.id)) {
+      void tts({ data: { text: nxt.text, voice: SPEAKER_META[nxt.speaker].voice } })
+        .then((r) => cacheRef.current.set(nxt.id, (r as { audio: string }).audio))
+        .catch(() => {});
+    }
+
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, started, muted]);
+
+  // Phụ đề chạy chữ khớp đúng thời lượng giọng đọc
+  useEffect(() => {
+    if (!started) return;
+    const text = node.text;
+    const perChar = voiceMs > 0 ? Math.min(190, Math.max(38, (voiceMs * 0.94) / text.length)) : 62;
+    let i = typed.length;
+    if (i >= text.length) return;
+    const id = window.setInterval(() => {
+      i += 1;
+      setTyped(text.slice(0, i));
+      if (i >= text.length) {
+        window.clearInterval(id);
+        setDone(true);
+      }
+    }, perChar);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeId, started, voiceMs]);
+
+  // Chốt an toàn: nếu giọng đọc lỗi/không kết thúc, vẫn cho phim chạy tiếp
+  useEffect(() => {
+    if (!done || speechDone) return;
+    const id = window.setTimeout(() => setSpeechDone(true), 7000);
+    return () => window.clearTimeout(id);
+  }, [done, speechDone]);
+
 
   useEffect(() => () => stopAudio(), [stopAudio]);
 

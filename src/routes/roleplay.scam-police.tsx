@@ -36,11 +36,32 @@ export const Route = createFileRoute("/roleplay/scam-police")({
 });
 
 const MOTION_CLASS: Record<string, string> = {
-  kenburns: "animate-[kenBurns_18s_ease-in-out_infinite_alternate]",
-  push: "animate-[filmPush_9s_ease-out_forwards]",
-  shake: "animate-[filmShake_.16s_linear_infinite]",
-  freeze: "",
+  kenburns: "animate-[kenBurns_26s_ease-in-out_infinite_alternate]",
+  push: "animate-[filmPush_20s_ease-out_forwards]",
+  pull: "animate-[filmPull_20s_ease-out_forwards]",
+  panL: "animate-[filmPanL_24s_linear_forwards]",
+  panR: "animate-[filmPanR_24s_linear_forwards]",
+  shake: "animate-[filmShake_.18s_linear_infinite]",
+  freeze: "animate-[filmBreathe_9s_ease-in-out_infinite]",
 };
+
+/** Đổi hướng chuyển động theo cảnh để không cảnh nào giống cảnh nào */
+function motionClassFor(id: string, motion?: string) {
+  if (motion === "shake") return MOTION_CLASS.shake;
+  if (motion === "freeze") return MOTION_CLASS.freeze;
+  if (motion === "push") return MOTION_CLASS.push;
+  const pool = [MOTION_CLASS.kenburns, MOTION_CLASS.panL, MOTION_CLASS.panR, MOTION_CLASS.pull];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+  return pool[h % pool.length];
+}
+
+const DUSTS = Array.from({ length: 14 }, (_, i) => ({
+  left: `${(i * 7.3 + 4) % 96}%`,
+  delay: `${(i * 1.37) % 9}s`,
+  dur: `${9 + ((i * 3) % 7)}s`,
+}));
+
 
 function FilmPage() {
   const navigate = useNavigate();
@@ -54,9 +75,14 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  /** thời lượng lồng tiếng (ms) để phụ đề chạy khớp giọng đọc */
+  const [voiceMs, setVoiceMs] = useState(0);
+  const [speechDone, setSpeechDone] = useState(false);
+  const [prevImage, setPrevImage] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
+
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
@@ -73,28 +99,29 @@ function FilmPage() {
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
-  // Phụ đề chạy chữ theo nhịp kể chuyện
+  // Reset nhịp cảnh mới + hiệu ứng hoà hình (crossfade)
   useEffect(() => {
-    if (!started) return;
     setTyped("");
     setDone(false);
-    let i = 0;
-    const text = node.text;
-    const id = window.setInterval(() => {
-      i += 1;
-      setTyped(text.slice(0, i));
-      if (i >= text.length) {
-        window.clearInterval(id);
-        setTyped(text);
-        setDone(true);
-      }
-    }, 38);
-    return () => window.clearInterval(id);
-  }, [nodeId, started, node.text]);
+    setSpeechDone(false);
+    setVoiceMs(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeId]);
 
-  // Lồng tiếng AI — tốc độ 1.0x, khớp với hình
   useEffect(() => {
-    if (!started || muted) return;
+    if (!prevImage) return;
+    const id = window.setTimeout(() => setPrevImage(null), 1000);
+    return () => window.clearTimeout(id);
+  }, [prevImage]);
+
+  // Lồng tiếng AI — chậm rãi (0.92x); đo thời lượng để phụ đề chạy khớp giọng
+  useEffect(() => {
+    if (!started) return;
+    if (muted) {
+      setVoiceMs(0);
+      setSpeechDone(true);
+      return;
+    }
     let cancelled = false;
     stopAudio();
 
@@ -108,35 +135,84 @@ function FilmPage() {
         }
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
-        audio.playbackRate = 1;
+        audio.playbackRate = 0.92;
+        audio.onloadedmetadata = () => {
+          if (!cancelled && Number.isFinite(audio.duration)) setVoiceMs((audio.duration / 0.92) * 1000);
+        };
+        audio.onended = () => {
+          if (!cancelled) setSpeechDone(true);
+        };
         audioRef.current = audio;
-        await audio.play().catch(() => {});
+        await audio.play().catch(() => setSpeechDone(true));
       } catch {
-        if (cancelled || typeof window === "undefined" || !window.speechSynthesis) return;
+        if (cancelled) return;
+        if (typeof window === "undefined" || !window.speechSynthesis) {
+          setSpeechDone(true);
+          return;
+        }
         const u = new SpeechSynthesisUtterance(node.text);
         u.lang = "vi-VN";
-        u.rate = 1;
+        u.rate = 0.92;
         u.pitch = node.speaker === "K" ? 0.8 : 1.1;
+        u.onend = () => setSpeechDone(true);
         window.speechSynthesis.speak(u);
       }
     };
     void play();
+
+    // tải sẵn giọng cho cảnh kế tiếp để không bị trễ khi chuyển cảnh
+    const nxt = node.next ? FILM[node.next] : undefined;
+    if (nxt && !cacheRef.current.get(nxt.id)) {
+      void tts({ data: { text: nxt.text, voice: SPEAKER_META[nxt.speaker].voice } })
+        .then((r) => cacheRef.current.set(nxt.id, (r as { audio: string }).audio))
+        .catch(() => {});
+    }
+
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, started, muted]);
 
+  // Phụ đề chạy chữ khớp đúng thời lượng giọng đọc
+  useEffect(() => {
+    if (!started) return;
+    const text = node.text;
+    const perChar = voiceMs > 0 ? Math.min(190, Math.max(38, (voiceMs * 0.94) / text.length)) : 62;
+    let i = typed.length;
+    if (i >= text.length) return;
+    const id = window.setInterval(() => {
+      i += 1;
+      setTyped(text.slice(0, i));
+      if (i >= text.length) {
+        window.clearInterval(id);
+        setDone(true);
+      }
+    }, perChar);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeId, started, voiceMs]);
+
+  // Chốt an toàn: nếu giọng đọc lỗi/không kết thúc, vẫn cho phim chạy tiếp
+  useEffect(() => {
+    if (!done || speechDone) return;
+    const id = window.setTimeout(() => setSpeechDone(true), 7000);
+    return () => window.clearTimeout(id);
+  }, [done, speechDone]);
+
+
   useEffect(() => () => stopAudio(), [stopAudio]);
 
   const go = (next: string) => {
     stopAudio();
+    setPrevImage(node.image);
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
+    setPrevImage(node.image);
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -145,6 +221,7 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
+    setPrevImage(node.image);
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);
@@ -152,15 +229,16 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 16) * 100)), [history.length]);
 
-  // Tự động sang cảnh kế tiếp như một bộ phim đang chạy
+  // Tự động sang cảnh kế tiếp: chỉ chuyển khi giọng đọc đã dứt hẳn
   useEffect(() => {
-    if (!started || !autoPlay || !done) return;
+    if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 1600);
+    const id = window.setTimeout(() => go(nxt), 1500);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, nodeId, autoPlay, started]);
+  }, [done, speechDone, nodeId, autoPlay, started]);
+
 
   if (!started) {
     return (
@@ -193,21 +271,65 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
+      {/* Nền mờ lấp đầy khung hình */}
+      <img
+        key={"bg" + node.id}
+        src={node.image}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
+      />
+
+      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
+      {prevImage && (
+        <img
+          key={"prev" + prevImage}
+          src={prevImage}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_.9s_ease-in_forwards] scale-105"
+        />
+      )}
+
+      {/* Cảnh hiện tại */}
       <img
         key={node.id + node.image}
         src={node.image}
         alt=""
-        className={`absolute inset-0 w-full h-full object-cover opacity-95 ${MOTION_CLASS[node.motion ?? "kenburns"] ?? ""}`}
+        className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
       />
+
       {node.mood && node.mood !== "neutral" && (
         <div
           className="pointer-events-none absolute inset-0 mix-blend-overlay"
           style={{ backgroundColor: node.mood === "danger" ? "#0b3d5c" : "#f0b429", opacity: 0.35 }}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/90" />
+
+      {/* Bụi bay trong luồng sáng */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {DUSTS.map((d, i) => (
+          <span
+            key={i}
+            className="film-dust"
+            style={{
+              left: d.left,
+              bottom: 0,
+              animation: `filmDust ${d.dur} linear ${d.delay} infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Hạt phim, nhấp nháy đèn chiếu, vignette */}
+      <div className="pointer-events-none absolute inset-0 film-grain" />
+      <div className="pointer-events-none absolute inset-0 bg-white animate-[filmFlicker_2.4s_steps(4,end)_infinite] mix-blend-soft-light opacity-10" />
+      <div className="pointer-events-none absolute inset-0 film-vignette" />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/5 to-black/90" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
 
       {/* Top bar */}
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">

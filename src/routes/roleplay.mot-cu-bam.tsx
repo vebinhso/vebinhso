@@ -86,7 +86,13 @@ function FilmPage() {
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
-  const visual = node.video ? { src: node.video, type: "video" as const } : { src: node.image, type: "image" as const };
+  const visual =
+    node.choices && node.choiceImage && done
+      ? { src: node.choiceImage, type: "image" as const }
+      : node.video
+        ? { src: node.video, type: "video" as const }
+        : { src: node.image, type: "image" as const };
+
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });

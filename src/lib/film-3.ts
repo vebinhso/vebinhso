@@ -2,6 +2,8 @@ import s01 from "@/assets/film4/clean/s01.jpg";
 import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
+import s04choice from "@/assets/film4/clean/s04-choice.jpg";
+
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
@@ -32,6 +34,9 @@ export type FilmNode = {
   linkOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
+  /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
+  choiceImage?: string;
+
 
   next?: string;
   choices?: Choice[];
@@ -159,6 +164,7 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     timeLimitSec: 10,
+    choiceImage: s04choice,
     choices: [
       {
         label: "A. Bạn cùng trường nhờ gấp, link nhìn cũng đàng hoàng — bấm vote luôn",
@@ -171,6 +177,7 @@ export const FILM: Record<string, FilmNode> = {
         tone: "safe",
       },
     ],
+
   },
   pendingA: {
     id: "pendingA",

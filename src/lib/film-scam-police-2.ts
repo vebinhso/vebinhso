@@ -234,7 +234,7 @@ export const FILM: Record<string, FilmNode> = {
       { label: "B. Giấu kín, một mình chịu đựng thêm một ngày nữa", next: "m16", tone: "risky" },
     ],
   },
-  // S14 — Đe doạ dồn dập
+  // S13/S14 — Tin nhắn đe doạ dồn dập lúc nửa đêm
   m13: {
     id: "m13",
     image: m13,
@@ -252,7 +252,7 @@ export const FILM: Record<string, FilmNode> = {
     image: m14,
     video: vm14.url,
     speaker: "M",
-    action: "M cầm điện thoại, run rẩy bước tới trước mặt mẹ",
+    action: "M run rẩy đưa điện thoại cho mẹ xem, mẹ nắm lấy tay em",
     text: "Mẹ ơi... con làm sai một chuyện, và con đang bị người ta doạ. Con sợ lắm, nhưng con không muốn chuyện này làm hại thêm ai nữa.",
     motion: "freeze",
     mood: "safe",
@@ -288,7 +288,7 @@ export const FILM: Record<string, FilmNode> = {
     image: m15,
     video: vm15.url,
     speaker: "narrator",
-    action: "Đồng hồ đếm ngược sáng lên trong bóng tối",
+    action: "Vòng đếm ngược đỏ rực trên điện thoại giữa căn phòng tối",
     text: "Những lời đe doạ chồng lên nhau suốt đêm. M nhìn con số đếm ngược và thấy mình càng lúc càng nhỏ bé — đúng như điều kẻ giấu mặt muốn.",
     motion: "push",
     mood: "danger",
@@ -300,7 +300,7 @@ export const FILM: Record<string, FilmNode> = {
     image: m18,
     video: vm18.url,
     speaker: "narrator",
-    action: "Khủng hoảng bùng lên khi trời gần sáng",
+    action: "Trời gần sáng, M co mình một mình trong góc phòng",
     text: "Áp lực, xấu hổ và sợ hãi bóp nghẹt M. Không một ai biết, không một ai đứng cạnh em. Khi chọn im lặng, em đã tự nhốt mình trong chiếc bẫy do kẻ khác dựng sẵn.",
     motion: "freeze",
     mood: "danger",

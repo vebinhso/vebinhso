@@ -9,7 +9,7 @@ import s08 from "@/assets/film2/clean/s08.jpg";
 import s09 from "@/assets/film2/clean/s09.jpg";
 import s10 from "@/assets/film2/s10.jpg";
 import s11 from "@/assets/film2/s11.jpg";
-import s12 from "@/assets/film2/s12.jpg";
+import s12 from "@/assets/film2/clean2/s12.jpg";
 import s13 from "@/assets/film2/clean2/s13.jpg";
 import s14 from "@/assets/film2/clean2/s14.jpg";
 import s15 from "@/assets/film2/clean2/s15.jpg";
@@ -34,6 +34,7 @@ import v08 from "@/assets/film2/v08.mp4.asset.json";
 import v09 from "@/assets/film2/v09.mp4.asset.json";
 import v10 from "@/assets/film2/v10.mp4.asset.json";
 import v11 from "@/assets/film2/v11.mp4.asset.json";
+import v12 from "@/assets/film2/v12.mp4.asset.json";
 import v13 from "@/assets/film2/v13.mp4.asset.json";
 import v14 from "@/assets/film2/v14.mp4.asset.json";
 import v15 from "@/assets/film2/v15.mp4.asset.json";
@@ -42,7 +43,7 @@ import v17 from "@/assets/film2/v17.mp4.asset.json";
 import v18 from "@/assets/film2/v18.mp4.asset.json";
 import v20 from "@/assets/film2/v20.mp4.asset.json";
 import v21 from "@/assets/film2/v21.mp4.asset.json";
-import v22 from "@/assets/film2/v22.mp4.asset.json";
+import v22 from "@/assets/film2/v22b.mp4.asset.json";
 import v23 from "@/assets/film2/v23.mp4.asset.json";
 import v24 from "@/assets/film2/v24.mp4.asset.json";
 import v25 from "@/assets/film2/v25.mp4.asset.json";
@@ -242,6 +243,7 @@ export const FILM: Record<string, FilmNode> = {
   s12: {
     id: "s12",
     image: s12,
+    video: v12.url,
     speaker: "narrator",
     action: "NÚT QUYẾT ĐỊNH 2",
     text: "Chỉ một lựa chọn đúng để bảo vệ mình. Bạn sẽ làm gì?",

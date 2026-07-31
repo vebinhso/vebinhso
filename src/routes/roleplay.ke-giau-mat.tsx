@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
+import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
 import {
   FILM,
   FILM_NOTES,
@@ -249,7 +250,7 @@ function FilmPage() {
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
+      cap.stop();
     };
   }, [meta, muted, node, started, stopAudio, tts]);
 
@@ -535,6 +536,7 @@ function FilmPage() {
                 className="rounded-xl bg-black/70 backdrop-blur-md px-3 py-2 border border-white/10 cursor-pointer"
                 onClick={() => {
                   if (!done) {
+                    capRef.current?.finishNow();
                     setTyped(node.text);
                     setDone(true);
                   }
@@ -568,7 +570,7 @@ function FilmPage() {
                   ))
                 ) : (
                   <button
-                    onClick={() => (done ? node.next && go(node.next) : (setTyped(node.text), setDone(true)))}
+                    onClick={() => (done ? node.next && go(node.next) : (capRef.current?.finishNow(), setTyped(node.text), setDone(true)))}
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
                     {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}

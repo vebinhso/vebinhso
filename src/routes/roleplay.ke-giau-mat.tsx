@@ -174,11 +174,32 @@ function FilmPage() {
 
         if (cancelled || muted) return;
         if (!b64) {
+          // Không có giọng AI (hết tín dụng / lỗi) → dùng giọng đọc của trình duyệt
           audioTookOver = false;
           cancelAnimationFrame(raf);
+          if (typeof window !== "undefined" && window.speechSynthesis) {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = "vi-VN";
+            u.rate = 1;
+            u.pitch = node.speaker === "A" ? 0.85 : 1.02;
+            u.onend = () => {
+              if (cancelled) return;
+              setUpTo(1);
+              setSpeechDone(true);
+            };
+            u.onboundary = (e) => {
+              if (cancelled) return;
+              if (e.charIndex) setTyped(text.slice(0, e.charIndex + (e.charLength ?? 0)));
+            };
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(u);
+            runFallbackCaption(false);
+            return;
+          }
           runFallbackCaption();
           return;
         }
+
 
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1;

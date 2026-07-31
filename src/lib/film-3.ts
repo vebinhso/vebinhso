@@ -9,6 +9,7 @@ import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
 import s10 from "@/assets/film4/clean/s10.jpg";
+import s11 from "@/assets/film4/clean/s11.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -21,6 +22,7 @@ import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
 import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
 import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
+import vs11 from "@/assets/film4/video/b12.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -279,6 +281,29 @@ export const FILM: Record<string, FilmNode> = {
     motion: "shake",
     mood: "danger",
     notifOverlay: true,
+    next: "s11",
+  },
+  // S11 — Cuộc gọi của Tuấn
+  s11: {
+    id: "s11",
+    image: s11,
+    video: vs11.url,
+    speaker: "T",
+    action: "Màn hình chia đôi: Bảo xanh lạnh, Tuấn ấm vàng",
+    text: "Bảo ơi! Mày bị hack Facebook đúng không? Nick mày đang đi gửi link mượn năm triệu khắp lớp mình kìa!",
+    motion: "shake",
+    mood: "danger",
+    next: "s11b",
+  },
+  s11b: {
+    id: "s11b",
+    image: s11,
+    video: vs11.url,
+    speaker: "B",
+    action: "Bảo chết lặng, tay bấu lấy tóc",
+    text: "Hả??? Tớ có nhắn cho ai đâu! Tớ vừa vote cho Hà xong mà?!",
+    motion: "shake",
+    mood: "danger",
     next: "pendingA",
   },
   pendingA: {

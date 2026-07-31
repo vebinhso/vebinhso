@@ -32,6 +32,9 @@ export type FilmNode = {
   linkOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
+  /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
+  choiceImage?: string;
+
 
   next?: string;
   choices?: Choice[];

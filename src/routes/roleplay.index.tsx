@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ExpandableText } from "@/components/ExpandableText";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
@@ -174,7 +175,15 @@ function RoleplayPage() {
                   </div>
                   <div className="p-3 sm:p-4">
                     <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
-                    <p className="text-xs font-bold text-muted-foreground leading-snug mb-3 line-clamp-2">{l.desc}</p>
+                    <div className="mb-3">
+                      <ExpandableText
+                        clamp={2}
+                        className="text-xs font-bold text-muted-foreground leading-snug"
+                        toggleClassName="text-[11px] text-primary"
+                      >
+                        {l.desc}
+                      </ExpandableText>
+                    </div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
                       {l.ready ? (

@@ -263,9 +263,9 @@ function FilmPage() {
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
-      window.clearTimeout(fallbackTimer);
+      stopCap();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, started, muted]);
 

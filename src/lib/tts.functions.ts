@@ -28,6 +28,8 @@ export const speakLine = createServerFn({ method: "POST" })
           model: "openai/gpt-4o-mini-tts",
           input: data.text,
           voice: data.voice,
+          ...(data.instructions ? { instructions: data.instructions } : {}),
+          ...(data.speed ? { speed: data.speed } : {}),
           response_format: "mp3",
         }),
       });

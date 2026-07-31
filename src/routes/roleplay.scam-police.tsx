@@ -80,6 +80,7 @@ function FilmPage() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
+  const pendingRef = useRef<Map<string, Promise<string>>>(new Map());
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];

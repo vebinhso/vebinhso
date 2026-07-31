@@ -316,12 +316,16 @@ function FilmPage() {
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {FILM_TITLE}
           </h1>
-          <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
-            Bạn vào vai <b className="text-sky-300">M</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
-            quyền riêng tư của người khác.
-            <br className="hidden sm:block" />
-            Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
-          </p>
+          <div className="max-w-xl w-full mb-5">
+            <ExpandableText
+              clamp={2}
+              className="text-xs sm:text-sm font-bold text-white/75"
+              toggleClassName="text-sky-300 text-xs"
+            >
+              Bạn vào vai <b className="text-sky-300">Bảo</b>. Một đường link bình chọn gửi từ nick bạn thân — mỗi lựa
+              chọn sẽ dẫn tới một kết cục khác nhau. Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+            </ExpandableText>
+          </div>
           <button
             onClick={() => setStarted(true)}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-sky-600 to-indigo-500 hover:brightness-110"

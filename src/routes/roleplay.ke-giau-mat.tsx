@@ -127,39 +127,49 @@ function FilmPage() {
   useEffect(() => {
     if (!started) return;
     let cancelled = false;
-    let raf = 0;
     stopAudio();
 
     const text = node.text;
-    const setUpTo = (ratio: number) => {
-      const n = Math.max(0, Math.min(text.length, Math.round(text.length * ratio)));
-      setTyped(text.slice(0, n));
-      if (n >= text.length) setDone(true);
-    };
-
-    let audioTookOver = false;
-    const runFallbackCaption = (markDone = true) => {
-      const total = Math.max(1600, text.length * 62);
-      const t0 = performance.now();
-      const tick = () => {
-        if (cancelled || audioTookOver) return;
-        const r = (performance.now() - t0) / total;
-        setUpTo(r);
-        if (r < 1) raf = requestAnimationFrame(tick);
-        else if (markDone) setSpeechDone(true);
-      };
-      raf = requestAnimationFrame(tick);
-    };
+    const cap = createCaptionEngine(
+      text,
+      (s: string) => setTyped(s),
+      () => setDone(true),
+    );
+    capRef.current = cap;
 
     if (muted) {
-      runFallbackCaption();
+      cap.startTimer(() => setSpeechDone(true));
       return () => {
         cancelled = true;
-        cancelAnimationFrame(raf);
+        cap.stop();
       };
     }
 
-    runFallbackCaption(false);
+    // Chữ chạy ngay, không chờ tải giọng đọc
+    cap.startTimer();
+
+    const speakBrowser = () => {
+      if (typeof window === "undefined" || !window.speechSynthesis) {
+        cap.startTimer(() => setSpeechDone(true));
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "vi-VN";
+      u.rate = meta.rate;
+      u.pitch = meta.pitch;
+      u.onend = () => {
+        if (cancelled) return;
+        cap.complete();
+        setSpeechDone(true);
+      };
+      u.onboundary = (e) => {
+        if (cancelled) return;
+        cap.boundary(e.charIndex + (e.charLength ?? 0));
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      cap.startTimer();
+    };
 
     const play = async () => {
       try {
@@ -174,78 +184,31 @@ function FilmPage() {
 
         if (cancelled || muted) return;
         if (!b64) {
-          // Không có giọng AI (hết tín dụng / lỗi) → dùng giọng đọc của trình duyệt
-          audioTookOver = false;
-          cancelAnimationFrame(raf);
-          if (typeof window !== "undefined" && window.speechSynthesis) {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = "vi-VN";
-            u.rate = meta.rate;
-            u.pitch = meta.pitch;
-            u.onend = () => {
-              if (cancelled) return;
-              setUpTo(1);
-              setSpeechDone(true);
-            };
-            u.onboundary = (e) => {
-              if (cancelled) return;
-              if (e.charIndex) setTyped(text.slice(0, e.charIndex + (e.charLength ?? 0)));
-            };
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(u);
-            runFallbackCaption(false);
-            return;
-          }
-          runFallbackCaption();
+          // Không có giọng AI (hết tín dụng / lỗi) → giọng đọc trình duyệt
+          speakBrowser();
           return;
         }
-
 
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1;
         audio.onended = () => {
           if (cancelled) return;
-          setUpTo(1);
+          cap.complete();
           setSpeechDone(true);
         };
         audioRef.current = audio;
 
-        const follow = () => {
-          if (cancelled) return;
-          const d = audio.duration;
-          if (Number.isFinite(d) && d > 0) setUpTo((audio.currentTime / d) * 1.02);
-          raf = requestAnimationFrame(follow);
-        };
-        audioTookOver = true;
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(follow);
+        cap.followAudio(audio);
 
         await audio.play().catch(() => {
-          cancelAnimationFrame(raf);
-          audioTookOver = false;
-          runFallbackCaption();
+          cap.startTimer(() => setSpeechDone(true));
         });
       } catch {
         if (cancelled) return;
-        if (typeof window === "undefined" || !window.speechSynthesis) {
-          runFallbackCaption();
-          return;
-        }
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "vi-VN";
-        u.rate = meta.rate;
-        u.pitch = meta.pitch;
-        u.onend = () => {
-          setUpTo(1);
-          setSpeechDone(true);
-        };
-        u.onboundary = (e) => {
-          if (e.charIndex) setTyped(text.slice(0, e.charIndex + (e.charLength ?? 0)));
-        };
-        window.speechSynthesis.speak(u);
-        runFallbackCaption();
+        speakBrowser();
       }
     };
+
     void play();
 
     const upcoming: FilmNode[] = [];

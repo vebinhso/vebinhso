@@ -75,7 +75,7 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
-  const [speechDone2, setVoiceMs] = useState(0);
+  
   const [speechDone, setSpeechDone] = useState(false);
   const [prevImage, setPrevImage] = useState<string | null>(null);
 

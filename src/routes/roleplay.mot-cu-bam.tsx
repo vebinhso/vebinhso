@@ -482,6 +482,27 @@ function FilmPage() {
         </div>
       )}
 
+      {node.voteOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-[86%] max-w-md rounded-3xl border border-pink-300/50 bg-gradient-to-b from-pink-500/85 to-fuchsia-700/85 backdrop-blur-md px-4 py-4 text-center shadow-[0_0_60px_rgba(236,72,153,0.55)]">
+            <p className="text-sm sm:text-lg font-black tracking-wide text-white drop-shadow">
+              MẪU ẢNH HỌC SINH TÀI NĂNG 2026
+            </p>
+            <p className="mt-1 text-[11px] sm:text-sm font-bold text-pink-100">
+              Hạng 5 — 4.812 lượt bình chọn
+            </p>
+            <p className="mt-1 text-[11px] sm:text-sm font-bold text-yellow-200">
+              ⏳ Cổng bình chọn đóng sau: 00:47:12
+            </p>
+            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-[11px] sm:text-base font-black text-pink-600 shadow-[0_0_25px_rgba(255,255,255,0.6)] animate-pulse">
+              BẤM VÀO ĐÂY ĐỂ BÌNH CHỌN
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (
           <span

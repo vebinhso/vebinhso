@@ -1,10 +1,13 @@
 import s01 from "@/assets/film4/clean/s01.jpg";
 import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
+import s04 from "@/assets/film4/clean/s04.jpg";
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
+import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
+
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
 

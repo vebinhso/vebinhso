@@ -437,6 +437,22 @@ function FilmPage() {
         />
       )}
 
+      {node.linkOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+          <div className="animate-[filmFade_0.9s_ease-out_both] max-w-[92%] rounded-2xl bg-black/70 backdrop-blur-md border border-red-500/40 px-4 py-3 sm:px-6 sm:py-4 text-center shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+            <p className="font-mono font-black tracking-tight text-base sm:text-2xl break-all leading-tight">
+              <span className="text-red-400">http://</span>
+              <span className="text-white">binhchonmauanh-hocsinh2026</span>
+              <span className="text-red-400">.top</span>
+              <span className="text-white/70">/vote-ha</span>
+            </p>
+            <p className="mt-2 text-[11px] sm:text-sm font-bold text-red-300">
+              🔓 Không có ổ khoá — kết nối không được mã hoá
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (
           <span

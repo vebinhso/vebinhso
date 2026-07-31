@@ -262,7 +262,7 @@ function FilmPage() {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 1500);
+    const id = window.setTimeout(() => go(nxt), 900);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, speechDone, nodeId, autoPlay, started]);

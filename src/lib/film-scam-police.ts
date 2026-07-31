@@ -30,7 +30,7 @@ import v03 from "@/assets/film2/v03.mp4.asset.json";
 import v04 from "@/assets/film2/v04.mp4.asset.json";
 import v05 from "@/assets/film2/v05.mp4.asset.json";
 import v07 from "@/assets/film2/v07.mp4.asset.json";
-import v08 from "@/assets/film2/v08.mp4.asset.json";
+import v08 from "@/assets/film2/v08b.mp4.asset.json";
 import v09 from "@/assets/film2/v09.mp4.asset.json";
 import v10 from "@/assets/film2/v10.mp4.asset.json";
 import v11 from "@/assets/film2/v11.mp4.asset.json";

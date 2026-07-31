@@ -186,16 +186,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "Anh vào phòng, khoá cửa lại. Không được cho ai nghe thấy cuộc gọi này.",
     motion: "push",
     mood: "danger",
-    next: "s08b",
-  },
-  s08b: {
-    id: "s08b",
-    image: s08,
-    video: v08.url,
-    speaker: "narrator",
-    text: "Cảnh báo: đây là đòn CÔ LẬP — bước bắt buộc của mọi kịch bản lừa đảo. Tách nạn nhân khỏi người thân để không ai kịp cản.",
-    motion: "kenburns",
-    mood: "danger",
     next: "s09",
   },
   s09: {

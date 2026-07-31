@@ -47,7 +47,7 @@ import v22 from "@/assets/film2/v22c.mp4.asset.json";
 import v23 from "@/assets/film2/v23.mp4.asset.json";
 import v24 from "@/assets/film2/v24.mp4.asset.json";
 import v25 from "@/assets/film2/v25.mp4.asset.json";
-import v26 from "@/assets/film2/v26.mp4.asset.json";
+import v26 from "@/assets/film2/v26b.mp4.asset.json";
 
 export type Speaker = "K" | "N" | "narrator";
 

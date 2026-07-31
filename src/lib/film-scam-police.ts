@@ -89,29 +89,32 @@ export const SPEAKER_META: Record<
     color: "text-red-400",
     voice: "onyx",
     instructions:
-      "Giọng nam trầm, khô khốc và quyền uy, nói nhanh dứt khoát kiểu ra lệnh, gây áp lực và đe doạ, không thân thiện.",
-    speed: 1.05,
+      "Nam 35–50 tuổi, giọng trầm, lạnh, đầy quyền uy và tự tin. Nói NHANH, dứt khoát, ra lệnh thay vì đề nghị, thường ngắt lời. Không cười, hầu như không nói 'làm ơn'. Dùng từ ngữ pháp lý, hành chính. Bình tĩnh khi kiểm soát nhưng có thể lập tức trở nên đe doạ. Ấn tượng: một điều tra viên dày dạn.",
+    speed: 1.12,
     pitch: 0.7,
-    rate: 1.08,
+    rate: 1.12,
   },
   N: {
     name: "N — Nạn nhân",
     color: "text-sky-300",
     voice: "nova",
-    instructions: "Giọng trẻ, nhẹ, hoang mang và lo sợ, nói chậm hơn, đôi lúc ngập ngừng.",
-    speed: 0.97,
-    pitch: 1.2,
-    rate: 1,
+    instructions:
+      "Nam trẻ 18–25 tuổi, giọng thân thiện, lễ phép, ngây thơ, tò mò và hơi rụt rè. Nói với tốc độ vừa, hơi chậm; hay đặt câu hỏi, ngập ngừng trước khi trả lời, có những khoảng ngắt ngắn. Khi sợ thì giọng run nhẹ và hụt hơi. Diễn biến cảm xúc: thoải mái → bối rối → lo lắng → hoảng sợ → nhẹ nhõm. Tuyệt đối không hung hăng.",
+    speed: 0.95,
+    pitch: 1.18,
+    rate: 0.96,
   },
   narrator: {
     name: "Người dẫn chuyện",
     color: "text-amber-300",
     voice: "sage",
-    instructions: "Giọng dẫn chuyện điềm đạm, ấm, trung tính, kể rõ ràng với nhịp vừa phải.",
+    instructions:
+      "Giọng trung tính 25–35 tuổi, điềm tĩnh, ấm, chuyên nghiệp, phát âm rõ ràng, đáng tin cậy theo phong cách phim tài liệu (National Geographic). Tốc độ vừa phải, chuyển ý mượt mà, nhấn nhá đúng chi tiết quan trọng. Khách quan, không diễn quá, không hoảng loạn, không la hét.",
     speed: 1,
     pitch: 1,
     rate: 1,
   },
+
 };
 
 export const FILM_TITLE = "MỘT CUỘC GỌI — Bạn chọn, bạn chịu hậu quả";

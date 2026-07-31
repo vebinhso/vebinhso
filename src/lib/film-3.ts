@@ -4,6 +4,9 @@ import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
 import s04choice from "@/assets/film4/clean/s04-choice.jpg";
 import s05 from "@/assets/film4/clean/s05.jpg";
+import s06 from "@/assets/film4/clean/s06.jpg";
+import s07 from "@/assets/film4/clean/s07.jpg";
+import s08 from "@/assets/film4/clean/s08.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -11,6 +14,9 @@ import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
 import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
+import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
+import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
+import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -36,6 +42,12 @@ export type FilmNode = {
   linkOverlay?: boolean;
   /** Hiện lớp phủ trang bình chọn giả (dựng bằng CSS) */
   voteOverlay?: boolean;
+  /** Hiện lớp phủ hộp đăng nhập giả + thanh địa chỉ */
+  loginOverlay?: boolean;
+  /** Hiện lớp phủ dãy chấm mật khẩu đang gõ */
+  typingOverlay?: boolean;
+  /** Hiện lớp phủ thông báo bình chọn thành công */
+  successOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
   /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
@@ -194,20 +206,59 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     voteOverlay: true,
+    next: "s06",
+  },
+  // S06 — Hộp đăng nhập giả
+  s06: {
+    id: "s06",
+    image: s06,
+    video: vs06.url,
+    speaker: "narrator",
+    action: "Một hộp đăng nhập trượt lên che kín trang hồng",
+    text: "Bảo bấm nút bình chọn. Một hộp thoại trượt lên: để tránh gian lận vote, vui lòng đăng nhập tài khoản Facebook hoặc Zalo để hệ thống xác minh. Trên thanh địa chỉ, chữ facebook chấm com chỉ là phần đầu — tên miền thật lại là vote hai nghìn không trăm hai sáu chấm xyz. Và ổ khoá vẫn đang mở.",
+    motion: "push",
+    mood: "danger",
+    loginOverlay: true,
+    next: "s07",
+  },
+  // S07 — Bảo gõ mật khẩu
+  s07: {
+    id: "s07",
+    image: s07,
+    video: vs07.url,
+    speaker: "narrator",
+    action: "Ngón cái gõ trên bàn phím, từng dấu chấm hiện ra",
+    text: "Giao diện giống hệt Facebook thật, nên Bảo không nghĩ ngợi gì thêm. Cậu gõ email, rồi gõ mật khẩu. Bảo mất bốn giây để gõ xong. Bốn giây — và mọi thứ không thể quay lại.",
+    motion: "push",
+    mood: "danger",
+    typingOverlay: true,
+    next: "s08",
+  },
+  // S08 — Trang web báo thành công
+  s08: {
+    id: "s08",
+    image: s08,
+    video: vs08.url,
+    speaker: "narrator",
+    action: "Trang web quay vòng vòng rồi báo thành công",
+    text: "Trang web quay vòng vòng rồi báo thành công: cảm ơn bạn đã bình chọn. Bảo mỉm cười, úp điện thoại xuống bàn, kéo chăn lên đi ngủ. Cậu thấy mình vừa làm một việc tốt.",
+    motion: "kenburns",
+    mood: "neutral",
+    successOverlay: true,
     next: "pendingA",
   },
   pendingA: {
     id: "pendingA",
-    image: s05,
+    image: s08,
     speaker: "narrator",
-    text: "Bảo đưa ngón tay xuống đường link...",
+    text: "Sáng hôm sau, mọi chuyện mới bắt đầu...",
     mood: "danger",
     ending: {
       kind: "loss",
       code: "…",
       title: "PHẦN TIẾP THEO ĐANG ĐƯỢC DỰNG",
       lesson:
-        "Nhánh sau trang bình chọn giả (S06 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: một đường link lạ gửi kèm lời nhờ gấp luôn là dấu hiệu cần dừng lại.",
+        "Nhánh sau đêm đó (S09 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: một đường link lạ gửi kèm lời nhờ gấp luôn là dấu hiệu cần dừng lại.",
     },
   },
   pendingB: {

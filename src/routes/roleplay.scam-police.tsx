@@ -564,10 +564,12 @@ function FilmPage() {
                 className="rounded-xl bg-black/70 backdrop-blur-md px-3 py-2 border border-white/10 cursor-pointer"
                 onClick={() => {
                   if (!done) {
+                    capRef.current?.finishNow();
                     setTyped(node.text);
                     setDone(true);
                   }
                 }}
+
               >
                 {node.action && <p className="text-[10px] font-bold italic text-white/45">({node.action})</p>}
                 <p className={`text-[10px] font-black tracking-widest ${meta.color}`}>{meta.name}</p>

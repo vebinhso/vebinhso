@@ -29,7 +29,7 @@ type Lesson = {
   desc: string;
   tag: string;
   gradient: string;
-  level: string;
+  
   ready: boolean;
   to?: string;
   poster?: string;
@@ -43,7 +43,6 @@ const LESSONS: Lesson[] = [
     desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.",
     tag: "An toàn số",
     gradient: "from-rose-500 to-orange-500",
-    level: "Cấp độ 1",
     ready: true,
     to: "/roleplay/scam-police",
     poster: FILM1_POSTER,
@@ -55,7 +54,6 @@ const LESSONS: Lesson[] = [
     desc: "Nhóm chat bí mật, áp lực đồng đẳng và những lựa chọn có thể làm tổn thương cả bạn lẫn người khác.",
     tag: "An toàn số",
     gradient: "from-sky-500 to-indigo-600",
-    level: "Cấp độ 2",
     ready: true,
     to: "/roleplay/ke-giau-mat",
     poster: FILM2_POSTER,
@@ -66,7 +64,6 @@ const LESSONS: Lesson[] = [
     title: "Bài 3 · Bắt nạt trên mạng",
     desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?",
     tag: "Ứng xử số",
-    level: "Cấp độ 3",
     gradient: "from-emerald-500 to-teal-600",
     ready: false,
   },
@@ -76,7 +73,6 @@ const LESSONS: Lesson[] = [
     title: "Bài 4 · Cú lừa mua hàng",
     desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.",
     tag: "Giao dịch số",
-    level: "Cấp độ 4",
     gradient: "from-amber-500 to-yellow-600",
     ready: false,
   },
@@ -86,7 +82,6 @@ const LESSONS: Lesson[] = [
     title: "Bài 5 · Sứ giả thời gian",
     desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.",
     tag: "Lịch sử – Văn hoá",
-    level: "Đặc biệt",
     gradient: "from-fuchsia-500 to-purple-700",
     ready: false,
   },
@@ -96,7 +91,6 @@ const LESSONS: Lesson[] = [
     title: "Bài 6 · Làm việc cùng AI",
     desc: "Dùng AI để làm bài tập — đâu là ranh giới của sự trung thực?",
     tag: "Năng lực số",
-    level: "Cấp độ 5",
     gradient: "from-cyan-500 to-blue-700",
     ready: false,
   },
@@ -171,9 +165,6 @@ function RoleplayPage() {
                         {l.emoji}
                       </span>
                     )}
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
-                      {l.level}
-                    </span>
                     <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
                       #{i + 1}
                     </span>

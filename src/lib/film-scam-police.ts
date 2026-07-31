@@ -30,7 +30,57 @@ import v03 from "@/assets/film2/v03.mp4.asset.json";
 import v04 from "@/assets/film2/v04.mp4.asset.json";
 import v05 from "@/assets/film2/v05.mp4.asset.json";
 import v07 from "@/assets/film2/v07.mp4.asset.json";
-...
+
+export type Speaker = "K" | "N" | "narrator";
+
+export type Choice = {
+  label: string;
+  next: string;
+  tone?: "safe" | "risky" | "neutral";
+};
+
+/** Hiệu ứng camera cho từng cảnh để ảnh tĩnh "sống" như video */
+export type Motion = "kenburns" | "push" | "shake" | "freeze";
+
+export type FilmNode = {
+  id: string;
+  image: string;
+  video?: string;
+  speaker: Speaker;
+  action?: string;
+  text: string;
+  motion?: Motion;
+  /** phủ màu: nguy hiểm (lạnh) hay an toàn (ấm) */
+  mood?: "danger" | "safe" | "neutral";
+  next?: string;
+  choices?: Choice[];
+  ending?: {
+    kind: "safe" | "loss";
+    code: string;
+    title: string;
+    lesson: string;
+  };
+};
+
+export const SPEAKER_META: Record<Speaker, { name: string; color: string; voice: string }> = {
+  K: { name: "K — Kẻ giả danh công an", color: "text-red-400", voice: "onyx" },
+  N: { name: "N — Nạn nhân", color: "text-sky-300", voice: "alloy" },
+  narrator: { name: "Người dẫn chuyện", color: "text-amber-300", voice: "sage" },
+};
+
+export const FILM_TITLE = "MỘT CUỘC GỌI — Bạn chọn, bạn chịu hậu quả";
+export const FILM_POSTER = s01;
+export const FILM_SUMMARY_IMAGE = s27;
+
+export const FILM_NOTES = [
+  "Không cung cấp thông tin cá nhân cho người lạ.",
+  "Không cài đặt ứng dụng lạ, không cấp quyền truy cập.",
+  "Khi nghi ngờ, hãy hỏi người thân hoặc gọi cơ quan chức năng.",
+  "An toàn mạng — Trách nhiệm của mỗi chúng ta!",
+];
+
+export const FILM: Record<string, FilmNode> = {
+  /* ===== MỞ ĐẦU ===== */
   s02: {
     id: "s02",
     image: s02,

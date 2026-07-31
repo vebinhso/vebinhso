@@ -142,7 +142,6 @@ function FilmPage() {
     };
 
     if (muted) {
-      setVoiceMs(0);
       runFallbackCaption();
       return () => {
         cancelled = true;
@@ -161,9 +160,7 @@ function FilmPage() {
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1.06;
-        audio.onloadedmetadata = () => {
-          if (!cancelled && Number.isFinite(audio.duration)) setVoiceMs((audio.duration / 1.06) * 1000);
-        };
+
         audio.onended = () => {
           if (cancelled) return;
           setUpTo(1);

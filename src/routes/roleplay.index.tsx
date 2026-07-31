@@ -72,8 +72,6 @@ function RoleplayPage() {
               <div className="inline-flex items-start gap-3 rounded-2xl bg-black/30 backdrop-blur px-4 py-3 border border-white/10 max-w-2xl">
                 <span className="text-xl shrink-0">🎧</span>
                 <p className="text-xs sm:text-sm font-bold leading-relaxed text-white/95">
-                  Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
-                  <br className="hidden sm:block" />
                   Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất.
                 </p>
               </div>

@@ -295,6 +295,7 @@ function FilmPage() {
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(smoothRaf);
     };
   }, [meta.voice, muted, node, started, stopAudio, tts]);
 
@@ -336,7 +337,7 @@ function FilmPage() {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 380);
+    const id = window.setTimeout(() => go(nxt), 1100);
     return () => window.clearTimeout(id);
   }, [autoPlay, done, node, speechDone, started]);
 

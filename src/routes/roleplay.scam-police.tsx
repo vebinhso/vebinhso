@@ -133,14 +133,13 @@ function FilmPage() {
   useEffect(() => {
     if (!started) return;
     let cancelled = false;
-    let raf = 0;
-    let fallbackTimer = 0;
     stopAudio();
 
     const text = node.text;
     const cap = createCaptionEngine(
       text,
-      (s) => setTyped(s),
+      (s: string) => setTyped(s),
+
       () => setDone(true),
     );
     const stopCap = () => cap.stop();

@@ -3,12 +3,14 @@ import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
 import s04choice from "@/assets/film4/clean/s04-choice.jpg";
+import s05 from "@/assets/film4/clean/s05.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
+import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -32,6 +34,8 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ đường link giả mạo (dựng bằng CSS) */
   linkOverlay?: boolean;
+  /** Hiện lớp phủ trang bình chọn giả (dựng bằng CSS) */
+  voteOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
   /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
@@ -168,7 +172,7 @@ export const FILM: Record<string, FilmNode> = {
     choices: [
       {
         label: "A. Bạn cùng trường nhờ gấp, link nhìn cũng đàng hoàng — bấm vote luôn",
-        next: "pendingA",
+        next: "s05",
         tone: "risky",
       },
       {
@@ -179,9 +183,22 @@ export const FILM: Record<string, FilmNode> = {
     ],
 
   },
+  // S05 (B06) — Trang web quá đẹp
+  s05: {
+    id: "s05",
+    image: s05,
+    video: vs05.url,
+    speaker: "narrator",
+    action: "Trang web mở ra — hồng rực, lấp lánh, quá hoàn hảo",
+    text: "Một trang web hồng rực hiện ra với hình ảnh của Hà. Kim tuyến bay lơ lửng, bóng bay, ruy băng, một chiếc nút khổng lồ phát sáng, và một chiếc đồng hồ đếm ngược đang chạy. Mọi thứ đẹp đến mức không kịp để ai nghi ngờ — đó chính là điều đáng ngờ nhất.",
+    motion: "push",
+    mood: "danger",
+    voteOverlay: true,
+    next: "pendingA",
+  },
   pendingA: {
     id: "pendingA",
-    image: s04,
+    image: s05,
     speaker: "narrator",
     text: "Bảo đưa ngón tay xuống đường link...",
     mood: "danger",
@@ -190,7 +207,7 @@ export const FILM: Record<string, FilmNode> = {
       code: "…",
       title: "PHẦN TIẾP THEO ĐANG ĐƯỢC DỰNG",
       lesson:
-        "Nhánh bấm vào link (S05 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: một đường link lạ gửi kèm lời nhờ gấp luôn là dấu hiệu cần dừng lại.",
+        "Nhánh sau trang bình chọn giả (S06 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: một đường link lạ gửi kèm lời nhờ gấp luôn là dấu hiệu cần dừng lại.",
     },
   },
   pendingB: {

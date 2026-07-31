@@ -27,7 +27,7 @@ export const Route = createFileRoute("/roleplay/ke-giau-mat")({
       { property: "og:title", content: "Phim tương tác: Kẻ Giấu Mặt" },
       {
         property: "og:description",
-        content: "Bạn vào vai Minh trong thử thách 7 ngày. Mỗi lựa chọn sẽ dẫn đến một kết cục khác nhau.",
+        content: "Bạn vào vai M trong thử thách 7 ngày. Mỗi lựa chọn sẽ dẫn đến một kết cục khác nhau.",
       },
       { property: "og:type", content: "video.other" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -328,7 +328,7 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
-            Bạn vào vai <b className="text-sky-300">Minh</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
+            Bạn vào vai <b className="text-sky-300">M</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
             quyền riêng tư của người khác.
             <br className="hidden sm:block" />
             Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!

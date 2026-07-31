@@ -19,17 +19,18 @@ export const Route = createFileRoute("/roleplay/mot-cu-bam")({
   component: FilmPage,
   head: () => ({
     meta: [
-      { title: "Phim tương tác: Kẻ Giấu Mặt — Vệ Binh Số" },
+      { title: "Phim tương tác: Một Cú Bấm Vì Bạn — Vệ Binh Số" },
       {
         name: "description",
         content:
-          "Bài 2 nhập vai về thao túng nhóm chat, áp lực đồng đẳng và cách cầu cứu đúng lúc để tự bảo vệ mình trên môi trường số.",
+          "Bài 3 nhập vai: một đường link bình chọn gửi từ nick bạn thân. Bạn sẽ bấm giúp bạn hay dừng lại xác minh?",
       },
-      { property: "og:title", content: "Phim tương tác: Kẻ Giấu Mặt" },
+      { property: "og:title", content: "Phim tương tác: Một Cú Bấm Vì Bạn" },
       {
         property: "og:description",
-        content: "Bạn vào vai M trong thử thách 7 ngày. Mỗi lựa chọn sẽ dẫn đến một kết cục khác nhau.",
+        content: "Bạn vào vai Bảo. Mỗi lựa chọn trước một đường link lạ sẽ dẫn đến một kết cục khác nhau.",
       },
+
       { property: "og:type", content: "video.other" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -137,8 +137,7 @@ export const FILM: Record<string, FilmNode> = {
     id: "s06",
     image: s06,
     speaker: "narrator",
-    action: "NÚT QUYẾT ĐỊNH 1",
-    text: "Đây là quyết định đầu tiên và vô cùng quan trọng. Bạn sẽ phản ứng thế nào?",
+    text: "Bạn sẽ phản ứng thế nào?",
     motion: "freeze",
     choices: [
       { label: "A. Hoảng sợ, nghe theo và làm theo hướng dẫn", next: "s07", tone: "risky" },

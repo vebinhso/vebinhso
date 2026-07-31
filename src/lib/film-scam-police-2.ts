@@ -15,6 +15,23 @@ import m20 from "@/assets/film3/clean/m20.jpg";
 import m21 from "@/assets/film3/clean/m21.jpg";
 import m22 from "@/assets/film3/clean/m22.jpg";
 
+import vm02 from "@/assets/film3/video/m02.mp4.asset.json";
+import vm03 from "@/assets/film3/video/m03.mp4.asset.json";
+import vm06 from "@/assets/film3/video/m06.mp4.asset.json";
+import vm07 from "@/assets/film3/video/m07.mp4.asset.json";
+import vm08 from "@/assets/film3/video/m08.mp4.asset.json";
+import vm09 from "@/assets/film3/video/m09.mp4.asset.json";
+import vm10 from "@/assets/film3/video/m10.mp4.asset.json";
+import vm11 from "@/assets/film3/video/m11.mp4.asset.json";
+import vm13 from "@/assets/film3/video/m13.mp4.asset.json";
+import vm14 from "@/assets/film3/video/m14.mp4.asset.json";
+import vm16 from "@/assets/film3/video/m16.mp4.asset.json";
+import vm17 from "@/assets/film3/video/m17.mp4.asset.json";
+import vm18 from "@/assets/film3/video/m18.mp4.asset.json";
+import vm20 from "@/assets/film3/video/m20.mp4.asset.json";
+import vm21 from "@/assets/film3/video/m21.mp4.asset.json";
+import vm22 from "@/assets/film3/video/m22.mp4.asset.json";
+
 export type Speaker = "A" | "M" | "narrator";
 
 export type Choice = {
@@ -65,6 +82,7 @@ export const FILM: Record<string, FilmNode> = {
   m02: {
     id: "m02",
     image: poster,
+    video: vm02.url,
     speaker: "narrator",
     action: "Đêm muộn — căn phòng chỉ còn ánh đèn và màn hình điện thoại",
     text: "Minh ngồi một mình trong phòng. Một ngày ở trường vừa trôi qua, cậu vẫn thấy mình lạc lõng như mọi khi.",
@@ -75,6 +93,7 @@ export const FILM: Record<string, FilmNode> = {
   m03: {
     id: "m03",
     image: m03,
+    video: vm03.url,
     speaker: "narrator",
     action: "Một lời mời lạ bật lên trên màn hình",
     text: "Một nhóm chat tên lạ gửi lời mời tham gia Thử thách 7 ngày. Phần thưởng nghe thật hấp dẫn: tiền, sự chú ý và cảm giác mình quan trọng.",
@@ -85,6 +104,7 @@ export const FILM: Record<string, FilmNode> = {
   m06: {
     id: "m06",
     image: m06,
+    video: vm06.url,
     speaker: "A",
     action: "Tin nhắn đầu tiên từ kẻ giấu mặt",
     text: "Chỉ vài nhiệm vụ nhỏ thôi. Im lặng, nghe lời, rồi mọi người sẽ phải nhớ tới cậu.",
@@ -95,6 +115,7 @@ export const FILM: Record<string, FilmNode> = {
   m07: {
     id: "m07",
     image: m07,
+    video: vm07.url,
     speaker: "narrator",
     action: "Cái bẫy bắt đầu siết lại",
     text: "Càng nghe theo, Minh càng bị kéo sâu hơn. Sự háo hức lúc đầu biến thành cảm giác bị theo dõi và bị điều khiển.",
@@ -105,6 +126,7 @@ export const FILM: Record<string, FilmNode> = {
   m08: {
     id: "m08",
     image: m08,
+    video: vm08.url,
     speaker: "A",
     action: "Nhiệm vụ ngày thứ sáu — ngay tại trường học",
     text: "Ngày mai, hãy chạm vào điện thoại của Nhi khi không ai để ý. Đây là lúc chứng minh cậu thuộc về nhóm này.",
@@ -118,6 +140,7 @@ export const FILM: Record<string, FilmNode> = {
   m09: {
     id: "m09",
     image: m09,
+    video: vm09.url,
     speaker: "narrator",
     action: "Khoảnh khắc bước qua ranh giới",
     text: "Minh đưa tay về phía điện thoại của Nhi. Cậu biết rõ đây không còn là trò đùa nữa, nhưng nỗi sợ bị khinh thường vẫn đẩy cậu tiến lên.",
@@ -128,6 +151,7 @@ export const FILM: Record<string, FilmNode> = {
   m10: {
     id: "m10",
     image: m10,
+    video: vm10.url,
     speaker: "narrator",
     action: "Giữ điện thoại người khác trong tay",
     text: "Ngay khi cầm chiếc điện thoại ấy, tay Minh run lên. Chỉ một giây nghe lời cũng đủ để biến cậu thành người xâm phạm quyền riêng tư của bạn mình.",
@@ -138,6 +162,7 @@ export const FILM: Record<string, FilmNode> = {
   m11: {
     id: "m11",
     image: m11,
+    video: vm11.url,
     speaker: "A",
     action: "Phần thưởng giả và nhiệm vụ cuối cùng",
     text: "Tốt lắm. Ngày mai là nhiệm vụ cuối. Nếu lùi lại bây giờ, mọi bí mật của cậu sẽ bị tung ra hết.",
@@ -151,6 +176,7 @@ export const FILM: Record<string, FilmNode> = {
   m13: {
     id: "m13",
     image: m13,
+    video: vm13.url,
     speaker: "A",
     action: "Tin nhắn đe doạ dồn dập",
     text: "Admin gửi thêm lời đe doạ cuối cùng, nhưng lần này Minh không còn chỉ biết hoảng loạn. Cậu hiểu rằng im lặng chỉ khiến kẻ xấu lấn tới.",
@@ -161,6 +187,7 @@ export const FILM: Record<string, FilmNode> = {
   m14: {
     id: "m14",
     image: m14,
+    video: vm14.url,
     speaker: "M",
     action: "Khoảnh khắc quyết định nói ra sự thật",
     text: "Con sợ thật... nhưng con không muốn chuyện này làm hại thêm ai nữa.",
@@ -171,6 +198,7 @@ export const FILM: Record<string, FilmNode> = {
   m16: {
     id: "m16",
     image: m16,
+    video: vm16.url,
     speaker: "narrator",
     action: "Giấu kín nỗi sợ",
     text: "Minh ôm lấy chính mình và cố chịu đựng trong im lặng. Càng giấu, cậu càng đơn độc và càng dễ bị điều khiển.",
@@ -181,6 +209,7 @@ export const FILM: Record<string, FilmNode> = {
   m17: {
     id: "m17",
     image: m17,
+    video: vm17.url,
     speaker: "A",
     action: "Đếm ngược tâm lý",
     text: "Chỉ còn ít giờ nữa thôi. Nếu không làm theo, mọi thứ sẽ bị tung ra trước khi cậu kịp giải thích với bất kỳ ai.",
@@ -191,6 +220,7 @@ export const FILM: Record<string, FilmNode> = {
   m18: {
     id: "m18",
     image: m18,
+    video: vm18.url,
     speaker: "narrator",
     action: "Khủng hoảng bùng lên",
     text: "Áp lực, xấu hổ và sợ hãi bóp nghẹt Minh. Khi không tìm người hỗ trợ, cậu đã tự nhốt mình trong chiếc bẫy do kẻ khác dựng sẵn.",
@@ -206,6 +236,7 @@ export const FILM: Record<string, FilmNode> = {
   m20: {
     id: "m20",
     image: m20,
+    video: vm20.url,
     speaker: "narrator",
     action: "Minh tỉnh ngộ",
     text: "Minh khựng lại. Cậu nhận ra nhóm này không hề cho mình giá trị nào cả — nó chỉ biến sự cô đơn của cậu thành công cụ để ép cậu làm điều sai.",
@@ -219,6 +250,7 @@ export const FILM: Record<string, FilmNode> = {
   m21: {
     id: "m21",
     image: m21,
+    video: vm21.url,
     speaker: "narrator",
     action: "Người lớn đáng tin cậy vào cuộc",
     text: "Minh đưa điện thoại cho mẹ và thầy cô. Khi có người lớn đồng hành, nỗi sợ lập tức nhỏ lại và mọi việc bắt đầu sáng ra.",
@@ -229,6 +261,7 @@ export const FILM: Record<string, FilmNode> = {
   m22: {
     id: "m22",
     image: m22,
+    video: vm22.url,
     speaker: "narrator",
     action: "Lưu bằng chứng và xử lý tận gốc",
     text: "Các bằng chứng được lưu lại, nhóm chat bị truy vết và chặn. Minh không còn một mình, còn Nhi cũng được bảo vệ kịp thời.",

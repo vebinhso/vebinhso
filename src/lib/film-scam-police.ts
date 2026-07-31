@@ -80,10 +80,38 @@ export type FilmNode = {
   };
 };
 
-export const SPEAKER_META: Record<Speaker, { name: string; color: string; voice: string }> = {
-  K: { name: "K — Kẻ giả danh công an", color: "text-red-400", voice: "onyx" },
-  N: { name: "N — Nạn nhân", color: "text-sky-300", voice: "alloy" },
-  narrator: { name: "Người dẫn chuyện", color: "text-amber-300", voice: "sage" },
+export const SPEAKER_META: Record<
+  Speaker,
+  { name: string; color: string; voice: string; instructions: string; speed: number; pitch: number; rate: number }
+> = {
+  K: {
+    name: "K — Kẻ giả danh công an",
+    color: "text-red-400",
+    voice: "onyx",
+    instructions:
+      "Giọng nam trầm, khô khốc và quyền uy, nói nhanh dứt khoát kiểu ra lệnh, gây áp lực và đe doạ, không thân thiện.",
+    speed: 1.05,
+    pitch: 0.7,
+    rate: 1.08,
+  },
+  N: {
+    name: "N — Nạn nhân",
+    color: "text-sky-300",
+    voice: "nova",
+    instructions: "Giọng trẻ, nhẹ, hoang mang và lo sợ, nói chậm hơn, đôi lúc ngập ngừng.",
+    speed: 0.97,
+    pitch: 1.2,
+    rate: 1,
+  },
+  narrator: {
+    name: "Người dẫn chuyện",
+    color: "text-amber-300",
+    voice: "sage",
+    instructions: "Giọng dẫn chuyện điềm đạm, ấm, trung tính, kể rõ ràng với nhịp vừa phải.",
+    speed: 1,
+    pitch: 1,
+    rate: 1,
+  },
 };
 
 export const FILM_TITLE = "MỘT CUỘC GỌI — Bạn chọn, bạn chịu hậu quả";

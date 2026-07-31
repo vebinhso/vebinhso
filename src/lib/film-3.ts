@@ -12,6 +12,9 @@ import s10 from "@/assets/film4/clean/s10.jpg";
 import s11 from "@/assets/film4/clean/s11.jpg";
 import s12 from "@/assets/film4/clean/s12.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
+import s14 from "@/assets/film4/clean/s14.jpg";
+import s15 from "@/assets/film4/clean/s15.jpg";
+import s16 from "@/assets/film4/clean/s16.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -27,6 +30,9 @@ import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 import vs11 from "@/assets/film4/video/b12.mp4.asset.json";
 import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
+import vs14 from "@/assets/film4/video/b15.mp4.asset.json";
+import vs15 from "@/assets/film4/video/b16.mp4.asset.json";
+import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -339,7 +345,7 @@ export const FILM: Record<string, FilmNode> = {
     choices: [
       {
         label: "A1. Gọi điện, nhắn Zalo, báo nhóm lớp: \"Nick tớ bị hack, đừng bấm link, đừng chuyển tiền!\" — và nói với bố mẹ",
-        next: "endA1",
+        next: "s14",
         tone: "safe",
       },
       {
@@ -348,6 +354,53 @@ export const FILM: Record<string, FilmNode> = {
         tone: "risky",
       },
     ],
+  },
+  // S14 — Bảo cảnh báo nhóm lớp
+  s14: {
+    id: "s14",
+    image: s14,
+    video: vs14.url,
+    speaker: "B",
+    action: "Bảo đăng cảnh báo lên nhóm lớp và các nhóm bạn bè",
+    text: "Mọi người ơi, nick Facebook của tớ vừa bị hack. Tuyệt đối đừng bấm link, đừng chuyển tiền cho nick đó!",
+    motion: "push",
+    mood: "safe",
+    next: "s14b",
+  },
+  s14b: {
+    id: "s14b",
+    image: s14,
+    video: vs14.url,
+    speaker: "narrator",
+    action: "Tin nhắn cảnh báo lan nhanh trong nhóm lớp",
+    text: "Tốc độ quan trọng hơn thể diện. Mỗi phút im lặng là thêm một người bạn có thể mất tiền. Bảo gọi điện, nhắn Zalo và báo vào tất cả các nhóm bạn bè.",
+    motion: "kenburns",
+    mood: "safe",
+    next: "s15",
+  },
+  // S15 — Nhờ phụ huynh hỗ trợ
+  s15: {
+    id: "s15",
+    image: s15,
+    video: vs15.url,
+    speaker: "narrator",
+    action: "Bảo cùng bố mẹ liên hệ hỗ trợ để khoá tài khoản",
+    text: "Bảo kể hết mọi chuyện với bố mẹ. Hai bố con cùng ngồi trước máy tính: báo cáo tài khoản bị hack, yêu cầu khoá tài khoản, xác minh danh tính, đổi email khôi phục và bật xác thực hai lớp.",
+    motion: "push",
+    mood: "safe",
+    next: "s16",
+  },
+  // S16 — Kết quả tốt
+  s16: {
+    id: "s16",
+    image: s16,
+    video: vs16.url,
+    speaker: "narrator",
+    action: "Cả lớp cảm ơn Bảo vì đã báo kịp thời",
+    text: "Mọi người đã được cảnh báo kịp thời, không ai bị sập bẫy. Tài khoản của Bảo đang được khôi phục. Cả lớp nhắn lại: may mà Bảo báo sớm.",
+    motion: "kenburns",
+    mood: "safe",
+    next: "endA1",
   },
   endA1: {
     id: "endA1",

@@ -152,8 +152,9 @@ function RoleplayPage() {
               const inner = (
                 <>
                   <div
-                    className={`relative h-32 sm:h-36 overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}
+                    className={`relative w-full aspect-video overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}
                   >
+
                     {l.poster ? (
                       <>
                         <img

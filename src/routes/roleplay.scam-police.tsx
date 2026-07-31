@@ -315,7 +315,7 @@ function FilmPage() {
           <img
             src={FILM_POSTER}
             alt="Poster phim tương tác Một cuộc gọi"
-            className="w-full rounded-2xl mb-4 border border-white/10"
+            className="w-full aspect-video object-cover rounded-2xl mb-4 border border-white/10"
           />
           <p className="text-[11px] font-black tracking-[0.3em] text-red-500 mb-2">PHIM TƯƠNG TÁC · BÀI 1</p>
           <h1 className="text-2xl sm:text-4xl font-black mb-3 leading-tight">{FILM_TITLE}</h1>
@@ -384,30 +384,33 @@ function FilmPage() {
           />
         ))}
 
-      {/* Cảnh hiện tại — ưu tiên video thật, fallback về ảnh động */}
+      {/* Cảnh hiện tại — khung phim cố định 16:9 */}
       <div
         key={"cam" + node.id}
-        className="absolute inset-0 will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+        className="absolute inset-0 flex items-center justify-center will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
       >
-        {visual.type === "video" ? (
-          <video
-            key={node.id + visual.src}
-            src={visual.src}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFade_1.4s_ease-out_both]"
-          />
-        ) : (
-          <img
-            key={node.id + visual.src}
-            src={visual.src}
-            alt=""
-            className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
-          />
-        )}
+        <div className="relative w-full max-w-full max-h-full aspect-video overflow-hidden">
+          {visual.type === "video" ? (
+            <video
+              key={node.id + visual.src}
+              src={visual.src}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_1.4s_ease-out_both]"
+            />
+          ) : (
+            <img
+              key={node.id + visual.src}
+              src={visual.src}
+              alt=""
+              className={`absolute inset-0 w-full h-full object-cover will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+            />
+          )}
+        </div>
       </div>
+
 
       {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

@@ -364,7 +364,7 @@ function FilmPage() {
           muted
           playsInline
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
+          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
         />
       ) : (
         <img
@@ -372,7 +372,7 @@ function FilmPage() {
           src={visual.src}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
+          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
         />
       )}
 
@@ -387,7 +387,7 @@ function FilmPage() {
             muted
             playsInline
             aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
+            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
           />
         ) : (
           <img
@@ -395,7 +395,7 @@ function FilmPage() {
             src={prevVisual.src}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
+            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
           />
         ))}
 
@@ -413,14 +413,14 @@ function FilmPage() {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_1.4s_ease-out_both]"
+              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_0.9s_ease-out_both]"
             />
           ) : (
             <img
               key={node.id + visual.src}
               src={visual.src}
               alt=""
-              className={`absolute inset-0 w-full h-full object-cover will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+              className={`absolute inset-0 w-full h-full object-cover will-change-transform animate-[filmFade_0.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
             />
           )}
         </div>

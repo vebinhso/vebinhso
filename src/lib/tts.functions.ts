@@ -11,25 +11,38 @@ export const speakLine = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI not configured");
+    // Không ném lỗi: phim vẫn chạy với phụ đề (và giọng đọc của trình duyệt) khi TTS lỗi.
+    if (!apiKey) return { audio: "", error: "AI not configured" };
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o-mini-tts",
-        input: data.text,
-        voice: data.voice,
-        response_format: "mp3",
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini-tts",
+          input: data.text,
+          voice: data.voice,
+          response_format: "mp3",
+        }),
+      });
+    } catch {
+      return { audio: "", error: "TTS network error" };
+    }
 
     if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`TTS error ${res.status}: ${t.slice(0, 200)}`);
+      const t = await res.text().catch(() => "");
+      console.error(`TTS error ${res.status}: ${t.slice(0, 200)}`);
+      return {
+        audio: "",
+        error:
+          res.status === 402 || res.status === 403
+            ? "Hết tín dụng AI — tạm thời không có lồng tiếng."
+            : `TTS error ${res.status}`,
+      };
     }
 
     const buf = await res.arrayBuffer();

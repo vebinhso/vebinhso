@@ -309,6 +309,29 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 10) * 100)), [history.length]);
 
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!node.choices || !node.timeLimitSec || !done) {
+      setTimeLeft(null);
+      return;
+    }
+    setTimeLeft(node.timeLimitSec);
+    const id = window.setInterval(() => {
+      setTimeLeft((t) => {
+        if (t === null) return t;
+        if (t <= 1) {
+          window.clearInterval(id);
+          const fallback = node.choices?.[0]?.next;
+          if (fallback) go(fallback);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [node, done]);
+
+
   useEffect(() => {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
@@ -591,8 +614,20 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  done &&
-                  node.choices.map((c) => (
+                  done && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-black tracking-widest text-white/70">BẢO NÊN LÀM GÌ?</p>
+                        {timeLeft !== null && (
+                          <p
+                            className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}
+                          >
+                            ⏱ {timeLeft} giây
+                          </p>
+                        )}
+                      </div>
+                      {node.choices.map((c) => (
+
                     <button
                       key={c.next + c.label}
                       onClick={() => go(c.next)}
@@ -606,7 +641,10 @@ function FilmPage() {
                     >
                       {c.label}
                     </button>
-                  ))
+                      ))}
+                    </>
+                  )
+
                 ) : (
                   <button
                     onClick={() =>

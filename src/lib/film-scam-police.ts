@@ -43,7 +43,7 @@ import v17 from "@/assets/film2/v17.mp4.asset.json";
 import v18 from "@/assets/film2/v18.mp4.asset.json";
 import v20 from "@/assets/film2/v20.mp4.asset.json";
 import v21 from "@/assets/film2/v21.mp4.asset.json";
-import v22 from "@/assets/film2/v22b.mp4.asset.json";
+import v22 from "@/assets/film2/v22c.mp4.asset.json";
 import v23 from "@/assets/film2/v23.mp4.asset.json";
 import v24 from "@/assets/film2/v24.mp4.asset.json";
 import v25 from "@/assets/film2/v25.mp4.asset.json";

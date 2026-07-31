@@ -104,13 +104,12 @@ function FilmPage() {
     setTyped("");
     setDone(false);
     setSpeechDone(false);
-    setVoiceMs(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId]);
 
   useEffect(() => {
     if (!prevImage) return;
-    const id = window.setTimeout(() => setPrevImage(null), 1000);
+    const id = window.setTimeout(() => setPrevImage(null), 1700);
     return () => window.clearTimeout(id);
   }, [prevImage]);
 

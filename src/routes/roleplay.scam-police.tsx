@@ -216,6 +216,7 @@ function FilmPage() {
 
         await audio.play().catch(() => {
           cancelAnimationFrame(raf);
+          audioTookOver = false;
           runFallbackCaption();
         });
       } catch {

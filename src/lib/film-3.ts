@@ -10,6 +10,8 @@ import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
 import s10 from "@/assets/film4/clean/s10.jpg";
 import s11 from "@/assets/film4/clean/s11.jpg";
+import s12 from "@/assets/film4/clean/s12.jpg";
+import s13 from "@/assets/film4/clean/s13.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -23,6 +25,8 @@ import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
 import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 import vs11 from "@/assets/film4/video/b12.mp4.asset.json";
+import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
+import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -58,6 +62,8 @@ export type FilmNode = {
   listOverlay?: boolean;
   /** Hiện lớp phủ loạt thông báo dồn dập */
   notifOverlay?: boolean;
+  /** Hiện lớp phủ báo mất tài khoản */
+  lostOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
   /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
@@ -304,7 +310,72 @@ export const FILM: Record<string, FilmNode> = {
     text: "Hả??? Tớ có nhắn cho ai đâu! Tớ vừa vote cho Hà xong mà?!",
     motion: "shake",
     mood: "danger",
-    next: "pendingA",
+    next: "s12",
+  },
+  // S12 — Mất tài khoản
+  s12: {
+    id: "s12",
+    image: s12,
+    video: vs12.url,
+    speaker: "narrator",
+    action: "Bảo thử đăng nhập lại, màn hình báo lỗi đỏ",
+    text: "Bảo thử đăng nhập lại. Mật khẩu không chính xác. Kẻ gian đã đổi mật khẩu, đổi cả email khôi phục và bật xác thực hai lớp bằng số điện thoại của chúng. Tài khoản sáu năm của Bảo — mất trong mười lăm phút.",
+    motion: "push",
+    mood: "danger",
+    lostOverlay: true,
+    next: "s13",
+  },
+  // S13 — Câu hỏi lựa chọn 2.A
+  s13: {
+    id: "s13",
+    image: s13,
+    video: vs13.url,
+    speaker: "narrator",
+    action: "Bảo ngồi thu lu bên mép giường trong bóng tối",
+    text: "Nick của Bảo đang đi lừa cả lớp. Bảo làm gì ngay bây giờ?",
+    motion: "kenburns",
+    mood: "danger",
+    timeLimitSec: 10,
+    choices: [
+      {
+        label: "A1. Gọi điện, nhắn Zalo, báo nhóm lớp: \"Nick tớ bị hack, đừng bấm link, đừng chuyển tiền!\" — và nói với bố mẹ",
+        next: "endA1",
+        tone: "safe",
+      },
+      {
+        label: "A2. Xấu hổ, không dám kể, tự bấm \"Quên mật khẩu\" liên tục",
+        next: "endA2",
+        tone: "risky",
+      },
+    ],
+  },
+  endA1: {
+    id: "endA1",
+    image: s13,
+    speaker: "narrator",
+    text: "Bảo cảnh báo kịp thời nên không ai trong lớp bị lừa. Cậu nhờ bố mẹ hỗ trợ báo khoá tài khoản, giữ được uy tín và học được một bài học quý giá.",
+    mood: "safe",
+    ending: {
+      kind: "safe",
+      code: "A1",
+      title: "KẾT QUẢ KHI CHỌN A1",
+      lesson:
+        "• Bảo cảnh báo kịp thời, bạn bè không ai bị lừa!\n• Bảo nhờ phụ huynh hỗ trợ báo khoá nick.\n• Bảo giữ được uy tín và học được bài học quý giá!\n\nBÀI HỌC: Khi nhận tin nhắn nhờ \"bấm link bình chọn/vote\", hãy luôn cảnh giác, kiểm tra kỹ và xác thực lại với bạn bè qua kênh liên lạc khác để bảo vệ mình và những người xung quanh!",
+    },
+  },
+  endA2: {
+    id: "endA2",
+    image: s13,
+    speaker: "narrator",
+    text: "Bảo im lặng vì xấu hổ. Trong lúc cậu loay hoay bấm quên mật khẩu, một bạn trong lớp đã chuyển đi hai triệu đồng cho kẻ gian.",
+    mood: "danger",
+    ending: {
+      kind: "loss",
+      code: "A2",
+      title: "KẾT QUẢ KHI CHỌN A2",
+      lesson:
+        "• Vì im lặng, một bạn trong lớp bị lừa chuyển 2 triệu đồng!\n• Bảo mất nick mạng xã hội kỷ niệm.\n• Bảo áy náy, mất uy tín nghiêm trọng với bạn bè.\n\nBÀI HỌC: Khi nhận tin nhắn nhờ \"bấm link bình chọn/vote\", hãy luôn cảnh giác, kiểm tra kỹ và xác thực lại với bạn bè qua kênh liên lạc khác để bảo vệ mình và những người xung quanh!",
+    },
   },
   pendingA: {
     id: "pendingA",

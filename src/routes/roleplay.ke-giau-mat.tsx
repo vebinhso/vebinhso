@@ -133,10 +133,34 @@ function FilmPage() {
     stopAudio();
 
     const text = node.text;
-    const setUpTo = (ratio: number) => {
+    // Tỉ lệ hiển thị được làm mượt: chỉ tiến, không giật lùi, bám dần vào giọng đọc
+    let shown = 0;
+    let target = 0;
+    let smoothRaf = 0;
+    let lastTs = performance.now();
+    const render = (ratio: number) => {
       const n = Math.max(0, Math.min(text.length, Math.round(text.length * ratio)));
       setTyped(text.slice(0, n));
       if (n >= text.length) setDone(true);
+    };
+    const smooth = (ts: number) => {
+      if (cancelled) return;
+      const dt = Math.min(0.05, (ts - lastTs) / 1000);
+      lastTs = ts;
+      if (target > shown) {
+        shown = Math.min(target, shown + Math.max((target - shown) * dt * 7, dt * 0.06));
+        render(shown);
+      }
+      smoothRaf = requestAnimationFrame(smooth);
+    };
+    smoothRaf = requestAnimationFrame(smooth);
+
+    const setUpTo = (ratio: number) => {
+      target = Math.max(target, Math.max(0, Math.min(1, ratio)));
+      if (ratio >= 1) {
+        shown = 1;
+        render(1);
+      }
     };
 
     let audioTookOver = false;
@@ -145,7 +169,9 @@ function FilmPage() {
       const t0 = performance.now();
       const tick = () => {
         if (cancelled || audioTookOver) return;
-        const r = (performance.now() - t0) / total;
+        let r = (performance.now() - t0) / total;
+        // Nhịp mồi trong lúc chờ giọng đọc: giữ chậm để chữ không vượt tiếng
+        if (!markDone) r = Math.min(r * 0.6, 0.3);
         setUpTo(r);
         if (r < 1) raf = requestAnimationFrame(tick);
         else if (markDone) setSpeechDone(true);
@@ -158,6 +184,7 @@ function FilmPage() {
       return () => {
         cancelled = true;
         cancelAnimationFrame(raf);
+        cancelAnimationFrame(smoothRaf);
       };
     }
 

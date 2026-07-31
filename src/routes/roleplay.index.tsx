@@ -46,7 +46,7 @@ const LESSONS: Lesson[] = [
     gradient: "from-rose-500 to-orange-500",
     ready: true,
     to: "/roleplay/scam-police",
-    poster: FILM1_POSTER,
+    poster: lesson1Poster.url,
   },
   {
     id: "ke-giau-mat",

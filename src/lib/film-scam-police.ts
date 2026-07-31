@@ -139,18 +139,9 @@ export const FILM: Record<string, FilmNode> = {
     text: "Xin chào anh N, tôi là K, cán bộ điều tra. Anh có liên quan đến một đường dây tội phạm mà chúng tôi đang theo dõi.",
     motion: "push",
     mood: "danger",
-    next: "s05b",
-  },
-  s05b: {
-    id: "s05b",
-    image: s05,
-    video: v05.url,
-    speaker: "narrator",
-    text: "Khán giả thì thấy rõ: không đồn công an, không quân phục, không hồ sơ. Chỉ có một kẻ lừa đảo và một danh sách số điện thoại. Nhưng anh N thì không thấy gì cả.",
-    motion: "kenburns",
-    mood: "danger",
     next: "s06",
   },
+
   s06: {
     id: "s06",
     image: s06,

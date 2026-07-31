@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ExpandableText } from "@/components/ExpandableText";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";

@@ -29,7 +29,7 @@ type Lesson = {
   desc: string;
   tag: string;
   gradient: string;
-  
+
   ready: boolean;
   to?: string;
   poster?: string;
@@ -39,8 +39,8 @@ const LESSONS: Lesson[] = [
   {
     id: "scam-police",
     emoji: "🚨",
-    title: "Bài 1 · Giả danh Công an",
-    desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.",
+    title: "Bài 1: Alo, cảnh sát đây!",
+    desc: "Đây là một đoạn phim tương tác ngắn, mô phỏng sự việc lừa đảo qua điện thoại thông qua việc giả danh thành cơ quan chức năng",
     tag: "An toàn số",
     gradient: "from-rose-500 to-orange-500",
     ready: true,
@@ -50,8 +50,8 @@ const LESSONS: Lesson[] = [
   {
     id: "ke-giau-mat",
     emoji: "🕶️",
-    title: "Bài 2 · Thử thách Kẻ Giấu Mặt",
-    desc: "Nhóm chat bí mật, áp lực đồng đẳng và những lựa chọn có thể làm tổn thương cả bạn lẫn người khác.",
+    title: "Bài 2: Gợi nhớ từ Cá voi xanh",
+    desc: "Đây là đoạn phim tương tác ngắn, mô phỏng Nếu một ngày bạn trở thành một thành viên trong nhóm chat bí ẩn?.",
     tag: "An toàn số",
     gradient: "from-sky-500 to-indigo-600",
     ready: true,

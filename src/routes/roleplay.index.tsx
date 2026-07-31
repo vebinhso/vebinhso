@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { FILM_POSTER as FILM1_POSTER } from "@/lib/film-scam-police";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
+import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,
@@ -61,11 +62,13 @@ const LESSONS: Lesson[] = [
   {
     id: "cyberbully",
     emoji: "🛡️",
-    title: "Bài 3 · Bắt nạt trên mạng",
-    desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?",
+    title: "Bài 3 · Một cú bấm vì bạn",
+    desc: "Nick của Hà nhắn nhờ bấm link bình chọn. Bấm giúp bạn hay dừng lại xác minh?",
     tag: "Ứng xử số",
     gradient: "from-emerald-500 to-teal-600",
-    ready: false,
+    ready: true,
+    to: "/roleplay/mot-cu-bam",
+    poster: FILM3_POSTER,
   },
   {
     id: "shopping",

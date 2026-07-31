@@ -162,6 +162,7 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     timeLimitSec: 10,
+    choiceImage: s04choice,
     choices: [
       {
         label: "A. Bạn cùng trường nhờ gấp, link nhìn cũng đàng hoàng — bấm vote luôn",
@@ -174,6 +175,7 @@ export const FILM: Record<string, FilmNode> = {
         tone: "safe",
       },
     ],
+
   },
   pendingA: {
     id: "pendingA",

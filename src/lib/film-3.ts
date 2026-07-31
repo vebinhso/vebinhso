@@ -30,6 +30,9 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ đường link giả mạo (dựng bằng CSS) */
   linkOverlay?: boolean;
+  /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
+  timeLimitSec?: number;
+
   next?: string;
   choices?: Choice[];
   ending?: {

@@ -25,61 +25,16 @@ import s24 from "@/assets/film2/s24.jpg";
 import s25 from "@/assets/film2/s25.jpg";
 import s26 from "@/assets/film2/s26.jpg";
 import s27 from "@/assets/film2/s27.jpg";
+import v02 from "@/assets/film2/v02.mp4.asset.json";
+import v03 from "@/assets/film2/v03.mp4.asset.json";
+import v04 from "@/assets/film2/v04.mp4.asset.json";
 import v05 from "@/assets/film2/v05.mp4.asset.json";
-
-export type Speaker = "K" | "N" | "narrator";
-
-export type Choice = {
-  label: string;
-  next: string;
-  tone?: "safe" | "risky" | "neutral";
-};
-
-/** Hiệu ứng camera cho từng cảnh để ảnh tĩnh "sống" như video */
-export type Motion = "kenburns" | "push" | "shake" | "freeze";
-
-export type FilmNode = {
-  id: string;
-  image: string;
-  video?: string;
-  speaker: Speaker;
-  action?: string;
-  text: string;
-  motion?: Motion;
-  /** phủ màu: nguy hiểm (lạnh) hay an toàn (ấm) */
-  mood?: "danger" | "safe" | "neutral";
-  next?: string;
-  choices?: Choice[];
-  ending?: {
-    kind: "safe" | "loss";
-    code: string;
-    title: string;
-    lesson: string;
-  };
-};
-
-export const SPEAKER_META: Record<Speaker, { name: string; color: string; voice: string }> = {
-  K: { name: "K — Kẻ giả danh công an", color: "text-red-400", voice: "onyx" },
-  N: { name: "N — Nạn nhân", color: "text-sky-300", voice: "alloy" },
-  narrator: { name: "Người dẫn chuyện", color: "text-amber-300", voice: "sage" },
-};
-
-export const FILM_TITLE = "MỘT CUỘC GỌI — Bạn chọn, bạn chịu hậu quả";
-export const FILM_POSTER = s01;
-export const FILM_SUMMARY_IMAGE = s27;
-
-export const FILM_NOTES = [
-  "Không cung cấp thông tin cá nhân cho người lạ.",
-  "Không cài đặt ứng dụng lạ, không cấp quyền truy cập.",
-  "Khi nghi ngờ, hãy hỏi người thân hoặc gọi cơ quan chức năng.",
-  "An toàn mạng — Trách nhiệm của mỗi chúng ta!",
-];
-
-export const FILM: Record<string, FilmNode> = {
-  /* ===== MỞ ĐẦU ===== */
+import v07 from "@/assets/film2/v07.mp4.asset.json";
+...
   s02: {
     id: "s02",
     image: s02,
+    video: v02.url,
     speaker: "narrator",
     action: "18:40 — Căn hộ nhỏ, nắng chiều",
     text: "Mười tám giờ bốn mươi. Một buổi chiều bình thường như mọi ngày. Anh N tưới cây bên cửa sổ, ly trà còn ấm trên bàn.",
@@ -90,6 +45,7 @@ export const FILM: Record<string, FilmNode> = {
   s03: {
     id: "s03",
     image: s03,
+    video: v03.url,
     speaker: "narrator",
     action: "Điện thoại rung trên mặt bàn gỗ",
     text: "Điện thoại reo. Màn hình hiện: Số lạ.",
@@ -99,6 +55,7 @@ export const FILM: Record<string, FilmNode> = {
   s04: {
     id: "s04",
     image: s04,
+    video: v04.url,
     speaker: "N",
     action: "Đưa máy lên tai, giọng lịch sự",
     text: "A lô, ai vậy ạ?",
@@ -143,6 +100,7 @@ export const FILM: Record<string, FilmNode> = {
   s07: {
     id: "s07",
     image: s07,
+    video: v07.url,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng run",
     text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi! Cả đời tôi chưa từng bước chân vào đồn công an...",
@@ -153,6 +111,7 @@ export const FILM: Record<string, FilmNode> = {
   s07b: {
     id: "s07b",
     image: s07,
+    video: v07.url,
     speaker: "K",
     action: "Ép sát, hạ giọng đe doạ",
     text: "Nếu anh không hợp tác, chúng tôi sẽ bắt giữ ngay và phong toả toàn bộ tài khoản của anh!",

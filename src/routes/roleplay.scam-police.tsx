@@ -333,11 +333,16 @@ function FilmPage() {
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {FILM_TITLE}
           </h1>
-          <p className="max-w-xl text-xs sm:text-sm font-bold text-white/70 mb-5">
-            Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
-            <br className="hidden sm:block" />
-            Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
-          </p>
+          <div className="max-w-xl w-full mb-5">
+            <ExpandableText
+              clamp={2}
+              className="text-xs sm:text-sm font-bold text-white/70"
+              toggleClassName="text-sky-300 text-xs"
+            >
+              Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau. Hãy bật
+              loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+            </ExpandableText>
+          </div>
           <button
             onClick={() => setStarted(true)}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"

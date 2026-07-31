@@ -153,16 +153,20 @@ function FilmPage() {
 
     const play = async () => {
       try {
-        let b64 = cacheRef.current.get(node.id);
+        let b64 = cacheRef.current.get(node.id) ?? "";
         if (!b64) {
           const pending = pendingRef.current.get(node.id);
           b64 = pending
             ? await pending
-            : (await tts({ data: { text, voice: meta.voice } }) as { audio: string }).audio;
-          cacheRef.current.set(node.id, b64);
+            : ((await tts({ data: { text, voice: meta.voice } })) as { audio: string }).audio;
+          if (b64) cacheRef.current.set(node.id, b64);
         }
 
         if (cancelled || muted) return;
+        if (!b64) {
+          runFallbackCaption();
+          return;
+        }
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1.06;
 

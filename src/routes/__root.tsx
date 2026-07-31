@@ -163,10 +163,11 @@ function AudioBridge() {
     return () => document.removeEventListener("click", onClick);
   }, []);
   useEffect(() => {
-    // /game tự set "house"; /magic tự set "magic" sau intro; /roleplay tắt hẳn nhạc nền.
+    // /game tự set "house"; /magic tự set "magic" sau intro.
+    // /roleplay (trang chọn bài) vẫn có nhạc nền; chỉ tắt khi vào một bài nhập vai cụ thể.
     if (pathname.startsWith("/game")) return;
     if (pathname.startsWith("/magic")) return;
-    if (pathname.startsWith("/roleplay")) { setBgm(null); return; }
+    if (pathname.startsWith("/roleplay/") || pathname.startsWith("/roleplay.")) { setBgm(null); return; }
     setBgm("home");
   }, [pathname]);
   return null;

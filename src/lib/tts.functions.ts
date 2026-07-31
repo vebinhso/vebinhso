@@ -2,11 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 
 /** Text-to-speech for the interactive film. Returns base64 mp3. */
 export const speakLine = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; voice?: string }) => {
+  .inputValidator((data: { text: string; voice?: string; instructions?: string; speed?: number }) => {
     if (!data?.text || typeof data.text !== "string") throw new Error("text required");
     return {
       text: data.text.slice(0, 600),
       voice: typeof data.voice === "string" ? data.voice.slice(0, 20) : "alloy",
+      instructions: typeof data.instructions === "string" ? data.instructions.slice(0, 400) : undefined,
+      speed: typeof data.speed === "number" ? Math.min(2, Math.max(0.5, data.speed)) : undefined,
     };
   })
   .handler(async ({ data }) => {
@@ -26,6 +28,8 @@ export const speakLine = createServerFn({ method: "POST" })
           model: "openai/gpt-4o-mini-tts",
           input: data.text,
           voice: data.voice,
+          ...(data.instructions ? { instructions: data.instructions } : {}),
+          ...(data.speed ? { speed: data.speed } : {}),
           response_format: "mp3",
         }),
       });

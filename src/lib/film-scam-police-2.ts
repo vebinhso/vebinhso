@@ -61,10 +61,38 @@ export type FilmNode = {
   };
 };
 
-export const SPEAKER_META: Record<Speaker, { name: string; color: string; voice: string }> = {
-  A: { name: "Admin — Kẻ Giấu Mặt", color: "text-red-400", voice: "onyx" },
-  M: { name: "M", color: "text-sky-300", voice: "alloy" },
-  narrator: { name: "Người dẫn chuyện", color: "text-amber-300", voice: "sage" },
+export const SPEAKER_META: Record<
+  Speaker,
+  { name: string; color: string; voice: string; instructions: string; speed: number; pitch: number; rate: number }
+> = {
+  A: {
+    name: "Admin — Kẻ Giấu Mặt",
+    color: "text-red-400",
+    voice: "ash",
+    instructions:
+      "Giọng nam trưởng thành, trầm và lạnh, nói chậm rãi từng chữ, mang tính thao túng và đe doạ ngầm, không hét lên.",
+    speed: 0.95,
+    pitch: 0.75,
+    rate: 0.95,
+  },
+  M: {
+    name: "M",
+    color: "text-sky-300",
+    voice: "nova",
+    instructions: "Giọng thiếu niên trẻ, hơi cao, rụt rè và lo lắng, đôi lúc run run vì sợ.",
+    speed: 1,
+    pitch: 1.25,
+    rate: 1.02,
+  },
+  narrator: {
+    name: "Người dẫn chuyện",
+    color: "text-amber-300",
+    voice: "sage",
+    instructions: "Giọng dẫn chuyện điềm đạm, ấm, trung tính, kể chuyện rõ ràng với nhịp vừa phải.",
+    speed: 1,
+    pitch: 1,
+    rate: 1,
+  },
 };
 
 export const FILM_TITLE = "THỬ THÁCH KẺ GIẤU MẶT";

@@ -614,8 +614,20 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  done &&
-                  node.choices.map((c) => (
+                  done && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-black tracking-widest text-white/70">BẢO NÊN LÀM GÌ?</p>
+                        {timeLeft !== null && (
+                          <p
+                            className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}
+                          >
+                            ⏱ {timeLeft} giây
+                          </p>
+                        )}
+                      </div>
+                      {node.choices.map((c) => (
+
                     <button
                       key={c.next + c.label}
                       onClick={() => go(c.next)}

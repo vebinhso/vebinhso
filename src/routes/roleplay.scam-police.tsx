@@ -220,13 +220,21 @@ function FilmPage() {
     upcoming.slice(0, 3).forEach((n) => push(n.next));
 
     upcoming.forEach((n) => {
-      if (!cacheRef.current.get(n.id)) {
-        cacheRef.current.set(n.id, ""); // đánh dấu đang tải, tránh gọi trùng
-        void tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
-          .then((r) => cacheRef.current.set(n.id, (r as { audio: string }).audio))
-          .catch(() => cacheRef.current.delete(n.id));
+      if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
+        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+          .then((r) => {
+            const a = (r as { audio: string }).audio;
+            cacheRef.current.set(n.id, a);
+            return a;
+          })
+          .catch(() => {
+            pendingRef.current.delete(n.id);
+            return "";
+          });
+        pendingRef.current.set(n.id, p);
       }
       // nạp trước khung hình để chuyển cảnh không bị khựng
+
       if (n.video) {
         const v = document.createElement("video");
         v.preload = "auto";

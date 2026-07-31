@@ -29,7 +29,7 @@ type Lesson = {
   desc: string;
   tag: string;
   gradient: string;
-  level: string;
+  
   ready: boolean;
   to?: string;
   poster?: string;

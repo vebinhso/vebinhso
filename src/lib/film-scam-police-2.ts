@@ -70,29 +70,32 @@ export const SPEAKER_META: Record<
     color: "text-red-400",
     voice: "ash",
     instructions:
-      "Giọng nam trưởng thành, trầm và lạnh, nói chậm rãi từng chữ, mang tính thao túng và đe doạ ngầm, không hét lên.",
-    speed: 0.95,
-    pitch: 0.75,
-    rate: 0.95,
+      "Nam 35–50 tuổi, giọng bình tĩnh, nghiêm, kiểm soát cảm xúc tốt và mang tính thao túng. Nói NHANH, chính xác, ra lệnh thay vì gợi ý, dùng chiêu gây áp lực, tỏ ra sốt ruột khi bị hỏi lại, không bao giờ xin lỗi, luôn đẩy nhịp hội thoại đi nhanh. Ấn tượng: kẻ giả danh cán bộ nhà nước. Không hét lên.",
+    speed: 1.1,
+    pitch: 0.78,
+    rate: 1.1,
   },
   M: {
     name: "M",
     color: "text-sky-300",
-    voice: "nova",
-    instructions: "Giọng thiếu niên trẻ, hơi cao, rụt rè và lo lắng, đôi lúc run run vì sợ.",
+    voice: "coral",
+    instructions:
+      "Nữ 18–30 tuổi, giọng nhẹ nhàng, thân thiện, tươi vui và lễ phép. Tốc độ vừa phải, hội thoại tự nhiên, dùng từ lịch sự. Diễn biến cảm xúc: vui vẻ → ngạc nhiên → bối rối → lo lắng → sợ hãi; khi hồi hộp thì nhịp thở nhanh hơn và đôi lúc lặp lại câu hỏi. Không bao giờ nghe kịch tính hoá.",
     speed: 1,
-    pitch: 1.25,
-    rate: 1.02,
+    pitch: 1.15,
+    rate: 1,
   },
   narrator: {
     name: "Người dẫn chuyện",
     color: "text-amber-300",
     voice: "sage",
-    instructions: "Giọng dẫn chuyện điềm đạm, ấm, trung tính, kể chuyện rõ ràng với nhịp vừa phải.",
+    instructions:
+      "Giọng trung tính 25–35 tuổi, điềm tĩnh, ấm, chuyên nghiệp, phát âm rõ ràng, đáng tin cậy theo phong cách phim tài liệu (National Geographic). Tốc độ vừa phải, chuyển ý mượt mà, nhấn nhá đúng chi tiết quan trọng. Khách quan, không diễn quá, không hoảng loạn, không la hét.",
     speed: 1,
     pitch: 1,
     rate: 1,
   },
+
 };
 
 export const FILM_TITLE = "THỬ THÁCH KẺ GIẤU MẶT";

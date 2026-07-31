@@ -80,6 +80,7 @@ function FilmPage() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
+  const pendingRef = useRef<Map<string, Promise<string>>>(new Map());
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
@@ -152,13 +153,20 @@ function FilmPage() {
 
     const play = async () => {
       try {
-        let b64 = cacheRef.current.get(node.id);
+        let b64 = cacheRef.current.get(node.id) ?? "";
         if (!b64) {
-          const res = await tts({ data: { text, voice: meta.voice } });
-          b64 = (res as { audio: string }).audio;
-          cacheRef.current.set(node.id, b64);
+          const pending = pendingRef.current.get(node.id);
+          b64 = pending
+            ? await pending
+            : ((await tts({ data: { text, voice: meta.voice } })) as { audio: string }).audio;
+          if (b64) cacheRef.current.set(node.id, b64);
         }
+
         if (cancelled || muted) return;
+        if (!b64) {
+          runFallbackCaption();
+          return;
+        }
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1.06;
 
@@ -205,13 +213,44 @@ function FilmPage() {
     };
     void play();
 
-    // tải sẵn giọng cho cảnh kế tiếp để không bị trễ khi chuyển cảnh
-    const nxt = node.next ? FILM[node.next] : undefined;
-    if (nxt && !cacheRef.current.get(nxt.id)) {
-      void tts({ data: { text: nxt.text, voice: SPEAKER_META[nxt.speaker].voice } })
-        .then((r) => cacheRef.current.set(nxt.id, (r as { audio: string }).audio))
-        .catch(() => {});
-    }
+    // Tải sẵn giọng đọc + hình/video của các cảnh kế tiếp (kể cả nhánh lựa chọn)
+    const upcoming: FilmNode[] = [];
+    const push = (id?: string) => {
+      const n = id ? FILM[id] : undefined;
+      if (n && !upcoming.some((u) => u.id === n.id)) upcoming.push(n);
+    };
+    push(node.next);
+    node.choices?.forEach((c) => push(c.next));
+    upcoming.slice(0, 3).forEach((n) => push(n.next));
+
+    upcoming.forEach((n) => {
+      if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
+        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+          .then((r) => {
+            const a = (r as { audio: string }).audio;
+            cacheRef.current.set(n.id, a);
+            return a;
+          })
+          .catch(() => {
+            pendingRef.current.delete(n.id);
+            return "";
+          });
+        pendingRef.current.set(n.id, p);
+      }
+      // nạp trước khung hình để chuyển cảnh không bị khựng
+
+      if (n.video) {
+        const v = document.createElement("video");
+        v.preload = "auto";
+        v.src = n.video;
+        v.muted = true;
+        void v.load();
+      } else if (n.image) {
+        const im = new Image();
+        im.src = n.image;
+      }
+    });
+
 
     return () => {
       cancelled = true;
@@ -263,7 +302,7 @@ function FilmPage() {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 900);
+    const id = window.setTimeout(() => go(nxt), 380);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, speechDone, nodeId, autoPlay, started]);

@@ -96,7 +96,14 @@ function FilmPage() {
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(n.id)) return;
-    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+    const p = tts({
+      data: {
+        text: n.text,
+        voice: SPEAKER_META[n.speaker].voice,
+        instructions: SPEAKER_META[n.speaker].instructions,
+        speed: SPEAKER_META[n.speaker].speed,
+      },
+    })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(n.id, a);
@@ -183,7 +190,11 @@ function FilmPage() {
           const pending = pendingRef.current.get(node.id);
           b64 = pending
             ? await pending
-            : ((await tts({ data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed } })) as { audio: string }).audio;
+            : (
+                (await tts({
+                  data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed },
+                })) as { audio: string }
+              ).audio;
           if (b64) cacheRef.current.set(node.id, b64);
         }
 
@@ -227,7 +238,14 @@ function FilmPage() {
 
     upcoming.forEach((n) => {
       if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
-        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+        const p = tts({
+          data: {
+            text: n.text,
+            voice: SPEAKER_META[n.speaker].voice,
+            instructions: SPEAKER_META[n.speaker].instructions,
+            speed: SPEAKER_META[n.speaker].speed,
+          },
+        })
           .then((r) => {
             const a = (r as { audio: string }).audio;
             cacheRef.current.set(n.id, a);
@@ -311,21 +329,17 @@ function FilmPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-8 sm:pb-12 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-sky-300 mb-2 drop-shadow-lg">
-            PHIM TƯƠNG TÁC · BÀI 2
+            PHIM TƯƠNG TÁC · BÀI 3
           </p>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {FILM_TITLE}
           </h1>
-          <div className="max-w-xl w-full mb-5">
-            <ExpandableText
-              clamp={2}
-              className="text-xs sm:text-sm font-bold text-white/75"
-              toggleClassName="text-sky-300 text-xs"
-            >
-              Bạn vào vai <b className="text-sky-300">Bảo</b>. Một đường link bình chọn gửi từ nick bạn thân — mỗi lựa
-              chọn sẽ dẫn tới một kết cục khác nhau. Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
-            </ExpandableText>
-          </div>
+          <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
+            Bạn vào vai <b className="text-sky-300">M</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và quyền
+            riêng tư của người khác.
+            <br className="hidden sm:block" />
+            Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+          </p>
           <button
             onClick={() => setStarted(true)}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-sky-600 to-indigo-500 hover:brightness-110"
@@ -578,7 +592,11 @@ function FilmPage() {
                   ))
                 ) : (
                   <button
-                    onClick={() => (done ? node.next && go(node.next) : (capRef.current?.finishNow(), setTyped(node.text), setDone(true)))}
+                    onClick={() =>
+                      done
+                        ? node.next && go(node.next)
+                        : (capRef.current?.finishNow(), setTyped(node.text), setDone(true))
+                    }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
                     {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}

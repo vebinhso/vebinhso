@@ -310,32 +310,38 @@ function FilmPage() {
 
   if (!started) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <div className="max-w-lg w-full text-center">
-          <img
-            src={FILM_POSTER}
-            alt="Poster phim tương tác Một cuộc gọi"
-            className="w-full aspect-video object-cover rounded-2xl mb-4 border border-white/10"
-          />
-          <p className="text-[11px] font-black tracking-[0.3em] text-red-500 mb-2">PHIM TƯƠNG TÁC · BÀI 1</p>
-          <h1 className="text-2xl sm:text-4xl font-black mb-3 leading-tight">{FILM_TITLE}</h1>
-          <p className="text-sm font-bold text-white/60 mb-6">
+      <div className="fixed inset-0 bg-black text-white overflow-hidden">
+        <img
+          src={FILM_POSTER}
+          alt="Poster phim tương tác Một cuộc gọi"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+        <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-8 sm:pb-12 overflow-y-auto">
+          <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-red-500 mb-2 drop-shadow-lg">
+            PHIM TƯƠNG TÁC · BÀI 1
+          </p>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+            {FILM_TITLE}
+          </h1>
+          <p className="max-w-xl text-xs sm:text-sm font-bold text-white/70 mb-5">
             Bạn vào vai <b className="text-sky-300">N</b>. Ba nút quyết định, bốn cái kết. Có lồng tiếng AI — hãy bật
             loa hoặc đeo tai nghe.
           </p>
           <button
             onClick={() => setStarted(true)}
-            className="w-full rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"
+            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"
           >
             ▶ BẮT ĐẦU
           </button>
-          <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/50 hover:text-white">
+          <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
             ← Quay lại danh sách bài chơi
           </Link>
         </div>
       </div>
     );
   }
+
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">

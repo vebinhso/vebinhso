@@ -92,6 +92,25 @@ function FilmPage() {
     if (!getCurrentUser()) navigate({ to: "/login" });
   }, [navigate]);
 
+  // Tải sẵn giọng đọc cảnh mở màn ngay từ màn hình poster → bấm vào là chạy liền
+  useEffect(() => {
+    const n = FILM[FILM_START];
+    if (!n || pendingRef.current.get(n.id)) return;
+    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+      .then((r) => {
+        const a = (r as { audio: string }).audio;
+        cacheRef.current.set(n.id, a);
+        return a;
+      })
+      .catch(() => {
+        pendingRef.current.delete(n.id);
+        return "";
+      });
+    pendingRef.current.set(n.id, p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();

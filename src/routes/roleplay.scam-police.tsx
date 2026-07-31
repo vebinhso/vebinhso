@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ExpandableText } from "@/components/ExpandableText";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
@@ -335,15 +334,14 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <div className="max-w-xl w-full mb-5">
-            <ExpandableText
-              clamp={2}
-              className="text-xs sm:text-sm font-bold text-white/70"
-              toggleClassName="text-sky-300 text-xs"
-            >
-              Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau. Hãy bật
-              loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
-            </ExpandableText>
+            <p className="text-xs sm:text-sm font-bold text-white/70">
+              Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
+            </p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-white/70">
+              Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+            </p>
           </div>
+
           <button
             onClick={() => setStarted(true)}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"

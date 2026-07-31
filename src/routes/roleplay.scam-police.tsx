@@ -75,8 +75,7 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
-  /** thời lượng lồng tiếng (ms) để phụ đề chạy khớp giọng đọc */
-  const [voiceMs, setVoiceMs] = useState(0);
+  
   const [speechDone, setSpeechDone] = useState(false);
   const [prevImage, setPrevImage] = useState<string | null>(null);
 
@@ -104,58 +103,103 @@ function FilmPage() {
     setTyped("");
     setDone(false);
     setSpeechDone(false);
-    setVoiceMs(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId]);
 
   useEffect(() => {
     if (!prevImage) return;
-    const id = window.setTimeout(() => setPrevImage(null), 1000);
+    const id = window.setTimeout(() => setPrevImage(null), 1700);
     return () => window.clearTimeout(id);
   }, [prevImage]);
 
-  // Lồng tiếng AI — chậm rãi (0.92x); đo thời lượng để phụ đề chạy khớp giọng
+  // Lồng tiếng AI (1.06x) — phụ đề bám theo đúng vị trí đang đọc của audio
   useEffect(() => {
     if (!started) return;
-    if (muted) {
-      setVoiceMs(0);
-      setSpeechDone(true);
-      return;
-    }
     let cancelled = false;
+    let raf = 0;
+    let fallbackTimer = 0;
     stopAudio();
+
+    const text = node.text;
+    const setUpTo = (ratio: number) => {
+      const n = Math.max(0, Math.min(text.length, Math.round(text.length * ratio)));
+      setTyped(text.slice(0, n));
+      if (n >= text.length) setDone(true);
+    };
+
+    // Phụ đề tự chạy khi không có giọng đọc (tắt tiếng / lỗi TTS)
+    const runFallbackCaption = () => {
+      const total = Math.max(1600, text.length * 62);
+      const t0 = performance.now();
+      const tick = () => {
+        if (cancelled) return;
+        const r = (performance.now() - t0) / total;
+        setUpTo(r);
+        if (r < 1) raf = requestAnimationFrame(tick);
+        else setSpeechDone(true);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+
+    if (muted) {
+      runFallbackCaption();
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(raf);
+      };
+    }
 
     const play = async () => {
       try {
         let b64 = cacheRef.current.get(node.id);
         if (!b64) {
-          const res = await tts({ data: { text: node.text, voice: meta.voice } });
+          const res = await tts({ data: { text, voice: meta.voice } });
           b64 = (res as { audio: string }).audio;
           cacheRef.current.set(node.id, b64);
         }
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
-        audio.playbackRate = 0.92;
-        audio.onloadedmetadata = () => {
-          if (!cancelled && Number.isFinite(audio.duration)) setVoiceMs((audio.duration / 0.92) * 1000);
-        };
+        audio.playbackRate = 1.06;
+
         audio.onended = () => {
-          if (!cancelled) setSpeechDone(true);
+          if (cancelled) return;
+          setUpTo(1);
+          setSpeechDone(true);
         };
         audioRef.current = audio;
-        await audio.play().catch(() => setSpeechDone(true));
+
+        // Bám theo con trỏ phát của giọng đọc → chữ chạy tới đâu, đọc tới đó
+        const follow = () => {
+          if (cancelled) return;
+          const d = audio.duration;
+          if (Number.isFinite(d) && d > 0) setUpTo((audio.currentTime / d) * 1.02);
+          raf = requestAnimationFrame(follow);
+        };
+        raf = requestAnimationFrame(follow);
+
+        await audio.play().catch(() => {
+          cancelAnimationFrame(raf);
+          runFallbackCaption();
+        });
       } catch {
         if (cancelled) return;
         if (typeof window === "undefined" || !window.speechSynthesis) {
-          setSpeechDone(true);
+          runFallbackCaption();
           return;
         }
-        const u = new SpeechSynthesisUtterance(node.text);
+        const u = new SpeechSynthesisUtterance(text);
         u.lang = "vi-VN";
-        u.rate = 0.92;
+        u.rate = 1.02;
         u.pitch = node.speaker === "K" ? 0.8 : 1.1;
-        u.onend = () => setSpeechDone(true);
+        u.onend = () => {
+          setUpTo(1);
+          setSpeechDone(true);
+        };
+        u.onboundary = (e) => {
+          if (e.charIndex) setTyped(text.slice(0, e.charIndex + (e.charLength ?? 0)));
+        };
         window.speechSynthesis.speak(u);
+        runFallbackCaption();
       }
     };
     void play();
@@ -170,35 +214,19 @@ function FilmPage() {
 
     return () => {
       cancelled = true;
+      cancelAnimationFrame(raf);
+      window.clearTimeout(fallbackTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, started, muted]);
 
-  // Phụ đề chạy chữ khớp đúng thời lượng giọng đọc
-  useEffect(() => {
-    if (!started) return;
-    const text = node.text;
-    const perChar = voiceMs > 0 ? Math.min(190, Math.max(38, (voiceMs * 0.94) / text.length)) : 62;
-    let i = typed.length;
-    if (i >= text.length) return;
-    const id = window.setInterval(() => {
-      i += 1;
-      setTyped(text.slice(0, i));
-      if (i >= text.length) {
-        window.clearInterval(id);
-        setDone(true);
-      }
-    }, perChar);
-    return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeId, started, voiceMs]);
-
   // Chốt an toàn: nếu giọng đọc lỗi/không kết thúc, vẫn cho phim chạy tiếp
   useEffect(() => {
     if (!done || speechDone) return;
-    const id = window.setTimeout(() => setSpeechDone(true), 7000);
+    const id = window.setTimeout(() => setSpeechDone(true), 5000);
     return () => window.clearTimeout(id);
   }, [done, speechDone]);
+
 
 
   useEffect(() => () => stopAudio(), [stopAudio]);
@@ -234,7 +262,7 @@ function FilmPage() {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 1500);
+    const id = window.setTimeout(() => go(nxt), 900);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, speechDone, nodeId, autoPlay, started]);
@@ -287,17 +315,28 @@ function FilmPage() {
           src={prevImage}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_.9s_ease-in_forwards] scale-105"
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
         />
       )}
 
-      {/* Cảnh hiện tại */}
-      <img
-        key={node.id + node.image}
-        src={node.image}
-        alt=""
-        className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
-      />
+      {/* Cảnh hiện tại — camera (wrapper) + chuyển động nội cảnh (ảnh) */}
+      <div
+        key={"cam" + node.id}
+        className="absolute inset-0 will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+      >
+        <img
+          key={node.id + node.image}
+          src={node.image}
+          alt=""
+          className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+        />
+      </div>
+
+      {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-y-10 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-2xl animate-[filmSweep_11s_linear_infinite]" />
+      </div>
+
 
       {node.mood && node.mood !== "neutral" && (
         <div

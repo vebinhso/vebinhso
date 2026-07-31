@@ -694,9 +694,10 @@ function FilmPage() {
                   {node.ending.title}
                 </h2>
                 <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
-                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
+                <p className="whitespace-pre-line text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
+
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowNotes(true)}

@@ -154,10 +154,13 @@ function FilmPage() {
       try {
         let b64 = cacheRef.current.get(node.id);
         if (!b64) {
-          const res = await tts({ data: { text, voice: meta.voice } });
-          b64 = (res as { audio: string }).audio;
+          const pending = pendingRef.current.get(node.id);
+          b64 = pending
+            ? await pending
+            : (await tts({ data: { text, voice: meta.voice } }) as { audio: string }).audio;
           cacheRef.current.set(node.id, b64);
         }
+
         if (cancelled || muted) return;
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
         audio.playbackRate = 1.06;

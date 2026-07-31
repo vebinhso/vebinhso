@@ -8,6 +8,7 @@ import s06 from "@/assets/film4/clean/s06.jpg";
 import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
+import s10 from "@/assets/film4/clean/s10.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -19,6 +20,7 @@ import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
 import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
 import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
+import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -52,6 +54,8 @@ export type FilmNode = {
   successOverlay?: boolean;
   /** Hiện lớp phủ danh sách tài khoản bị đánh cắp */
   listOverlay?: boolean;
+  /** Hiện lớp phủ loạt thông báo dồn dập */
+  notifOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
   /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
@@ -262,6 +266,19 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     listOverlay: true,
+    next: "s10",
+  },
+  // S10 — Bừng tỉnh giữa đêm
+  s10: {
+    id: "s10",
+    image: s10,
+    video: vs10.url,
+    speaker: "narrator",
+    action: "Bảo bật dậy giữa đêm, chộp lấy điện thoại",
+    text: "Bảo bật dậy giữa đêm, chăn hất tung, tay quờ lấy chiếc điện thoại trên bàn. Màn hình sáng trắng loá cả gương mặt cậu: mười bảy tin nhắn Zalo, bốn cuộc gọi nhỡ, sáu mươi ba tin trong nhóm lớp. Tất cả đều đang hỏi cùng một chuyện.",
+    motion: "shake",
+    mood: "danger",
+    notifOverlay: true,
     next: "pendingA",
   },
   pendingA: {

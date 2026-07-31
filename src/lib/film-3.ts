@@ -2,6 +2,8 @@ import s01 from "@/assets/film4/clean/s01.jpg";
 import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
+import s04choice from "@/assets/film4/clean/s04-choice.jpg";
+
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";

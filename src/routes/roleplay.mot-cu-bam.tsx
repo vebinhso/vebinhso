@@ -334,8 +334,8 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-sky-300">M</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và quyền
-            riêng tư của người khác.
+            Bạn vào vai <b className="text-sky-300">Bảo</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
+            quyền riêng tư của người khác.
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
             Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!

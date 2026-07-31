@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
-import { createCaptionEngine } from "@/lib/caption-engine";
+import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
 
 import {
   FILM,

@@ -180,7 +180,9 @@ function FilmPage() {
       const t0 = performance.now();
       const tick = () => {
         if (cancelled || audioTookOver) return;
-        const r = (performance.now() - t0) / total;
+        let r = (performance.now() - t0) / total;
+        // Khi chỉ là nhịp mồi trong lúc chờ giọng đọc: giữ chậm để không vượt tiếng
+        if (!markDone) r = Math.min(r * 0.6, 0.3);
         setUpTo(r);
         if (r < 1) raf = requestAnimationFrame(tick);
         else if (markDone) setSpeechDone(true);
@@ -193,6 +195,7 @@ function FilmPage() {
       return () => {
         cancelled = true;
         cancelAnimationFrame(raf);
+        cancelAnimationFrame(smoothRaf);
       };
     }
 

@@ -10,7 +10,10 @@ export const Route = createFileRoute("/roleplay/")({
   head: () => ({
     meta: [
       { title: "Nhập vai tình huống — Vệ Binh Số" },
-      { name: "description", content: "Các bài chơi nhập vai tình huống số: xử lý tin giả, bảo mật, ứng xử mạng và văn hoá lịch sử." },
+      {
+        name: "description",
+        content: "Các bài chơi nhập vai tình huống số: xử lý tin giả, bảo mật, ứng xử mạng và văn hoá lịch sử.",
+      },
       { property: "og:title", content: "Nhập vai tình huống — Vệ Binh Số" },
       { property: "og:description", content: "Chọn bài chơi nhập vai, hoá thân vào tình huống thật và ra quyết định." },
       { property: "og:type", content: "website" },
@@ -39,7 +42,6 @@ const LESSONS: Lesson[] = [
     title: "Bài 1 · Giả danh Công an",
     desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.",
     tag: "An toàn số",
-    level: "Cấp độ 1",
     gradient: "from-rose-500 to-orange-500",
     ready: true,
     to: "/roleplay/scam-police",
@@ -51,16 +53,51 @@ const LESSONS: Lesson[] = [
     title: "Bài 2 · Thử thách Kẻ Giấu Mặt",
     desc: "Nhóm chat bí mật, áp lực đồng đẳng và những lựa chọn có thể làm tổn thương cả bạn lẫn người khác.",
     tag: "An toàn số",
-    level: "Cấp độ 2",
     gradient: "from-sky-500 to-indigo-600",
     ready: true,
     to: "/roleplay/ke-giau-mat",
     poster: FILM2_POSTER,
   },
-  { id: "cyberbully", emoji: "🛡️", title: "Bài 3 · Bắt nạt trên mạng", desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?", tag: "Ứng xử số", level: "Cấp độ 3", gradient: "from-emerald-500 to-teal-600", ready: false },
-  { id: "shopping", emoji: "🛒", title: "Bài 4 · Cú lừa mua hàng", desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.", tag: "Giao dịch số", level: "Cấp độ 4", gradient: "from-amber-500 to-yellow-600", ready: false },
-  { id: "history", emoji: "🏯", title: "Bài 5 · Sứ giả thời gian", desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.", tag: "Lịch sử – Văn hoá", level: "Đặc biệt", gradient: "from-fuchsia-500 to-purple-700", ready: false },
-  { id: "ai", emoji: "🤖", title: "Bài 6 · Làm việc cùng AI", desc: "Dùng AI để làm bài tập — đâu là ranh giới của sự trung thực?", tag: "Năng lực số", level: "Cấp độ 5", gradient: "from-cyan-500 to-blue-700", ready: false },
+  {
+    id: "cyberbully",
+    emoji: "🛡️",
+    title: "Bài 3 · Bắt nạt trên mạng",
+    desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?",
+    tag: "Ứng xử số",
+    level: "Cấp độ 3",
+    gradient: "from-emerald-500 to-teal-600",
+    ready: false,
+  },
+  {
+    id: "shopping",
+    emoji: "🛒",
+    title: "Bài 4 · Cú lừa mua hàng",
+    desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.",
+    tag: "Giao dịch số",
+    level: "Cấp độ 4",
+    gradient: "from-amber-500 to-yellow-600",
+    ready: false,
+  },
+  {
+    id: "history",
+    emoji: "🏯",
+    title: "Bài 5 · Sứ giả thời gian",
+    desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.",
+    tag: "Lịch sử – Văn hoá",
+    level: "Đặc biệt",
+    gradient: "from-fuchsia-500 to-purple-700",
+    ready: false,
+  },
+  {
+    id: "ai",
+    emoji: "🤖",
+    title: "Bài 6 · Làm việc cùng AI",
+    desc: "Dùng AI để làm bài tập — đâu là ranh giới của sự trung thực?",
+    tag: "Năng lực số",
+    level: "Cấp độ 5",
+    gradient: "from-cyan-500 to-blue-700",
+    ready: false,
+  },
 ];
 
 function RoleplayPage() {
@@ -91,8 +128,8 @@ function RoleplayPage() {
               </span>
               <h1 className="text-2xl sm:text-4xl font-black mb-2 drop-shadow">NHẬP VAI TÌNH HUỐNG</h1>
               <p className="font-bold text-sm sm:text-base opacity-90 max-w-2xl mb-3">
-                Hoá thân vào những tình huống có thật trên không gian số. Mỗi bài chơi là một câu chuyện —
-                lựa chọn của bạn quyết định kết cục và số điểm nhận được.
+                Hoá thân vào những tình huống có thật trên không gian số. Mỗi bài chơi là một câu chuyện — lựa chọn của
+                bạn quyết định kết cục và số điểm nhận được.
               </p>
               <div className="inline-flex items-start gap-3 rounded-2xl bg-black/30 backdrop-blur px-4 py-3 border border-white/10 max-w-2xl">
                 <span className="text-xl shrink-0">🎧</span>
@@ -114,7 +151,9 @@ function RoleplayPage() {
                 "group block text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform";
               const inner = (
                 <>
-                  <div className={`relative h-32 sm:h-36 overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
+                  <div
+                    className={`relative h-32 sm:h-36 overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}
+                  >
                     {l.poster ? (
                       <>
                         <img
@@ -126,7 +165,9 @@ function RoleplayPage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                       </>
                     ) : (
-                      <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
+                      <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">
+                        {l.emoji}
+                      </span>
                     )}
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
                       {l.level}
@@ -177,16 +218,25 @@ function RoleplayPage() {
           </div>
 
           <div className="mt-4 flex gap-2 justify-center pb-4">
-            <Link to="/play" className="toy-button !text-xs sm:!text-sm">🎮 Chọn bản đồ</Link>
-            <Link to="/" className="toy-button !text-xs sm:!text-sm">🏠 Trang chủ</Link>
+            <Link to="/play" className="toy-button !text-xs sm:!text-sm">
+              🎮 Chọn bản đồ
+            </Link>
+            <Link to="/" className="toy-button !text-xs sm:!text-sm">
+              🏠 Trang chủ
+            </Link>
           </div>
         </div>
       </div>
 
       {picked && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setPicked(null)}>
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          onClick={() => setPicked(null)}
+        >
           <div className="glass-card w-full max-w-sm p-5 text-center" onClick={(e) => e.stopPropagation()}>
-            <div className={`mx-auto w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-3xl bg-gradient-to-br ${picked.gradient}`}>
+            <div
+              className={`mx-auto w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-3xl bg-gradient-to-br ${picked.gradient}`}
+            >
               {picked.emoji}
             </div>
             <h3 className="font-black text-base mb-1">{picked.title}</h3>

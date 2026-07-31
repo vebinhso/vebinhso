@@ -538,6 +538,20 @@ function FilmPage() {
         </div>
       )}
 
+      {node.lostOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+          <div className="animate-[filmFade_0.6s_ease-out_both] rounded-lg bg-red-600/95 px-4 py-2 text-[11px] sm:text-base font-black text-white shadow-2xl">
+            ❌ Mật khẩu không chính xác
+          </div>
+          <p className="animate-[filmFade_1.1s_ease-out_both] max-w-[90%] rounded-xl bg-black/75 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
+            Kẻ gian đã đổi mật khẩu, đổi email khôi phục, bật xác thực hai lớp bằng số của chúng.
+          </p>
+          <p className="animate-[filmFade_1.6s_ease-out_both] max-w-[90%] text-center text-[11px] sm:text-base font-black text-red-300">
+            Nick 6 năm của Bảo — mất trong 15 phút.
+          </p>
+        </div>
+      )}
+
       {node.notifOverlay && (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
           {[
@@ -680,9 +694,10 @@ function FilmPage() {
                   {node.ending.title}
                 </h2>
                 <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
-                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
+                <p className="whitespace-pre-line text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
+
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowNotes(true)}

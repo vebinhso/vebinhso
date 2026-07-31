@@ -288,7 +288,7 @@ function FilmPage() {
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [meta.voice, muted, node, started, stopAudio, tts]);
+  }, [meta, muted, node, started, stopAudio, tts]);
 
   useEffect(() => {
     if (!done || speechDone) return;

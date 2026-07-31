@@ -501,6 +501,58 @@ function FilmPage() {
         </div>
       )}
 
+      {node.loginOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+          <div className="animate-[filmFade_0.7s_ease-out_both] w-[92%] max-w-lg rounded-lg bg-neutral-200/95 px-3 py-1.5 font-mono text-[11px] sm:text-base font-bold text-neutral-800 shadow-lg">
+            🔓 <span className="text-neutral-500">facebook.com</span>
+            <span className="text-red-600 animate-pulse">.vote-2026.xyz</span>
+            <span className="text-neutral-500">/login</span>
+          </div>
+          <div className="animate-[filmFade_1s_ease-out_both] w-[92%] max-w-lg rounded-2xl bg-white/95 px-4 py-4 text-center shadow-[0_0_50px_rgba(255,255,255,0.35)]">
+            <p className="text-[11px] sm:text-sm font-bold text-neutral-800">
+              🔒 Để tránh gian lận vote, vui lòng đăng nhập tài khoản Facebook/Zalo để hệ thống xác minh!
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="rounded-md border border-neutral-300 px-3 py-1.5 text-left text-[11px] sm:text-sm text-neutral-400">
+                Số điện thoại hoặc Email
+              </div>
+              <div className="rounded-md border border-neutral-300 px-3 py-1.5 text-left text-[11px] sm:text-sm text-neutral-400">
+                Mật khẩu
+              </div>
+            </div>
+            <div className="mt-3 rounded-md bg-blue-600 px-4 py-2 text-[11px] sm:text-base font-black text-white">
+              XÁC NHẬN VOTE
+            </div>
+          </div>
+        </div>
+      )}
+
+      {node.typingOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
+          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-xl bg-white/95 px-6 py-3 tracking-[0.35em] text-2xl sm:text-4xl font-black text-neutral-900 shadow-2xl">
+            ••••••••••
+          </div>
+          <p className="animate-[filmFade_1.2s_ease-out_both] rounded-full bg-black/70 px-4 py-1.5 text-[11px] sm:text-sm font-bold text-red-300">
+            Bảo mất 4 giây để gõ xong.
+          </p>
+        </div>
+      )}
+
+      {node.successOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
+          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-2xl border border-emerald-400/40 bg-white/95 px-5 py-4 text-center shadow-2xl">
+            <p className="text-base sm:text-2xl font-black text-emerald-600">
+              ✅ Cảm ơn bạn đã bình chọn!
+            </p>
+          </div>
+          <p className="animate-[filmFade_1.3s_ease-out_both] max-w-[90%] rounded-xl bg-black/70 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
+            Bảo mỉm cười, tắt máy đi ngủ. Cậu thấy mình vừa làm một việc tốt.
+          </p>
+        </div>
+      )}
+
+
+
 
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

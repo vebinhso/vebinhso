@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
+import { FILM_POSTER } from "@/lib/film-scam-police";
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,
@@ -27,10 +28,11 @@ type Lesson = {
   level: string;
   ready: boolean;
   to?: string;
+  poster?: string;
 };
 
 const LESSONS: Lesson[] = [
-  { id: "scam-police", emoji: "🚨", title: "Bài 1 · Giả danh Công an", desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.", tag: "An toàn số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: true, to: "/roleplay/scam-police" },
+  { id: "scam-police", emoji: "🚨", title: "Bài 1 · Giả danh Công an", desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.", tag: "An toàn số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: true, to: "/roleplay/scam-police", poster: FILM_POSTER },
   { id: "password", emoji: "🔐", title: "Bài 2 · Mật khẩu bị lộ", desc: "Tài khoản game của bạn có dấu hiệu lạ. Xử lý sao cho an toàn?", tag: "An toàn số", level: "Cấp độ 2", gradient: "from-sky-500 to-indigo-600", ready: false },
   { id: "cyberbully", emoji: "🛡️", title: "Bài 3 · Bắt nạt trên mạng", desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?", tag: "Ứng xử số", level: "Cấp độ 3", gradient: "from-emerald-500 to-teal-600", ready: false },
   { id: "shopping", emoji: "🛒", title: "Bài 4 · Cú lừa mua hàng", desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.", tag: "Giao dịch số", level: "Cấp độ 4", gradient: "from-amber-500 to-yellow-600", ready: false },
@@ -81,8 +83,20 @@ function RoleplayPage() {
                 "group block text-left rounded-2xl overflow-hidden border-2 border-border bg-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform";
               const inner = (
                 <>
-                  <div className={`relative h-24 sm:h-28 bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
-                    <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
+                  <div className={`relative h-32 sm:h-36 overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}>
+                    {l.poster ? (
+                      <>
+                        <img
+                          src={l.poster}
+                          alt={l.title}
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      </>
+                    ) : (
+                      <span className="text-4xl sm:text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{l.emoji}</span>
+                    )}
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-background/85 text-[10px] font-black">
                       {l.level}
                     </span>

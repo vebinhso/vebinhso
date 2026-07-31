@@ -1,22 +1,22 @@
 import s01 from "@/assets/film2/s01.jpg";
-import s02 from "@/assets/film2/s02.jpg";
-import s03 from "@/assets/film2/s03.jpg";
-import s04 from "@/assets/film2/s04.jpg";
-import s05 from "@/assets/film2/s05.jpg";
-import s06 from "@/assets/film2/s06.jpg";
-import s07 from "@/assets/film2/s07.jpg";
-import s08 from "@/assets/film2/s08.jpg";
-import s09 from "@/assets/film2/s09.jpg";
+import s02 from "@/assets/film2/clean/s02.jpg";
+import s03 from "@/assets/film2/clean/s03.jpg";
+import s04 from "@/assets/film2/clean/s04.jpg";
+import s05 from "@/assets/film2/clean/s05.jpg";
+import s06 from "@/assets/film2/clean/s06.jpg";
+import s07 from "@/assets/film2/clean/s07.jpg";
+import s08 from "@/assets/film2/clean/s08.jpg";
+import s09 from "@/assets/film2/clean/s09.jpg";
 import s10 from "@/assets/film2/s10.jpg";
 import s11 from "@/assets/film2/s11.jpg";
 import s12 from "@/assets/film2/s12.jpg";
 import s13 from "@/assets/film2/s13.jpg";
 import s14 from "@/assets/film2/s14.jpg";
-import s15 from "@/assets/film2/s15.jpg";
-import s16 from "@/assets/film2/s16.jpg";
-import s17 from "@/assets/film2/s17.jpg";
-import s18 from "@/assets/film2/s18.jpg";
-import s19 from "@/assets/film2/s19.jpg";
+import s15 from "@/assets/film2/clean/s15.jpg";
+import s16 from "@/assets/film2/clean/s16.jpg";
+import s17 from "@/assets/film2/clean/s17.jpg";
+import s18 from "@/assets/film2/clean/s18.jpg";
+import s19 from "@/assets/film2/clean/s19.jpg";
 import s20 from "@/assets/film2/s20.jpg";
 import s21 from "@/assets/film2/s21.jpg";
 import s22 from "@/assets/film2/s22.jpg";
@@ -25,6 +25,11 @@ import s24 from "@/assets/film2/s24.jpg";
 import s25 from "@/assets/film2/s25.jpg";
 import s26 from "@/assets/film2/s26.jpg";
 import s27 from "@/assets/film2/s27.jpg";
+import v02 from "@/assets/film2/v02.mp4.asset.json";
+import v03 from "@/assets/film2/v03.mp4.asset.json";
+import v04 from "@/assets/film2/v04.mp4.asset.json";
+import v05 from "@/assets/film2/v05.mp4.asset.json";
+import v07 from "@/assets/film2/v07.mp4.asset.json";
 
 export type Speaker = "K" | "N" | "narrator";
 
@@ -40,6 +45,7 @@ export type Motion = "kenburns" | "push" | "shake" | "freeze";
 export type FilmNode = {
   id: string;
   image: string;
+  video?: string;
   speaker: Speaker;
   action?: string;
   text: string;
@@ -78,6 +84,7 @@ export const FILM: Record<string, FilmNode> = {
   s02: {
     id: "s02",
     image: s02,
+    video: v02.url,
     speaker: "narrator",
     action: "18:40 — Căn hộ nhỏ, nắng chiều",
     text: "Mười tám giờ bốn mươi. Một buổi chiều bình thường như mọi ngày. Anh N tưới cây bên cửa sổ, ly trà còn ấm trên bàn.",
@@ -88,6 +95,7 @@ export const FILM: Record<string, FilmNode> = {
   s03: {
     id: "s03",
     image: s03,
+    video: v03.url,
     speaker: "narrator",
     action: "Điện thoại rung trên mặt bàn gỗ",
     text: "Điện thoại reo. Màn hình hiện: Số lạ.",
@@ -97,6 +105,7 @@ export const FILM: Record<string, FilmNode> = {
   s04: {
     id: "s04",
     image: s04,
+    video: v04.url,
     speaker: "N",
     action: "Đưa máy lên tai, giọng lịch sự",
     text: "A lô, ai vậy ạ?",
@@ -106,6 +115,7 @@ export const FILM: Record<string, FilmNode> = {
   s05: {
     id: "s05",
     image: s05,
+    video: v05.url,
     speaker: "K",
     action: "Đầu dây bên kia — phòng tối, tai nghe, hai màn hình xanh lơ",
     text: "Xin chào anh N, tôi là K, cán bộ điều tra. Anh có liên quan đến một đường dây tội phạm mà chúng tôi đang theo dõi.",
@@ -116,6 +126,7 @@ export const FILM: Record<string, FilmNode> = {
   s05b: {
     id: "s05b",
     image: s05,
+    video: v05.url,
     speaker: "narrator",
     text: "Khán giả thì thấy rõ: không đồn công an, không quân phục, không hồ sơ. Chỉ có một kẻ lừa đảo và một danh sách số điện thoại. Nhưng anh N thì không thấy gì cả.",
     motion: "kenburns",
@@ -139,6 +150,7 @@ export const FILM: Record<string, FilmNode> = {
   s07: {
     id: "s07",
     image: s07,
+    video: v07.url,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng run",
     text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi! Cả đời tôi chưa từng bước chân vào đồn công an...",
@@ -149,6 +161,7 @@ export const FILM: Record<string, FilmNode> = {
   s07b: {
     id: "s07b",
     image: s07,
+    video: v07.url,
     speaker: "K",
     action: "Ép sát, hạ giọng đe doạ",
     text: "Nếu anh không hợp tác, chúng tôi sẽ bắt giữ ngay và phong toả toàn bộ tài khoản của anh!",

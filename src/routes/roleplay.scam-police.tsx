@@ -75,16 +75,17 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
-  
   const [speechDone, setSpeechDone] = useState(false);
-  const [prevImage, setPrevImage] = useState<string | null>(null);
+  const [prevVisual, setPrevVisual] = useState<{ src: string; type: "image" | "video" } | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cacheRef = useRef<Map<string, string>>(new Map());
 
-
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
+  const visual = node.video
+    ? { src: node.video, type: "video" as const }
+    : { src: node.image, type: "image" as const };
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -107,10 +108,10 @@ function FilmPage() {
   }, [nodeId]);
 
   useEffect(() => {
-    if (!prevImage) return;
-    const id = window.setTimeout(() => setPrevImage(null), 1700);
+    if (!prevVisual) return;
+    const id = window.setTimeout(() => setPrevVisual(null), 1700);
     return () => window.clearTimeout(id);
-  }, [prevImage]);
+  }, [prevVisual]);
 
   // Lồng tiếng AI (1.06x) — phụ đề bám theo đúng vị trí đang đọc của audio
   useEffect(() => {
@@ -233,14 +234,14 @@ function FilmPage() {
 
   const go = (next: string) => {
     stopAudio();
-    setPrevImage(node.image);
+    setPrevVisual(visual);
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
-    setPrevImage(node.image);
+    setPrevVisual(visual);
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -249,7 +250,7 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
-    setPrevImage(node.image);
+    setPrevVisual(visual);
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);
@@ -300,36 +301,73 @@ function FilmPage() {
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
       {/* Nền mờ lấp đầy khung hình */}
-      <img
-        key={"bg" + node.id}
-        src={node.image}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
-      />
-
-      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
-      {prevImage && (
+      {visual.type === "video" ? (
+        <video
+          key={"bg" + node.id}
+          src={visual.src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
+        />
+      ) : (
         <img
-          key={"prev" + prevImage}
-          src={prevImage}
+          key={"bg" + node.id}
+          src={visual.src}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
+          className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-40"
         />
       )}
 
-      {/* Cảnh hiện tại — camera (wrapper) + chuyển động nội cảnh (ảnh) */}
+      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
+      {prevVisual &&
+        (prevVisual.type === "video" ? (
+          <video
+            key={"prev" + prevVisual.src}
+            src={prevVisual.src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
+          />
+        ) : (
+          <img
+            key={"prev" + prevVisual.src}
+            src={prevVisual.src}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
+          />
+        ))}
+
+      {/* Cảnh hiện tại — ưu tiên video thật, fallback về ảnh động */}
       <div
         key={"cam" + node.id}
         className="absolute inset-0 will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
       >
-        <img
-          key={node.id + node.image}
-          src={node.image}
-          alt=""
-          className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
-        />
+        {visual.type === "video" ? (
+          <video
+            key={node.id + visual.src}
+            src={visual.src}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-contain animate-[filmFade_1.4s_ease-out_both]"
+          />
+        ) : (
+          <img
+            key={node.id + visual.src}
+            src={visual.src}
+            alt=""
+            className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+          />
+        )}
       </div>
 
       {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}

@@ -75,8 +75,7 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
-  /** thời lượng lồng tiếng (ms) để phụ đề chạy khớp giọng đọc */
-  const [voiceMs, setVoiceMs] = useState(0);
+  const [speechDone2, setVoiceMs] = useState(0);
   const [speechDone, setSpeechDone] = useState(false);
   const [prevImage, setPrevImage] = useState<string | null>(null);
 

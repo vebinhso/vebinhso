@@ -599,7 +599,7 @@ function FilmPage() {
                   ))
                 ) : (
                   <button
-                    onClick={() => (done ? node.next && go(node.next) : (setTyped(node.text), setDone(true)))}
+                    onClick={() => (done ? node.next && go(node.next) : (capRef.current?.finishNow(), setTyped(node.text), setDone(true)))}
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
                     {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}

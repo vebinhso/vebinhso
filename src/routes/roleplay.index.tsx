@@ -65,10 +65,18 @@ function RoleplayPage() {
                 CHẾ ĐỘ MỚI
               </span>
               <h1 className="text-2xl sm:text-4xl font-black mb-2 drop-shadow">NHẬP VAI TÌNH HUỐNG</h1>
-              <p className="font-bold text-sm sm:text-base opacity-90 max-w-2xl">
+              <p className="font-bold text-sm sm:text-base opacity-90 max-w-2xl mb-3">
                 Hoá thân vào những tình huống có thật trên không gian số. Mỗi bài chơi là một câu chuyện —
                 lựa chọn của bạn quyết định kết cục và số điểm nhận được.
               </p>
+              <div className="inline-flex items-start gap-3 rounded-2xl bg-black/30 backdrop-blur px-4 py-3 border border-white/10 max-w-2xl">
+                <span className="text-xl shrink-0">🎧</span>
+                <p className="text-xs sm:text-sm font-bold leading-relaxed text-white/95">
+                  Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
+                  <br className="hidden sm:block" />
+                  Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất.
+                </p>
+              </div>
             </div>
           </div>
 

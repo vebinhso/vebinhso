@@ -641,7 +641,10 @@ function FilmPage() {
                     >
                       {c.label}
                     </button>
-                  ))
+                      ))}
+                    </>
+                  )
+
                 ) : (
                   <button
                     onClick={() =>

@@ -143,10 +143,11 @@ function FilmPage() {
     const cap = createCaptionEngine(
       text,
       (s: string) => setTyped(s),
-
       () => setDone(true),
     );
+    capRef.current = cap;
     const stopCap = () => cap.stop();
+
 
     if (muted) {
       cap.startTimer(() => setSpeechDone(true));

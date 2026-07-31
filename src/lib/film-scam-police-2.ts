@@ -1,5 +1,6 @@
 import poster from "@/assets/film3/clean/m02.jpg";
 import m03 from "@/assets/film3/clean/m03.jpg";
+import m04 from "@/assets/film3/clean/m04.jpg";
 import m06 from "@/assets/film3/clean/m06.jpg";
 import m07 from "@/assets/film3/clean/m07.jpg";
 import m08 from "@/assets/film3/clean/m08.jpg";
@@ -8,15 +9,20 @@ import m10 from "@/assets/film3/clean/m10.jpg";
 import m11 from "@/assets/film3/clean/m11.jpg";
 import m13 from "@/assets/film3/clean/m13.jpg";
 import m14 from "@/assets/film3/clean/m14.jpg";
+import m15 from "@/assets/film3/clean/m15.jpg";
 import m16 from "@/assets/film3/clean/m16.jpg";
 import m17 from "@/assets/film3/clean/m17.jpg";
 import m18 from "@/assets/film3/clean/m18.jpg";
 import m20 from "@/assets/film3/clean/m20.jpg";
 import m21 from "@/assets/film3/clean/m21.jpg";
 import m22 from "@/assets/film3/clean/m22.jpg";
+import m23 from "@/assets/film3/clean/m23.jpg";
+import m24 from "@/assets/film3/clean/m24.jpg";
+import m25 from "@/assets/film3/clean/m25.jpg";
 
 import vm02 from "@/assets/film3/video/m02.mp4.asset.json";
 import vm03 from "@/assets/film3/video/m03.mp4.asset.json";
+import vm04 from "@/assets/film3/video/m04.mp4.asset.json";
 import vm06 from "@/assets/film3/video/m06.mp4.asset.json";
 import vm07 from "@/assets/film3/video/m07.mp4.asset.json";
 import vm08 from "@/assets/film3/video/m08.mp4.asset.json";
@@ -25,12 +31,16 @@ import vm10 from "@/assets/film3/video/m10.mp4.asset.json";
 import vm11 from "@/assets/film3/video/m11.mp4.asset.json";
 import vm13 from "@/assets/film3/video/m13.mp4.asset.json";
 import vm14 from "@/assets/film3/video/m14.mp4.asset.json";
+import vm15 from "@/assets/film3/video/m15.mp4.asset.json";
 import vm16 from "@/assets/film3/video/m16.mp4.asset.json";
 import vm17 from "@/assets/film3/video/m17.mp4.asset.json";
 import vm18 from "@/assets/film3/video/m18.mp4.asset.json";
 import vm20 from "@/assets/film3/video/m20.mp4.asset.json";
 import vm21 from "@/assets/film3/video/m21.mp4.asset.json";
 import vm22 from "@/assets/film3/video/m22.mp4.asset.json";
+import vm23 from "@/assets/film3/video/m23.mp4.asset.json";
+import vm24 from "@/assets/film3/video/m24.mp4.asset.json";
+import vm25 from "@/assets/film3/video/m25.mp4.asset.json";
 
 export type Speaker = "A" | "M" | "narrator";
 
@@ -100,7 +110,7 @@ export const SPEAKER_META: Record<
 
 export const FILM_TITLE = "THỬ THÁCH KẺ GIẤU MẶT";
 export const FILM_POSTER = poster;
-export const FILM_SUMMARY_IMAGE = m21;
+export const FILM_SUMMARY_IMAGE = m25;
 
 export const FILM_NOTES = [
   "Lời mời cho cảm giác được công nhận rất dễ biến thành chiếc bẫy kiểm soát.",
@@ -130,6 +140,17 @@ export const FILM: Record<string, FilmNode> = {
     text: "Một nhóm chat tên lạ gửi lời mời tham gia Thử thách 7 ngày. Phần thưởng nghe thật hấp dẫn: tiền, sự chú ý và cảm giác mình quan trọng.",
     motion: "push",
     mood: "danger",
+    next: "m04",
+  },
+  m04: {
+    id: "m04",
+    image: m04,
+    video: vm04.url,
+    speaker: "M",
+    action: "M nhìn màn hình, vừa tò mò vừa bối rối",
+    text: "Chỉ là một thử thách nhỏ thôi mà... tham gia một chút chắc không sao đâu nhỉ?",
+    motion: "kenburns",
+    mood: "neutral",
     next: "m06",
   },
   m06: {
@@ -246,6 +267,17 @@ export const FILM: Record<string, FilmNode> = {
     text: "Chỉ còn ít giờ nữa thôi. Nếu không làm theo, mọi thứ sẽ bị tung ra trước khi cậu kịp giải thích với bất kỳ ai.",
     motion: "shake",
     mood: "danger",
+    next: "m15",
+  },
+  m15: {
+    id: "m15",
+    image: m15,
+    video: vm15.url,
+    speaker: "narrator",
+    action: "Hạn chót đếm ngược trên màn hình",
+    text: "Những lời đe doạ chồng chất lên nhau. M nhìn đồng hồ đếm ngược và thấy mình càng lúc càng nhỏ bé trước kẻ giấu mặt.",
+    motion: "push",
+    mood: "danger",
     next: "m18",
   },
   m18: {
@@ -297,6 +329,39 @@ export const FILM: Record<string, FilmNode> = {
     action: "Lưu bằng chứng và xử lý tận gốc",
     text: "Các bằng chứng được lưu lại, nhóm chat bị truy vết và chặn. M không còn một mình, còn N cũng được bảo vệ kịp thời.",
     motion: "push",
+    mood: "safe",
+    next: "m23",
+  },
+  m23: {
+    id: "m23",
+    image: m23,
+    video: vm23.url,
+    speaker: "narrator",
+    action: "Sinh hoạt toàn trường về an toàn mạng",
+    text: "Nhà trường tổ chức buổi sinh hoạt về an toàn mạng. Câu chuyện của M trở thành lời nhắc cho tất cả học sinh: đừng im lặng khi bị đe doạ.",
+    motion: "kenburns",
+    mood: "safe",
+    next: "m24",
+  },
+  m24: {
+    id: "m24",
+    image: m24,
+    video: vm24.url,
+    speaker: "M",
+    action: "M đứng trước toàn trường",
+    text: "Con từng nghĩ nói ra là yếu đuối. Nhưng chính lúc con nói ra, con mới thật sự thoát khỏi nỗi sợ.",
+    motion: "freeze",
+    mood: "safe",
+    next: "m25",
+  },
+  m25: {
+    id: "m25",
+    image: m25,
+    video: vm25.url,
+    speaker: "narrator",
+    action: "Một khởi đầu mới",
+    text: "M bước ra sân trường cùng bạn bè, nhẹ nhõm và tự tin hơn. Cậu đã học được cách tự bảo vệ mình và bảo vệ người khác trên không gian mạng.",
+    motion: "kenburns",
     mood: "safe",
     ending: {
       kind: "safe",

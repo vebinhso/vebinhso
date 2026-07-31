@@ -92,6 +92,25 @@ function FilmPage() {
     if (!getCurrentUser()) navigate({ to: "/login" });
   }, [navigate]);
 
+  // Tải sẵn giọng đọc cảnh mở màn ngay từ màn hình poster → bấm vào là chạy liền
+  useEffect(() => {
+    const n = FILM[FILM_START];
+    if (!n || pendingRef.current.get(n.id)) return;
+    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+      .then((r) => {
+        const a = (r as { audio: string }).audio;
+        cacheRef.current.set(n.id, a);
+        return a;
+      })
+      .catch(() => {
+        pendingRef.current.delete(n.id);
+        return "";
+      });
+    pendingRef.current.set(n.id, p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -129,16 +148,17 @@ function FilmPage() {
       if (n >= text.length) setDone(true);
     };
 
-    // Phụ đề tự chạy khi không có giọng đọc (tắt tiếng / lỗi TTS)
-    const runFallbackCaption = () => {
+    // Phụ đề tự chạy khi không có giọng đọc (tắt tiếng / lỗi TTS / đang tải)
+    let audioTookOver = false;
+    const runFallbackCaption = (markDone = true) => {
       const total = Math.max(1600, text.length * 62);
       const t0 = performance.now();
       const tick = () => {
-        if (cancelled) return;
+        if (cancelled || audioTookOver) return;
         const r = (performance.now() - t0) / total;
         setUpTo(r);
         if (r < 1) raf = requestAnimationFrame(tick);
-        else setSpeechDone(true);
+        else if (markDone) setSpeechDone(true);
       };
       raf = requestAnimationFrame(tick);
     };
@@ -150,6 +170,9 @@ function FilmPage() {
         cancelAnimationFrame(raf);
       };
     }
+
+    // Chữ chạy ngay lập tức, không chờ tải giọng đọc
+    runFallbackCaption(false);
 
     const play = async () => {
       try {
@@ -164,6 +187,8 @@ function FilmPage() {
 
         if (cancelled || muted) return;
         if (!b64) {
+          audioTookOver = false;
+          cancelAnimationFrame(raf);
           runFallbackCaption();
           return;
         }
@@ -184,10 +209,14 @@ function FilmPage() {
           if (Number.isFinite(d) && d > 0) setUpTo((audio.currentTime / d) * 1.02);
           raf = requestAnimationFrame(follow);
         };
+        audioTookOver = true;
+        cancelAnimationFrame(raf);
         raf = requestAnimationFrame(follow);
+
 
         await audio.play().catch(() => {
           cancelAnimationFrame(raf);
+          audioTookOver = false;
           runFallbackCaption();
         });
       } catch {

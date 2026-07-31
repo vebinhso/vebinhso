@@ -78,6 +78,8 @@ function FilmPage() {
   const [prevVisual, setPrevVisual] = useState<{ src: string; type: "image" | "video" } | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const capRef = useRef<CaptionEngine | null>(null);
+
   const cacheRef = useRef<Map<string, string>>(new Map());
   const pendingRef = useRef<Map<string, Promise<string>>>(new Map());
 

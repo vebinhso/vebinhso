@@ -7,6 +7,7 @@ import s05 from "@/assets/film4/clean/s05.jpg";
 import s06 from "@/assets/film4/clean/s06.jpg";
 import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
+import s09 from "@/assets/film4/clean/s09.jpg";
 
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -17,6 +18,7 @@ import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
 import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
 import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
 import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
+import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
 
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -48,6 +50,8 @@ export type FilmNode = {
   typingOverlay?: boolean;
   /** Hiện lớp phủ thông báo bình chọn thành công */
   successOverlay?: boolean;
+  /** Hiện lớp phủ danh sách tài khoản bị đánh cắp */
+  listOverlay?: boolean;
   /** Giới hạn thời gian suy nghĩ (giây) cho nút quyết định */
   timeLimitSec?: number;
   /** Ảnh riêng hiển thị khi tới lúc chọn đáp án */
@@ -245,6 +249,19 @@ export const FILM: Record<string, FilmNode> = {
     motion: "kenburns",
     mood: "neutral",
     successOverlay: true,
+    next: "s09",
+  },
+  // S09 — Phía bên kia màn hình
+  s09: {
+    id: "s09",
+    image: s09,
+    video: vs09.url,
+    speaker: "narrator",
+    action: "Căn phòng tối đen, hai bàn tay đeo găng gõ phím",
+    text: "Ở một nơi khác, trong căn phòng tối đen, hai bàn tay đeo găng đang gõ phím. Trên màn hình, một dòng mới hiện lên và sáng xanh: tài khoản thứ hai trăm mười bốn trong đêm nay. Không có ai nhắm vào Bảo cả. Bảo chỉ là một dòng trong danh sách.",
+    motion: "push",
+    mood: "danger",
+    listOverlay: true,
     next: "pendingA",
   },
   pendingA: {

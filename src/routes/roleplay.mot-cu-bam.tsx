@@ -538,6 +538,17 @@ function FilmPage() {
         </div>
       )}
 
+      {node.listOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end gap-2 px-4 pb-24 sm:pb-28">
+          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-lg border border-emerald-400/50 bg-black/80 px-4 py-2 font-mono text-[11px] sm:text-base font-bold text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.35)]">
+            Tài khoản thứ 214 trong đêm nay.
+          </div>
+          <p className="animate-[filmFade_1.3s_ease-out_both] max-w-[90%] rounded-xl bg-black/70 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
+            Không có ai "nhắm vào Bảo" cả. Bảo chỉ là một dòng trong danh sách.
+          </p>
+        </div>
+      )}
+
       {node.successOverlay && (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
           <div className="animate-[filmFade_0.7s_ease-out_both] rounded-2xl border border-emerald-400/40 bg-white/95 px-5 py-4 text-center shadow-2xl">

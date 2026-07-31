@@ -320,17 +320,28 @@ function FilmPage() {
           src={prevImage}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_.9s_ease-in_forwards] scale-105"
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_1.5s_ease-in_forwards] scale-105"
         />
       )}
 
-      {/* Cảnh hiện tại */}
-      <img
-        key={node.id + node.image}
-        src={node.image}
-        alt=""
-        className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
-      />
+      {/* Cảnh hiện tại — camera (wrapper) + chuyển động nội cảnh (ảnh) */}
+      <div
+        key={"cam" + node.id}
+        className="absolute inset-0 will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+      >
+        <img
+          key={node.id + node.image}
+          src={node.image}
+          alt=""
+          className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+        />
+      </div>
+
+      {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-y-10 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-2xl animate-[filmSweep_11s_linear_infinite]" />
+      </div>
+
 
       {node.mood && node.mood !== "neutral" && (
         <div

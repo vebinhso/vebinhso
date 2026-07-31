@@ -91,7 +91,7 @@ function FilmPage() {
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(n.id)) return;
-    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(n.id, a);
@@ -168,7 +168,7 @@ function FilmPage() {
           const pending = pendingRef.current.get(node.id);
           b64 = pending
             ? await pending
-            : ((await tts({ data: { text, voice: meta.voice } })) as { audio: string }).audio;
+            : ((await tts({ data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed } })) as { audio: string }).audio;
           if (b64) cacheRef.current.set(node.id, b64);
         }
 
@@ -180,8 +180,8 @@ function FilmPage() {
           if (typeof window !== "undefined" && window.speechSynthesis) {
             const u = new SpeechSynthesisUtterance(text);
             u.lang = "vi-VN";
-            u.rate = 1;
-            u.pitch = node.speaker === "A" ? 0.85 : 1.02;
+            u.rate = meta.rate;
+            u.pitch = meta.pitch;
             u.onend = () => {
               if (cancelled) return;
               setUpTo(1);
@@ -233,8 +233,8 @@ function FilmPage() {
         }
         const u = new SpeechSynthesisUtterance(text);
         u.lang = "vi-VN";
-        u.rate = 1;
-        u.pitch = node.speaker === "A" ? 0.85 : 1.02;
+        u.rate = meta.rate;
+        u.pitch = meta.pitch;
         u.onend = () => {
           setUpTo(1);
           setSpeechDone(true);
@@ -259,7 +259,7 @@ function FilmPage() {
 
     upcoming.forEach((n) => {
       if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
-        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
           .then((r) => {
             const a = (r as { audio: string }).audio;
             cacheRef.current.set(n.id, a);

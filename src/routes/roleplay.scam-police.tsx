@@ -315,7 +315,7 @@ function FilmPage() {
           <img
             src={FILM_POSTER}
             alt="Poster phim tương tác Một cuộc gọi"
-            className="w-full rounded-2xl mb-4 border border-white/10"
+            className="w-full aspect-video object-cover rounded-2xl mb-4 border border-white/10"
           />
           <p className="text-[11px] font-black tracking-[0.3em] text-red-500 mb-2">PHIM TƯƠNG TÁC · BÀI 1</p>
           <h1 className="text-2xl sm:text-4xl font-black mb-3 leading-tight">{FILM_TITLE}</h1>

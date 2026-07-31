@@ -354,8 +354,9 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/70 mb-5">
-            Bạn vào vai <b className="text-sky-300">N</b>. Ba nút quyết định, bốn cái kết. Có lồng tiếng AI — hãy bật
-            loa hoặc đeo tai nghe.
+            Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
+            <br className="hidden sm:block" />
+            Có lồng tiếng AI — hãy bật loa hoặc đeo tai nghe.
           </p>
           <button
             onClick={() => setStarted(true)}

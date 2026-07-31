@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
-import { FILM_POSTER } from "@/lib/film-scam-police";
+import { FILM_POSTER as FILM1_POSTER } from "@/lib/film-scam-police";
+import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,
@@ -32,8 +33,30 @@ type Lesson = {
 };
 
 const LESSONS: Lesson[] = [
-  { id: "scam-police", emoji: "🚨", title: "Bài 1 · Giả danh Công an", desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.", tag: "An toàn số", level: "Cấp độ 1", gradient: "from-rose-500 to-orange-500", ready: true, to: "/roleplay/scam-police", poster: FILM_POSTER },
-  { id: "password", emoji: "🔐", title: "Bài 2 · Mật khẩu bị lộ", desc: "Tài khoản game của bạn có dấu hiệu lạ. Xử lý sao cho an toàn?", tag: "An toàn số", level: "Cấp độ 2", gradient: "from-sky-500 to-indigo-600", ready: false },
+  {
+    id: "scam-police",
+    emoji: "🚨",
+    title: "Bài 1 · Giả danh Công an",
+    desc: "Phim tương tác: một cuộc gọi hù doạ 'phục vụ điều tra'. Mỗi lựa chọn một cái kết.",
+    tag: "An toàn số",
+    level: "Cấp độ 1",
+    gradient: "from-rose-500 to-orange-500",
+    ready: true,
+    to: "/roleplay/scam-police",
+    poster: FILM1_POSTER,
+  },
+  {
+    id: "ke-giau-mat",
+    emoji: "🕶️",
+    title: "Bài 2 · Thử thách Kẻ Giấu Mặt",
+    desc: "Nhóm chat bí mật, áp lực đồng đẳng và những lựa chọn có thể làm tổn thương cả bạn lẫn người khác.",
+    tag: "An toàn số",
+    level: "Cấp độ 2",
+    gradient: "from-sky-500 to-indigo-600",
+    ready: true,
+    to: "/roleplay/ke-giau-mat",
+    poster: FILM2_POSTER,
+  },
   { id: "cyberbully", emoji: "🛡️", title: "Bài 3 · Bắt nạt trên mạng", desc: "Một người bạn bị công kích trong nhóm chat. Bạn sẽ làm gì?", tag: "Ứng xử số", level: "Cấp độ 3", gradient: "from-emerald-500 to-teal-600", ready: false },
   { id: "shopping", emoji: "🛒", title: "Bài 4 · Cú lừa mua hàng", desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.", tag: "Giao dịch số", level: "Cấp độ 4", gradient: "from-amber-500 to-yellow-600", ready: false },
   { id: "history", emoji: "🏯", title: "Bài 5 · Sứ giả thời gian", desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.", tag: "Lịch sử – Văn hoá", level: "Đặc biệt", gradient: "from-fuchsia-500 to-purple-700", ready: false },
@@ -47,7 +70,10 @@ function RoleplayPage() {
 
   useEffect(() => {
     const u = getCurrentUser();
-    if (!u) { navigate({ to: "/login" }); return; }
+    if (!u) {
+      navigate({ to: "/login" });
+      return;
+    }
     setUser(u);
   }, [navigate]);
 
@@ -57,7 +83,6 @@ function RoleplayPage() {
     <GameLayout showBack>
       <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         <div className="max-w-5xl mx-auto w-full">
-          {/* Hero */}
           <div className="relative overflow-hidden rounded-3xl p-5 sm:p-8 mb-5 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 text-primary-foreground shadow-xl">
             <div className="absolute -top-10 -right-6 text-[120px] opacity-20 select-none">🎭</div>
             <div className="relative">
@@ -128,18 +153,22 @@ function RoleplayPage() {
                   </div>
                 </>
               );
-              return l.ready && l.to === "/roleplay/scam-police" ? (
-                <Link key={l.id} to="/roleplay/scam-police" className={cardClass}>
-                  {inner}
-                </Link>
-              ) : (
+
+              if (l.ready && l.to) {
+                return (
+                  <button key={l.id} onClick={() => navigate({ to: l.to as never })} className={cardClass}>
+                    {inner}
+                  </button>
+                );
+              }
+
+              return (
                 <button key={l.id} onClick={() => setPicked(l)} className={cardClass}>
                   {inner}
                 </button>
               );
             })}
           </div>
-
 
           <div className="mt-5 rounded-2xl border-2 border-dashed border-border p-5 text-center">
             <div className="text-3xl mb-1">✨</div>

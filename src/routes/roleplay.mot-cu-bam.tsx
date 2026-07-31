@@ -309,6 +309,29 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 10) * 100)), [history.length]);
 
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!node.choices || !node.timeLimitSec || !done) {
+      setTimeLeft(null);
+      return;
+    }
+    setTimeLeft(node.timeLimitSec);
+    const id = window.setInterval(() => {
+      setTimeLeft((t) => {
+        if (t === null) return t;
+        if (t <= 1) {
+          window.clearInterval(id);
+          const fallback = node.choices?.[0]?.next;
+          if (fallback) go(fallback);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [node, done]);
+
+
   useEffect(() => {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;

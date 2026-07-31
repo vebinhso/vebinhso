@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
-import { FILM_POSTER as FILM1_POSTER } from "@/lib/film-scam-police";
+import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 
@@ -46,7 +46,7 @@ const LESSONS: Lesson[] = [
     gradient: "from-rose-500 to-orange-500",
     ready: true,
     to: "/roleplay/scam-police",
-    poster: FILM1_POSTER,
+    poster: lesson1Poster.url,
   },
   {
     id: "ke-giau-mat",

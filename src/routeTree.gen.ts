@@ -36,6 +36,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as RoleplayIndexRouteImport } from './routes/roleplay.index'
 import { Route as RoleplayKeGiauMatRouteImport } from './routes/roleplay.ke-giau-mat'
+import { Route as RoleplayMotCuBamRouteImport } from './routes/roleplay.mot-cu-bam'
 import { Route as RoleplayScamPoliceRouteImport } from './routes/roleplay.scam-police'
 import { Route as VisitOwnerIdRouteImport } from './routes/visit.$ownerId'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -178,6 +179,11 @@ const RoleplayKeGiauMatRoute = RoleplayKeGiauMatRouteImport.update({
   path: '/ke-giau-mat',
   getParentRoute: () => RoleplayRoute,
 } as any)
+const RoleplayMotCuBamRoute = RoleplayMotCuBamRouteImport.update({
+  id: '/mot-cu-bam',
+  path: '/mot-cu-bam',
+  getParentRoute: () => RoleplayRoute,
+} as any)
 const RoleplayScamPoliceRoute = RoleplayScamPoliceRouteImport.update({
   id: '/scam-police',
   path: '/scam-police',
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
+  '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/roleplay/': typeof RoleplayIndexRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
+  '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/roleplay': typeof RoleplayIndexRoute
@@ -293,6 +301,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
+  '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
   '/roleplay/scam-police': typeof RoleplayScamPoliceRoute
   '/visit/$ownerId': typeof VisitOwnerIdRoute
   '/roleplay/': typeof RoleplayIndexRoute
@@ -328,6 +337,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
     | '/roleplay/ke-giau-mat'
+    | '/roleplay/mot-cu-bam'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/roleplay/'
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
     | '/roleplay/ke-giau-mat'
+    | '/roleplay/mot-cu-bam'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/roleplay'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
     | '/roleplay/ke-giau-mat'
+    | '/roleplay/mot-cu-bam'
     | '/roleplay/scam-police'
     | '/visit/$ownerId'
     | '/roleplay/'
@@ -622,6 +634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoleplayKeGiauMatRouteImport
       parentRoute: typeof RoleplayRoute
     }
+    '/roleplay/mot-cu-bam': {
+      id: '/roleplay/mot-cu-bam'
+      path: '/mot-cu-bam'
+      fullPath: '/roleplay/mot-cu-bam'
+      preLoaderRoute: typeof RoleplayMotCuBamRouteImport
+      parentRoute: typeof RoleplayRoute
+    }
     '/roleplay/scam-police': {
       id: '/roleplay/scam-police'
       path: '/scam-police'
@@ -655,12 +674,14 @@ declare module '@tanstack/react-router' {
 
 interface RoleplayRouteChildren {
   RoleplayKeGiauMatRoute: typeof RoleplayKeGiauMatRoute
+  RoleplayMotCuBamRoute: typeof RoleplayMotCuBamRoute
   RoleplayScamPoliceRoute: typeof RoleplayScamPoliceRoute
   RoleplayIndexRoute: typeof RoleplayIndexRoute
 }
 
 const RoleplayRouteChildren: RoleplayRouteChildren = {
   RoleplayKeGiauMatRoute: RoleplayKeGiauMatRoute,
+  RoleplayMotCuBamRoute: RoleplayMotCuBamRoute,
   RoleplayScamPoliceRoute: RoleplayScamPoliceRoute,
   RoleplayIndexRoute: RoleplayIndexRoute,
 }

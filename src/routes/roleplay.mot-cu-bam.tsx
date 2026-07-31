@@ -538,6 +538,27 @@ function FilmPage() {
         </div>
       )}
 
+      {node.notifOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+          {[
+            { icon: "💬", label: "Zalo", count: "(17)" },
+            { icon: "📞", label: "Cuộc gọi nhỡ", count: "(4)" },
+            { icon: "👥", label: "Nhóm lớp 11A2", count: "(63)" },
+          ].map((n, i) => (
+            <div
+              key={n.label}
+              className="w-[88%] max-w-md rounded-xl bg-white/95 px-4 py-2 shadow-2xl"
+              style={{ animation: `filmFade 0.5s ease-out ${0.3 + i * 0.45}s both` }}
+            >
+              <p className="flex items-center justify-between text-[11px] sm:text-base font-bold text-neutral-800">
+                <span>{n.icon} {n.label}</span>
+                <span className="text-red-600">{n.count}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {node.listOverlay && (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end gap-2 px-4 pb-24 sm:pb-28">
           <div className="animate-[filmFade_0.7s_ease-out_both] rounded-lg border border-emerald-400/50 bg-black/80 px-4 py-2 font-mono text-[11px] sm:text-base font-bold text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.35)]">

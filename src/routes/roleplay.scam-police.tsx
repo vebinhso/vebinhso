@@ -62,7 +62,6 @@ const DUSTS = Array.from({ length: 14 }, (_, i) => ({
   dur: `${9 + ((i * 3) % 7)}s`,
 }));
 
-
 function FilmPage() {
   const navigate = useNavigate();
   const tts = useServerFn(speakLine);
@@ -84,9 +83,7 @@ function FilmPage() {
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
-  const visual = node.video
-    ? { src: node.video, type: "video" as const }
-    : { src: node.image, type: "image" as const };
+  const visual = node.video ? { src: node.video, type: "video" as const } : { src: node.image, type: "image" as const };
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -109,7 +106,6 @@ function FilmPage() {
     pendingRef.current.set(n.id, p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
@@ -142,35 +138,10 @@ function FilmPage() {
     stopAudio();
 
     const text = node.text;
-    // Tỉ lệ hiển thị được làm mượt: chỉ tiến, không giật lùi, bám dần vào giọng đọc
-    let shown = 0;
-    let target = 0;
-    let smoothRaf = 0;
-    let lastTs = performance.now();
-    const render = (ratio: number) => {
+    const setUpTo = (ratio: number) => {
       const n = Math.max(0, Math.min(text.length, Math.round(text.length * ratio)));
       setTyped(text.slice(0, n));
       if (n >= text.length) setDone(true);
-    };
-    const smooth = (ts: number) => {
-      if (cancelled) return;
-      const dt = Math.min(0.05, (ts - lastTs) / 1000);
-      lastTs = ts;
-      if (target > shown) {
-        // ease + tốc độ tối thiểu để chữ luôn trôi đều
-        shown = Math.min(target, shown + Math.max((target - shown) * dt * 7, dt * 0.06));
-        render(shown);
-      }
-      smoothRaf = requestAnimationFrame(smooth);
-    };
-    smoothRaf = requestAnimationFrame(smooth);
-
-    const setUpTo = (ratio: number) => {
-      target = Math.max(target, Math.max(0, Math.min(1, ratio)));
-      if (ratio >= 1) {
-        shown = 1;
-        render(1);
-      }
     };
 
     // Phụ đề tự chạy khi không có giọng đọc (tắt tiếng / lỗi TTS / đang tải)
@@ -180,9 +151,7 @@ function FilmPage() {
       const t0 = performance.now();
       const tick = () => {
         if (cancelled || audioTookOver) return;
-        let r = (performance.now() - t0) / total;
-        // Khi chỉ là nhịp mồi trong lúc chờ giọng đọc: giữ chậm để không vượt tiếng
-        if (!markDone) r = Math.min(r * 0.6, 0.3);
+        const r = (performance.now() - t0) / total;
         setUpTo(r);
         if (r < 1) raf = requestAnimationFrame(tick);
         else if (markDone) setSpeechDone(true);
@@ -195,7 +164,6 @@ function FilmPage() {
       return () => {
         cancelled = true;
         cancelAnimationFrame(raf);
-        cancelAnimationFrame(smoothRaf);
       };
     }
 
@@ -240,7 +208,6 @@ function FilmPage() {
         audioTookOver = true;
         cancelAnimationFrame(raf);
         raf = requestAnimationFrame(follow);
-
 
         await audio.play().catch(() => {
           cancelAnimationFrame(raf);
@@ -308,11 +275,9 @@ function FilmPage() {
       }
     });
 
-
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
-      cancelAnimationFrame(smoothRaf);
       window.clearTimeout(fallbackTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,8 +289,6 @@ function FilmPage() {
     const id = window.setTimeout(() => setSpeechDone(true), 5000);
     return () => window.clearTimeout(id);
   }, [done, speechDone]);
-
-
 
   useEffect(() => () => stopAudio(), [stopAudio]);
 
@@ -365,7 +328,6 @@ function FilmPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, speechDone, nodeId, autoPlay, started]);
 
-
   if (!started) {
     return (
       <div className="fixed inset-0 bg-black text-white overflow-hidden">
@@ -385,7 +347,7 @@ function FilmPage() {
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/70 mb-5">
             Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
             <br className="hidden sm:block" />
-            Có lồng tiếng AI — hãy bật loa hoặc đeo tai nghe.
+            Dãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất.
           </p>
           <button
             onClick={() => setStarted(true)}
@@ -400,7 +362,6 @@ function FilmPage() {
       </div>
     );
   }
-
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
@@ -476,12 +437,10 @@ function FilmPage() {
         </div>
       </div>
 
-
       {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -inset-y-10 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-2xl animate-[filmSweep_11s_linear_infinite]" />
       </div>
-
 
       {node.mood && node.mood !== "neutral" && (
         <div
@@ -513,7 +472,6 @@ function FilmPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/5 to-black/90" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
-
 
       {/* Top bar */}
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
@@ -563,7 +521,10 @@ function FilmPage() {
                       ))}
                     </ul>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      <button onClick={restart} className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black">
+                      <button
+                        onClick={restart}
+                        className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black"
+                      >
                         🔄 Chơi lại
                       </button>
                       <Link to="/roleplay" className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15">

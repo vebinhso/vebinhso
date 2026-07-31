@@ -384,30 +384,33 @@ function FilmPage() {
           />
         ))}
 
-      {/* Cảnh hiện tại — ưu tiên video thật, fallback về ảnh động */}
+      {/* Cảnh hiện tại — khung phim cố định 16:9 */}
       <div
         key={"cam" + node.id}
-        className="absolute inset-0 will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+        className="absolute inset-0 flex items-center justify-center will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
       >
-        {visual.type === "video" ? (
-          <video
-            key={node.id + visual.src}
-            src={visual.src}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFade_1.4s_ease-out_both]"
-          />
-        ) : (
-          <img
-            key={node.id + visual.src}
-            src={visual.src}
-            alt=""
-            className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
-          />
-        )}
+        <div className="relative w-full max-w-full max-h-full aspect-video overflow-hidden">
+          {visual.type === "video" ? (
+            <video
+              key={node.id + visual.src}
+              src={visual.src}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_1.4s_ease-out_both]"
+            />
+          ) : (
+            <img
+              key={node.id + visual.src}
+              src={visual.src}
+              alt=""
+              className={`absolute inset-0 w-full h-full object-cover will-change-transform animate-[filmFade_1.4s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+            />
+          )}
+        </div>
       </div>
+
 
       {/* Vệt sáng máy chiếu quét ngang cho cảm giác phim chạy */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

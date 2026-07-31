@@ -1,8 +1,10 @@
 import s01 from "@/assets/film4/clean/s01.jpg";
 import s02 from "@/assets/film4/clean/s02.jpg";
+import s03 from "@/assets/film4/clean/s03.jpg";
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
+import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
 
@@ -23,6 +25,8 @@ export type FilmNode = {
   text: string;
   motion?: Motion;
   mood?: "danger" | "safe" | "neutral";
+  /** Hiện lớp phủ đường link giả mạo (dựng bằng CSS) */
+  linkOverlay?: boolean;
   next?: string;
   choices?: Choice[];
   ending?: {
@@ -123,12 +127,25 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bảo ơi, cứu tớ với! Tớ đang lọt Top 5 cuộc thi Mẫu Ảnh Học Sinh Tài Năng 2026 của thành phố nè. Hôm nay là ngày cuối đóng cổng bình chọn rồi mà tớ đang thiếu mất chục vote nữa là bị loại. Bảo vào link này bấm vote giúp tớ với, tớ ơn Bảo nhiều lắm nè!",
     motion: "push",
     mood: "danger",
+    next: "s03",
+  },
+  // S03 — Đường link được gửi kèm
+  s03: {
+    id: "s03",
+    image: s03,
+    video: vs03.url,
+    speaker: "narrator",
+    action: "Ngón tay Bảo dừng lại ngay trên đường link",
+    text: "Kèm theo tin nhắn là một đường link. Nhìn thoáng qua thì rất giống trang bình chọn thật, nhưng tên miền lại kết thúc bằng chấm t-o-p, và thanh địa chỉ không có biểu tượng ổ khoá — kết nối không được mã hoá.",
+    motion: "push",
+    mood: "danger",
+    linkOverlay: true,
     ending: {
       kind: "safe",
       code: "…",
       title: "PHẦN TIẾP THEO ĐANG ĐƯỢC DỰNG",
       lesson:
-        "Hai cảnh đầu của phim đã sẵn sàng. Các cảnh S03 trở đi (đường link lạ, nút quyết định và 4 kết thúc) sẽ được bổ sung trong bản cập nhật kế tiếp.",
+        "Ba cảnh đầu của phim đã sẵn sàng. Các cảnh S04 trở đi (nút quyết định và 4 kết thúc) sẽ được bổ sung trong bản cập nhật kế tiếp.",
     },
   },
 };

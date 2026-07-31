@@ -219,27 +219,7 @@ function FilmPage() {
       }
     };
 
-      } catch {
-        if (cancelled) return;
-        if (typeof window === "undefined" || !window.speechSynthesis) {
-          runFallbackCaption();
-          return;
-        }
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "vi-VN";
-        u.rate = meta.rate;
-        u.pitch = meta.pitch;
-        u.onend = () => {
-          setUpTo(1);
-          setSpeechDone(true);
-        };
-        u.onboundary = (e) => {
-          if (e.charIndex) setTyped(text.slice(0, e.charIndex + (e.charLength ?? 0)));
-        };
-        window.speechSynthesis.speak(u);
-        runFallbackCaption();
-      }
-    };
+
     void play();
 
     // Tải sẵn giọng đọc + hình/video của các cảnh kế tiếp (kể cả nhánh lựa chọn)

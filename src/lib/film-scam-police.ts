@@ -30,6 +30,23 @@ import v03 from "@/assets/film2/v03.mp4.asset.json";
 import v04 from "@/assets/film2/v04.mp4.asset.json";
 import v05 from "@/assets/film2/v05.mp4.asset.json";
 import v07 from "@/assets/film2/v07.mp4.asset.json";
+import v08 from "@/assets/film2/v08.mp4.asset.json";
+import v09 from "@/assets/film2/v09.mp4.asset.json";
+import v10 from "@/assets/film2/v10.mp4.asset.json";
+import v11 from "@/assets/film2/v11.mp4.asset.json";
+import v13 from "@/assets/film2/v13.mp4.asset.json";
+import v14 from "@/assets/film2/v14.mp4.asset.json";
+import v15 from "@/assets/film2/v15.mp4.asset.json";
+import v16 from "@/assets/film2/v16.mp4.asset.json";
+import v17 from "@/assets/film2/v17.mp4.asset.json";
+import v18 from "@/assets/film2/v18.mp4.asset.json";
+import v20 from "@/assets/film2/v20.mp4.asset.json";
+import v21 from "@/assets/film2/v21.mp4.asset.json";
+import v22 from "@/assets/film2/v22.mp4.asset.json";
+import v23 from "@/assets/film2/v23.mp4.asset.json";
+import v24 from "@/assets/film2/v24.mp4.asset.json";
+import v25 from "@/assets/film2/v25.mp4.asset.json";
+import v26 from "@/assets/film2/v26.mp4.asset.json";
 
 export type Speaker = "K" | "N" | "narrator";
 
@@ -171,6 +188,7 @@ export const FILM: Record<string, FilmNode> = {
   s08: {
     id: "s08",
     image: s08,
+    video: v08.url,
     speaker: "K",
     action: "Đòn cô lập",
     text: "Anh vào phòng, khoá cửa lại. Không được cho ai nghe thấy cuộc gọi này.",
@@ -181,6 +199,7 @@ export const FILM: Record<string, FilmNode> = {
   s08b: {
     id: "s08b",
     image: s08,
+    video: v08.url,
     speaker: "narrator",
     text: "Cảnh báo: đây là đòn CÔ LẬP — bước bắt buộc của mọi kịch bản lừa đảo. Tách nạn nhân khỏi người thân để không ai kịp cản.",
     motion: "kenburns",
@@ -190,6 +209,7 @@ export const FILM: Record<string, FilmNode> = {
   s09: {
     id: "s09",
     image: s09,
+    video: v09.url,
     speaker: "K",
     action: "Ra giá",
     text: "Để chứng minh sự trong sạch, anh phải chuyển sáu trăm triệu đồng vào tài khoản tạm giữ của cơ quan điều tra.",
@@ -200,6 +220,7 @@ export const FILM: Record<string, FilmNode> = {
   s10: {
     id: "s10",
     image: s10,
+    video: v10.url,
     speaker: "narrator",
     action: "Tin nhắn đến — một tấm ảnh đóng dấu đỏ",
     text: "K gửi cho N một lệnh bắt giữ giả mạo để tăng độ tin tưởng. Không cơ quan tố tụng nào gửi lệnh bắt qua tin nhắn.",
@@ -210,6 +231,7 @@ export const FILM: Record<string, FilmNode> = {
   s11: {
     id: "s11",
     image: s11,
+    video: v11.url,
     speaker: "narrator",
     action: "Hai bàn tay run rẩy giữ điện thoại",
     text: "Sáu trăm triệu. Ô xác nhận đã sáng lên. Ngón tay N run bần bật, mồ hôi vã ra.",
@@ -234,6 +256,7 @@ export const FILM: Record<string, FilmNode> = {
   s13: {
     id: "s13",
     image: s13,
+    video: v13.url,
     speaker: "N",
     action: "Ngồi thẳng lại, nở nụ cười ranh mãnh",
     text: "Tôi cần thêm thời gian suy nghĩ... Mà giờ tôi không có tiền, cán bộ có cho trả góp không ạ?",
@@ -243,6 +266,7 @@ export const FILM: Record<string, FilmNode> = {
   s13b: {
     id: "s13b",
     image: s13,
+    video: v13.url,
     speaker: "narrator",
     text: "Kẻ lừa đảo sống bằng sự vội vàng. Càng kéo dài, kịch bản của chúng càng vỡ.",
     motion: "kenburns",
@@ -252,6 +276,7 @@ export const FILM: Record<string, FilmNode> = {
   s14: {
     id: "s14",
     image: s14,
+    video: v14.url,
     speaker: "narrator",
     action: "Cuộc gọi đã kết thúc",
     text: "N quyết định cúp máy và không tiếp tục cuộc gọi nữa. Đèn bật sáng, căn phòng ấm trở lại. Không một đồng nào rời khỏi tài khoản.",
@@ -269,6 +294,7 @@ export const FILM: Record<string, FilmNode> = {
   s15: {
     id: "s15",
     image: s15,
+    video: v15.url,
     speaker: "N",
     action: "Màn hình báo chuyển khoản thành công",
     text: "Tôi chuyển đủ ba trăm triệu rồi ạ, cán bộ kiểm tra giúp tôi với!",
@@ -279,6 +305,7 @@ export const FILM: Record<string, FilmNode> = {
   s16: {
     id: "s16",
     image: s16,
+    video: v16.url,
     speaker: "K",
     action: "Cười lớn, bắt đầu vắt chanh",
     text: "Anh làm cái gì thế này! Sai cú pháp một ký tự nên hệ thống treo mất rồi! Phải chuyển thêm ba trăm triệu nữa mới giải phóng được cả hai khoản!",
@@ -289,6 +316,7 @@ export const FILM: Record<string, FilmNode> = {
   s17: {
     id: "s17",
     image: s17,
+    video: v17.url,
     speaker: "narrator",
     action: "Hai giờ mười bốn phút sáng — quầy vay tín chấp",
     text: "N hoang mang, đi vay thêm tiền để 'phục vụ điều tra'. Đây là bẫy chi phí chìm: đã mất ba trăm triệu nên càng cố cứu bằng ba trăm triệu nữa.",
@@ -299,6 +327,7 @@ export const FILM: Record<string, FilmNode> = {
   s18: {
     id: "s18",
     image: s18,
+    video: v18.url,
     speaker: "K",
     action: "Gửi một đường link lạ",
     text: "Tải ứng dụng này để bộ Công an giám sát điện thoại của anh. Cài xong thì báo lại tôi ngay.",
@@ -323,6 +352,7 @@ export const FILM: Record<string, FilmNode> = {
   s20: {
     id: "s20",
     image: s20,
+    video: v20.url,
     speaker: "narrator",
     action: "Hộp thoại xin quyền hiện lên",
     text: "Ứng dụng đòi quyền đọc tin nhắn, đọc danh bạ, truy cập bộ nhớ và quản trị thiết bị. N bấm Cho phép tất cả. Quyền trợ năng nghĩa là cho người lạ nhìn và bấm thay bạn. Quyền SMS nghĩa là chúng đọc được mã OTP.",
@@ -333,6 +363,7 @@ export const FILM: Record<string, FilmNode> = {
   s21: {
     id: "s21",
     image: s21,
+    video: v21.url,
     speaker: "narrator",
     action: "Bên kia màn hình: 'Đã kết nối'",
     text: "K chiếm quyền điều khiển điện thoại của N từ xa. Hắn tự mở app ngân hàng, tự đọc mã OTP, tự bấm xác nhận.",
@@ -343,6 +374,7 @@ export const FILM: Record<string, FilmNode> = {
   s22: {
     id: "s22",
     image: s22,
+    video: v22.url,
     speaker: "N",
     action: "Số dư: 0 đồng",
     text: "Toàn bộ tiền trong tài khoản đã bị rút sạch. Số điện thoại kia giờ không còn tồn tại.",
@@ -360,6 +392,7 @@ export const FILM: Record<string, FilmNode> = {
   s23: {
     id: "s23",
     image: s23,
+    video: v23.url,
     speaker: "narrator",
     action: "Màn hình đỏ rực cảnh báo",
     text: "Cảnh báo nguy hiểm: ứng dụng này có thể đọc tin nhắn và điều khiển thiết bị của bạn. N khựng lại, tỉnh ra.",
@@ -369,6 +402,7 @@ export const FILM: Record<string, FilmNode> = {
   s23b: {
     id: "s23b",
     image: s23,
+    video: v23.url,
     speaker: "N",
     text: "Ủa cán bộ, máy tôi đang báo ứng dụng lạ, cần quét vi-rút ạ. Tôi chưa cài đâu.",
     motion: "kenburns",
@@ -377,6 +411,7 @@ export const FILM: Record<string, FilmNode> = {
   s24: {
     id: "s24",
     image: s24,
+    video: v24.url,
     speaker: "K",
     action: "Mặt nạ chuyên nghiệp rơi xuống",
     text: "Mẹ kiếp! Sao mày biết? Mày thích chống đối à?!",
@@ -387,6 +422,7 @@ export const FILM: Record<string, FilmNode> = {
   s25: {
     id: "s25",
     image: s25,
+    video: v25.url,
     speaker: "N",
     action: "Bình tĩnh phản đòn",
     text: "Tôi đã ghi âm cuộc gọi này và sẽ trình báo cơ quan chức năng ngay bây giờ.",
@@ -404,6 +440,7 @@ export const FILM: Record<string, FilmNode> = {
   s26: {
     id: "s26",
     image: s26,
+    video: v26.url,
     speaker: "N",
     action: "Giọng bình tĩnh, không sợ hãi",
     text: "Công an làm việc thì mời giấy về địa phương, chứ không làm việc qua điện thoại. Tôi cúp máy đây.",
@@ -414,6 +451,7 @@ export const FILM: Record<string, FilmNode> = {
   s26b: {
     id: "s26b",
     image: s26,
+    video: v26.url,
     speaker: "narrator",
     action: "Cuộc gọi đã kết thúc — 01:12",
     text: "K hoảng sợ, cúp máy và biến mất. Bạn không mất một đồng nào.",

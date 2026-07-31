@@ -205,13 +205,36 @@ function FilmPage() {
     };
     void play();
 
-    // tải sẵn giọng cho cảnh kế tiếp để không bị trễ khi chuyển cảnh
-    const nxt = node.next ? FILM[node.next] : undefined;
-    if (nxt && !cacheRef.current.get(nxt.id)) {
-      void tts({ data: { text: nxt.text, voice: SPEAKER_META[nxt.speaker].voice } })
-        .then((r) => cacheRef.current.set(nxt.id, (r as { audio: string }).audio))
-        .catch(() => {});
-    }
+    // Tải sẵn giọng đọc + hình/video của các cảnh kế tiếp (kể cả nhánh lựa chọn)
+    const upcoming: FilmNode[] = [];
+    const push = (id?: string) => {
+      const n = id ? FILM[id] : undefined;
+      if (n && !upcoming.some((u) => u.id === n.id)) upcoming.push(n);
+    };
+    push(node.next);
+    node.choices?.forEach((c) => push(c.next));
+    upcoming.slice(0, 3).forEach((n) => push(n.next));
+
+    upcoming.forEach((n) => {
+      if (!cacheRef.current.get(n.id)) {
+        cacheRef.current.set(n.id, ""); // đánh dấu đang tải, tránh gọi trùng
+        void tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice } })
+          .then((r) => cacheRef.current.set(n.id, (r as { audio: string }).audio))
+          .catch(() => cacheRef.current.delete(n.id));
+      }
+      // nạp trước khung hình để chuyển cảnh không bị khựng
+      if (n.video) {
+        const v = document.createElement("video");
+        v.preload = "auto";
+        v.src = n.video;
+        v.muted = true;
+        void v.load();
+      } else if (n.image) {
+        const im = new Image();
+        im.src = n.image;
+      }
+    });
+
 
     return () => {
       cancelled = true;

@@ -21,6 +21,7 @@ import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
+import vs04b from "@/assets/film4/video/b05b.mp4.asset.json";
 import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
 import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
 import vs07 from "@/assets/film4/video/b08.mp4.asset.json";

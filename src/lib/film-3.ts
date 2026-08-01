@@ -3,6 +3,7 @@ import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
 import s04choice from "@/assets/film4/clean/s04-choice.jpg";
+import s04decide from "@/assets/film4/clean/s04-decide.jpg";
 import s05 from "@/assets/film4/clean/s05.jpg";
 import s06 from "@/assets/film4/clean/s06.jpg";
 import s07 from "@/assets/film4/clean/s07.jpg";
@@ -20,6 +21,7 @@ import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
 import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
+import vs04b from "@/assets/film4/video/b05b.mp4.asset.json";
 import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
 import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
 import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
@@ -196,6 +198,18 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "B",
     action: "Ngón cái Bảo lơ lửng trên màn hình — cậu chỉ muốn giúp bạn",
     text: "Bạn cùng trường nhờ gấp thế này... mình giúp một cái cũng nhanh thôi mà. Nhưng mà lâu rồi Hà đâu có nhắn tin cho mình...",
+    motion: "push",
+    mood: "danger",
+    next: "s04q",
+  },
+  // S04q — Người dẫn chuyện đọc yêu cầu quyết định
+  s04q: {
+    id: "s04q",
+    image: s04decide,
+    video: vs04b.url,
+    speaker: "narrator",
+    action: "Bảo cầm điện thoại, ngón cái lơ lửng — cậu không biết phải làm gì",
+    text: "Bảo cầm chặt điện thoại, ngón cái lơ lửng trên đường link mà không biết phải làm gì. Bạn đang vào vai Bảo. Bảo nên làm gì bây giờ? Hãy chọn một trong hai phương án dưới đây.",
     motion: "push",
     mood: "danger",
     choiceImage: s04choice,

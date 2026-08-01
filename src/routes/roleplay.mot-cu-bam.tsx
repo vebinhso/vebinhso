@@ -23,7 +23,7 @@ export const Route = createFileRoute("/roleplay/mot-cu-bam")({
       {
         name: "description",
         content:
-          "Bài 3 nhập vai: một đường link bình chọn gửi từ nick bạn thân. Bạn sẽ bấm giúp bạn hay dừng lại xác minh?",
+          "Bài 3 nhập vai: một đường link bình chọn gửi từ tài khoản của bạn thân. Bạn sẽ bấm giúp bạn hay dừng lại xác minh?",
       },
       { property: "og:title", content: "Phim tương tác: Một Cú Bấm Vì Bạn" },
       {
@@ -92,7 +92,6 @@ function FilmPage() {
       : node.video
         ? { src: node.video, type: "video" as const }
         : { src: node.image, type: "image" as const };
-
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -337,7 +336,6 @@ function FilmPage() {
     return () => window.clearInterval(id);
   }, [node, done]);
 
-
   useEffect(() => {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
@@ -488,9 +486,7 @@ function FilmPage() {
             <p className="text-sm sm:text-lg font-black tracking-wide text-white drop-shadow">
               MẪU ẢNH HỌC SINH TÀI NĂNG 2026
             </p>
-            <p className="mt-1 text-[11px] sm:text-sm font-bold text-pink-100">
-              Hạng 5 — 4.812 lượt bình chọn
-            </p>
+            <p className="mt-1 text-[11px] sm:text-sm font-bold text-pink-100">Hạng 5 — 4.812 lượt bình chọn</p>
             <p className="mt-1 text-[11px] sm:text-sm font-bold text-yellow-200">
               ⏳ Cổng bình chọn đóng sau: 00:47:12
             </p>
@@ -500,106 +496,6 @@ function FilmPage() {
           </div>
         </div>
       )}
-
-      {node.loginOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
-          <div className="animate-[filmFade_0.7s_ease-out_both] w-[92%] max-w-lg rounded-lg bg-neutral-200/95 px-3 py-1.5 font-mono text-[11px] sm:text-base font-bold text-neutral-800 shadow-lg">
-            🔓 <span className="text-neutral-500">facebook.com</span>
-            <span className="text-red-600 animate-pulse">.vote-2026.xyz</span>
-            <span className="text-neutral-500">/login</span>
-          </div>
-          <div className="animate-[filmFade_1s_ease-out_both] w-[92%] max-w-lg rounded-2xl bg-white/95 px-4 py-4 text-center shadow-[0_0_50px_rgba(255,255,255,0.35)]">
-            <p className="text-[11px] sm:text-sm font-bold text-neutral-800">
-              🔒 Để tránh gian lận vote, vui lòng đăng nhập tài khoản Facebook/Zalo để hệ thống xác minh!
-            </p>
-            <div className="mt-3 space-y-2">
-              <div className="rounded-md border border-neutral-300 px-3 py-1.5 text-left text-[11px] sm:text-sm text-neutral-400">
-                Số điện thoại hoặc Email
-              </div>
-              <div className="rounded-md border border-neutral-300 px-3 py-1.5 text-left text-[11px] sm:text-sm text-neutral-400">
-                Mật khẩu
-              </div>
-            </div>
-            <div className="mt-3 rounded-md bg-blue-600 px-4 py-2 text-[11px] sm:text-base font-black text-white">
-              XÁC NHẬN VOTE
-            </div>
-          </div>
-        </div>
-      )}
-
-      {node.typingOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
-          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-xl bg-white/95 px-6 py-3 tracking-[0.35em] text-2xl sm:text-4xl font-black text-neutral-900 shadow-2xl">
-            ••••••••••
-          </div>
-          <p className="animate-[filmFade_1.2s_ease-out_both] rounded-full bg-black/70 px-4 py-1.5 text-[11px] sm:text-sm font-bold text-red-300">
-            Bảo mất 4 giây để gõ xong.
-          </p>
-        </div>
-      )}
-
-      {node.lostOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
-          <div className="animate-[filmFade_0.6s_ease-out_both] rounded-lg bg-red-600/95 px-4 py-2 text-[11px] sm:text-base font-black text-white shadow-2xl">
-            ❌ Mật khẩu không chính xác
-          </div>
-          <p className="animate-[filmFade_1.1s_ease-out_both] max-w-[90%] rounded-xl bg-black/75 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
-            Kẻ gian đã đổi mật khẩu, đổi email khôi phục, bật xác thực hai lớp bằng số của chúng.
-          </p>
-          <p className="animate-[filmFade_1.6s_ease-out_both] max-w-[90%] text-center text-[11px] sm:text-base font-black text-red-300">
-            Nick 6 năm của Bảo — mất trong 15 phút.
-          </p>
-        </div>
-      )}
-
-      {node.notifOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
-          {[
-            { icon: "💬", label: "Zalo", count: "(17)" },
-            { icon: "📞", label: "Cuộc gọi nhỡ", count: "(4)" },
-            { icon: "👥", label: "Nhóm lớp 11A2", count: "(63)" },
-          ].map((n, i) => (
-            <div
-              key={n.label}
-              className="w-[88%] max-w-md rounded-xl bg-white/95 px-4 py-2 shadow-2xl"
-              style={{ animation: `filmFade 0.5s ease-out ${0.3 + i * 0.45}s both` }}
-            >
-              <p className="flex items-center justify-between text-[11px] sm:text-base font-bold text-neutral-800">
-                <span>{n.icon} {n.label}</span>
-                <span className="text-red-600">{n.count}</span>
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {node.listOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end gap-2 px-4 pb-24 sm:pb-28">
-          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-lg border border-emerald-400/50 bg-black/80 px-4 py-2 font-mono text-[11px] sm:text-base font-bold text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.35)]">
-            Tài khoản thứ 214 trong đêm nay.
-          </div>
-          <p className="animate-[filmFade_1.3s_ease-out_both] max-w-[90%] rounded-xl bg-black/70 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
-            Không có ai "nhắm vào Bảo" cả. Bảo chỉ là một dòng trong danh sách.
-          </p>
-        </div>
-      )}
-
-      {node.successOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
-          <div className="animate-[filmFade_0.7s_ease-out_both] rounded-2xl border border-emerald-400/40 bg-white/95 px-5 py-4 text-center shadow-2xl">
-            <p className="text-base sm:text-2xl font-black text-emerald-600">
-              ✅ Cảm ơn bạn đã bình chọn!
-            </p>
-          </div>
-          <p className="animate-[filmFade_1.3s_ease-out_both] max-w-[90%] rounded-xl bg-black/70 px-4 py-2 text-center text-[11px] sm:text-sm font-semibold text-white/90">
-            Bảo mỉm cười, tắt máy đi ngủ. Cậu thấy mình vừa làm một việc tốt.
-          </p>
-        </div>
-      )}
-
-
-
-
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (
@@ -694,10 +590,9 @@ function FilmPage() {
                   {node.ending.title}
                 </h2>
                 <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
-                <p className="whitespace-pre-line text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
+                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
-
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowNotes(true)}
@@ -753,24 +648,22 @@ function FilmPage() {
                         )}
                       </div>
                       {node.choices.map((c) => (
-
-                    <button
-                      key={c.next + c.label}
-                      onClick={() => go(c.next)}
-                      className={`w-full text-left rounded-xl px-4 py-3 font-black text-sm border-2 backdrop-blur-md transition-transform hover:-translate-y-0.5 ${
-                        c.tone === "safe"
-                          ? "bg-emerald-600/85 border-emerald-300"
-                          : c.tone === "risky"
-                            ? "bg-red-700/85 border-red-400"
-                            : "bg-slate-700/85 border-slate-300"
-                      }`}
-                    >
-                      {c.label}
-                    </button>
+                        <button
+                          key={c.next + c.label}
+                          onClick={() => go(c.next)}
+                          className={`w-full text-left rounded-xl px-4 py-3 font-black text-sm border-2 backdrop-blur-md transition-transform hover:-translate-y-0.5 ${
+                            c.tone === "safe"
+                              ? "bg-emerald-600/85 border-emerald-300"
+                              : c.tone === "risky"
+                                ? "bg-red-700/85 border-red-400"
+                                : "bg-slate-700/85 border-slate-300"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
                       ))}
                     </>
                   )
-
                 ) : (
                   <button
                     onClick={() =>

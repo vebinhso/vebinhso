@@ -65,7 +65,7 @@ const LESSONS: Lesson[] = [
     emoji: "🛡️",
     title: "Bài 3 · Một cú bấm vì bạn",
     desc: "Nick của Hà nhắn nhờ bấm link bình chọn. Bấm giúp bạn hay dừng lại xác minh?",
-    tag: "Ứng xử số",
+    tag: "An toàn số",
     gradient: "from-emerald-500 to-teal-600",
     ready: true,
     to: "/roleplay/mot-cu-bam",
@@ -154,7 +154,6 @@ function RoleplayPage() {
                   <div
                     className={`relative w-full aspect-video overflow-hidden bg-gradient-to-br ${l.gradient} flex items-center justify-center`}
                   >
-
                     {l.poster ? (
                       <>
                         <img

@@ -466,16 +466,17 @@ function FilmPage() {
 
       {node.voteOverlay && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-[86%] max-w-md rounded-3xl border border-pink-300/50 bg-gradient-to-b from-pink-500/85 to-fuchsia-700/85 backdrop-blur-md px-4 py-4 text-center shadow-[0_0_60px_rgba(236,72,153,0.55)]">
-            <p className="text-sm sm:text-lg font-black tracking-wide text-white drop-shadow">
-              MẪU ẢNH HỌC SINH TÀI NĂNG 2026
-            </p>
-            <p className="mt-1 text-[11px] sm:text-sm font-bold text-pink-100">Hạng 5 — 4.812 lượt bình chọn</p>
-            <p className="mt-1 text-[11px] sm:text-sm font-bold text-yellow-200">
-              ⏳ Cổng bình chọn đóng sau: 00:47:12
-            </p>
-            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-[11px] sm:text-base font-black text-pink-600 shadow-[0_0_25px_rgba(255,255,255,0.6)] animate-pulse">
-              BẤM VÀO ĐÂY ĐỂ BÌNH CHỌN
+          <div className="animate-[filmFade_0.9s_ease-out_both] relative w-[38vh] max-w-[240px] rounded-[2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.7)] rotate-[-4deg]">
+            <div className="absolute left-1/2 top-1 z-10 h-1.5 w-14 -translate-x-1/2 rounded-full bg-neutral-700" />
+            <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-b from-pink-500 to-fuchsia-700 px-3 py-5 text-center">
+              <p className="text-[11px] font-black leading-tight tracking-wide text-white drop-shadow">
+                MẪU ẢNH HỌC SINH TÀI NĂNG 2026
+              </p>
+              <p className="mt-1 text-[9px] font-bold text-pink-100">Hạng 5 — 4.812 lượt bình chọn</p>
+              <p className="mt-1 text-[9px] font-bold text-yellow-200">⏳ Cổng bình chọn đóng sau: 00:47:12</p>
+              <div className="mt-3 rounded-full bg-white/95 px-2 py-2 text-[10px] font-black text-pink-600 shadow-[0_0_25px_rgba(255,255,255,0.6)] animate-pulse">
+                BẤM VÀO ĐÂY ĐỂ BÌNH CHỌN
+              </div>
             </div>
           </div>
         </div>

@@ -20,7 +20,7 @@ import s19 from "@/assets/film2/clean/s19.jpg";
 import s20 from "@/assets/film2/clean2/s20.jpg";
 import s21 from "@/assets/film2/clean2/s21.jpg";
 import s22 from "@/assets/film2/clean2/s22.jpg";
-import s23 from "@/assets/film2/clean6/s23f.jpg";
+import s23 from "@/assets/film2/clean6/s23w.jpg";
 import s24 from "@/assets/film2/clean6/s24f.jpg";
 import s25 from "@/assets/film2/clean3/s25b.jpg";
 import s26 from "@/assets/film2/clean3/s26.jpg";
@@ -44,7 +44,7 @@ import v18 from "@/assets/film2/v18.mp4.asset.json";
 import v20 from "@/assets/film2/v20.mp4.asset.json";
 import v21 from "@/assets/film2/v21.mp4.asset.json";
 import v22 from "@/assets/film2/v22c.mp4.asset.json";
-import v23 from "@/assets/film2/v23f.mp4.asset.json";
+import v23 from "@/assets/film2/v23w.mp4.asset.json";
 import v24 from "@/assets/film2/v24f.mp4.asset.json";
 import v25 from "@/assets/film2/v25b.mp4.asset.json";
 import v26 from "@/assets/film2/v26b.mp4.asset.json";
@@ -274,16 +274,6 @@ export const FILM: Record<string, FilmNode> = {
     action: "Ngồi thẳng lại, nở nụ cười ranh mãnh",
     text: "Tôi cần thêm thời gian suy nghĩ... Mà giờ tôi không có tiền, cán bộ có cho trả góp không ạ?",
     motion: "kenburns",
-    next: "s13b",
-  },
-  s13b: {
-    id: "s13b",
-    image: s13,
-    video: v13.url,
-    speaker: "narrator",
-    text: "Kẻ lừa đảo sống bằng sự vội vàng. Càng kéo dài, kịch bản của chúng càng vỡ.",
-    motion: "kenburns",
-    mood: "safe",
     next: "s14",
   },
   s14: {

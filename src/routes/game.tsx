@@ -892,7 +892,11 @@ function GamePage() {
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
-          onPlayerPos={(x, z) => setPlayerPos({ x, z })}
+          onPlayerPos={(x, z) =>
+            setPlayerPos((prev) =>
+              Math.abs(prev.x - x) < 0.6 && Math.abs(prev.z - z) < 0.6 ? prev : { x, z }
+            )
+          }
           friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
           onVisitFriend={(ownerId) => {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);

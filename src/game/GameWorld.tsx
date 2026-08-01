@@ -732,22 +732,20 @@ const Neighborhood = memo(function Neighborhood({
       const jitterX = ((s % 7) - 3) * 0.6;
       const jitterZ = (((s >> 3) % 7) - 3) * 0.6;
       const rot = ((s >> 6) % 4) * (Math.PI / 2);
-      const isHouse = s % 5 !== 0;
+      const isHouse = s % 4 !== 0;
       if (isHouse) {
         houseSlots.push({ gx, gz, seed, s, jitterX, jitterZ, rot, dist2: gx * gx + gz * gz });
       } else {
-        for (let t = 0; t < 3; t++) {
-          const tx = ((s >> (t * 2)) % 9) - 4;
-          const tz = ((s >> (t * 2 + 1)) % 9) - 4;
-          treeGroups.push(
-            <group key={`gt-${gx}-${gz}-${t}`} position={[gx + tx * 1.2, 0, gz + tz * 1.2]}>
-              <NeighborTree seed={s + t * 31} />
-            </group>
-          );
-        }
+        const tx = (s % 9) - 4;
+        const tz = ((s >> 1) % 9) - 4;
+        treeGroups.push(
+          <group key={`gt-${gx}-${gz}`} position={[gx + tx * 1.2, 0, gz + tz * 1.2]}>
+            <NeighborTree seed={s} />
+          </group>
+        );
       }
     }
-    if (i > 800) break;
+    if (i > 120) break;
   }
   houseSlots.sort((a, b) => a.dist2 - b.dist2);
 

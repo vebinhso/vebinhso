@@ -21,7 +21,7 @@ import s20 from "@/assets/film2/clean2/s20.jpg";
 import s21 from "@/assets/film2/clean2/s21.jpg";
 import s22 from "@/assets/film2/clean2/s22.jpg";
 import s23 from "@/assets/film2/clean6/s23w.jpg";
-import s24 from "@/assets/film2/clean6/s24f.jpg";
+import s24 from "@/assets/film2/clean6/s24w.jpg";
 import s25 from "@/assets/film2/clean3/s25b.jpg";
 import s26 from "@/assets/film2/clean3/s26.jpg";
 import s27 from "@/assets/film2/clean3/s27.jpg";
@@ -45,7 +45,7 @@ import v20 from "@/assets/film2/v20.mp4.asset.json";
 import v21 from "@/assets/film2/v21.mp4.asset.json";
 import v22 from "@/assets/film2/v22c.mp4.asset.json";
 import v23 from "@/assets/film2/v23w.mp4.asset.json";
-import v24 from "@/assets/film2/v24f.mp4.asset.json";
+import v24 from "@/assets/film2/v24w.mp4.asset.json";
 import v25 from "@/assets/film2/v25b.mp4.asset.json";
 import v26 from "@/assets/film2/v26b.mp4.asset.json";
 

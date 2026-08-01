@@ -774,13 +774,12 @@ const Neighborhood = memo(function Neighborhood({
         )}
       </group>
     );
-    const tCount = 1 + (slot.s % 2);
-    for (let t = 0; t < tCount; t++) {
-      const tx = ((slot.s >> (t * 2)) % 5) - 2;
-      const tz = ((slot.s >> (t * 2 + 1)) % 5) - 2;
+    if (slot.s % 2 === 0) {
+      const tx = (slot.s % 5) - 2;
+      const tz = ((slot.s >> 1) % 5) - 2;
       trees.push(
-        <group key={`t-${slot.gx}-${slot.gz}-${t}`} position={[slot.gx + tx * 1.4, 0, slot.gz + tz * 1.4]}>
-          <NeighborTree seed={slot.s + t * 17} />
+        <group key={`t-${slot.gx}-${slot.gz}`} position={[slot.gx + tx * 1.4, 0, slot.gz + tz * 1.4]}>
+          <NeighborTree seed={slot.s + 17} />
         </group>
       );
     }

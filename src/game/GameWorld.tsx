@@ -214,7 +214,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     // Báo vị trí ra ngoài (throttle ~10Hz) để HUD xác định gần cửa
     if (onPlayerPos) {
       const now = performance.now();
-      if (now - lastReport.current > 100) {
+      if (now - lastReport.current > 260) {
         lastReport.current = now;
         onPlayerPos(ref.current.position.x, ref.current.position.z);
       }

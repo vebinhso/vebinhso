@@ -335,8 +335,9 @@ function FilmPage() {
           </h1>
           <div className="max-w-xl w-full mb-5">
             <p className="text-xs sm:text-sm font-bold text-white/75">
-              Bạn vào vai <b className="text-sky-300">M</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
-              quyền riêng tư của người khác.
+              Bạn là <b className="text-sky-300">M</b>, một học sinh luôn đạt thành tích cao trong lớp nhưng lại chịu áp
+              lực bởi kì vọng của bản thân mình. Một ngày nọ, bạn được mời vào nhóm chat nơi bạn được thỏa sức thử thách
+              bản thân. Từ đây, hành trình của bạn sẽ bắt đầu
             </p>
             <p className="mt-1 text-xs sm:text-sm font-bold text-white/75">
               Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!

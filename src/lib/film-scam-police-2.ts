@@ -105,10 +105,9 @@ export const SPEAKER_META: Record<
     pitch: 1,
     rate: 1,
   },
-
 };
 
-export const FILM_TITLE = "THỬ THÁCH KẺ GIẤU MẶT";
+export const FILM_TITLE = "GỢI NHỚ TỪ CÁ VOI XANH";
 export const FILM_POSTER = poster;
 export const FILM_SUMMARY_IMAGE = m25;
 
@@ -308,7 +307,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "loss",
       code: "D",
       title: "KẾT THÚC D — BỊ NHỐT TRONG NỖI SỢ",
-      lesson: "Kẻ xấu mạnh nhất khi nạn nhân im lặng. Đừng tự chịu đựng một mình khi bị đe doạ hay thao túng trên mạng.",
+      lesson:
+        "Kẻ xấu mạnh nhất khi nạn nhân im lặng. Đừng tự chịu đựng một mình khi bị đe doạ hay thao túng trên mạng.",
     },
   },
   // S20 — M tỉnh ngộ
@@ -388,7 +388,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "safe",
       code: "A",
       title: "KẾT THÚC A — DỪNG LẠI ĐÚNG LÚC",
-      lesson: "Chặn liên lạc, lưu bằng chứng và báo ngay cho người lớn là cách an toàn nhất khi gặp thử thách thao túng, đe doạ trên mạng.",
+      lesson:
+        "Chặn liên lạc, lưu bằng chứng và báo ngay cho người lớn là cách an toàn nhất khi gặp thử thách thao túng, đe doạ trên mạng.",
     },
   },
 };

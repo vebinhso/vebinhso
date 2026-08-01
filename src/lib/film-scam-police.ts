@@ -114,10 +114,9 @@ export const SPEAKER_META: Record<
     pitch: 1,
     rate: 1,
   },
-
 };
 
-export const FILM_TITLE = "MỘT CUỘC GỌI — Bạn chọn, bạn chịu hậu quả";
+export const FILM_TITLE = "ALO, CẢNH SÁT ĐÂY!";
 export const FILM_POSTER = s01;
 export const FILM_SUMMARY_IMAGE = s27;
 
@@ -300,7 +299,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "safe",
       code: "B",
       title: "KẾT THÚC B — THOÁT HIỂM AN TOÀN",
-      lesson: "Kéo dài thời gian là vũ khí mạnh nhất của bạn. Hãy cúp máy, hít thở, rồi tự gọi lại cho công an phường bằng số chính thức.",
+      lesson:
+        "Kéo dài thời gian là vũ khí mạnh nhất của bạn. Hãy cúp máy, hít thở, rồi tự gọi lại cho công an phường bằng số chính thức.",
     },
   },
 
@@ -398,7 +398,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "loss",
       code: "D",
       title: "KẾT THÚC D — MẤT TRẮNG",
-      lesson: "Không bao giờ cài ứng dụng ngoài kho chính thức. Quyền Trợ năng cộng quyền đọc SMS chính là chìa khoá tài khoản ngân hàng của bạn.",
+      lesson:
+        "Không bao giờ cài ứng dụng ngoài kho chính thức. Quyền Trợ năng cộng quyền đọc SMS chính là chìa khoá tài khoản ngân hàng của bạn.",
     },
   },
 
@@ -446,7 +447,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "safe",
       code: "C",
       title: "KẾT THÚC C — THOÁT HIỂM PHÚT CHÓT",
-      lesson: "Cảnh báo bảo mật của điện thoại là bạn của bạn. Khi kẻ gian chửi bới, đe doạ — đó là lúc chúng đã lộ mặt. Hãy ghi âm, chụp màn hình và trình báo.",
+      lesson:
+        "Cảnh báo bảo mật của điện thoại là bạn của bạn. Khi kẻ gian chửi bới, đe doạ — đó là lúc chúng đã lộ mặt. Hãy ghi âm, chụp màn hình và trình báo.",
     },
   },
 
@@ -475,7 +477,8 @@ export const FILM: Record<string, FilmNode> = {
       kind: "safe",
       code: "A",
       title: "KẾT THÚC A — THOÁT HIỂM SỚM",
-      lesson: "Cơ quan tố tụng không bao giờ làm việc, doạ bắt hay yêu cầu chuyển tiền qua điện thoại. Nghi ngờ là cúp máy — đó là cái kết đẹp nhất.",
+      lesson:
+        "Cơ quan tố tụng không bao giờ làm việc, doạ bắt hay yêu cầu chuyển tiền qua điện thoại. Nghi ngờ là cúp máy — đó là cái kết đẹp nhất.",
     },
   },
 };

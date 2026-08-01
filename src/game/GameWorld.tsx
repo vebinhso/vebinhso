@@ -1082,7 +1082,7 @@ export default function GameWorld(props: Props) {
       {!isLowEnd && (
         <ContactShadows position={[0, 0.03, 0]} opacity={0.35} scale={40} blur={2.2} far={10} resolution={256} frames={1} />
       )}
-      <fog attach="fog" args={["#dbeafe", 55, 130]} />
+      <fog attach="fog" args={["#dbeafe", 95, 220]} />
 
       <OrbitControls
         ref={controlsRef}

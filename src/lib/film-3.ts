@@ -200,6 +200,18 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bạn cùng trường nhờ gấp thế này... mình giúp một cái cũng nhanh thôi mà. Nhưng mà lâu rồi Hà đâu có nhắn tin cho mình...",
     motion: "push",
     mood: "danger",
+    next: "s04q",
+  },
+  // S04q — Người dẫn chuyện đọc yêu cầu quyết định
+  s04q: {
+    id: "s04q",
+    image: s04decide,
+    video: vs04b.url,
+    speaker: "narrator",
+    action: "Bảo cầm điện thoại, ngón cái lơ lửng — cậu không biết phải làm gì",
+    text: "Bảo cầm chặt điện thoại, ngón cái lơ lửng trên đường link mà không biết phải làm gì. Bạn đang vào vai Bảo. Bảo nên làm gì bây giờ? Hãy chọn một trong hai phương án dưới đây.",
+    motion: "push",
+    mood: "danger",
     choiceImage: s04choice,
     choices: [
       {

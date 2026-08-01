@@ -1020,43 +1020,58 @@ export default function GameWorld(props: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [props]);
 
+  // Máy yếu / điện thoại: giảm độ phân giải render và tắt khử răng cưa.
+  const isLowEnd =
+    typeof navigator !== "undefined" &&
+    (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+      ((navigator as any).hardwareConcurrency ?? 8) <= 4);
+
   return (
-    <Canvas shadows camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance", toneMappingExposure: 1.1 }}>
-      {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
+    <Canvas
+      shadows
+      camera={{ position: [0, 18, 28], fov: 55 }}
+      dpr={isLowEnd ? 1 : [1, 1.25]}
+      performance={{ min: 0.4 }}
+      gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.1 }}
+    >
+      {/* Solid sky-blue background so the canvas never flashes white before Sky finishes loading */}
       <color attach="background" args={["#87ceeb"]} />
-      <ambientLight intensity={0.35} />
-      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.35]} />
+      <ambientLight intensity={0.6} />
+      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.6]} />
       <directionalLight
         castShadow
         position={[25, 35, 18]}
         intensity={2}
         color="#fff5e1"
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-30}
-        shadow-camera-right={30}
-        shadow-camera-top={30}
-        shadow-camera-bottom={-30}
+        shadow-mapSize-width={isLowEnd ? 512 : 1024}
+        shadow-mapSize-height={isLowEnd ? 512 : 1024}
+        shadow-camera-left={-24}
+        shadow-camera-right={24}
+        shadow-camera-top={24}
+        shadow-camera-bottom={-24}
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
       />
-      {/* Async assets (Sky/Environment/Clouds) get their own boundary so a slow HDRI never blanks the scene */}
+      {/* Bầu trời nhẹ; bỏ HDRI Environment (tải nặng) và mây động trên máy yếu */}
       <Suspense fallback={null}>
         <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
-        <Environment preset="park" background={false} environmentIntensity={0.6} />
-        <Clouds material={THREE.MeshBasicMaterial}>
-          <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.55} />
-          <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
-          <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
-        </Clouds>
+        {!isLowEnd && (
+          <Clouds material={THREE.MeshBasicMaterial}>
+            <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.5} />
+            <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.45} />
+          </Clouds>
+        )}
       </Suspense>
       <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} walls={props.walls} placed={props.placed} onPlayerPos={props.onPlayerPos} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
-      <ContactShadows position={[0, 0.03, 0]} opacity={0.4} scale={50} blur={2.2} far={12} resolution={512} frames={1} />
-      <fog attach="fog" args={["#dbeafe", 90, 280]} />
+      {!isLowEnd && (
+        <ContactShadows position={[0, 0.03, 0]} opacity={0.35} scale={40} blur={2.2} far={10} resolution={256} frames={1} />
+      )}
+      <fog attach="fog" args={["#dbeafe", 55, 130]} />
+
       <OrbitControls
         ref={controlsRef}
         enablePan={false}

@@ -320,7 +320,6 @@ function FilmPage() {
     setTimeLeft(null);
   }, [node]);
 
-
   useEffect(() => {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
@@ -334,7 +333,7 @@ function FilmPage() {
       <div className="fixed inset-0 bg-black text-white overflow-hidden">
         <img
           src={FILM_POSTER}
-          alt="Poster phim tương tác Thử thách Kẻ Giấu Mặt"
+          alt="Poster phim tương tác Gợi nhớ từ cá voi xanh"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />

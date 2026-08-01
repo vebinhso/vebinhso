@@ -201,7 +201,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bạn cùng trường nhờ gấp thế này... mình giúp một cái cũng nhanh thôi mà. Nhưng mà lâu rồi Hà đâu có nhắn tin cho mình...",
     motion: "push",
     mood: "danger",
-    timeLimitSec: 10,
     choiceImage: s04choice,
     choices: [
       {
@@ -211,10 +210,11 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: "B. Lâu rồi Hà không nhắn... dừng lại kiểm tra kỹ đường link đã",
-        next: "pendingB",
+        next: "b01",
         tone: "safe",
       },
     ],
+
 
   },
   // S05 (B06) — Trang web quá đẹp

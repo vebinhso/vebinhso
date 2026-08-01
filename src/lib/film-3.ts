@@ -341,7 +341,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Nick của Bảo đang đi lừa cả lớp. Bảo làm gì ngay bây giờ?",
     motion: "kenburns",
     mood: "danger",
-    timeLimitSec: 10,
+    
     choices: [
       {
         label: "A1. Gọi điện, nhắn Zalo, báo nhóm lớp: \"Nick tớ bị hack, đừng bấm link, đừng chuyển tiền!\" — và nói với bố mẹ",

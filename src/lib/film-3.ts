@@ -3,6 +3,7 @@ import s02 from "@/assets/film4/clean/s02.jpg";
 import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
 import s04choice from "@/assets/film4/clean/s04-choice.jpg";
+import s04decide from "@/assets/film4/clean/s04-decide.jpg";
 import s05 from "@/assets/film4/clean/s05.jpg";
 import s06 from "@/assets/film4/clean/s06.jpg";
 import s07 from "@/assets/film4/clean/s07.jpg";

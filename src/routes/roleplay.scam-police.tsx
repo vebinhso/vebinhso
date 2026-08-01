@@ -323,24 +323,27 @@ function FilmPage() {
         <img
           src={FILM_POSTER}
           alt="Poster phim tương tác Một cuộc gọi"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-top brightness-110 contrast-105 saturate-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+        {/* chỉ tối phần đáy để chữ đọc rõ, giữ ảnh sáng ở trên */}
+        <div className="absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black via-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-8 sm:pb-12 overflow-y-auto">
-          <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-red-500 mb-2 drop-shadow-lg">
+          <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-red-400 mb-2 drop-shadow-lg">
             PHIM TƯƠNG TÁC · BÀI 1
           </p>
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
             {FILM_TITLE}
           </h1>
           <div className="max-w-xl w-full mb-5">
-            <p className="text-xs sm:text-sm font-bold text-white/70">
+            <p className="text-xs sm:text-sm font-bold text-white/85 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               Bạn vào vai <b className="text-sky-300">N</b>, mỗi lựa chọn bạn đưa ra là một kết quả khác nhau.
             </p>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-white/70">
+            <p className="mt-1 text-xs sm:text-sm font-bold text-white/85 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
             </p>
           </div>
+
 
           <button
             onClick={() => setStarted(true)}

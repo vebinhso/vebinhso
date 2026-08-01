@@ -201,7 +201,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bạn cùng trường nhờ gấp thế này... mình giúp một cái cũng nhanh thôi mà. Nhưng mà lâu rồi Hà đâu có nhắn tin cho mình...",
     motion: "push",
     mood: "danger",
-    timeLimitSec: 10,
     choiceImage: s04choice,
     choices: [
       {
@@ -211,10 +210,11 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: "B. Lâu rồi Hà không nhắn... dừng lại kiểm tra kỹ đường link đã",
-        next: "pendingB",
+        next: "b01",
         tone: "safe",
       },
     ],
+
 
   },
   // S05 (B06) — Trang web quá đẹp
@@ -341,7 +341,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Nick của Bảo đang đi lừa cả lớp. Bảo làm gì ngay bây giờ?",
     motion: "kenburns",
     mood: "danger",
-    timeLimitSec: 10,
+    
     choices: [
       {
         label: "A1. Gọi điện, nhắn Zalo, báo nhóm lớp: \"Nick tớ bị hack, đừng bấm link, đừng chuyển tiền!\" — và nói với bố mẹ",
@@ -430,35 +430,157 @@ export const FILM: Record<string, FilmNode> = {
         "• Vì im lặng, một bạn trong lớp bị lừa chuyển 2 triệu đồng!\n• Bảo mất nick mạng xã hội kỷ niệm.\n• Bảo áy náy, mất uy tín nghiêm trọng với bạn bè.\n\nBÀI HỌC: Khi nhận tin nhắn nhờ \"bấm link bình chọn/vote\", hãy luôn cảnh giác, kiểm tra kỹ và xác thực lại với bạn bè qua kênh liên lạc khác để bảo vệ mình và những người xung quanh!",
     },
   },
-  pendingA: {
-    id: "pendingA",
-    image: s08,
+  // ===== NHÁNH B — Bảo dừng lại kiểm tra đường link =====
+  b01: {
+    id: "b01",
+    image: s03,
+    video: vs03.url,
     speaker: "narrator",
-    text: "Sáng hôm sau, mọi chuyện mới bắt đầu...",
-    mood: "danger",
-    ending: {
-      kind: "loss",
-      code: "…",
-      title: "PHẦN TIẾP THEO ĐANG ĐƯỢC DỰNG",
-      lesson:
-        "Nhánh sau đêm đó (S09 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: một đường link lạ gửi kèm lời nhờ gấp luôn là dấu hiệu cần dừng lại.",
-    },
+    action: "Bảo rụt tay lại, phóng to đường link để soi từng chữ",
+    text: "Bảo rụt ngón tay lại. Cậu phóng to thanh địa chỉ và soi từng chữ: tên miền kết thúc bằng chấm t-o-p, không phải trang chính thức nào cả, và ổ khoá bên trái vẫn đang mở. Một trang bình chọn thật không bao giờ trông như vậy.",
+    motion: "push",
+    mood: "safe",
+    linkOverlay: true,
+    next: "b02",
   },
-  pendingB: {
-    id: "pendingB",
+  b02: {
+    id: "b02",
     image: s04,
+    video: vs04.url,
+    speaker: "B",
+    action: "Bảo ngồi dậy, tay cầm điện thoại, suy nghĩ",
+    text: "Link này lạ thật... Nhưng nhỡ đâu Hà cần gấp thì sao? Mình nên làm gì bây giờ?",
+    motion: "push",
+    mood: "neutral",
+    next: "b03",
+  },
+  b03: {
+    id: "b03",
+    image: s04,
+    video: vs04.url,
     speaker: "narrator",
-    text: "Bảo rụt tay lại, nhìn kỹ đường link thêm một lần nữa...",
+    action: "Bảo phải quyết định lần thứ hai",
+    text: "Bảo tin đây là link giả. Nhưng cậu vẫn chưa biết chắc người nhắn có đúng là Hà không. Bảo làm gì tiếp theo?",
+    motion: "kenburns",
+    mood: "neutral",
+    choices: [
+      {
+        label: "B1. Gọi điện trực tiếp cho Hà bằng số điện thoại để xác minh",
+        next: "b04",
+        tone: "safe",
+      },
+      {
+        label: "B2. Nhắn lại ngay trong Messenger hỏi \"Hà ơi có phải cậu không?\"",
+        next: "b10",
+        tone: "risky",
+      },
+      {
+        label: "B3. Không bấm, nhưng cũng im lặng bỏ qua, không nói với ai",
+        next: "endB3",
+        tone: "neutral",
+      },
+    ],
+  },
+  // B1 — xác minh qua kênh khác
+  b04: {
+    id: "b04",
+    image: s11,
+    video: vs11.url,
+    speaker: "H",
+    action: "Bảo gọi điện thoại cho Hà — Hà bắt máy, giọng hốt hoảng",
+    text: "Bảo hả? Tớ có nhắn gì đâu! Nick Facebook của tớ bị mất từ chiều rồi, tớ không vào lại được! Cậu đừng bấm cái link đó nhé!",
+    motion: "push",
+    mood: "safe",
+    next: "b05",
+  },
+  b05: {
+    id: "b05",
+    image: s14,
+    video: vs14.url,
+    speaker: "B",
+    action: "Bảo đăng cảnh báo lên nhóm lớp ngay lập tức",
+    text: "Mọi người ơi, nick của Hà đang bị kẻ gian chiếm. Nếu nhận được link bình chọn thì tuyệt đối đừng bấm và đừng đăng nhập gì hết nhé!",
+    motion: "push",
+    mood: "safe",
+    next: "endB1",
+  },
+  endB1: {
+    id: "endB1",
+    image: s16,
+    video: vs16.url,
+    speaker: "narrator",
+    text: "Bảo giữ được tài khoản, giúp Hà báo khoá nick và cảnh báo cả lớp trước khi có ai kịp sập bẫy.",
     mood: "safe",
     ending: {
       kind: "safe",
-      code: "…",
-      title: "PHẦN TIẾP THEO ĐANG ĐƯỢC DỰNG",
+      code: "B1",
+      title: "KẾT QUẢ KHI CHỌN B1 — KẾT TỐT NHẤT",
       lesson:
-        "Nhánh kiểm tra đường link (S05 trở đi) sẽ được bổ sung ở bản cập nhật kế tiếp. Ghi nhớ: hãy xác minh với bạn qua một kênh khác trước khi giúp.",
+        "• Bảo không mất tài khoản.\n• Hà được báo sớm nên kịp khôi phục nick.\n• Cả lớp được cảnh báo, không ai bị lừa.\n\nBÀI HỌC: Xác minh qua MỘT KÊNH KHÁC (gọi điện, gặp trực tiếp) là cách chắc chắn nhất. Tin nhắn đến từ nick bạn bè vẫn có thể do kẻ gian gửi.",
+    },
+  },
+  // B2 — hỏi lại ngay trong Messenger (chính kẻ gian trả lời)
+  b10: {
+    id: "b10",
+    image: s02,
+    video: vs02.url,
+    speaker: "X",
+    action: "Tin nhắn trả lời đến chỉ sau vài giây",
+    text: "Tớ đây mà, Hà nè. Link của ban tổ chức đó, an toàn tuyệt đối. Bảo bấm nhanh giúp tớ với, sắp đóng cổng rồi!",
+    motion: "push",
+    mood: "danger",
+    next: "b11",
+  },
+  b11: {
+    id: "b11",
+    image: s04,
+    video: vs04.url,
+    speaker: "narrator",
+    action: "Bảo tạm yên tâm — nhưng người trả lời không phải Hà",
+    text: "Bảo thấy yên tâm hơn hẳn. Nhưng người vừa trả lời cậu chính là kẻ đang chiếm tài khoản của Hà. Hỏi lại trong cùng một kênh đã bị chiếm thì câu trả lời luôn là câu kẻ gian muốn bạn nghe.",
+    motion: "push",
+    mood: "danger",
+    next: "b12",
+  },
+  b12: {
+    id: "b12",
+    image: s04,
+    video: vs04.url,
+    speaker: "narrator",
+    action: "Ngón tay Bảo lại đưa về phía đường link",
+    text: "Bảo quyết định thế nào?",
+    motion: "kenburns",
+    mood: "danger",
+    choices: [
+      {
+        label: "B2a. Vẫn thấy gợn — gọi điện thoại cho Hà để chắc chắn",
+        next: "b04",
+        tone: "safe",
+      },
+      {
+        label: "B2b. Đã hỏi rồi mà, bấm vào link vote thôi",
+        next: "s05",
+        tone: "risky",
+      },
+    ],
+  },
+  endB3: {
+    id: "endB3",
+    image: s10,
+    video: vs10.url,
+    speaker: "narrator",
+    text: "Bảo không bấm link nên giữ được tài khoản. Nhưng cậu im lặng, và sáng hôm sau hai bạn trong lớp đã đăng nhập vào trang giả đó.",
+    mood: "danger",
+    ending: {
+      kind: "loss",
+      code: "B3",
+      title: "KẾT QUẢ KHI CHỌN B3 — AN TOÀN MỘT MÌNH",
+      lesson:
+        "• Bảo giữ được tài khoản của mình.\n• Nhưng Hà không được báo, vẫn mất nick.\n• Hai bạn khác trong lớp đã sập bẫy vì không ai cảnh báo.\n\nBÀI HỌC: Phát hiện bẫy mà im lặng thì cái bẫy vẫn còn đó. Hãy cảnh báo bạn bè ngay để ngăn người tiếp theo.",
     },
   },
 };
+
 
 
 export const FILM_START = "s01";

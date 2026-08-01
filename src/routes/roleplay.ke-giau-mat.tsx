@@ -19,16 +19,17 @@ export const Route = createFileRoute("/roleplay/ke-giau-mat")({
   component: FilmPage,
   head: () => ({
     meta: [
-      { title: "Phim tương tác: Kẻ Giấu Mặt — Vệ Binh Số" },
+      { title: "Phim tương tác: Gợi nhớ từ Cá voi xanh - Vệ Binh Số" },
       {
         name: "description",
         content:
           "Bài 2 nhập vai về thao túng nhóm chat, áp lực đồng đẳng và cách cầu cứu đúng lúc để tự bảo vệ mình trên môi trường số.",
       },
-      { property: "og:title", content: "Phim tương tác: Kẻ Giấu Mặt" },
+      { property: "og:title", content: "Phim tương tác: Gợi nhớ từ Cá voi xanh" },
       {
         property: "og:description",
-        content: "Bạn vào vai M trong thử thách 7 ngày. Mỗi lựa chọn sẽ dẫn đến một kết cục khác nhau.",
+        content:
+          "Bạn là M, một học sinh luôn đứng đầu lớp nhưng lại chịu áp lực không tưởng từ kỳ vọng của gia đình. Vì vậy, một ngày nọ, bạn được mời vào nhóm chat, nơi bạn có thể thỏa sức thử thách bản thân mình mà không gặp bất cứ rào cản nào. Nếu là M, bạn sẽ viết tiếp câu chuyện ấy như thế nào? .",
       },
       { property: "og:type", content: "video.other" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -94,7 +95,14 @@ function FilmPage() {
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(n.id)) return;
-    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+    const p = tts({
+      data: {
+        text: n.text,
+        voice: SPEAKER_META[n.speaker].voice,
+        instructions: SPEAKER_META[n.speaker].instructions,
+        speed: SPEAKER_META[n.speaker].speed,
+      },
+    })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(n.id, a);
@@ -181,7 +189,11 @@ function FilmPage() {
           const pending = pendingRef.current.get(node.id);
           b64 = pending
             ? await pending
-            : ((await tts({ data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed } })) as { audio: string }).audio;
+            : (
+                (await tts({
+                  data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed },
+                })) as { audio: string }
+              ).audio;
           if (b64) cacheRef.current.set(node.id, b64);
         }
 
@@ -225,7 +237,14 @@ function FilmPage() {
 
     upcoming.forEach((n) => {
       if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
-        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+        const p = tts({
+          data: {
+            text: n.text,
+            voice: SPEAKER_META[n.speaker].voice,
+            instructions: SPEAKER_META[n.speaker].instructions,
+            speed: SPEAKER_META[n.speaker].speed,
+          },
+        })
           .then((r) => {
             const a = (r as { audio: string }).audio;
             cacheRef.current.set(n.id, a);
@@ -576,7 +595,11 @@ function FilmPage() {
                   ))
                 ) : (
                   <button
-                    onClick={() => (done ? node.next && go(node.next) : (capRef.current?.finishNow(), setTyped(node.text), setDone(true)))}
+                    onClick={() =>
+                      done
+                        ? node.next && go(node.next)
+                        : (capRef.current?.finishNow(), setTyped(node.text), setDone(true))
+                    }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
                     {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}

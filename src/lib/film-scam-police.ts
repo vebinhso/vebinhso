@@ -21,7 +21,7 @@ import s20 from "@/assets/film2/clean2/s20.jpg";
 import s21 from "@/assets/film2/clean2/s21.jpg";
 import s22 from "@/assets/film2/clean2/s22.jpg";
 import s23 from "@/assets/film2/clean6/s23w.jpg";
-import s24 from "@/assets/film2/clean6/s24f.jpg";
+import s24 from "@/assets/film2/clean6/s24w.jpg";
 import s25 from "@/assets/film2/clean3/s25b.jpg";
 import s26 from "@/assets/film2/clean3/s26.jpg";
 import s27 from "@/assets/film2/clean3/s27.jpg";

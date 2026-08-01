@@ -697,9 +697,11 @@ const Neighborhood = memo(function Neighborhood({
   // Mảnh trung tâm (mảnh đất người chơi) cần được chừa lại.
   // half mảnh + đường = 11 ô; thêm một dải an toàn nhỏ.
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12
-  const worldHalf = WORLD / 2;
+  // Chỉ dựng hàng xóm trong bán kính nhìn thấy được (sương mù che phần còn lại)
+  // ⇒ giảm mạnh số mesh, map mượt hơn nhiều.
+  const worldHalf = 62;
   // Khoảng cách giữa các "lô hàng xóm" theo bố cục thành phố nhỏ
-  const STEP = 14;
+  const STEP = 16;
   const palettes = [
     { wall: "#f5e6c8", roof: "#b91c1c" },
     { wall: "#fde68a", roof: "#7f1d1d" },

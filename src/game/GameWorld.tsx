@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, Html } from "@react-three/drei";
+import { OrbitControls, Sky, Cloud, Clouds, ContactShadows, Html } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -214,7 +214,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     // Báo vị trí ra ngoài (throttle ~10Hz) để HUD xác định gần cửa
     if (onPlayerPos) {
       const now = performance.now();
-      if (now - lastReport.current > 100) {
+      if (now - lastReport.current > 260) {
         lastReport.current = now;
         onPlayerPos(ref.current.position.x, ref.current.position.z);
       }
@@ -697,9 +697,11 @@ const Neighborhood = memo(function Neighborhood({
   // Mảnh trung tâm (mảnh đất người chơi) cần được chừa lại.
   // half mảnh + đường = 11 ô; thêm một dải an toàn nhỏ.
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12
-  const worldHalf = WORLD / 2;
+  // Chỉ dựng hàng xóm trong bán kính nhìn thấy được (sương mù che phần còn lại)
+  // ⇒ giảm mạnh số mesh, map mượt hơn nhiều.
+  const worldHalf = 62;
   // Khoảng cách giữa các "lô hàng xóm" theo bố cục thành phố nhỏ
-  const STEP = 14;
+  const STEP = 16;
   const palettes = [
     { wall: "#f5e6c8", roof: "#b91c1c" },
     { wall: "#fde68a", roof: "#7f1d1d" },
@@ -730,22 +732,20 @@ const Neighborhood = memo(function Neighborhood({
       const jitterX = ((s % 7) - 3) * 0.6;
       const jitterZ = (((s >> 3) % 7) - 3) * 0.6;
       const rot = ((s >> 6) % 4) * (Math.PI / 2);
-      const isHouse = s % 5 !== 0;
+      const isHouse = s % 4 !== 0;
       if (isHouse) {
         houseSlots.push({ gx, gz, seed, s, jitterX, jitterZ, rot, dist2: gx * gx + gz * gz });
       } else {
-        for (let t = 0; t < 3; t++) {
-          const tx = ((s >> (t * 2)) % 9) - 4;
-          const tz = ((s >> (t * 2 + 1)) % 9) - 4;
-          treeGroups.push(
-            <group key={`gt-${gx}-${gz}-${t}`} position={[gx + tx * 1.2, 0, gz + tz * 1.2]}>
-              <NeighborTree seed={s + t * 31} />
-            </group>
-          );
-        }
+        const tx = (s % 9) - 4;
+        const tz = ((s >> 1) % 9) - 4;
+        treeGroups.push(
+          <group key={`gt-${gx}-${gz}`} position={[gx + tx * 1.2, 0, gz + tz * 1.2]}>
+            <NeighborTree seed={s} />
+          </group>
+        );
       }
     }
-    if (i > 800) break;
+    if (i > 120) break;
   }
   houseSlots.sort((a, b) => a.dist2 - b.dist2);
 
@@ -774,13 +774,12 @@ const Neighborhood = memo(function Neighborhood({
         )}
       </group>
     );
-    const tCount = 1 + (slot.s % 2);
-    for (let t = 0; t < tCount; t++) {
-      const tx = ((slot.s >> (t * 2)) % 5) - 2;
-      const tz = ((slot.s >> (t * 2 + 1)) % 5) - 2;
+    if (slot.s % 2 === 0) {
+      const tx = (slot.s % 5) - 2;
+      const tz = ((slot.s >> 1) % 5) - 2;
       trees.push(
-        <group key={`t-${slot.gx}-${slot.gz}-${t}`} position={[slot.gx + tx * 1.4, 0, slot.gz + tz * 1.4]}>
-          <NeighborTree seed={slot.s + t * 17} />
+        <group key={`t-${slot.gx}-${slot.gz}`} position={[slot.gx + tx * 1.4, 0, slot.gz + tz * 1.4]}>
+          <NeighborTree seed={slot.s + 17} />
         </group>
       );
     }
@@ -1021,43 +1020,58 @@ export default function GameWorld(props: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [props]);
 
+  // Máy yếu / điện thoại: giảm độ phân giải render và tắt khử răng cưa.
+  const isLowEnd =
+    typeof navigator !== "undefined" &&
+    (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+      ((navigator as any).hardwareConcurrency ?? 8) <= 4);
+
   return (
-    <Canvas shadows camera={{ position: [0, 18, 28], fov: 55 }} dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance", toneMappingExposure: 1.1 }}>
-      {/* Solid sky-blue background so the canvas never flashes white before Sky/Environment finish loading */}
+    <Canvas
+      shadows
+      camera={{ position: [0, 18, 28], fov: 55 }}
+      dpr={isLowEnd ? 1 : [1, 1.25]}
+      performance={{ min: 0.4 }}
+      gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.1 }}
+    >
+      {/* Solid sky-blue background so the canvas never flashes white before Sky finishes loading */}
       <color attach="background" args={["#87ceeb"]} />
-      <ambientLight intensity={0.35} />
-      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.35]} />
+      <ambientLight intensity={0.6} />
+      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.6]} />
       <directionalLight
         castShadow
         position={[25, 35, 18]}
         intensity={2}
         color="#fff5e1"
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-30}
-        shadow-camera-right={30}
-        shadow-camera-top={30}
-        shadow-camera-bottom={-30}
+        shadow-mapSize-width={isLowEnd ? 512 : 1024}
+        shadow-mapSize-height={isLowEnd ? 512 : 1024}
+        shadow-camera-left={-24}
+        shadow-camera-right={24}
+        shadow-camera-top={24}
+        shadow-camera-bottom={-24}
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
       />
-      {/* Async assets (Sky/Environment/Clouds) get their own boundary so a slow HDRI never blanks the scene */}
+      {/* Bầu trời nhẹ; bỏ HDRI Environment (tải nặng) và mây động trên máy yếu */}
       <Suspense fallback={null}>
         <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
-        <Environment preset="park" background={false} environmentIntensity={0.6} />
-        <Clouds material={THREE.MeshBasicMaterial}>
-          <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.55} />
-          <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.5} />
-          <Cloud position={[0, 25, -20]} speed={0.15} opacity={0.45} />
-        </Clouds>
+        {!isLowEnd && (
+          <Clouds material={THREE.MeshBasicMaterial}>
+            <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.5} />
+            <Cloud position={[20, 22, 5]} speed={0.2} opacity={0.45} />
+          </Clouds>
+        )}
       </Suspense>
       <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} walls={props.walls} placed={props.placed} onPlayerPos={props.onPlayerPos} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
         <PickupsField pickups={props.pickups ?? []} collectedIds={props.collectedIds ?? new Set()} showAdminMarkers={!!props.showAdminMarkers} sparkles={props.sparkles} />
       )}
-      <ContactShadows position={[0, 0.03, 0]} opacity={0.4} scale={50} blur={2.2} far={12} resolution={512} frames={1} />
-      <fog attach="fog" args={["#dbeafe", 90, 280]} />
+      {!isLowEnd && (
+        <ContactShadows position={[0, 0.03, 0]} opacity={0.35} scale={40} blur={2.2} far={10} resolution={256} frames={1} />
+      )}
+      <fog attach="fog" args={["#dbeafe", 55, 130]} />
+
       <OrbitControls
         ref={controlsRef}
         enablePan={false}

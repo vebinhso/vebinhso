@@ -527,58 +527,73 @@ function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRem
 // ---------------- Neighborhood (vùng xung quanh mảnh đất) ----------------
 // Sinh deterministic dựa trên seed lưới để tạo cảm giác "thành phố nhỏ"
 // với nhiều mô hình nhà 3D đủ hình thù + đồng cỏ xanh xen kẽ.
+// Geometry/material dùng chung cho toàn bộ khu hàng xóm ⇒ ít draw-call, ít GC.
+const NB_BOX = new THREE.BoxGeometry(1, 1, 1);
+const NB_CONE = new THREE.ConeGeometry(1, 1, 4);
+const NB_CYL = new THREE.CylinderGeometry(1, 1, 1, 8);
+const NB_SPH = new THREE.SphereGeometry(1, 10, 8);
+const NB_MATS = new Map<string, THREE.MeshLambertMaterial>();
+function nbMat(color: string, emissive?: string) {
+  const key = color + "|" + (emissive ?? "");
+  let m = NB_MATS.get(key);
+  if (!m) {
+    m = new THREE.MeshLambertMaterial({ color, ...(emissive ? { emissive, emissiveIntensity: 0.4 } : {}) });
+    NB_MATS.set(key, m);
+  }
+  return m;
+}
+
 function NeighborHouse({ seed, color, roofColor }: { seed: number; color: string; roofColor: string }) {
   const shape = seed % 4; // 0: box+gable, 1: L-shape, 2: tower, 3: wide bungalow
   const h = 2.2 + ((seed * 13) % 5) * 0.6;
   const w = 2.6 + ((seed * 7) % 4) * 0.7;
   const d = 2.6 + ((seed * 11) % 4) * 0.7;
+  const wall = nbMat(color);
+  const roof = nbMat(roofColor);
   return (
     <group>
       {/* thân nhà */}
-      <mesh castShadow receiveShadow position={[0, h / 2, 0]}>
-        <boxGeometry args={[w, h, d]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
-      </mesh>
+      <mesh geometry={NB_BOX} material={wall} position={[0, h / 2, 0]} scale={[w, h, d]} />
       {/* cánh phụ cho L-shape */}
       {shape === 1 && (
-        <mesh castShadow receiveShadow position={[w * 0.55, (h * 0.7) / 2, -d * 0.25]}>
-          <boxGeometry args={[w * 0.55, h * 0.7, d * 0.55]} />
-          <meshStandardMaterial color={color} roughness={0.85} />
-        </mesh>
+        <mesh
+          geometry={NB_BOX}
+          material={wall}
+          position={[w * 0.55, (h * 0.7) / 2, -d * 0.25]}
+          scale={[w * 0.55, h * 0.7, d * 0.55]}
+        />
       )}
       {/* tháp cho shape 2 */}
       {shape === 2 && (
-        <mesh castShadow position={[w * 0.3, h * 0.9, d * 0.3]}>
-          <cylinderGeometry args={[0.5, 0.6, h * 0.8, 10]} />
-          <meshStandardMaterial color={color} roughness={0.8} />
-        </mesh>
+        <mesh geometry={NB_CYL} material={wall} position={[w * 0.3, h * 0.9, d * 0.3]} scale={[0.55, h * 0.8, 0.55]} />
       )}
-      {/* mái ngói */}
+      {/* mái */}
       {shape === 3 ? (
-        <mesh castShadow position={[0, h + 0.25, 0]}>
-          <boxGeometry args={[w + 0.3, 0.5, d + 0.3]} />
-          <meshStandardMaterial color={roofColor} roughness={0.7} />
-        </mesh>
+        <mesh geometry={NB_BOX} material={roof} position={[0, h + 0.25, 0]} scale={[w + 0.3, 0.5, d + 0.3]} />
       ) : (
-        <mesh castShadow position={[0, h + 0.5, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <coneGeometry args={[Math.max(w, d) * 0.75, 1.1, 4]} />
-          <meshStandardMaterial color={roofColor} roughness={0.7} />
-        </mesh>
+        <mesh
+          geometry={NB_CONE}
+          material={roof}
+          position={[0, h + 0.5, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+          scale={[Math.max(w, d) * 0.75, 1.1, Math.max(w, d) * 0.75]}
+        />
       )}
       {/* cửa */}
-      <mesh position={[0, 0.55, d / 2 + 0.01]}>
-        <boxGeometry args={[0.55, 1.1, 0.05]} />
-        <meshStandardMaterial color="#3b2417" />
-      </mesh>
+      <mesh geometry={NB_BOX} material={nbMat("#3b2417")} position={[0, 0.55, d / 2 + 0.02]} scale={[0.55, 1.1, 0.05]} />
       {/* 2 cửa sổ phát sáng nhẹ */}
-      <mesh position={[-w / 3, h * 0.55, d / 2 + 0.01]}>
-        <boxGeometry args={[0.5, 0.5, 0.05]} />
-        <meshStandardMaterial color="#fde68a" emissive="#facc15" emissiveIntensity={0.35} />
-      </mesh>
-      <mesh position={[w / 3, h * 0.55, d / 2 + 0.01]}>
-        <boxGeometry args={[0.5, 0.5, 0.05]} />
-        <meshStandardMaterial color="#fde68a" emissive="#facc15" emissiveIntensity={0.35} />
-      </mesh>
+      <mesh
+        geometry={NB_BOX}
+        material={nbMat("#fde68a", "#facc15")}
+        position={[-w / 3, h * 0.55, d / 2 + 0.02]}
+        scale={[0.5, 0.5, 0.05]}
+      />
+      <mesh
+        geometry={NB_BOX}
+        material={nbMat("#fde68a", "#facc15")}
+        position={[w / 3, h * 0.55, d / 2 + 0.02]}
+        scale={[0.5, 0.5, 0.05]}
+      />
     </group>
   );
 }
@@ -587,19 +602,15 @@ function NeighborTree({ seed }: { seed: number }) {
   const h = 1.2 + ((seed * 3) % 5) * 0.3;
   const leafColors = ["#22c55e", "#16a34a", "#15803d", "#65a30d", "#4d7c0f"];
   const c = leafColors[seed % leafColors.length];
+  const r = 0.7 + (seed % 3) * 0.15;
   return (
     <group>
-      <mesh castShadow position={[0, h * 0.5, 0]}>
-        <cylinderGeometry args={[0.12, 0.18, h, 8]} />
-        <meshStandardMaterial color="#5b3318" roughness={0.95} />
-      </mesh>
-      <mesh castShadow position={[0, h + 0.4, 0]}>
-        <sphereGeometry args={[0.7 + (seed % 3) * 0.15, 14, 12]} />
-        <meshStandardMaterial color={c} roughness={0.85} />
-      </mesh>
+      <mesh geometry={NB_CYL} material={nbMat("#5b3318")} position={[0, h * 0.5, 0]} scale={[0.15, h, 0.15]} />
+      <mesh geometry={NB_SPH} material={nbMat(c)} position={[0, h + 0.4, 0]} scale={[r, r, r]} />
     </group>
   );
 }
+
 
 function initialLetter(s: string) {
   return (s || "?").trim().charAt(0).toUpperCase();
@@ -699,9 +710,10 @@ const Neighborhood = memo(function Neighborhood({
   const innerHalf = (GRID + PATH * 2) / 2 + 1; // ~12
   // Chỉ dựng hàng xóm trong bán kính nhìn thấy được (sương mù che phần còn lại)
   // ⇒ giảm mạnh số mesh, map mượt hơn nhiều.
-  const worldHalf = 62;
+  const worldHalf = 72;
   // Khoảng cách giữa các "lô hàng xóm" theo bố cục thành phố nhỏ
-  const STEP = 16;
+  const STEP = 14;
+
   const palettes = [
     { wall: "#f5e6c8", roof: "#b91c1c" },
     { wall: "#fde68a", roof: "#7f1d1d" },
@@ -1070,7 +1082,7 @@ export default function GameWorld(props: Props) {
       {!isLowEnd && (
         <ContactShadows position={[0, 0.03, 0]} opacity={0.35} scale={40} blur={2.2} far={10} resolution={256} frames={1} />
       )}
-      <fog attach="fog" args={["#dbeafe", 55, 130]} />
+      <fog attach="fog" args={["#dbeafe", 95, 220]} />
 
       <OrbitControls
         ref={controlsRef}

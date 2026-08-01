@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sky, Cloud, Clouds, Environment, ContactShadows, Html } from "@react-three/drei";
+import { OrbitControls, Sky, Cloud, Clouds, ContactShadows, Html } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";

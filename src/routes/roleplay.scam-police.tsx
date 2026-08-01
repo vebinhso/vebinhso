@@ -26,7 +26,7 @@ export const Route = createFileRoute("/roleplay/scam-police")({
         content:
           "Phim tương tác chống lừa đảo giả danh công an: mỗi lựa chọn của bạn dẫn tới một cái kết khác nhau, có lồng tiếng và phụ đề.",
       },
-      { property: "og:title", content: "Phim tương tác: Alo, Cảnh sát đây!
+      { property: "og:title", content: "Phim tương tác: Alo, Cảnh sát đây!" },
       {
         property: "og:description",
         content: "Nhập vai nạn nhân của cuộc gọi giả danh công an. Bạn chọn, bạn chịu hậu quả.",

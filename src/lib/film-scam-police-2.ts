@@ -13,6 +13,10 @@ import m15 from "@/assets/film3/clean/m15.jpg";
 import m16 from "@/assets/film3/clean/m16.jpg";
 import m17 from "@/assets/film3/clean/m17.jpg";
 import m18 from "@/assets/film3/clean/m18.jpg";
+import m19a from "@/assets/film3/clean/m19a.jpg";
+import m19b from "@/assets/film3/clean/m19b.jpg";
+import m19c from "@/assets/film3/clean/m19c.jpg";
+import m19d from "@/assets/film3/clean/m19d.jpg";
 import m20 from "@/assets/film3/clean/m20.jpg";
 import m21 from "@/assets/film3/clean/m21.jpg";
 import m22 from "@/assets/film3/clean/m22b.jpg";
@@ -28,13 +32,17 @@ import vm07 from "@/assets/film3/video/m07.mp4.asset.json";
 import vm08 from "@/assets/film3/video/m08.mp4.asset.json";
 import vm09 from "@/assets/film3/video/m09.mp4.asset.json";
 import vm10 from "@/assets/film3/video/m10.mp4.asset.json";
-import vm11 from "@/assets/film3/video/m11.mp4.asset.json";
+import vm11 from "@/assets/film3/video/m11b.mp4.asset.json";
 import vm13 from "@/assets/film3/video/m13.mp4.asset.json";
 import vm14 from "@/assets/film3/video/m14.mp4.asset.json";
 import vm15 from "@/assets/film3/video/m15.mp4.asset.json";
 import vm16 from "@/assets/film3/video/m16.mp4.asset.json";
 import vm17 from "@/assets/film3/video/m17.mp4.asset.json";
 import vm18 from "@/assets/film3/video/m18.mp4.asset.json";
+import vm19a from "@/assets/film3/video/m19a.mp4.asset.json";
+import vm19b from "@/assets/film3/video/m19b.mp4.asset.json";
+import vm19c from "@/assets/film3/video/m19c.mp4.asset.json";
+import vm19d from "@/assets/film3/video/m19d.mp4.asset.json";
 import vm20 from "@/assets/film3/video/m20.mp4.asset.json";
 import vm21 from "@/assets/film3/video/m21.mp4.asset.json";
 import vm22 from "@/assets/film3/video/m22b.mp4.asset.json";
@@ -269,6 +277,51 @@ export const FILM: Record<string, FilmNode> = {
     mood: "danger",
     next: "m17",
   },
+  // S19a — Chọn im lặng: lẳng lặng thoát nhóm và xoá tin nhắn
+  m19a: {
+    id: "m19a",
+    image: m19a,
+    video: vm19a.url,
+    speaker: "M",
+    action: "Màn hình nhóm chat “THỬ THÁCH BÍ ẨN” lúc 22:33",
+    text: "Lẳng lặng thoát nhóm và xoá tin nhắn đi, coi như mình không tham gia nữa và giấu kín chuyện này, vì mình sợ mọi người biết mình từng tham gia các thử thách ngớ ngẩn trước đó.",
+    motion: "push",
+    mood: "danger",
+    next: "m19b",
+  },
+  m19b: {
+    id: "m19b",
+    image: m19b,
+    video: vm19b.url,
+    speaker: "narrator",
+    action: "Bước 1 — Thoát nhóm",
+    text: "M mở menu nhóm và bấm “Rời khỏi nhóm”. Một cú chạm để cắt đứt, nhưng bằng chứng về kẻ đe doạ cũng biến mất theo.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "m19c",
+  },
+  m19c: {
+    id: "m19c",
+    image: m19c,
+    video: vm19c.url,
+    speaker: "narrator",
+    action: "Bước 2 — Xoá tin nhắn",
+    text: "Tin nhắn đe doạ bị xoá đi. Nỗi sợ thì vẫn còn nguyên, chỉ là không còn ai nhìn thấy nó nữa.",
+    motion: "push",
+    mood: "danger",
+    next: "m19d",
+  },
+  m19d: {
+    id: "m19d",
+    image: m19d,
+    video: vm19d.url,
+    speaker: "narrator",
+    action: "Bước 3 — Xoá cho mọi người",
+    text: "“Xoá cho mọi người.” Màn hình sạch sẽ, nhưng M vừa tự xoá luôn bằng chứng có thể bảo vệ mình. Kẻ giấu mặt vẫn giữ mọi thứ nó cần.",
+    motion: "freeze",
+    mood: "danger",
+    next: "m17",
+  },
   // S17 — Đếm ngược tâm lý
   m17: {
     id: "m17",
@@ -323,7 +376,7 @@ export const FILM: Record<string, FilmNode> = {
     mood: "safe",
     choices: [
       { label: "A. Chụp lại bằng chứng, chặn nhóm và báo cho người lớn", next: "m21", tone: "safe" },
-      { label: "B. Tự xoá hết tin nhắn rồi cố quên đi", next: "m17", tone: "risky" },
+      { label: "B. Tự xoá hết tin nhắn rồi cố quên đi", next: "m19a", tone: "risky" },
     ],
   },
   // S21 — Người lớn vào cuộc

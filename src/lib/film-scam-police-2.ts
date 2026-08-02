@@ -244,27 +244,107 @@ export const FILM: Record<string, FilmNode> = {
     text: "Giỏi lắm. Nhưng thưởng thì để ngày mai — nhiệm vụ cuối cùng đã sẵn sàng. Lùi lại bây giờ thì ảnh, danh bạ và cả đoạn em lấy điện thoại của N sẽ được gửi cho cả trường.",
     motion: "kenburns",
     mood: "danger",
-    choices: [
-      { label: "A. Nói thật với mẹ và thầy cô trước khi quá muộn", next: "m13", tone: "safe" },
-      { label: "B. Giấu kín, một mình chịu đựng thêm một ngày nữa", next: "m16", tone: "risky" },
-    ],
+    next: "m13",
   },
-  // S13/S14 — Tin nhắn đe doạ dồn dập lúc nửa đêm
+  // S13 — Nhiệm vụ cuối cùng: ám sát danh dự
   m13: {
     id: "m13",
     image: m13,
-    video: vm13.url,
+    video: vn13.url,
     speaker: "A",
-    action: "Hàng loạt tin nhắn đe doạ đổ về lúc nửa đêm",
-    text: "Em định mách người lớn à? Cứ thử xem. Người bị cả trường cười là em, không phải anh.",
+    action: "Tin nhắn ngày thứ bảy đổ về lúc nửa đêm",
+    text: "Tốt lắm! Nhiệm vụ cuối cùng: ám sát danh dự. Anh đã ghép ảnh khuôn mặt N vào những bức hình vô cùng phản cảm, kèm theo đoạn tin nhắn em gửi. Em phải dùng nick ảo đăng toàn bộ thứ này lên trang Confession của trường. Nếu không làm, anh sẽ đăng bằng chứng em là kẻ ăn cắp thông tin, báo công an và em sẽ bị đuổi học.",
     motion: "shake",
     mood: "danger",
     next: "m14",
   },
-  // S15 — M quyết định nói ra sự thật
+  // S14 — M hoảng loạn với chính mình
   m14: {
     id: "m14",
     image: m14,
+    video: vn14.url,
+    speaker: "M",
+    action: "M run rẩy nhìn màn hình trong bóng tối",
+    text: "Ảnh ghép... tin nhắn của mình bị gửi rồi... Nếu mình không làm, họ sẽ đăng thật sao? Mình không muốn hại N... nhưng họ biết quá nhiều về mình.",
+    motion: "push",
+    mood: "danger",
+    next: "m15",
+  },
+  // S15 — Hình ảnh và tin nhắn bị đe doạ
+  m15: {
+    id: "m15",
+    image: m15,
+    video: vn15.url,
+    speaker: "A",
+    action: "Màn hình hiện ảnh đã bị làm mờ và hạn chót 12 giờ",
+    text: "Hình ảnh đã sẵn sàng. Tin nhắn của em cũng ở đây. Chỉ cần một cú đăng là mọi thứ của cô ta sẽ bị huỷ hoại. Em có mười hai giờ. Đừng để anh thất vọng.",
+    motion: "push",
+    mood: "danger",
+    next: "m16",
+  },
+  // S16 — Giằng xé
+  m16: {
+    id: "m16",
+    image: m16,
+    video: vn16.url,
+    speaker: "M",
+    action: "M ngồi thu mình trên giường, khóc trong bóng tối",
+    text: "Nếu làm theo... N sẽ bị tổn thương rất nhiều. Còn nếu không làm... mình sẽ bị lộ hết và bị tống tiền mãi mãi. Mình phải làm sao đây?",
+    motion: "kenburns",
+    mood: "danger",
+    next: "m17",
+  },
+  // S17 — Chỉ còn 12 giờ
+  m17: {
+    id: "m17",
+    image: m17,
+    video: vn17.url,
+    speaker: "narrator",
+    action: "Đồng hồ đếm ngược chạy từng giây trong đêm",
+    text: "Thời gian còn lại: mười một giờ năm mươi chín phút. Kẻ giấu mặt nhắn thêm một dòng lạnh lùng: quá hạn, nó sẽ tự động đăng. Và lúc đó, em không thể cứu vãn được nữa.",
+    motion: "shake",
+    mood: "danger",
+    next: "m18",
+  },
+  // S18 — Nỗi dằn vặt
+  m18: {
+    id: "m18",
+    image: m18,
+    video: vn18.url,
+    speaker: "M",
+    action: "M bưng miệng khóc, tưởng tượng những gì sẽ xảy ra với N",
+    text: "Nếu mình đăng lên... N sẽ đau khổ đến thế nào đây? Bạn ấy sẽ buồn bã, sẽ bị mọi người chỉ trích... chỉ vì mình sợ hãi.",
+    motion: "freeze",
+    mood: "danger",
+    next: "m19",
+  },
+  // S19 — Quyết định thay đổi tất cả
+  m19: {
+    id: "m19",
+    image: m19,
+    video: vn19.url,
+    speaker: "narrator",
+    action: "Mình phải làm gì đây?",
+    text: "Đây là quyết định sẽ thay đổi tất cả. M chỉ còn hai con đường, và mỗi con đường dẫn tới một kết cục hoàn toàn khác nhau.",
+    motion: "push",
+    mood: "danger",
+    choices: [
+      {
+        label: "A. Chấp nhận đối mặt, nói ra sự thật với bố mẹ và thầy cô",
+        next: "mconf",
+        tone: "safe",
+      },
+      {
+        label: "B. Nhắm mắt làm theo yêu cầu, đăng bài bôi nhọ N để bảo vệ bản thân",
+        next: "m19b1",
+        tone: "risky",
+      },
+    ],
+  },
+  // Nhánh A — M nói ra sự thật
+  mconf: {
+    id: "mconf",
+    image: mconf,
     video: vm14.url,
     speaker: "M",
     action: "M run rẩy đưa điện thoại cho mẹ xem, mẹ nắm lấy tay em",
@@ -273,19 +353,36 @@ export const FILM: Record<string, FilmNode> = {
     mood: "safe",
     next: "m21",
   },
-  // S16 — Giấu kín nỗi sợ
-  m16: {
-    id: "m16",
-    image: m16,
-    video: vm16.url,
-    speaker: "M",
-    action: "M ngồi thu mình trong góc phòng tối",
-    text: "Mình không nói được đâu. Nói ra thì ai cũng biết mình đã làm gì... Chịu thêm một ngày nữa thôi, rồi họ sẽ tha cho mình.",
-    motion: "kenburns",
+  // Nhánh B1 — Bài đăng bôi nhọ lan truyền
+  m19b1: {
+    id: "m19b1",
+    image: m19b1,
+    video: vnb1.url,
+    speaker: "narrator",
+    action: "Bài viết bôi nhọ N lan đi trong vài giờ",
+    text: "M nhắm mắt bấm đăng. Chỉ sau mười tiếng, bài viết có bốn mươi lăm nghìn lượt tương tác, hai mươi tám nghìn lượt chia sẻ. Danh dự của N bị nghiền nát bởi những người thậm chí chưa từng kiểm chứng một dòng nào.",
+    motion: "push",
     mood: "danger",
-    next: "m17",
+    next: "m19b2",
   },
-  // S19a — Chọn im lặng: lẳng lặng thoát nhóm và xoá tin nhắn
+  // Nhánh B2 — M trở thành tay sai vĩnh viễn
+  m19b2: {
+    id: "m19b2",
+    image: m19b2,
+    video: vnb2.url,
+    speaker: "narrator",
+    action: "Kẻ giấu mặt siết chặt sợi xích",
+    text: "Làm theo một lần, M vĩnh viễn không thoát ra được. Kẻ giấu mặt giữ toàn bộ bằng chứng và tiếp tục ra lệnh: phá hoại uy tín bạn khác, lấy cắp thông tin, dụ dỗ thêm người mới. Tài khoản bị khoá, bạn bè rời xa, còn nỗi tội lỗi thì ở lại mãi mãi.",
+    motion: "freeze",
+    mood: "danger",
+    ending: {
+      kind: "loss",
+      code: "D",
+      title: "KẾT THÚC D — MÃI MÃI LÀ TAY SAI",
+      lesson:
+        "Nghe theo kẻ tống tiền một lần là trao cho chúng quyền điều khiển mình mãi mãi. Hãy dừng lại, lưu bằng chứng và báo ngay cho người lớn — kẻ xấu chỉ mạnh khi nạn nhân im lặng.",
+    },
+  },
   m19a: {
     id: "m19a",
     image: m19a,
@@ -295,11 +392,11 @@ export const FILM: Record<string, FilmNode> = {
     text: "Lẳng lặng thoát nhóm và xoá tin nhắn đi, coi như mình không tham gia nữa và giấu kín chuyện này, vì mình sợ mọi người biết mình từng tham gia các thử thách ngớ ngẩn trước đó.",
     motion: "push",
     mood: "danger",
-    next: "m19b",
+    next: "m19bStep",
   },
-  m19b: {
-    id: "m19b",
-    image: m19b,
+  m19bStep: {
+    id: "m19bStep",
+    image: m19bImg,
     video: vm19b.url,
     speaker: "narrator",
     action: "Bước 1 — Thoát nhóm",
@@ -328,49 +425,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "“Xoá cho mọi người.” Màn hình sạch sẽ, nhưng M vừa tự xoá luôn bằng chứng có thể bảo vệ mình. Kẻ giấu mặt vẫn giữ mọi thứ nó cần.",
     motion: "freeze",
     mood: "danger",
-    next: "m17",
-  },
-  // S17 — Đếm ngược tâm lý
-  m17: {
-    id: "m17",
-    image: m17,
-    video: vm17.url,
-    speaker: "A",
-    action: "Kẻ giấu mặt ép hạn chót",
-    text: "Còn sáu tiếng. Không làm theo thì đúng bảy giờ sáng mai, mọi thứ về em sẽ nằm trên trang của cả trường. Đừng bắt anh nhắc lại.",
-    motion: "shake",
-    mood: "danger",
-    next: "m15",
-  },
-  // S18 — Hạn chót đếm ngược
-  m15: {
-    id: "m15",
-    image: m15,
-    video: vm15.url,
-    speaker: "narrator",
-    action: "Vòng đếm ngược đỏ rực trên điện thoại giữa căn phòng tối",
-    text: "Những lời đe doạ chồng lên nhau suốt đêm. M nhìn con số đếm ngược và thấy mình càng lúc càng nhỏ bé — đúng như điều kẻ giấu mặt muốn.",
-    motion: "push",
-    mood: "danger",
-    next: "m18",
-  },
-  // S19 — Khủng hoảng: kết thúc D
-  m18: {
-    id: "m18",
-    image: m18,
-    video: vm18.url,
-    speaker: "narrator",
-    action: "Trời gần sáng, M co mình một mình trong góc phòng",
-    text: "Áp lực, xấu hổ và sợ hãi bóp nghẹt M. Không một ai biết, không một ai đứng cạnh em. Khi chọn im lặng, em đã tự nhốt mình trong chiếc bẫy do kẻ khác dựng sẵn.",
-    motion: "freeze",
-    mood: "danger",
-    ending: {
-      kind: "loss",
-      code: "D",
-      title: "KẾT THÚC D — BỊ NHỐT TRONG NỖI SỢ",
-      lesson:
-        "Kẻ xấu mạnh nhất khi nạn nhân im lặng. Đừng tự chịu đựng một mình khi bị đe doạ hay thao túng trên mạng.",
-    },
+    next: "m13",
   },
   // S20 — M tỉnh ngộ
   m20: {

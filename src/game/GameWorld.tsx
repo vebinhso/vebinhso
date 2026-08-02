@@ -1024,30 +1024,37 @@ function PlotAndPlacement({
 export default function GameWorld(props: Props) {
   const controlsRef = useRef<any>(null);
 
+  const rotateRef = useRef(props.onRotate);
+  rotateRef.current = props.onRotate;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "r") props.onRotate();
+      if (e.key.toLowerCase() === "r") rotateRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props]);
+  }, []);
 
-  // Máy yếu / điện thoại: giảm độ phân giải render và tắt khử răng cưa.
-  const isLowEnd =
-    typeof navigator !== "undefined" &&
-    (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
-      ((navigator as any).hardwareConcurrency ?? 8) <= 4);
+  // Máy yếu / điện thoại: giảm độ phân giải render, tắt bóng đổ và khử răng cưa.
+  const isLowEnd = useMemo(
+    () =>
+      typeof navigator !== "undefined" &&
+      (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+        ((navigator as any).hardwareConcurrency ?? 8) <= 4 ||
+        ((navigator as any).deviceMemory ?? 8) <= 4),
+    []
+  );
 
   return (
     <Canvas
-      shadows
+      shadows={isLowEnd ? false : "soft"}
       camera={{ position: [0, 18, 28], fov: 55 }}
       dpr={isLowEnd ? 1 : [1, 1.25]}
-      performance={{ min: 0.4 }}
+      performance={{ min: 0.3 }}
       gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.1 }}
     >
       {/* Solid sky-blue background so the canvas never flashes white before Sky finishes loading */}
       <color attach="background" args={["#87ceeb"]} />
+
       <ambientLight intensity={0.6} />
       <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.6]} />
       <directionalLight

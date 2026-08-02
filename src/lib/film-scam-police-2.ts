@@ -35,10 +35,10 @@ import m25 from "@/assets/film3/clean/m25.jpg";
 import vm02 from "@/assets/film3/video/m02.mp4.asset.json";
 import vm03 from "@/assets/film3/video/m03.mp4.asset.json";
 import vm04 from "@/assets/film3/video/m04b.mp4.asset.json";
-import vm06 from "@/assets/film3/video/m06b.mp4.asset.json";
+import vm06 from "@/assets/film3/video/m06c.mp4.asset.json";
 import vtask1 from "@/assets/film3/video/task1.mp4.asset.json";
 import vtask2 from "@/assets/film3/video/task2.mp4.asset.json";
-import vtask3 from "@/assets/film3/video/task3.mp4.asset.json";
+import vtask3 from "@/assets/film3/video/task3b.mp4.asset.json";
 import vday45 from "@/assets/film3/video/day45.mp4.asset.json";
 import vm07 from "@/assets/film3/video/m07.mp4.asset.json";
 import vm08 from "@/assets/film3/video/m08.mp4.asset.json";
@@ -186,7 +186,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vm06.url,
     speaker: "A",
     action: "Nhiệm vụ ngày thứ nhất đến thứ ba",
-    text: "Nhiệm vụ một: gửi anh ảnh thẻ học sinh. Nhiệm vụ hai: chụp màn hình danh bạ. Nhiệm vụ ba: công khai tên và ngày sinh của em trên nhóm. Im lặng và nghe lời, rồi cả trường sẽ phải nhớ tới em.",
+    text: "Nhiệm vụ một: gửi anh ảnh thẻ học sinh. Nhiệm vụ hai: chụp màn hình danh bạ. Nhiệm vụ ba: quay một clip nhảy và gửi lên nhóm. Im lặng và nghe lời, rồi cả trường sẽ phải nhớ tới em.",
     motion: "push",
     mood: "danger",
     next: "task1",
@@ -220,9 +220,9 @@ export const FILM: Record<string, FilmNode> = {
     id: "task3",
     image: task3,
     video: vtask3.url,
-    speaker: "M",
-    action: "Ngày thứ ba — công khai tên và ngày sinh trên nhóm",
-    text: "Nguyễn M, sinh ngày ba mươi tháng mười năm hai nghìn không trăm mười một.",
+    speaker: "narrator",
+    action: "Ngày thứ ba — quay clip nhảy và gửi lên nhóm",
+    text: "Ngày thứ ba, em đã quay một clip nhảy và gửi lên nhóm. Đoạn clip ấy giờ nằm trong tay người lạ, và em không còn cách nào lấy lại được nữa.",
     motion: "kenburns",
     mood: "danger",
     next: "day45",

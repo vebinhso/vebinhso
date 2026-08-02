@@ -19,13 +19,13 @@ export const Route = createFileRoute("/roleplay/mot-cu-bam")({
   component: FilmPage,
   head: () => ({
     meta: [
-      { title: "Phim tương tác: Một Cú Bấm Vì Bạn — Vệ Binh Số" },
+      { title: "Phim tương tác: Cuộc Thi Hoa Khôi — Vệ Binh Số" },
       {
         name: "description",
         content:
           "Bài 3 nhập vai: một đường link bình chọn gửi từ tài khoản của bạn thân. Bạn sẽ bấm giúp bạn hay dừng lại xác minh?",
       },
-      { property: "og:title", content: "Phim tương tác: Một Cú Bấm Vì Bạn" },
+      { property: "og:title", content: "Phim tương tác: Cuộc Thi Hoa Khôi" },
       {
         property: "og:description",
         content: "Bạn vào vai Bảo. Mỗi lựa chọn trước một đường link lạ sẽ dẫn đến một kết cục khác nhau.",

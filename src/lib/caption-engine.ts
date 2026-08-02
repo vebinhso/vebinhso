@@ -67,6 +67,10 @@ export function createCaptionEngine(
   };
 
   return {
+    /** Đã có nguồn dẫn nhịp (timer hoặc audio) hay chưa */
+    isRunning() {
+      return mode !== "idle";
+    },
     /** Chạy phụ đề theo đồng hồ (khi chưa/không có giọng đọc) */
     startTimer(onEnd?: () => void) {
       mode = "timer";

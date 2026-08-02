@@ -272,6 +272,7 @@ function FilmPage() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(lateStart);
       stopCap();
     };
 

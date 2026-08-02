@@ -368,50 +368,26 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
-      {/* Nền mờ lấp đầy khung hình */}
-      {visual.type === "video" ? (
-        <video
-          key={"bg" + node.id}
-          src={visual.src}
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
-        />
-      ) : (
+      {/* Nền mờ lấp đầy khung hình — luôn dùng ảnh tĩnh để đỡ nặng máy */}
+      <img
+        key={"bg" + node.id}
+        src={node.image}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
+      />
+
+      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
+      {prevVisual && (
         <img
-          key={"bg" + node.id}
-          src={visual.src}
+          key={"prev" + prevVisual.src}
+          src={prevVisual.src}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
         />
       )}
 
-      {/* Cảnh cũ mờ dần — hiệu ứng hoà hình như phim */}
-      {prevVisual &&
-        (prevVisual.type === "video" ? (
-          <video
-            key={"prev" + prevVisual.src}
-            src={prevVisual.src}
-            autoPlay
-            loop
-            muted
-            playsInline
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
-          />
-        ) : (
-          <img
-            key={"prev" + prevVisual.src}
-            src={prevVisual.src}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
-          />
-        ))}
 
       {/* Cảnh hiện tại — khung phim cố định 16:9 */}
       <div

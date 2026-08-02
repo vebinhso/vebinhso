@@ -60,6 +60,7 @@ function GamePage() {
   // Chỉ lưu KẾT QUẢ ở gần (cửa/đèn) thay vì toạ độ → nhân vật di chuyển không làm cả trang render lại
   const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean }>({ doorId: null, lamp: false });
   const placedRef = useRef<PlacedItem[]>([]);
+  placedRef.current = state?.placed ?? [];
   const handlePlayerPos = useCallback((px: number, pz: number) => {
     const placed = placedRef.current;
     let nearest: { id: string; d2: number } | null = null;

@@ -121,6 +121,28 @@ function FilmPage() {
     pendingRef.current.set(n.id, p);
   }, [tts]);
 
+  // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
+  const beginFilm = useCallback(async () => {
+    setPreparing(true);
+    const n = FILM[FILM_START];
+    const waits: Promise<unknown>[] = [];
+    const pending = pendingRef.current.get(n.id);
+    if (pending) waits.push(pending);
+    if (n.image) {
+      waits.push(
+        new Promise<void>((res) => {
+          const im = new Image();
+          im.onload = () => res();
+          im.onerror = () => res();
+          im.src = n.image;
+        })
+      );
+    }
+    await Promise.race([Promise.all(waits), new Promise((res) => window.setTimeout(res, 4000))]);
+    setPreparing(false);
+    setStarted(true);
+  }, []);
+
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -359,10 +381,11 @@ function FilmPage() {
           </p>
 
           <button
-            onClick={() => setStarted(true)}
-            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-sky-600 to-indigo-500 hover:brightness-110"
+            onClick={beginFilm}
+            disabled={preparing}
+            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-sky-600 to-indigo-500 hover:brightness-110 disabled:opacity-70"
           >
-            ▶ BẮT ĐẦU
+            {preparing ? "⏳ Đang chuẩn bị phim..." : "▶ BẮT ĐẦU"}
           </button>
           <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
             ← Quay lại danh sách bài chơi

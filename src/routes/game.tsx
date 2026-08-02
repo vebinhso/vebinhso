@@ -56,7 +56,8 @@ function GamePage() {
   const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
   const wt = useWorldToggles();
-  const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
+  // Chỉ lưu KẾT QUẢ ở gần (cửa/đèn) thay vì toạ độ → nhân vật di chuyển không làm cả trang render lại
+  const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean }>({ doorId: null, lamp: false });
   const listFriendsFn = useServerFn(listFriendHouses);
   const friendHousesQ = useQuery({
     queryKey: ["friend-houses"],

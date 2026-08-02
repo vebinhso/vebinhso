@@ -53,7 +53,7 @@ import vn17 from "@/assets/film3/video/n17.mp4.asset.json";
 import vn18 from "@/assets/film3/video/n18.mp4.asset.json";
 import vn19 from "@/assets/film3/video/n19.mp4.asset.json";
 import vnb1 from "@/assets/film3/video/nb1.mp4.asset.json";
-import vnb2 from "@/assets/film3/video/nb2.mp4.asset.json";
+import vnb2 from "@/assets/film3/video/nb2b.mp4.asset.json";
 import vm14 from "@/assets/film3/video/m14.mp4.asset.json";
 import vm19a from "@/assets/film3/video/m19a.mp4.asset.json";
 import vm19b from "@/assets/film3/video/m19b.mp4.asset.json";

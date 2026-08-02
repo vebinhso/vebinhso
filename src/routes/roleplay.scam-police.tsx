@@ -390,10 +390,11 @@ function FilmPage() {
 
 
           <button
-            onClick={() => setStarted(true)}
-            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"
+            onClick={beginFilm}
+            disabled={preparing}
+            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110 disabled:opacity-70"
           >
-            ▶ BẮT ĐẦU
+            {preparing ? "⏳ Đang chuẩn bị phim..." : "▶ BẮT ĐẦU"}
           </button>
           <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
             ← Quay lại danh sách bài chơi

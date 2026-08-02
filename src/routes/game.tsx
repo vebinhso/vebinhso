@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentUser, recordLoginDay, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import {
@@ -42,6 +42,7 @@ function GamePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [state, setState] = useState<GameState | null>(null);
+
   const [selected, setSelected] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
@@ -56,7 +57,34 @@ function GamePage() {
   const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
   const wt = useWorldToggles();
-  const [playerPos, setPlayerPos] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
+  // Chỉ lưu KẾT QUẢ ở gần (cửa/đèn) thay vì toạ độ → nhân vật di chuyển không làm cả trang render lại
+  const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean }>({ doorId: null, lamp: false });
+  const placedRef = useRef<PlacedItem[]>([]);
+  placedRef.current = state?.placed ?? [];
+  const handlePlayerPos = useCallback((px: number, pz: number) => {
+    const placed = placedRef.current;
+    let nearest: { id: string; d2: number } | null = null;
+    let lamp = false;
+    for (const p of placed) {
+      if (p.itemId === "door" && (p.floor ?? 0) === 0) {
+        const it = getItem(p.itemId);
+        if (!it) continue;
+        const swap = p.rotation % 2 === 1;
+        const fw = swap ? it.d : it.w;
+        const fd = swap ? it.w : it.d;
+        const hasAngle = typeof p.angleRad === "number";
+        const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
+        const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
+        const d2 = (px - cx) ** 2 + (pz - cz) ** 2;
+        if (d2 < 2.5 * 2.5 && (!nearest || d2 < nearest.d2)) nearest = { id: p.id, d2 };
+      } else if (!lamp && (p.itemId === "lamp" || p.itemId === "gardenlamp")) {
+        const d2 = (px - (p.x - 10 + 0.5)) ** 2 + (pz - (p.z - 10 + 0.5)) ** 2;
+        if (d2 < 9) lamp = true;
+      }
+    }
+    const doorId = nearest?.id ?? null;
+    setNearby((prev) => (prev.doorId === doorId && prev.lamp === lamp ? prev : { doorId, lamp }));
+  }, []);
   const listFriendsFn = useServerFn(listFriendHouses);
   const friendHousesQ = useQuery({
     queryKey: ["friend-houses"],
@@ -899,11 +927,7 @@ function GamePage() {
           onPickup={handlePickup}
           showAdminMarkers={isAdmin(user.email)}
           sparkles={sparkles}
-          onPlayerPos={(x, z) =>
-            setPlayerPos((prev) =>
-              Math.abs(prev.x - x) < 0.6 && Math.abs(prev.z - z) < 0.6 ? prev : { x, z }
-            )
-          }
+          onPlayerPos={handlePlayerPos}
           friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
           onVisitFriend={(ownerId) => {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
@@ -1162,38 +1186,13 @@ function GamePage() {
 
       {/* HUD: cửa & đèn — chỉ hiện khi tới gần và đã có đặt vật tương ứng */}
       {(() => {
-        // Tìm cửa gần nhất (cùng tầng trệt, cự ly ≤ 2.5m) → chỉ thao tác MỘT cửa đó
-        let nearest: { id: string; d2: number } | null = null;
-        for (const p of state.placed) {
-          if (p.itemId !== "door") continue;
-          if ((p.floor ?? 0) !== 0) continue;
-          const it = getItem(p.itemId);
-          if (!it) continue;
-          const swap = p.rotation % 2 === 1;
-          const fw = swap ? it.d : it.w;
-          const fd = swap ? it.w : it.d;
-          const hasAngle = typeof p.angleRad === "number";
-          const cx = hasAngle ? p.x - 10 : p.x - 10 + fw / 2;
-          const cz = hasAngle ? p.z - 10 : p.z - 10 + fd / 2;
-          const dx = playerPos.x - cx;
-          const dz = playerPos.z - cz;
-          const d2 = dx * dx + dz * dz;
-          if (d2 < 2.5 * 2.5 && (!nearest || d2 < nearest.d2)) nearest = { id: p.id, d2 };
-        }
-        // Đèn: hiện khi đã đặt ít nhất 1 đèn & nhân vật cách đèn ≤ 3m
-        const LAMP_IDS = new Set(["lamp", "gardenlamp"]);
-        const nearLamp = state.placed.some((p) => {
-          if (!LAMP_IDS.has(p.itemId)) return false;
-          const cx = p.x - 10 + 0.5;
-          const cz = p.z - 10 + 0.5;
-          const dx = playerPos.x - cx;
-          const dz = playerPos.z - cz;
-          return dx * dx + dz * dz < 3 * 3;
-        });
+        const nearest = nearby.doorId ? { id: nearby.doorId } : null;
+        const nearLamp = nearby.lamp;
         if (!nearest && !nearLamp) return null;
         const isOpen = nearest ? (wt.doorsOpen || wt.openDoorIds?.includes(nearest.id)) : false;
         return (
           <div className="absolute bottom-3 right-3 sm:bottom-3 [@media(pointer:coarse)]:bottom-28 flex flex-col gap-2 pointer-events-auto z-30">
+
             {nearest && (
               <button
                 onClick={() => {

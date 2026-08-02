@@ -186,11 +186,60 @@ export const FILM: Record<string, FilmNode> = {
     video: vm06.url,
     speaker: "A",
     action: "Nhiệm vụ ngày thứ nhất đến thứ ba",
-    text: "Nhiệm vụ một: gửi anh ảnh thẻ học sinh. Nhiệm vụ hai: chụp màn hình danh bạ. Nhiệm vụ ba: không kể chuyện này với bất kỳ ai. Im lặng và nghe lời, rồi cả trường sẽ phải nhớ tới em.",
+    text: "Nhiệm vụ một: gửi anh ảnh thẻ học sinh. Nhiệm vụ hai: chụp màn hình danh bạ. Nhiệm vụ ba: công khai tên và ngày sinh của em trên nhóm. Im lặng và nghe lời, rồi cả trường sẽ phải nhớ tới em.",
+    motion: "push",
+    mood: "danger",
+    next: "task1",
+  },
+  // Ngày 1 — M thực hiện nhiệm vụ một
+  task1: {
+    id: "task1",
+    image: task1,
+    video: vtask1.url,
+    speaker: "narrator",
+    action: "Ngày thứ nhất — nhiệm vụ một",
+    text: "M chụp lại tấm thẻ học sinh của mình và gửi đi. Chỉ một tấm ảnh, nhưng trong đó có đủ họ tên, lớp và cả ngôi trường em đang học.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "task2",
+  },
+  // Ngày 2 — nhiệm vụ hai
+  task2: {
+    id: "task2",
+    image: task2,
+    video: vtask2.url,
+    speaker: "narrator",
+    action: "Ngày thứ hai — nhiệm vụ hai",
+    text: "Đêm hôm sau, M chụp màn hình toàn bộ danh bạ điện thoại. Không chỉ thông tin của em, mà cả số của bạn bè và người thân cũng rơi vào tay kẻ giấu mặt.",
+    motion: "push",
+    mood: "danger",
+    next: "task3",
+  },
+  // Ngày 3 — nhiệm vụ ba
+  task3: {
+    id: "task3",
+    image: task3,
+    video: vtask3.url,
+    speaker: "M",
+    action: "Ngày thứ ba — công khai tên và ngày sinh trên nhóm",
+    text: "Nguyễn M, sinh ngày ba mươi tháng mười năm hai nghìn không trăm mười một.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "day45",
+  },
+  // Ngày 4 và 5 — M tiếp tục làm theo
+  day45: {
+    id: "day45",
+    image: day45,
+    video: vday45.url,
+    speaker: "narrator",
+    action: "Ngày thứ tư và ngày thứ năm",
+    text: "Ngày thứ tư, M quay lén một đoạn clip trong hành lang lớp. Ngày thứ năm, em gửi thêm những tấm ảnh và thông tin mà nhóm yêu cầu. Mỗi ngày trôi qua, em lại nghe lời dễ dàng hơn một chút.",
     motion: "push",
     mood: "danger",
     next: "m07",
   },
+
   // S08 — Cái bẫy siết lại
   m07: {
     id: "m07",

@@ -93,7 +93,7 @@ function FilmPage() {
     if (!getCurrentUser()) navigate({ to: "/login" });
   }, [navigate]);
 
-  // Tải sẵn giọng đọc cảnh mở màn ngay từ màn hình poster → bấm vào là chạy liền
+  // Tải sẵn giọng đọc + khung hình cảnh mở màn ngay từ màn hình poster → bấm vào là chạy liền
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(n.id)) return;
@@ -108,8 +108,44 @@ function FilmPage() {
         return "";
       });
     pendingRef.current.set(n.id, p);
+    if (n.image) new Image().src = n.image;
+    if (n.video) {
+      const v = document.createElement("video");
+      v.preload = "auto";
+      v.muted = true;
+      v.src = n.video;
+      void v.load();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
+  const beginFilm = useCallback(async () => {
+    if (preparing) return;
+    setPreparing(true);
+    const n = FILM[FILM_START];
+    const waits: Promise<unknown>[] = [];
+    const pending = pendingRef.current.get(n.id);
+    if (pending) waits.push(pending);
+    if (n.image) {
+      waits.push(
+        new Promise<void>((res) => {
+          const im = new Image();
+          im.onload = () => res();
+          im.onerror = () => res();
+          im.src = n.image;
+        })
+      );
+    }
+    await Promise.race([
+      Promise.all(waits),
+      new Promise((res) => window.setTimeout(res, 4000)),
+    ]);
+    setPreparing(false);
+    setStarted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preparing]);
+
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {

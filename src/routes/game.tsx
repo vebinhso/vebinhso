@@ -42,6 +42,7 @@ function GamePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [state, setState] = useState<GameState | null>(null);
+
   const [selected, setSelected] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);

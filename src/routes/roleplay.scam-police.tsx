@@ -157,8 +157,10 @@ function FilmPage() {
       };
     }
 
-    // Chữ chạy ngay lập tức, không chờ tải giọng đọc
-    cap.startTimer();
+    // Nếu giọng đọc tải lâu (>2.2s) thì cho chữ chạy trước để không bị đứng hình
+    const lateStart = window.setTimeout(() => {
+      if (!cancelled && !cap.isRunning()) cap.startTimer();
+    }, 2200);
 
     const speakBrowser = (markDone = true) => {
       if (typeof window === "undefined" || !window.speechSynthesis) {
@@ -195,6 +197,7 @@ function FilmPage() {
         }
 
         if (cancelled || muted) return;
+        window.clearTimeout(lateStart);
         if (!b64) {
           // Không có giọng AI (hết tín dụng / lỗi) → dùng giọng đọc của trình duyệt
           speakBrowser();
@@ -202,6 +205,7 @@ function FilmPage() {
         }
 
         const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
+        audio.preload = "auto";
         audio.playbackRate = 1.06;
 
         audio.onended = () => {
@@ -211,7 +215,7 @@ function FilmPage() {
         };
         audioRef.current = audio;
 
-        // Bám theo con trỏ phát của giọng đọc → chữ chạy tới đâu, đọc tới đó
+        // Chữ chỉ bắt đầu chạy đúng lúc giọng đọc cất tiếng → khớp hình – tiếng
         cap.followAudio(audio);
 
         await audio.play().catch(() => {
@@ -219,12 +223,14 @@ function FilmPage() {
         });
       } catch {
         if (cancelled) return;
+        window.clearTimeout(lateStart);
         speakBrowser();
       }
     };
 
 
     void play();
+
 
     // Tải sẵn giọng đọc + hình/video của các cảnh kế tiếp (kể cả nhánh lựa chọn)
     const upcoming: FilmNode[] = [];

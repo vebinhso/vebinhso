@@ -72,6 +72,7 @@ function FilmPage() {
   const [done, setDone] = useState(false);
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
@@ -156,8 +157,10 @@ function FilmPage() {
       };
     }
 
-    // Chữ chạy ngay, không chờ tải giọng đọc
-    cap.startTimer();
+    // Nếu giọng đọc tải lâu (>2.2s) mới cho chữ chạy trước, còn lại chữ khớp giọng
+    const lateStart = window.setTimeout(() => {
+      if (!cancelled && !cap.isRunning()) cap.startTimer();
+    }, 2200);
 
     const speakBrowser = () => {
       if (typeof window === "undefined" || !window.speechSynthesis) {
@@ -198,6 +201,7 @@ function FilmPage() {
         }
 
         if (cancelled || muted) return;
+        window.clearTimeout(lateStart);
         if (!b64) {
           // Không có giọng AI (hết tín dụng / lỗi) → giọng đọc trình duyệt
           speakBrowser();
@@ -220,6 +224,7 @@ function FilmPage() {
         });
       } catch {
         if (cancelled) return;
+        window.clearTimeout(lateStart);
         speakBrowser();
       }
     };
@@ -271,6 +276,7 @@ function FilmPage() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(lateStart);
       cap.stop();
     };
   }, [meta, muted, node, started, stopAudio, tts]);
@@ -285,14 +291,14 @@ function FilmPage() {
 
   const go = (next: string) => {
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -301,7 +307,7 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);
@@ -360,48 +366,24 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
-      {visual.type === "video" ? (
-        <video
-          key={"bg" + node.id}
-          src={visual.src}
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
-        />
-      ) : (
+      {/* Nền mờ — dùng ảnh tĩnh cho nhẹ máy */}
+      <img
+        key={"bg" + node.id}
+        src={node.image}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
+      />
+
+      {prevVisual && (
         <img
-          key={"bg" + node.id}
-          src={visual.src}
+          key={"prev" + prevVisual.src}
+          src={prevVisual.src}
           alt=""
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
+          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
         />
       )}
-
-      {prevVisual &&
-        (prevVisual.type === "video" ? (
-          <video
-            key={"prev" + prevVisual.src}
-            src={prevVisual.src}
-            autoPlay
-            loop
-            muted
-            playsInline
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
-          />
-        ) : (
-          <img
-            key={"prev" + prevVisual.src}
-            src={prevVisual.src}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
-          />
-        ))}
 
       <div
         key={"cam" + node.id}

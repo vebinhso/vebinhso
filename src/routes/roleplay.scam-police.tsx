@@ -290,14 +290,14 @@ function FilmPage() {
 
   const go = (next: string) => {
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -306,7 +306,7 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
-    setPrevVisual(visual);
+    setPrevVisual({ src: node.image, type: "image" });
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);

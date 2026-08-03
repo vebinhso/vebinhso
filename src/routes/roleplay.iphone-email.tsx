@@ -543,9 +543,6 @@ function FilmPage() {
                 XÁC NHẬN NHẬN THƯỞNG
               </div>
             </div>
-            <div className="rounded-xl bg-red-950/90 border border-red-500/70 px-3 py-2 text-[10px] sm:text-xs font-semibold text-red-200 leading-snug">
-              ⚠️ Vì sao trao thưởng lại cần <span className="font-black text-red-300">mật khẩu game</span>? Không có lý do nào cả — trừ khi họ muốn cướp tài khoản.
-            </div>
           </div>
         </div>
       )}

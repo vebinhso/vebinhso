@@ -520,7 +520,34 @@ function FilmPage() {
         </div>
       )}
 
-
+      {node.formOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 pb-[16vh]">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-[280px] sm:max-w-xs space-y-2">
+            <div className="rounded-2xl bg-slate-900/95 border border-amber-400/70 shadow-[0_0_60px_rgba(251,191,36,0.45)] px-3 py-3 space-y-2">
+              <div className="text-center text-[10px] sm:text-xs font-black text-amber-300 tracking-wide">
+                XÁC NHẬN NHẬN THƯỞNG
+              </div>
+              {["Họ tên", "Số điện thoại", "Địa chỉ nhà", "Tên đăng nhập Game"].map((f) => (
+                <div
+                  key={f}
+                  className="rounded-md border border-amber-400/60 bg-slate-800/80 px-2 py-1.5 text-[10px] sm:text-xs text-amber-100/90"
+                >
+                  {f}
+                </div>
+              ))}
+              <div className="rounded-md border-2 border-red-500 bg-red-500/10 px-2 py-1.5 text-[10px] sm:text-xs font-bold text-red-300">
+                Mật khẩu
+              </div>
+              <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[10px] sm:text-xs font-black text-slate-900">
+                XÁC NHẬN NHẬN THƯỞNG
+              </div>
+            </div>
+            <div className="rounded-xl bg-red-950/90 border border-red-500/70 px-3 py-2 text-[10px] sm:text-xs font-semibold text-red-200 leading-snug">
+              ⚠️ Vì sao trao thưởng lại cần <span className="font-black text-red-300">mật khẩu game</span>? Không có lý do nào cả — trừ khi họ muốn cướp tài khoản.
+            </div>
+          </div>
+        </div>
+      )}
 
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

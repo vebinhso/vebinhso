@@ -21,6 +21,8 @@ import l07b from "@/assets/film5/clean/l07b.jpg";
 import vl07b from "@/assets/film5/video/l07b.mp4.asset.json";
 import l08 from "@/assets/film5/clean/l08.jpg";
 import vl08 from "@/assets/film5/video/l08.mp4.asset.json";
+import l08b from "@/assets/film5/clean/l08b.jpg";
+import vl08b from "@/assets/film5/video/l08b.mp4.asset.json";
 import l09 from "@/assets/film5/clean/l09.jpg";
 import vl09 from "@/assets/film5/video/l09.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";

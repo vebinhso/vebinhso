@@ -135,7 +135,7 @@ function FilmPage() {
           im.onload = () => res();
           im.onerror = () => res();
           im.src = n.image;
-        })
+        }),
       );
     }
     await Promise.race([Promise.all(waits), new Promise((res) => window.setTimeout(res, 4000))]);
@@ -373,8 +373,7 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái
-            bẫy?
+            Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái bẫy?
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
             Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!

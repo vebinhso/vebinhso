@@ -4,8 +4,8 @@ import s03 from "@/assets/film4/clean/s03.jpg";
 import s04 from "@/assets/film4/clean/s04.jpg";
 import s04choice from "@/assets/film4/clean/s04-choice.jpg";
 import s04decide from "@/assets/film4/clean/s04-decide.jpg";
-import s05 from "@/assets/film4/clean/s05.jpg";
-import s06 from "@/assets/film4/clean/s06.jpg";
+import s05 from "@/assets/film4/clean/s05-vote.png";
+import s06 from "@/assets/film4/clean/s06-login.png";
 import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
@@ -23,8 +23,8 @@ import vs02 from "@/assets/film4/video/b03.mp4.asset.json";
 import vs03 from "@/assets/film4/video/b04.mp4.asset.json";
 import vs04 from "@/assets/film4/video/b05.mp4.asset.json";
 import vs04b from "@/assets/film4/video/b05b.mp4.asset.json";
-import vs05 from "@/assets/film4/video/b06.mp4.asset.json";
-import vs06 from "@/assets/film4/video/b07.mp4.asset.json";
+import vs05 from "@/assets/film4/video/s05-vote.mp4.asset.json";
+import vs06 from "@/assets/film4/video/s06-login.mp4.asset.json";
 import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
 import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
@@ -243,7 +243,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "Một trang web hồng rực hiện ra với hình ảnh của Hà. Kim tuyến bay lơ lửng, bóng bay, ruy băng, một chiếc nút khổng lồ phát sáng, và một chiếc đồng hồ đếm ngược đang chạy. Mọi thứ đẹp đến mức không kịp để ai nghi ngờ — đó chính là điều đáng ngờ nhất.",
     motion: "push",
     mood: "danger",
-    voteOverlay: true,
     next: "s06",
   },
   // S06 — Hộp đăng nhập giả
@@ -256,7 +255,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bảo bấm nút bình chọn. Một hộp thoại trượt lên: để tránh gian lận vote, vui lòng đăng nhập tài khoản Facebook hoặc Zalo để hệ thống xác minh. Trên thanh địa chỉ, chữ facebook chấm com chỉ là phần đầu — tên miền thật lại là vote hai nghìn không trăm hai sáu chấm xyz. Và ổ khoá vẫn đang mở.",
     motion: "push",
     mood: "danger",
-    loginOverlay: true,
     next: "s07",
   },
   // S07 — Bảo gõ mật khẩu

@@ -19,6 +19,10 @@ import l06b from "@/assets/film5/clean/l06b.jpg";
 import vl06b from "@/assets/film5/video/l06b.mp4.asset.json";
 import l07b from "@/assets/film5/clean/l07b.jpg";
 import vl07b from "@/assets/film5/video/l07b.mp4.asset.json";
+import l08 from "@/assets/film5/clean/l08.jpg";
+import vl08 from "@/assets/film5/video/l08.mp4.asset.json";
+import l09 from "@/assets/film5/clean/l09.jpg";
+import vl09 from "@/assets/film5/video/l09.mp4.asset.json";
 import l07c from "@/assets/film5/clean/l07d.jpg";
 import vl07c from "@/assets/film5/video/l07d.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
@@ -249,13 +253,35 @@ export const FILM: Record<string, FilmNode> = {
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",
+    next: "l08",
+  },
+  l08: {
+    id: "l08",
+    image: l08,
+    video: vl08.url,
+    speaker: "narrator",
+    action: "Máy bắt đầu lạ",
+    text: "Máy chậm hẳn, màn hình giật lag liên tục và pin tụt nhanh bất thường. L bấm mãi mà mọi thứ cứ đứng im.",
+    motion: "shake",
+    mood: "danger",
+    next: "l09",
+  },
+  l09: {
+    id: "l09",
+    image: l09,
+    video: vl09.url,
+    speaker: "L",
+    action: "Tắt máy và khởi động lại",
+    text: "Sao máy tắt rồi? Không lên nữa!",
+    motion: "shake",
+    mood: "danger",
 
     ending: {
       kind: "loss",
       code: "A-LOSS",
       title: "TIẾP TỤC",
       lesson:
-        "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản.",
+        "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản. Sáng hôm sau, tài khoản game của L bị đăng nhập từ một thiết bị lạ và bạn bè nhận được tin nhắn lạ gửi từ nick của L.",
     },
   },
 

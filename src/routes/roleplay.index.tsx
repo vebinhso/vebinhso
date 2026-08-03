@@ -6,6 +6,7 @@ import { getCurrentUser, type Account } from "@/lib/auth";
 import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
+import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,
@@ -72,13 +73,15 @@ const LESSONS: Lesson[] = [
     poster: FILM3_POSTER,
   },
   {
-    id: "shopping",
-    emoji: "🛒",
-    title: "Bài 4 · Cú lừa mua hàng",
-    desc: "Ưu đãi 90% chỉ còn 5 phút... Nhập vai người tiêu dùng thông minh.",
-    tag: "Giao dịch số",
-    gradient: "from-amber-500 to-yellow-600",
-    ready: false,
+    id: "iphone-email",
+    emoji: "🎁",
+    title: "Bài 4 · Món quà đắt nhất",
+    desc: "Một email thông báo trúng thưởng iPhone. Linh sẽ làm gì khi nhận được tin vui bất ngờ từ người lạ?",
+    tag: "An toàn số",
+    gradient: "from-amber-500 to-orange-600",
+    ready: true,
+    to: "/roleplay/iphone-email",
+    poster: FILM4_POSTER,
   },
   {
     id: "history",

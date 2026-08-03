@@ -17,6 +17,8 @@ import l05a from "@/assets/film5/clean/l05a.jpg";
 import vl05a from "@/assets/film5/video/l05a.mp4.asset.json";
 import l05a2 from "@/assets/film5/clean/l05a2.jpg";
 import vl05a2 from "@/assets/film5/video/l05a2.mp4.asset.json";
+import l06 from "@/assets/film5/clean/l06.jpg";
+import vl06 from "@/assets/film5/video/l06.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 

@@ -266,6 +266,17 @@ export const FILM: Record<string, FilmNode> = {
     text: "Máy chậm hẳn, màn hình giật lag liên tục và pin tụt nhanh bất thường. L bấm mãi mà mọi thứ cứ đứng im.",
     motion: "shake",
     mood: "danger",
+    next: "l08b",
+  },
+  l08b: {
+    id: "l08b",
+    image: l08b,
+    video: vl08b.url,
+    speaker: "narrator",
+    action: "Khởi động lại máy",
+    text: "L thấy lạ nên tắt nguồn và khởi động lại máy. Cô ngồi im nhìn màn hình quay vòng, chờ mãi...",
+    motion: "push",
+    mood: "danger",
     next: "l09",
   },
   l09: {

@@ -33,6 +33,10 @@ import l11a2 from "@/assets/film5/clean/l11a2.jpg";
 import vl11a2 from "@/assets/film5/video/l11a2.mp4.asset.json";
 import l12a2 from "@/assets/film5/clean/l12a2.jpg";
 import vl12a2 from "@/assets/film5/video/l12a2.mp4.asset.json";
+import l12b2 from "@/assets/film5/clean/l12b2.jpg";
+import vl12b2 from "@/assets/film5/video/l12b2.mp4.asset.json";
+import l13end from "@/assets/film5/clean/l13end.jpg";
+import vl13end from "@/assets/film5/video/l13end.mp4.asset.json";
 import l13a2 from "@/assets/film5/clean/l13a2.jpg";
 import vl13a2 from "@/assets/film5/video/l13a2.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
@@ -403,12 +407,34 @@ export const FILM: Record<string, FilmNode> = {
     text: "Giờ mình phải làm sao đây... Mình không dám nói với bố mẹ...",
     motion: "shake",
     mood: "danger",
+    next: "l12b2",
+  },
+  l12b2: {
+    id: "l12b2",
+    image: l12b2,
+    video: vl12b2.url,
+    speaker: "narrator",
+    action: "S19 — CÁI GIÁ PHẢI TRẢ",
+    text: "Nhiều bạn trong danh bạ của Linh cũng bị lừa, thiệt hại và mất niềm tin. “Mình vừa bấm link Linh gửi... giờ mất tài khoản game rồi!” — “Sao Linh lại gửi link lừa đảo vậy chứ...”",
+    motion: "shake",
+    mood: "danger",
+    next: "l13end",
+  },
+  l13end: {
+    id: "l13end",
+    image: l13end,
+    video: vl13end.url,
+    speaker: "narrator",
+    action: "L13 — SÁNG HÔM SAU Ở TRƯỜNG",
+    text: "Nick của Linh gửi link lừa cho cả nhóm lớp suốt 3 ngày. Hai bạn đã bấm vào. Máy thì sửa được. Lòng tin thì lâu hơn.",
+    motion: "push",
+    mood: "danger",
     ending: {
       kind: "loss",
       code: "A2-LOSS",
-      title: "HẬU QUẢ",
+      title: "KẾT THÚC D — MẤT NHIỀU HƠN MỘT CÁI ĐIỆN THOẠI",
       lesson:
-        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Sửa được máy cũng không lấy lại được tài khoản — hãy báo người lớn và đổi mật khẩu ngay thay vì giấu chuyện.",
+        "Vì giấu chuyện và không đổi mật khẩu kịp, kẻ gian dùng chính tài khoản của Linh để lừa tiếp bạn bè trong danh bạ suốt nhiều ngày. Khi lỡ bị lừa: báo người lớn ngay, đổi mật khẩu email trước rồi tới các tài khoản khác, bật xác thực 2 lớp và cảnh báo bạn bè càng sớm càng tốt. Máy sửa được, nhưng lòng tin thì mất rất lâu mới lấy lại.",
     },
   },
 

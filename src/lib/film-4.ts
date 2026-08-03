@@ -513,13 +513,25 @@ export const FILM: Record<string, FilmNode> = {
 
     motion: "push",
     mood: "safe",
+    next: "l18b1",
+  },
+  l18b1: {
+    id: "l18b1",
+    image: l18b1,
+    video: vl18b1.url,
+    speaker: "narrator",
+    action: "S24 — Nhờ bài đăng của Linh, 2 người bạn tránh được bẫy",
+    text: "Mai Lan: “Ủa! Mình cũng vừa nhận email y chang này luôn nè! May quá thấy bài của Linh kịp thời!” — Đức Anh: “Cảm ơn Linh nhiều nha! Mình suýt bấm vào link rồi. Cảnh báo hữu ích ghê!”",
+    motion: "push",
+    mood: "safe",
     ending: {
       kind: "safe",
       code: "B1-SAFE",
       title: "KẾT THÚC A — AN TOÀN VÀ BẢO VỆ CẢ NHÓM",
       lesson:
-        "BÀI HỌC:\n• Đọc phần SAU dấu @ — đó mới là chủ nhân hòm thư (gmail-free-service.com ≠ gmail.com).\n• Kiểm tra tên miền của đường link: tên miền lạ, đuôi .net/.xyz... là dấu hiệu giả mạo.\n• Nhà phát hành game thật thông báo trúng thưởng TRONG ỨNG DỤNG, không qua email cá nhân.\n• Tự mình an toàn là chưa đủ: chia sẻ cảnh báo giúp bạn bè không sập bẫy.\n• Báo cáo (report) email lừa đảo và xóa nó đi.",
+        "KẾT QUẢ:\n• Linh giữ được tài khoản, điện thoại và thông tin cá nhân.\n• 2 người bạn tránh được bẫy nhờ bài cảnh báo của Linh.\n\nBÀI HỌC:\n• Đọc phần SAU dấu @ — đó mới là chủ nhân hòm thư (gmail-free-service.com ≠ gmail.com).\n• Kiểm tra tên miền của đường link: tên miền lạ, đuôi .net/.xyz... là dấu hiệu giả mạo.\n• Nhà phát hành game thật thông báo trúng thưởng TRONG ỨNG DỤNG, không qua email cá nhân.\n• Tự mình an toàn là chưa đủ: chia sẻ cảnh báo giúp bạn bè không sập bẫy.\n• Báo cáo (report) email lừa đảo và xóa nó đi.",
     },
+
   },
   l16b2: {
     id: "l16b2",

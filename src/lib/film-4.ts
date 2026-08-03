@@ -1,6 +1,6 @@
 import l01 from "@/assets/film5/poster.jpg";
-import l02 from "@/assets/film5/clean/l02.jpg";
-import vl02 from "@/assets/film5/video/l02.mp4.asset.json";
+import l02 from "@/assets/film5/clean/l02b.jpg";
+import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -102,10 +102,9 @@ export const FILM: Record<string, FilmNode> = {
     video: vl02.url,
     speaker: "narrator",
     action: "21:15 — Bạn có 1 thư mới",
-    text: "Hai mươi mốt giờ mười lăm. Linh vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một biểu tượng phong bì nhỏ, một thanh trắng bo tròn, và đôi lông mày của Linh khẽ nhướn lên.",
+    text: "Hai mươi mốt giờ mười lăm. Linh vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một phong bì hiện lên, ghi rằng bạn đã trúng thưởng điện thoại iPhone 17.",
     motion: "push",
     mood: "neutral",
-    emailOverlay: true,
     next: "l03",
   },
   l03: {

@@ -29,6 +29,10 @@ import l09c from "@/assets/film5/clean/l09c.jpg";
 import vl09c from "@/assets/film5/video/l09c.mp4.asset.json";
 import l11a1 from "@/assets/film5/clean/l11a1.jpg";
 import vl11a1 from "@/assets/film5/video/l11a1.mp4.asset.json";
+import l12a2 from "@/assets/film5/clean/l12a2.jpg";
+import vl12a2 from "@/assets/film5/video/l12a2.mp4.asset.json";
+import l13a2 from "@/assets/film5/clean/l13a2.jpg";
+import vl13a2 from "@/assets/film5/video/l13a2.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 import l05a from "@/assets/film5/clean/l05a.jpg";
@@ -42,7 +46,7 @@ import vl07 from "@/assets/film5/video/l07.mp4.asset.json";
 import l07e from "@/assets/film5/clean/l07e.jpg";
 import vl07e from "@/assets/film5/video/l07e.mp4.asset.json";
 
-export type Speaker = "narrator" | "L" | "X";
+export type Speaker = "narrator" | "L" | "X" | "R";
 
 export type Choice = {
   label: string;
@@ -121,6 +125,16 @@ export const SPEAKER_META: Record<
     speed: 1,
     pitch: 0.75,
     rate: 1,
+  },
+  R: {
+    name: "Chú thợ sửa máy",
+    color: "text-sky-300",
+    voice: "ash",
+    instructions:
+      "Nam trung niên 45 tuổi, giọng khàn ấm, mộc mạc, nói chậm rãi và tiếc nuối khi báo tin xấu cho khách nhỏ tuổi. Thân thiện nhưng bất lực.",
+    speed: 0.96,
+    pitch: 0.85,
+    rate: 0.98,
   },
 };
 
@@ -347,11 +361,33 @@ export const FILM: Record<string, FilmNode> = {
   },
   l10a2: {
     id: "l10a2",
-    image: l09c,
-    video: vl09c.url,
+    image: l12a2,
+    video: vl12a2.url,
     speaker: "narrator",
-    action: "Im lặng giấu chuyện",
-    text: "Linh bày ra vẻ im lặng, tự mang máy đi tiệm sửa và không kể với ai...",
+    action: "L12 — GIẤU",
+    text: "Linh không kể với ai. Cô bé nghĩ sửa xong máy là xong chuyện.",
+    motion: "push",
+    mood: "danger",
+    next: "l13a2",
+  },
+  l13a2: {
+    id: "l13a2",
+    image: l13a2,
+    video: vl13a2.url,
+    speaker: "R",
+    action: "Ở tiệm sửa điện thoại",
+    text: "Máy này bị mã độc phá hỏng phần cứng rồi, khó cứu lắm cháu ạ... Dữ liệu trong máy chú cũng không lấy lại được đâu.",
+    motion: "shake",
+    mood: "danger",
+    next: "l13a2b",
+  },
+  l13a2b: {
+    id: "l13a2b",
+    image: l13a2,
+    video: vl13a2.url,
+    speaker: "L",
+    action: "Linh hoảng hốt",
+    text: "Giờ mình phải làm sao đây... Mình không dám nói với bố mẹ...",
     motion: "shake",
     mood: "danger",
     ending: {
@@ -359,9 +395,10 @@ export const FILM: Record<string, FilmNode> = {
       code: "A2-LOSS",
       title: "HẬU QUẢ",
       lesson:
-        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Giấu chuyện chỉ khiến thiệt hại lan rộng — hãy báo người lớn ngay.",
+        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Sửa được máy cũng không lấy lại được tài khoản — hãy báo người lớn và đổi mật khẩu ngay thay vì giấu chuyện.",
     },
   },
+
 
 
 

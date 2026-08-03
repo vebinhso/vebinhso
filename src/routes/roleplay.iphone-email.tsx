@@ -714,6 +714,12 @@ function FilmPage() {
                 <FinalLessonQuiz />
                 <div className="flex flex-wrap gap-2">
                   <button
+                    onClick={() => setShowSummary(true)}
+                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-primary text-primary-foreground"
+                  >
+                    📋 Tổng kết
+                  </button>
+                  <button
                     onClick={() => setShowNotes(true)}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-amber-400 text-black"
                   >

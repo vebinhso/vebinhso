@@ -17,6 +17,8 @@ import l05a from "@/assets/film5/clean/l05a.jpg";
 import vl05a from "@/assets/film5/video/l05a.mp4.asset.json";
 import l05a2 from "@/assets/film5/clean/l05a2.jpg";
 import vl05a2 from "@/assets/film5/video/l05a2.mp4.asset.json";
+import l06 from "@/assets/film5/clean/l06.jpg";
+import vl06 from "@/assets/film5/video/l06.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -47,6 +49,8 @@ export type FilmNode = {
   mailOverlay?: boolean;
   /** Lớp phủ biểu mẫu trang web giả đòi thông tin + mật khẩu game */
   formOverlay?: boolean;
+  /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
+  phoneFormOverlay?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -211,9 +215,21 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     formOverlay: true,
+    next: "l06",
+  },
+  l06: {
+    id: "l06",
+    image: l06,
+    video: vl06.url,
+    speaker: "L",
+    action: "Điền thông tin",
+    text: "Chỉ cần điền nốt mật khẩu là xong... Mình sẽ có iPhone 17 Pro Max thôi!",
+    motion: "push",
+    mood: "danger",
+    phoneFormOverlay: true,
     ending: {
       kind: "loss",
-      code: "A-TBC",
+      code: "A-LOSS",
       title: "TIẾP TỤC",
       lesson:
         "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản.",

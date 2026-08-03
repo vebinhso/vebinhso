@@ -547,6 +547,43 @@ function FilmPage() {
         </div>
       )}
 
+      {node.phoneFormOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-[18vh] sm:pb-[20vh]">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-[62%] max-w-[520px] min-w-[260px]">
+            <div className="rounded-[1.2rem] sm:rounded-[1.6rem] bg-slate-900/95 border-[3px] border-slate-700 shadow-[0_0_50px_rgba(251,191,36,0.35)] px-3 py-2.5 sm:px-5 sm:py-4 space-y-1.5 sm:space-y-2">
+              <div className="text-center text-[9px] sm:text-xs font-black text-amber-300 tracking-wide">
+                XÁC NHẬN THÔNG TIN NHẬN THƯỞNG
+              </div>
+              {[
+                { label: "Họ và tên", value: "Nguyễn Thùy Linh" },
+                { label: "Số điện thoại", value: "09xxxxxxxx" },
+                { label: "Địa chỉ nhà", value: "123 Đường Hoa Mai, P. X, Q. Y" },
+                { label: "Tên đăng nhập Game", value: "LinhCute2009" },
+                { label: "Mật khẩu Game", value: "************", danger: true },
+              ].map((f) => (
+                <div key={f.label} className="space-y-0.5">
+                  <div className="text-[7px] sm:text-[10px] text-amber-200/80 font-semibold">
+                    {f.label}
+                  </div>
+                  <div
+                    className={`rounded-md px-2 py-1 text-[8px] sm:text-xs font-medium ${
+                      f.danger
+                        ? "border-2 border-red-500 bg-red-500/10 text-red-200"
+                        : "border border-amber-400/60 bg-slate-800/80 text-amber-100/90"
+                    }`}
+                  >
+                    {f.value}
+                  </div>
+                </div>
+              ))}
+              <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] sm:text-xs font-black text-slate-900">
+                XÁC NHẬN NHẬN THƯỞNG
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (

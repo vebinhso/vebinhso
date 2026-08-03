@@ -63,6 +63,8 @@ export type FilmNode = {
   voteOverlay?: boolean;
   /** Hiện lớp phủ hộp đăng nhập giả + thanh địa chỉ */
   loginOverlay?: boolean;
+  /** Vùng màn hình điện thoại trong ảnh (theo % khung hình) để đặt nội dung web/đăng nhập vào đúng máy nhân vật */
+  screenAnchor?: { x: number; y: number; w: number; h: number; rot?: number };
   /** Hiện lớp phủ dãy chấm mật khẩu đang gõ */
   typingOverlay?: boolean;
   /** Hiện lớp phủ thông báo bình chọn thành công */

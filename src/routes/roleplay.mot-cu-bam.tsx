@@ -505,35 +505,52 @@ function FilmPage() {
       )}
 
       {node.voteOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-          <div className="animate-[filmFade_0.9s_ease-out_both] relative w-[38vh] max-w-[240px] rounded-[2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.7)] rotate-[-4deg]">
-            <div className="absolute left-1/2 top-1 z-10 h-1.5 w-14 -translate-x-1/2 rounded-full bg-neutral-700" />
-            <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-b from-pink-500 to-fuchsia-700 px-3 py-5 text-center">
-              <p className="text-[11px] font-black leading-tight tracking-wide text-white drop-shadow">
-                MẪU ẢNH HỌC SINH TÀI NĂNG 2026
-              </p>
-              <p className="mt-1 text-[9px] font-bold text-pink-100">Hạng 5 — 4.812 lượt bình chọn</p>
-              <p className="mt-1 text-[9px] font-bold text-yellow-200">⏳ Cổng bình chọn đóng sau: 00:47:12</p>
-              <div className="mt-3 rounded-full bg-white/95 px-2 py-2 text-[10px] font-black text-pink-600 shadow-[0_0_25px_rgba(255,255,255,0.6)] animate-pulse">
-                BẤM VÀO ĐÂY ĐỂ BÌNH CHỌN
-              </div>
+        <div className="pointer-events-none absolute inset-0">
+          {/* Nội dung nằm ngay trên màn hình chiếc điện thoại nhân vật cầm trong ảnh */}
+          <div
+            className="animate-[filmFade_0.9s_ease-out_both] absolute overflow-hidden bg-gradient-to-b from-pink-500 to-fuchsia-700 px-[4%] py-[6%] text-center rounded-[6px]"
+            style={{
+              left: `${node.screenAnchor?.x ?? 56}%`,
+              top: `${node.screenAnchor?.y ?? 50}%`,
+              width: `${node.screenAnchor?.w ?? 27}%`,
+              height: `${node.screenAnchor?.h ?? 86}%`,
+              transform: `translate(-50%, -50%) rotate(${node.screenAnchor?.rot ?? 0}deg)`,
+            }}
+          >
+            <p className="text-[clamp(9px,1.4vw,15px)] font-black leading-tight tracking-wide text-white drop-shadow">
+              MẪU ẢNH HỌC SINH TÀI NĂNG 2026
+            </p>
+            <p className="mt-[3%] text-[clamp(8px,1.1vw,12px)] font-bold text-pink-100">
+              Hạng 5 — 4.812 lượt bình chọn
+            </p>
+            <p className="mt-[2%] text-[clamp(8px,1.1vw,12px)] font-bold text-yellow-200">
+              ⏳ Cổng bình chọn đóng sau: 00:47:12
+            </p>
+            <div className="mt-[6%] rounded-full bg-white/95 px-2 py-[3%] text-[clamp(8px,1.2vw,13px)] font-black text-pink-600 shadow-[0_0_25px_rgba(255,255,255,0.6)] animate-pulse">
+              BẤM VÀO ĐÂY ĐỂ BÌNH CHỌN
             </div>
           </div>
         </div>
       )}
 
       {node.loginOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-          <div className="animate-[filmFade_0.9s_ease-out_both] relative w-[38vh] max-w-[240px] rounded-[2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
-            <div className="absolute left-1/2 top-1 z-10 h-1.5 w-14 -translate-x-1/2 rounded-full bg-neutral-700" />
-            <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-b from-pink-400 to-fuchsia-600 p-3 pt-5">
-              <div className="rounded-xl bg-white p-3 shadow-lg">
-                <p className="text-center text-[12px] font-black text-neutral-800">Đăng nhập</p>
-                <div className="mt-2 h-5 rounded-md border border-neutral-300 bg-neutral-50" />
-                <div className="mt-2 h-5 rounded-md border border-neutral-300 bg-neutral-50" />
-                <div className="mt-3 rounded-md bg-blue-600 py-1.5 text-center text-[10px] font-black text-white">
-                  Tiếp tục
-                </div>
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="animate-[filmFade_0.9s_ease-out_both] absolute overflow-hidden bg-gradient-to-b from-pink-400 to-fuchsia-600 p-[5%] flex items-center rounded-[6px]"
+            style={{
+              left: `${node.screenAnchor?.x ?? 50}%`,
+              top: `${node.screenAnchor?.y ?? 48}%`,
+              width: `${node.screenAnchor?.w ?? 34}%`,
+              height: `${node.screenAnchor?.h ?? 76}%`,
+              transform: `translate(-50%, -50%) rotate(${node.screenAnchor?.rot ?? 0}deg)`,
+            }}
+          >
+            <div className="w-full rounded-xl bg-white p-[6%] shadow-lg">
+              <p className="text-center text-[clamp(10px,1.4vw,16px)] font-black text-neutral-800">Đăng nhập</p>
+              <div className="mt-[6%] h-[clamp(16px,2.4vw,26px)] rounded-md border border-neutral-300 bg-neutral-50" />
+              <div className="mt-[5%] h-[clamp(16px,2.4vw,26px)] rounded-md border border-neutral-300 bg-neutral-50" />
+              <div className="mt-[7%] rounded-md bg-blue-600 py-[4%] text-center text-[clamp(9px,1.2vw,14px)] font-black text-white">
+                Tiếp tục
               </div>
             </div>
           </div>

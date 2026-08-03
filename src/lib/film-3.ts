@@ -13,8 +13,8 @@ import s10 from "@/assets/film4/clean/s10.jpg";
 import s11 from "@/assets/film4/clean/s11.jpg";
 import s12 from "@/assets/film4/clean/s12.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
-import s14 from "@/assets/film4/clean/s14.jpg";
-import s15 from "@/assets/film4/clean/s15.jpg";
+import s14 from "@/assets/film4/clean/s14b.jpg";
+import s15 from "@/assets/film4/clean/s15b.jpg";
 import s16 from "@/assets/film4/clean/s16.jpg";
 
 import vs01 from "@/assets/film4/video/b02.mp4.asset.json";
@@ -31,8 +31,6 @@ import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 import vs11 from "@/assets/film4/video/b12.mp4.asset.json";
 import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
-import vs14 from "@/assets/film4/video/b15.mp4.asset.json";
-import vs15 from "@/assets/film4/video/b16.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
@@ -56,6 +54,8 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ đường link giả mạo (dựng bằng CSS) */
   linkOverlay?: boolean;
+  /** Hiện lớp phủ tin nhắn cảnh báo nhóm lớp (dựng bằng CSS) */
+  groupChatOverlay?: boolean;
   /** Hiện lớp phủ trang bình chọn giả (dựng bằng CSS) */
   voteOverlay?: boolean;
   /** Hiện lớp phủ hộp đăng nhập giả + thanh địa chỉ */
@@ -369,7 +369,7 @@ export const FILM: Record<string, FilmNode> = {
   s14: {
     id: "s14",
     image: s14,
-    video: vs14.url,
+    groupChatOverlay: true,
     speaker: "B",
     action: "Bảo đăng cảnh báo lên nhóm lớp và các nhóm bạn bè",
     text: "Mọi người ơi, nick Facebook của tớ vừa bị hack. Tuyệt đối đừng bấm link, đừng chuyển tiền cho nick đó!",
@@ -380,7 +380,7 @@ export const FILM: Record<string, FilmNode> = {
   s14b: {
     id: "s14b",
     image: s14,
-    video: vs14.url,
+    groupChatOverlay: true,
     speaker: "narrator",
     action: "Tin nhắn cảnh báo lan nhanh trong nhóm lớp",
     text: "Tốc độ quan trọng hơn thể diện. Mỗi phút im lặng là thêm một người bạn có thể mất tiền. Bảo gọi điện, nhắn Zalo và báo vào tất cả các nhóm bạn bè.",
@@ -392,7 +392,6 @@ export const FILM: Record<string, FilmNode> = {
   s15: {
     id: "s15",
     image: s15,
-    video: vs15.url,
     speaker: "narrator",
     action: "Bảo cùng bố mẹ liên hệ hỗ trợ để khoá tài khoản",
     text: "Bảo kể hết mọi chuyện với bố mẹ. Hai bố con cùng ngồi trước máy tính: báo cáo tài khoản bị hack, yêu cầu khoá tài khoản, xác minh danh tính, đổi email khôi phục và bật xác thực hai lớp.",
@@ -506,7 +505,7 @@ export const FILM: Record<string, FilmNode> = {
   b05: {
     id: "b05",
     image: s14,
-    video: vs14.url,
+    groupChatOverlay: true,
     speaker: "B",
     action: "Bảo đăng cảnh báo lên nhóm lớp ngay lập tức",
     text: "Mọi người ơi, nick của Hà đang bị kẻ gian chiếm. Nếu nhận được link bình chọn thì tuyệt đối đừng bấm và đừng đăng nhập gì hết nhé!",

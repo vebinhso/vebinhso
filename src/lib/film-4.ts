@@ -1,4 +1,6 @@
 import l01 from "@/assets/film5/poster.jpg";
+import l03c from "@/assets/film5/clean/l03c.jpg";
+import vl03c from "@/assets/film5/video/l03c.mp4.asset.json";
 import l03 from "@/assets/film5/clean/l03b.jpg";
 import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
 import l02c from "@/assets/film5/clean/l03.jpg";

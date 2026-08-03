@@ -14,7 +14,7 @@ import s11 from "@/assets/film4/clean/s11c.jpg";
 import s12 from "@/assets/film4/clean/s12c.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
 import s13a2 from "@/assets/film4/clean/s13a2.jpg";
-import s14 from "@/assets/film4/clean/s14b.jpg";
+import s14 from "@/assets/film4/clean/s14c.jpg";
 import s15 from "@/assets/film4/clean/s15b.jpg";
 import s16 from "@/assets/film4/clean/s16.jpg";
 
@@ -33,6 +33,7 @@ import vs11 from "@/assets/film4/video/s11c.mp4.asset.json";
 import vs12 from "@/assets/film4/video/s12c.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
 import vs13a2 from "@/assets/film4/video/s13a2.mp4.asset.json";
+import vs14 from "@/assets/film4/video/s14c.mp4.asset.json";
 import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 import sAskHa from "@/assets/film4/s-ask-ha.png.asset.json";
@@ -386,7 +387,7 @@ export const FILM: Record<string, FilmNode> = {
   s14: {
     id: "s14",
     image: s14,
-    groupChatOverlay: true,
+    video: vs14.url,
     speaker: "B",
     action: "Bảo đăng cảnh báo lên nhóm lớp và các nhóm bạn bè",
     text: "Mọi người ơi, nick Facebook của tớ vừa bị hack. Tuyệt đối đừng bấm link, đừng chuyển tiền cho nick đó!",
@@ -397,7 +398,7 @@ export const FILM: Record<string, FilmNode> = {
   s14b: {
     id: "s14b",
     image: s14,
-    groupChatOverlay: true,
+    video: vs14.url,
     speaker: "narrator",
     action: "Tin nhắn cảnh báo lan nhanh trong nhóm lớp",
     text: "Tốc độ quan trọng hơn thể diện. Mỗi phút im lặng là thêm một người bạn có thể mất tiền. Bảo gọi điện, nhắn Zalo và báo vào tất cả các nhóm bạn bè.",
@@ -523,7 +524,7 @@ export const FILM: Record<string, FilmNode> = {
   b05: {
     id: "b05",
     image: s14,
-    groupChatOverlay: true,
+    video: vs14.url,
     speaker: "B",
     action: "Bảo đăng cảnh báo lên nhóm lớp ngay lập tức",
     text: "Mọi người ơi, nick của Hà đang bị kẻ gian chiếm. Nếu nhận được link bình chọn thì tuyệt đối đừng bấm và đừng đăng nhập gì hết nhé!",

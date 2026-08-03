@@ -10,7 +10,7 @@ import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
 import s10 from "@/assets/film4/clean/s10.jpg";
-import s11 from "@/assets/film4/clean/s11.jpg";
+import s11 from "@/assets/film4/clean/s11c.jpg";
 import s12 from "@/assets/film4/clean/s12.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
 import s14 from "@/assets/film4/clean/s14b.jpg";
@@ -28,7 +28,7 @@ import vs07 from "@/assets/film4/video/b08.mp4.asset.json";
 import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
 import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
-import vs11 from "@/assets/film4/video/b12.mp4.asset.json";
+import vs11 from "@/assets/film4/video/s11c.mp4.asset.json";
 import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
@@ -310,7 +310,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s11,
     video: vs11.url,
     speaker: "T",
-    action: "Màn hình chia đôi: Bảo xanh lạnh, Tuấn ấm vàng",
+    action: "Bảo nghe điện thoại giữa đêm, mặt tái đi",
     text: "Bảo ơi! Mày bị hack Facebook đúng không? Nick mày đang đi gửi link mượn năm triệu khắp lớp mình kìa!",
     motion: "shake",
     mood: "danger",

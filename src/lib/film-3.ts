@@ -11,7 +11,7 @@ import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
 import s10 from "@/assets/film4/clean/s10.jpg";
 import s11 from "@/assets/film4/clean/s11c.jpg";
-import s12 from "@/assets/film4/clean/s12.jpg";
+import s12 from "@/assets/film4/clean/s12b.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
 import s14 from "@/assets/film4/clean/s14b.jpg";
 import s15 from "@/assets/film4/clean/s15b.jpg";
@@ -29,7 +29,7 @@ import vs08 from "@/assets/film4/video/b09.mp4.asset.json";
 import vs09 from "@/assets/film4/video/b10.mp4.asset.json";
 import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 import vs11 from "@/assets/film4/video/s11c.mp4.asset.json";
-import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
+import vs12 from "@/assets/film4/video/s12b.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
 import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
@@ -338,7 +338,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s12,
     video: vs12.url,
     speaker: "narrator",
-    action: "Bảo thử đăng nhập lại, màn hình báo lỗi đỏ",
+    action: "Bảo hoảng loạn thử hết mật khẩu, màn hình báo lỗi đỏ",
     text: "Bảo thử đăng nhập lại. Mật khẩu không chính xác. Kẻ gian đã đổi mật khẩu, đổi cả email khôi phục và bật xác thực hai lớp bằng số điện thoại của chúng. Tài khoản sáu năm của Bảo — mất trong mười lăm phút.",
     motion: "push",
     mood: "danger",

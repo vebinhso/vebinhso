@@ -290,15 +290,66 @@ export const FILM: Record<string, FilmNode> = {
     text: "Sao máy tắt rồi? Không lên nữa!",
     motion: "shake",
     mood: "danger",
-
+    next: "l09c",
+  },
+  l09c: {
+    id: "l09c",
+    image: l09c,
+    video: vl09c.url,
+    speaker: "narrator",
+    action: "LINH LÀM GÌ BÂY GIỜ?",
+    text: "Điện thoại của Linh đã bị hỏng/mã hoá do mã độc. Linh nên làm gì tiếp theo?",
+    motion: "push",
+    mood: "neutral",
+    choices: [
+      {
+        label:
+          "A1. Nói với bố mẹ, mượn máy khác đổi mật khẩu ngay, rồi mang máy đi kiểm tra",
+        next: "l10a1",
+        tone: "safe",
+      },
+      {
+        label: "A2. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
+        next: "l10a2",
+        tone: "risky",
+      },
+    ],
+  },
+  l10a1: {
+    id: "l10a1",
+    image: l09c,
+    video: vl09c.url,
+    speaker: "L",
+    action: "Nói thật với bố mẹ",
+    text: "Bố mẹ ơi, con lỡ điền mật khẩu vào một trang lạ... Con cần mượn máy để đổi mật khẩu ngay!",
+    motion: "push",
+    mood: "safe",
     ending: {
-      kind: "loss",
-      code: "A-LOSS",
-      title: "TIẾP TỤC",
+      kind: "safe",
+      code: "A1-SAFE",
+      title: "XỬ LÝ ĐÚNG",
       lesson:
-        "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản. Sáng hôm sau, tài khoản game của L bị đăng nhập từ một thiết bị lạ và bạn bè nhận được tin nhắn lạ gửi từ nick của L.",
+        "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mới mang máy đi kiểm tra ở nơi uy tín. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
     },
   },
+  l10a2: {
+    id: "l10a2",
+    image: l09c,
+    video: vl09c.url,
+    speaker: "narrator",
+    action: "Im lặng giấu chuyện",
+    text: "Linh bày ra vẻ im lặng, tự mang máy đi tiệm sửa và không kể với ai...",
+    motion: "shake",
+    mood: "danger",
+    ending: {
+      kind: "loss",
+      code: "A2-LOSS",
+      title: "HẬU QUẢ",
+      lesson:
+        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Giấu chuyện chỉ khiến thiệt hại lan rộng — hãy báo người lớn ngay.",
+    },
+  },
+
 
 
   l05b: {

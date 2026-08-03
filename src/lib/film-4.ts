@@ -1,6 +1,10 @@
 import l01 from "@/assets/film5/poster.jpg";
 import l03c from "@/assets/film5/clean/l03c.jpg";
 import l03d from "@/assets/film5/clean/l03d.jpg";
+import l03e from "@/assets/film5/clean/l03e.jpg";
+import vl03e from "@/assets/film5/video/l03e.mp4.asset.json";
+import l04img from "@/assets/film5/clean/l04.jpg";
+import vl04 from "@/assets/film5/video/l04.mp4.asset.json";
 import vl03d from "@/assets/film5/video/l03d.mp4.asset.json";
 import vl03c from "@/assets/film5/video/l03c.mp4.asset.json";
 import l03 from "@/assets/film5/clean/l03b.jpg";
@@ -153,22 +157,63 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     inspectOverlay: true,
+    next: "l03e",
+  },
+  l03e: {
+    id: "l03e",
+    image: l03e,
+    video: vl03e.url,
+    speaker: "L",
+    action: "Phân vân",
+    text: "iPhone 17 Pro Max siêu xịn... Nhưng sao email với đường link lạ thế nhỉ?",
+    motion: "kenburns",
+    mood: "neutral",
     next: "l04",
   },
   l04: {
     id: "l04",
-    image: l03,
+    image: l04img,
+    video: vl04.url,
     speaker: "narrator",
-    action: "Câu chuyện tiếp theo",
-    text: "Câu chuyện tiếp theo đang được xây dựng. Hãy quay lại sau để cùng L đưa ra lựa chọn đúng đắn trước những chiêu trò lừa đảo trúng thưởng.",
-    motion: "freeze",
+    action: "BẠN SẼ LÀM GÌ?",
+    text: "Đứng trước email thông báo trúng thưởng hấp dẫn này... L nên làm gì?",
+    motion: "push",
     mood: "neutral",
+    choices: [
+      { label: "A. Phần thưởng to quá — bấm ngay vào đường link để nhận thưởng", next: "l05a", tone: "risky" },
+      { label: "B. Dừng lại, kiểm tra kỹ địa chỉ email và đường link trước", next: "l05b", tone: "safe" },
+    ],
+  },
+  l05a: {
+    id: "l05a",
+    image: l04img,
+    speaker: "narrator",
+    action: "Nhánh A — đang xây dựng",
+    text: "L bấm vào đường link... Phần tiếp theo của nhánh này đang được dựng. Hãy quay lại sau nhé!",
+    motion: "freeze",
+    mood: "danger",
     ending: {
-      kind: "safe",
-      code: "TBC",
+      kind: "risky",
+      code: "A-TBC",
       title: "TIẾP TỤC",
       lesson:
-        "Câu chuyện của L chưa kết thúc. Hãy nhớ: không có phần thưởng nào miễn phí mà đòi hỏi thông tin cá nhân hoặc tiền của bạn trước.",
+        "Bấm vào link lạ là bước đầu tiên khiến bạn mất tài khoản, thông tin cá nhân và cả tiền bạc.",
+    },
+  },
+  l05b: {
+    id: "l05b",
+    image: l03d,
+    speaker: "narrator",
+    action: "Nhánh B — đang xây dựng",
+    text: "L dừng lại và soi kỹ địa chỉ email cùng đường link. Phần tiếp theo của nhánh này đang được dựng. Hãy quay lại sau nhé!",
+    motion: "freeze",
+    mood: "safe",
+    ending: {
+      kind: "safe",
+      code: "B-TBC",
+      title: "TIẾP TỤC",
+      lesson:
+        "Luôn kiểm tra tên miền người gửi và đường link trước khi bấm. Không có phần thưởng miễn phí nào đòi hỏi thông tin cá nhân của bạn.",
     },
   },
 };

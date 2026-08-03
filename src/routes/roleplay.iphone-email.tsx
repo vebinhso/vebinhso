@@ -77,6 +77,7 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [speechDone, setSpeechDone] = useState(false);
   const [prevVisual, setPrevVisual] = useState<{ src: string; type: "image" | "video" } | null>(null);
 

@@ -33,6 +33,8 @@ import vs12 from "@/assets/film4/video/b13.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
 import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
+import sAskHa from "@/assets/film4/s-ask-ha.png.asset.json";
+import vAskHa from "@/assets/film4/video/s-ask-ha.mp4.asset.json";
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
 
@@ -533,8 +535,8 @@ export const FILM: Record<string, FilmNode> = {
   // B2 — hỏi lại ngay trong Messenger (chính kẻ gian trả lời)
   b10: {
     id: "b10",
-    image: s02,
-    video: vs02.url,
+    image: sAskHa.url,
+    video: vAskHa.url,
     speaker: "X",
     action: "Tin nhắn trả lời đến chỉ sau vài giây",
     text: "Tớ đây mà, Hà nè. Link của ban tổ chức đó, an toàn tuyệt đối. Bảo bấm nhanh giúp tớ với, sắp đóng cổng rồi!",

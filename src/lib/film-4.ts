@@ -248,8 +248,8 @@ export const FILM: Record<string, FilmNode> = {
   },
   l07: {
     id: "l07",
-    image: l07c,
-    video: vl07c.url,
+    image: l07e,
+    video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",

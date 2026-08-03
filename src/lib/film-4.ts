@@ -63,6 +63,8 @@ import l17b1 from "@/assets/film5/clean/l17b1.jpg";
 import vl17b1 from "@/assets/film5/video/l17b1.mp4.asset.json";
 import l18b1 from "@/assets/film5/clean/l18b1.jpg";
 import vl18b1 from "@/assets/film5/video/l18b1.mp4.asset.json";
+import l19b1 from "@/assets/film5/clean/l19b1.jpg";
+import vl19b1 from "@/assets/film5/video/l19b1.mp4.asset.json";
 
 
 
@@ -527,15 +529,26 @@ export const FILM: Record<string, FilmNode> = {
     text: "Mai Lan: “Ủa! Mình cũng vừa nhận email y chang này luôn nè! May quá thấy bài của Linh kịp thời!” — Đức Anh: “Cảm ơn Linh nhiều nha! Mình suýt bấm vào link rồi. Cảnh báo hữu ích ghê!”",
     motion: "push",
     mood: "safe",
+    next: "l19b1",
+  },
+  l19b1: {
+    id: "l19b1",
+    image: l19b1,
+    video: vl19b1.url,
+    speaker: "narrator",
+    action: "S25 — Linh được các bạn khen ngợi vì sự tỉnh táo và trách nhiệm",
+    text: "“Linh siêu tỉnh táo luôn!” — “Cảm ơn Linh nha!” — “Cậu giúp tụi mình tránh được một cú lừa đó!” Sân trường sáng nay rộn tiếng cười.",
+    motion: "kenburns",
+    mood: "safe",
     ending: {
       kind: "safe",
       code: "B1-SAFE",
-      title: "KẾT THÚC A — AN TOÀN VÀ BẢO VỆ CẢ NHÓM",
+      title: "KẾT THÚC A — NGƯỜI BÁO ĐỘNG",
       lesson:
-        "KẾT QUẢ:\n• Linh giữ được tài khoản, điện thoại và thông tin cá nhân.\n• 2 người bạn tránh được bẫy nhờ bài cảnh báo của Linh.\n\nBÀI HỌC:\n• Đọc phần SAU dấu @ — đó mới là chủ nhân hòm thư (gmail-free-service.com ≠ gmail.com).\n• Kiểm tra tên miền của đường link: tên miền lạ, đuôi .net/.xyz... là dấu hiệu giả mạo.\n• Nhà phát hành game thật thông báo trúng thưởng TRONG ỨNG DỤNG, không qua email cá nhân.\n• Tự mình an toàn là chưa đủ: chia sẻ cảnh báo giúp bạn bè không sập bẫy.\n• Báo cáo (report) email lừa đảo và xóa nó đi.",
+        "KẾT QUẢ:\n• Hai bạn trong lớp cũng nhận email y hệt sáng nay.\n• Nhờ bài đăng của Linh, không ai bấm vào.\n• Đã báo cáo thư rác — hệ thống email chặn địa chỉ này với mọi người dùng khác.\n\nBÀI HỌC:\n• Đọc phần SAU dấu @ — đó mới là chủ nhân hòm thư (gmail-free-service.com ≠ gmail.com).\n• Kiểm tra tên miền của đường link: tên miền lạ, đuôi .net/.xyz... là dấu hiệu giả mạo.\n• Nhà phát hành game thật thông báo trúng thưởng TRONG ỨNG DỤNG, không qua email cá nhân.\n• Tự mình an toàn là chưa đủ: chia sẻ cảnh báo giúp bạn bè không sập bẫy.\n• Báo cáo (report) email lừa đảo rồi xóa nó đi.",
     },
-
   },
+
   l16b2: {
     id: "l16b2",
     image: l15,

@@ -460,6 +460,30 @@ function FilmPage() {
         </div>
       )}
 
+      {node.mailOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 pb-[18vh]">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-lg rounded-2xl bg-white/95 text-slate-800 shadow-[0_0_60px_rgba(0,0,0,0.7)] border border-white/60 overflow-hidden">
+            <div className="px-4 py-2 text-[10px] sm:text-xs bg-slate-100 border-b border-slate-200 break-all">
+              <span className="text-slate-500">Từ: </span>
+              <span className="font-bold">SuKienGame_TrungThuong2026@</span>
+              <span className="font-bold text-red-600">gmail-free-service.com</span>
+            </div>
+            <div className="px-4 py-2 text-xs sm:text-base font-black leading-snug">
+              [XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!
+            </div>
+            <div className="px-4 pb-2 text-[10px] sm:text-sm leading-relaxed text-slate-700">
+              Chúc mừng bạn trúng 01 iPhone 17 Pro Max từ sự kiện tri ân game thủ. Truy cập link để hoàn tất
+              thông tin nhận thưởng trong <span className="font-bold text-red-600">24h</span>, nếu không giải
+              thưởng sẽ bị hủy.
+            </div>
+            <div className="px-4 pb-3 text-[10px] sm:text-sm font-semibold text-blue-600 underline break-all">
+              http://game-thuong-nhanhanggiainhat.net/xacnhan
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (
           <span

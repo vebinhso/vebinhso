@@ -1,5 +1,7 @@
 import l01 from "@/assets/film5/poster.jpg";
 import l03c from "@/assets/film5/clean/l03c.jpg";
+import l03d from "@/assets/film5/clean/l03d.jpg";
+import vl03d from "@/assets/film5/video/l03d.mp4.asset.json";
 import vl03c from "@/assets/film5/video/l03c.mp4.asset.json";
 import l03 from "@/assets/film5/clean/l03b.jpg";
 import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
@@ -31,6 +33,8 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ thông báo email giả mạo */
   emailOverlay?: boolean;
+  /** Lớp phủ soi kỹ dấu hiệu lừa đảo (địa chỉ email lạ, link .net) */
+  inspectOverlay?: boolean;
   /** Hiện lớp phủ nội dung email lừa đảo (dựng bằng CSS) */
   mailOverlay?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
@@ -137,6 +141,18 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "neutral",
     mailOverlay: true,
+    next: "l03d",
+  },
+  l03d: {
+    id: "l03d",
+    image: l03d,
+    video: vl03d.url,
+    speaker: "L",
+    action: "Nhìn kỹ thông tin...",
+    text: "Khoan đã... địa chỉ email này lạ quá, đuôi là gmail-free-service.com chứ không phải nhà phát hành game. Đường link cũng có đuôi .net rất đáng ngờ...",
+    motion: "push",
+    mood: "danger",
+    inspectOverlay: true,
     next: "l04",
   },
   l04: {

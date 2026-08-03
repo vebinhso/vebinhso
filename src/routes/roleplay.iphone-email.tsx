@@ -487,6 +487,41 @@ function FilmPage() {
         </div>
       )}
 
+      {node.inspectOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 pb-[16vh]">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-lg space-y-2">
+            <div className="rounded-xl bg-white/95 text-slate-800 border border-white/60 shadow-[0_0_60px_rgba(0,0,0,0.7)] px-4 py-3 space-y-3">
+              <div className="text-[10px] sm:text-sm break-all">
+                <span className="font-bold">SuKienGame_TrungThuong2026</span>
+                <span className="inline-block rounded border-2 border-red-600 px-1 font-bold text-red-600">
+                  @gmail-free-service.com
+                </span>
+              </div>
+              <div className="text-[10px] sm:text-sm font-semibold text-blue-600 underline break-all">
+                http://game-thuong-nhanhanggiainhat
+                <span className="inline-block rounded border-2 border-red-600 px-1 not-italic no-underline text-red-600 bg-red-50">
+                  .net
+                </span>
+                /xacnhan
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-lg bg-red-700 text-white text-[10px] sm:text-xs font-black px-2.5 py-1">
+                Địa chỉ email lạ
+              </span>
+              <span className="rounded-lg bg-red-700 text-white text-[10px] sm:text-xs font-black px-2.5 py-1">
+                Đường link lạ (.net)
+              </span>
+            </div>
+            <div className="rounded-xl bg-red-50 border border-red-300 px-3 py-2 text-[10px] sm:text-sm font-semibold text-red-800 leading-snug">
+              ⚠ Tên miền không phải của nhà phát hành game chính thức! Đường link có đuôi .net rất đáng ngờ!
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (

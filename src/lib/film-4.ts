@@ -46,7 +46,7 @@ import vl07 from "@/assets/film5/video/l07.mp4.asset.json";
 import l07e from "@/assets/film5/clean/l07e.jpg";
 import vl07e from "@/assets/film5/video/l07e.mp4.asset.json";
 
-export type Speaker = "narrator" | "L" | "X";
+export type Speaker = "narrator" | "L" | "X" | "R";
 
 export type Choice = {
   label: string;
@@ -125,6 +125,16 @@ export const SPEAKER_META: Record<
     speed: 1,
     pitch: 0.75,
     rate: 1,
+  },
+  R: {
+    name: "Chú thợ sửa máy",
+    color: "text-sky-300",
+    voice: "ash",
+    instructions:
+      "Nam trung niên 45 tuổi, giọng khàn ấm, mộc mạc, nói chậm rãi và tiếc nuối khi báo tin xấu cho khách nhỏ tuổi. Thân thiện nhưng bất lực.",
+    speed: 0.96,
+    pitch: 0.85,
+    rate: 0.98,
   },
 };
 

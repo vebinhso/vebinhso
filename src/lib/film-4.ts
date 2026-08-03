@@ -326,7 +326,7 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: "A2. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
-        next: "l10a2",
+        next: "l11a2",
         tone: "risky",
       },
     ],

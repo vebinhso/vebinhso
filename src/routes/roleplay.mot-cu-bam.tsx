@@ -509,6 +509,26 @@ function FilmPage() {
         </div>
       )}
 
+      {node.loginOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+          <div className="animate-[filmFade_0.9s_ease-out_both] relative w-[38vh] max-w-[240px] rounded-[2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
+            <div className="absolute left-1/2 top-1 z-10 h-1.5 w-14 -translate-x-1/2 rounded-full bg-neutral-700" />
+            <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-b from-pink-400 to-fuchsia-600 p-3 pt-5">
+              <div className="rounded-xl bg-white p-3 shadow-lg">
+                <p className="text-center text-[12px] font-black text-neutral-800">Đăng nhập</p>
+                <div className="mt-2 h-5 rounded-md border border-neutral-300 bg-neutral-50" />
+                <div className="mt-2 h-5 rounded-md border border-neutral-300 bg-neutral-50" />
+                <div className="mt-3 rounded-md bg-blue-600 py-1.5 text-center text-[10px] font-black text-white">
+                  Tiếp tục
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {DUSTS.map((d, i) => (
           <span

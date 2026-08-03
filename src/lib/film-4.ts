@@ -23,8 +23,6 @@ import l08 from "@/assets/film5/clean/l08.jpg";
 import vl08 from "@/assets/film5/video/l08.mp4.asset.json";
 import l09 from "@/assets/film5/clean/l09.jpg";
 import vl09 from "@/assets/film5/video/l09.mp4.asset.json";
-import l07c from "@/assets/film5/clean/l07d.jpg";
-import vl07c from "@/assets/film5/video/l07d.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 import l05a from "@/assets/film5/clean/l05a.jpg";
@@ -35,6 +33,8 @@ import l06 from "@/assets/film5/clean/l06.jpg";
 import vl06 from "@/assets/film5/video/l06.mp4.asset.json";
 import l07 from "@/assets/film5/clean/l07.jpg";
 import vl07 from "@/assets/film5/video/l07.mp4.asset.json";
+import l07e from "@/assets/film5/clean/l07e.jpg";
+import vl07e from "@/assets/film5/video/l07e.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -246,8 +246,8 @@ export const FILM: Record<string, FilmNode> = {
   },
   l07: {
     id: "l07",
-    image: l07c,
-    video: vl07c.url,
+    image: l07e,
+    video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",

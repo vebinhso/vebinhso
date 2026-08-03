@@ -324,12 +324,23 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bố mẹ ơi, con lỡ điền mật khẩu vào một trang lạ... Con cần mượn máy để đổi mật khẩu ngay!",
     motion: "push",
     mood: "safe",
+    next: "l11a1",
+  },
+  l11a1: {
+    id: "l11a1",
+    image: l11a1,
+    video: vl11a1.url,
+    speaker: "narrator",
+    action: "Mang máy đi kiểm tra",
+    text: "Ba mẹ đưa Linh đến một cửa hàng uy tín để kiểm tra và sửa chữa. Kỹ thuật viên cho biết máy đã dính mã độc làm hỏng hệ thống và sẽ khôi phục lại giúp em.",
+    motion: "push",
+    mood: "safe",
     ending: {
       kind: "safe",
       code: "A1-SAFE",
       title: "XỬ LÝ ĐÚNG",
       lesson:
-        "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mới mang máy đi kiểm tra ở nơi uy tín. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
+        "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mang máy đến cửa hàng uy tín để kiểm tra và gỡ mã độc. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
     },
   },
   l10a2: {

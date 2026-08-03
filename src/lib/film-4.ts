@@ -502,11 +502,12 @@ export const FILM: Record<string, FilmNode> = {
   },
   l17b1: {
     id: "l17b1",
-    image: l14b,
-    video: vl14b.url,
+    image: l17b1,
+    video: vl17b1.url,
     speaker: "L",
-    action: "Cảnh báo cho mọi người",
-    text: "Các bạn ơi, mình vừa nhận được email trúng thưởng giả mạo. Địa chỉ gửi và đường link đều lạ, đừng bấm vào nhé!",
+    action: "S23 — Đăng cảnh báo lên nhóm lớp và Facebook",
+    text: "Các bạn ơi, có chiêu trò giả mạo trúng thưởng iPhone nè! Địa chỉ email và đường link đều lạ — tuyệt đối đừng bấm vào nhé!",
+
     motion: "push",
     mood: "safe",
     ending: {

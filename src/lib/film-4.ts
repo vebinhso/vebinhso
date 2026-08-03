@@ -49,6 +49,8 @@ export type FilmNode = {
   mailOverlay?: boolean;
   /** Lớp phủ biểu mẫu trang web giả đòi thông tin + mật khẩu game */
   formOverlay?: boolean;
+  /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
+  phoneFormOverlay?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;

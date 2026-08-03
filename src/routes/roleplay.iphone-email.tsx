@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
 import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
+import { FilmSummaryBoard } from "@/components/FilmSummaryBoard";
 import {
   FILM,
   FILM_NOTES,
@@ -77,6 +78,7 @@ function FilmPage() {
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [speechDone, setSpeechDone] = useState(false);
   const [prevVisual, setPrevVisual] = useState<{ src: string; type: "image" | "video" } | null>(null);
 
@@ -667,6 +669,19 @@ function FilmPage() {
         </button>
       </div>
 
+      {showSummary && (
+        <FilmSummaryBoard
+          onRestart={() => {
+            setShowSummary(false);
+            restart();
+          }}
+          onBack={() => {
+            setShowSummary(false);
+            back();
+          }}
+        />
+      )}
+
       <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5">
         <div className="max-w-3xl mx-auto">
           {node.ending ? (
@@ -712,6 +727,12 @@ function FilmPage() {
                 </p>
                 <FinalLessonQuiz />
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShowSummary(true)}
+                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-primary text-primary-foreground"
+                  >
+                    📋 Tổng kết
+                  </button>
                   <button
                     onClick={() => setShowNotes(true)}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-amber-400 text-black"

@@ -1,4 +1,6 @@
 import l01 from "@/assets/film5/poster.jpg";
+import l03 from "@/assets/film5/clean/l03.jpg";
+import vl03 from "@/assets/film5/video/l03.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 
@@ -52,7 +54,7 @@ export const SPEAKER_META: Record<
     rate: 1,
   },
   L: {
-    name: "Linh",
+    name: "L",
     color: "text-pink-300",
     voice: "coral",
     instructions:
@@ -91,7 +93,7 @@ export const FILM: Record<string, FilmNode> = {
     image: l01,
     speaker: "narrator",
     action: "24 giờ để nhận thưởng",
-    text: "Một buổi tối bình thường. Linh, học sinh lớp 9, đang thư giãn trên giường sau giờ học. Rồi điện thoại rung lên với một thông báo lạ: 'Bạn đã trúng thưởng iPhone!'",
+    text: "Một buổi tối bình thường. L, học sinh lớp 9, đang thư giãn trên giường sau giờ học. Rồi điện thoại rung lên với một thông báo lạ: 'Bạn đã trúng thưởng iPhone!'",
     motion: "kenburns",
     mood: "neutral",
     next: "l02",
@@ -102,17 +104,28 @@ export const FILM: Record<string, FilmNode> = {
     video: vl02.url,
     speaker: "narrator",
     action: "21:15 — Bạn có 1 thư mới",
-    text: "Hai mươi mốt giờ mười lăm. Linh vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một phong bì hiện lên, ghi rằng bạn đã trúng thưởng điện thoại iPhone 17.",
+    text: "Hai mươi mốt giờ mười lăm. L vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một phong bì hiện lên, ghi rằng bạn đã trúng thưởng điện thoại iPhone 17.",
     motion: "push",
     mood: "neutral",
     next: "l03",
   },
   l03: {
     id: "l03",
-    image: l02,
+    image: l03,
+    video: vl03.url,
+    speaker: "L",
+    action: "16:35 — Thứ Ba, 20 tháng 5",
+    text: "Ủa... mình trúng thật sao? Email mới báo mình trúng giải nhất luôn kìa...",
+    motion: "push",
+    mood: "neutral",
+    next: "l04",
+  },
+  l04: {
+    id: "l04",
+    image: l03,
     speaker: "narrator",
     action: "Câu chuyện tiếp theo",
-    text: "Câu chuyện tiếp theo đang được xây dựng. Hãy quay lại sau để cùng Linh đưa ra lựa chọn đúng đắn trước những chiêu trò lừa đảo trúng thưởng.",
+    text: "Câu chuyện tiếp theo đang được xây dựng. Hãy quay lại sau để cùng L đưa ra lựa chọn đúng đắn trước những chiêu trò lừa đảo trúng thưởng.",
     motion: "freeze",
     mood: "neutral",
     ending: {
@@ -120,7 +133,7 @@ export const FILM: Record<string, FilmNode> = {
       code: "TBC",
       title: "TIẾP TỤC",
       lesson:
-        "Câu chuyện của Linh chưa kết thúc. Hãy nhớ: không có phần thưởng nào miễn phí mà đòi hỏi thông tin cá nhân hoặc tiền của bạn trước.",
+        "Câu chuyện của L chưa kết thúc. Hãy nhớ: không có phần thưởng nào miễn phí mà đòi hỏi thông tin cá nhân hoặc tiền của bạn trước.",
     },
   },
 };

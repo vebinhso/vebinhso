@@ -158,3 +158,21 @@ export const FILM: Record<string, FilmNode> = {
 };
 
 export const FILM_START = "l02";
+
+/**
+ * KHOÁ TẠO HÌNH NHÂN VẬT — dùng chung cho MỌI cảnh của kịch bản 4.
+ * Khi tạo/chỉnh bất kỳ ảnh hoặc video nào của KB4, luôn đính kèm ảnh
+ * `src/assets/film5/ref-l.jpg` (character sheet của L) làm ảnh tham chiếu
+ * và ghép prompt với FILM4_STYLE_LOCK bên dưới.
+ */
+export const FILM4_CHAR_REF = "src/assets/film5/ref-l.jpg";
+
+export const FILM4_STYLE_LOCK =
+  "Nhân vật L: nữ sinh Việt Nam 14 tuổi, tóc đen thẳng ngang vai, mắt nâu, " +
+  "áo sơ mi trắng + nơ xanh navy — giữ nguyên khuôn mặt và kiểu tóc y hệt ảnh tham chiếu. " +
+  "Modern 2D anime, tô phẳng, cùng bảng màu. Khung hình 16:9 (1920x1080), " +
+  "bố cục ngang, nhân vật cỡ trung, đường chân trời/tầm mắt ở khoảng 45% chiều cao khung, " +
+  "không zoom lệch giữa các cảnh. Tuyệt đối không có chữ, số hay ký tự nào trong ảnh.";
+
+/** Tỉ lệ khung hình khoá cứng cho toàn bộ kịch bản 4 */
+export const FILM4_ASPECT = 16 / 9;

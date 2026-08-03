@@ -419,7 +419,11 @@ function FilmPage() {
         key={"cam" + node.id}
         className="absolute inset-0 flex items-center justify-center will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
       >
-        <div className="relative w-full max-w-full max-h-full aspect-video overflow-hidden">
+        {/* Khung 16:9 khoá cứng — mọi cảnh dùng chung tỉ lệ, không cắt/lệch */}
+        <div
+          className="relative aspect-video w-full max-h-full overflow-hidden bg-black"
+          style={{ maxWidth: "calc(100dvh * 16 / 9)" }}
+        >
           {visual.type === "video" ? (
             <video
               key={node.id + visual.src}
@@ -428,14 +432,14 @@ function FilmPage() {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_0.9s_ease-out_both]"
+              className="absolute inset-0 w-full h-full object-contain animate-[filmFade_0.9s_ease-out_both]"
             />
           ) : (
             <img
               key={node.id + visual.src}
               src={visual.src}
               alt=""
-              className={`absolute inset-0 w-full h-full object-cover will-change-transform animate-[filmFade_0.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+              className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_0.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
             />
           )}
         </div>

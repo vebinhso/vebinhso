@@ -19,6 +19,8 @@ import l05a2 from "@/assets/film5/clean/l05a2.jpg";
 import vl05a2 from "@/assets/film5/video/l05a2.mp4.asset.json";
 import l06 from "@/assets/film5/clean/l06.jpg";
 import vl06 from "@/assets/film5/video/l06.mp4.asset.json";
+import l07 from "@/assets/film5/clean/l07.jpg";
+import vl07 from "@/assets/film5/video/l07.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -51,6 +53,7 @@ export type FilmNode = {
   formOverlay?: boolean;
   /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
   phoneFormOverlay?: boolean;
+  phoneConfirm?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;

@@ -59,6 +59,16 @@ import vm19a from "@/assets/film3/video/m19a.mp4.asset.json";
 import vm19b from "@/assets/film3/video/m19b2.mp4.asset.json";
 import vm19c from "@/assets/film3/video/m19c2.mp4.asset.json";
 import vm19d from "@/assets/film3/video/m19d2.mp4.asset.json";
+import e1 from "@/assets/film3/clean/e1.jpg";
+import e2 from "@/assets/film3/clean/e2.jpg";
+import e3 from "@/assets/film3/clean/e3.jpg";
+import e4 from "@/assets/film3/clean/e4.jpg";
+import e5 from "@/assets/film3/clean/e5.jpg";
+import ve1 from "@/assets/film3/video/e1.mp4.asset.json";
+import ve2 from "@/assets/film3/video/e2.mp4.asset.json";
+import ve3 from "@/assets/film3/video/e3.mp4.asset.json";
+import ve4 from "@/assets/film3/video/e4.mp4.asset.json";
+import ve5 from "@/assets/film3/video/e5.mp4.asset.json";
 import vm20 from "@/assets/film3/video/m20.mp4.asset.json";
 import vm21 from "@/assets/film3/video/m21.mp4.asset.json";
 import vm22 from "@/assets/film3/video/m22b.mp4.asset.json";
@@ -482,8 +492,75 @@ export const FILM: Record<string, FilmNode> = {
     text: "“Xoá cho mọi người.” Màn hình sạch sẽ, nhưng M vừa tự xoá luôn bằng chứng có thể bảo vệ mình. Kẻ giấu mặt vẫn giữ mọi thứ nó cần.",
     motion: "freeze",
     mood: "danger",
-    next: "m13",
+    next: "e1",
   },
+  // Nhánh xoá — Hậu quả 1: tin nhắn đe doạ lúc 1 giờ sáng
+  e1: {
+    id: "e1",
+    image: e1,
+    video: ve1.url,
+    speaker: "A",
+    action: "M tắt máy đi ngủ — một giờ sau, điện thoại sáng lên",
+    text: "Em dám thoát nhóm và không làm nhiệm vụ à? Anh vẫn giữ tất cả. Anh sẽ tung hết mọi thứ của em lên mạng.",
+    motion: "push",
+    mood: "danger",
+    next: "e2",
+  },
+  // Hậu quả 2 — M sợ hãi nhưng im lặng
+  e2: {
+    id: "e2",
+    image: e2,
+    video: ve2.url,
+    speaker: "narrator",
+    action: "Sáng hôm sau, trong lớp học",
+    text: "M sợ đến mức không ngủ được, nhưng em không dám kể với bố mẹ, thầy cô hay bất kỳ người bạn nào. Em chọn im lặng, và sự im lặng ấy chính là thứ kẻ giấu mặt cần nhất.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "e3",
+  },
+  // Hậu quả 3 — Admin tung mọi thứ lên mạng
+  e3: {
+    id: "e3",
+    image: e3,
+    video: ve3.url,
+    speaker: "narrator",
+    action: "Trong khi đó, ở phía bên kia màn hình",
+    text: "Kẻ giấu mặt đăng toàn bộ những gì M từng gửi: clip nhảy, ảnh thẻ học sinh, họ tên, ngày sinh, danh bạ. Chỉ trong vài giờ, mọi thứ lan đi khắp các hội nhóm mà M không thể thu hồi được nữa.",
+    motion: "push",
+    mood: "danger",
+    next: "e4",
+  },
+  // Hậu quả 4 — Admin tiếp tục săn nạn nhân mới
+  e4: {
+    id: "e4",
+    image: e4,
+    video: ve4.url,
+    speaker: "narrator",
+    action: "Cùng một kịch bản, những nạn nhân mới",
+    text: "Không dừng lại ở M, kẻ giấu mặt dùng đúng chiêu bài đó với nhiều bạn khác trong trường: kết bạn, khen ngợi, giao thử thách nhỏ rồi siết dần bằng đe doạ.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "e5",
+  },
+  // Hậu quả 5 — Kết thúc: bị xa lánh
+  e5: {
+    id: "e5",
+    image: e5,
+    video: ve5.url,
+    speaker: "narrator",
+    action: "Hành lang trường, vài ngày sau",
+    text: "Khi các bạn bị lừa kể lại và nhìn thấy hình ảnh của M, ai cũng hiểu M đã là nạn nhân từ rất lâu — nhưng M đã im lặng, thậm chí còn có những đoạn clip M quay lén chính họ. Không ai còn tin M nữa. M ở lại một mình giữa hành lang, không mất tiền, nhưng mất tất cả bạn bè.",
+    motion: "freeze",
+    mood: "danger",
+    ending: {
+      kind: "loss",
+      code: "E",
+      title: "KẾT THÚC E — IM LẶNG VÀ BỊ XA LÁNH",
+      lesson:
+        "Xoá tin nhắn không xoá được nguy hiểm: bằng chứng thì mất, còn kẻ xấu vẫn giữ mọi thứ. Im lặng khiến em một mình gánh hậu quả và khiến bạn bè trở thành nạn nhân tiếp theo. Hãy lưu bằng chứng và nói ngay với người lớn đáng tin cậy.",
+    },
+  },
+
   // S20 — M tỉnh ngộ
   m20: {
     id: "m20",

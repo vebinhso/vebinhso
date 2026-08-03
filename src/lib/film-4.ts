@@ -11,6 +11,16 @@ import l03 from "@/assets/film5/clean/l03b.jpg";
 import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
 import l02c from "@/assets/film5/clean/l03.jpg";
 import vl02c from "@/assets/film5/video/l03.mp4.asset.json";
+import l03f from "@/assets/film5/clean/l03f.jpg";
+import vl03f from "@/assets/film5/video/l03f.mp4.asset.json";
+import l03g from "@/assets/film5/clean/l03g.jpg";
+import vl03g from "@/assets/film5/video/l03g.mp4.asset.json";
+import l06b from "@/assets/film5/clean/l06b.jpg";
+import vl06b from "@/assets/film5/video/l06b.mp4.asset.json";
+import l07b from "@/assets/film5/clean/l07b.jpg";
+import vl07b from "@/assets/film5/video/l07b.mp4.asset.json";
+import l07c from "@/assets/film5/clean/l07c.jpg";
+import vl07c from "@/assets/film5/video/l07c.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 import l05a from "@/assets/film5/clean/l05a.jpg";
@@ -152,26 +162,24 @@ export const FILM: Record<string, FilmNode> = {
 
   l03: {
     id: "l03",
-    image: l03c,
-    video: vl03c.url,
+    image: l03f,
+    video: vl03f.url,
     speaker: "L",
     action: "16:30 — Đọc email",
     text: "Thật à, mình còn có email...",
     motion: "push",
     mood: "neutral",
-    mailOverlay: true,
     next: "l03d",
   },
   l03d: {
     id: "l03d",
-    image: l03d,
-    video: vl03d.url,
+    image: l03g,
+    video: vl03g.url,
     speaker: "L",
     action: "Nhìn kỹ thông tin...",
     text: "Khoan đã... địa chỉ email này lạ quá, đuôi là gmail-free-service.com chứ không phải nhà phát hành game. Đường link cũng có đuôi .net rất đáng ngờ...",
     motion: "push",
     mood: "danger",
-    inspectOverlay: true,
     next: "l03e",
   },
   l03e: {
@@ -212,39 +220,36 @@ export const FILM: Record<string, FilmNode> = {
   },
   l05a2: {
     id: "l05a2",
-    image: l05a2,
-    video: vl05a2.url,
+    image: l06b,
+    video: vl06b.url,
     speaker: "narrator",
     action: "Trang web giả",
     text: "Đường link mở ra một trang web lấp lánh vàng, yêu cầu L điền hàng loạt thông tin cá nhân... và cả mật khẩu tài khoản game.",
     motion: "push",
     mood: "danger",
-    formOverlay: true,
     next: "l06",
   },
   l06: {
     id: "l06",
-    image: l06,
-    video: vl06.url,
+    image: l07b,
+    video: vl07b.url,
     speaker: "L",
     action: "Điền thông tin",
     text: "Chỉ cần điền nốt mật khẩu là xong... Mình sẽ có iPhone 17 Pro Max thôi!",
     motion: "push",
     mood: "danger",
-    phoneFormOverlay: true,
     next: "l07",
   },
   l07: {
     id: "l07",
-    image: l07,
-    video: vl07.url,
+    image: l07c,
+    video: vl07c.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",
-    phoneFormOverlay: true,
-    phoneConfirm: true,
+
     ending: {
       kind: "loss",
       code: "A-LOSS",

@@ -1,6 +1,8 @@
 import l01 from "@/assets/film5/poster.jpg";
 import l03 from "@/assets/film5/clean/l03b.jpg";
 import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
+import l02c from "@/assets/film5/clean/l03.jpg";
+import vl02c from "@/assets/film5/video/l03.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 
@@ -109,8 +111,20 @@ export const FILM: Record<string, FilmNode> = {
     text: "Hai mươi mốt giờ mười lăm. L vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một phong bì hiện lên, ghi rằng bạn đã trúng thưởng điện thoại iPhone 17.",
     motion: "push",
     mood: "neutral",
+    next: "l02c",
+  },
+  l02c: {
+    id: "l02c",
+    image: l02c,
+    video: vl02c.url,
+    speaker: "L",
+    action: "21:16 — Màn hình khoá",
+    text: "Ủa... mình trúng thật sao? Thông báo ghi là chúc mừng mình trúng giải nhất luôn kìa...",
+    motion: "push",
+    mood: "neutral",
     next: "l03",
   },
+
   l03: {
     id: "l03",
     image: l03,

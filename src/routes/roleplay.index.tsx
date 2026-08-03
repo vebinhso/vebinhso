@@ -6,6 +6,7 @@ import { getCurrentUser, type Account } from "@/lib/auth";
 import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
+import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,

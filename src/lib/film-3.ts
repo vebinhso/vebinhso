@@ -611,7 +611,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vb3b.url,
     speaker: "B",
     text: "Biết vậy mình đã cảnh báo sớm hơn rồi, huhu hối hận quá...",
-    text: "Bảo không bấm link nên giữ được tài khoản. Nhưng cậu im lặng, và sáng hôm sau hai bạn trong lớp đã đăng nhập vào trang giả đó.",
+    
     mood: "danger",
     ending: {
       kind: "loss",

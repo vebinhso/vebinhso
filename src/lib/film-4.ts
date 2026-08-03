@@ -434,7 +434,7 @@ export const FILM: Record<string, FilmNode> = {
       code: "A2-LOSS",
       title: "KẾT THÚC D — MẤT NHIỀU HƠN MỘT CÁI ĐIỆN THOẠI",
       lesson:
-        "Vì giấu chuyện và không đổi mật khẩu kịp, kẻ gian dùng chính tài khoản của Linh để lừa tiếp bạn bè trong danh bạ suốt nhiều ngày. Khi lỡ bị lừa: báo người lớn ngay, đổi mật khẩu email trước rồi tới các tài khoản khác, bật xác thực 2 lớp và cảnh báo bạn bè càng sớm càng tốt. Máy sửa được, nhưng lòng tin thì mất rất lâu mới lấy lại.",
+        "KẾT QUẢ:\n• Điện thoại bị mã độc phá hỏng, không thể sử dụng.\n• Mất tài khoản game và toàn bộ tài sản ảo trong game.\n• Lộ thông tin cá nhân (họ tên, địa chỉ, số điện thoại...).\n• Bạn bè bị lừa theo, mất tiền, mất tài khoản.\n\nChỉ vì nhẹ dạ, ham phần thưởng ảo, Linh đã phải trả giá quá đắt!\n\nBÀI HỌC:\n• Không có phần thưởng nào tự nhiên rơi xuống — quà càng hấp dẫn, càng phải nghi ngờ.\n• Không bấm link lạ, không tải file/app ngoài kho ứng dụng chính thức.\n• Không bao giờ điền họ tên, địa chỉ, số điện thoại, tài khoản, mật khẩu vào form lạ.\n• Kiểm tra kỹ tên miền và người gửi trước khi làm theo bất cứ hướng dẫn nào.\n• Lỡ bị lừa: báo người lớn ngay, đổi mật khẩu EMAIL trước rồi tới các tài khoản khác, bật xác thực 2 lớp và cảnh báo bạn bè càng sớm càng tốt.\n• Giấu chuyện chỉ làm thiệt hại lan rộng. Máy sửa được, nhưng lòng tin thì mất rất lâu mới lấy lại.",
     },
   },
 

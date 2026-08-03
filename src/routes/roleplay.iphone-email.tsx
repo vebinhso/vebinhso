@@ -706,7 +706,7 @@ function FilmPage() {
                   {node.ending.title}
                 </h2>
                 <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
-                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
+                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[40vh] overflow-y-auto">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
                 <div className="flex flex-wrap gap-2">

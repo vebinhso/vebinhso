@@ -13,6 +13,7 @@ import s10 from "@/assets/film4/clean/s10.jpg";
 import s11 from "@/assets/film4/clean/s11c.jpg";
 import s12 from "@/assets/film4/clean/s12b.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
+import s13a2 from "@/assets/film4/clean/s13a2.jpg";
 import s14 from "@/assets/film4/clean/s14b.jpg";
 import s15 from "@/assets/film4/clean/s15b.jpg";
 import s16 from "@/assets/film4/clean/s16.jpg";
@@ -31,6 +32,7 @@ import vs10 from "@/assets/film4/video/b11.mp4.asset.json";
 import vs11 from "@/assets/film4/video/s11c.mp4.asset.json";
 import vs12 from "@/assets/film4/video/s12b.mp4.asset.json";
 import vs13 from "@/assets/film4/video/b14.mp4.asset.json";
+import vs13a2 from "@/assets/film4/video/s13a2.mp4.asset.json";
 import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 import sAskHa from "@/assets/film4/s-ask-ha.png.asset.json";
@@ -365,10 +367,22 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: 'A2. Xấu hổ, không dám kể, tự bấm "Quên mật khẩu" liên tục',
-        next: "endA2",
+        next: "s13a2",
         tone: "risky",
       },
     ],
+  },
+  // S13-A2 — Bảo hoảng loạn bấm quên mật khẩu
+  s13a2: {
+    id: "s13a2",
+    image: s13a2,
+    video: vs13a2.url,
+    speaker: "narrator",
+    action: "Bảo bấm \"Quên mật khẩu\" liên tục trong hoảng loạn",
+    text: "Bảo cắn răng không kể với ai. Cậu bấm \"Quên mật khẩu\" hết lần này đến lần khác, tay run bần bật. Rồi màn hình chớp một cái — và tắt hẳn. Bấm mãi, lắc mãi, chiếc điện thoại vẫn tối đen.",
+    motion: "shake",
+    mood: "danger",
+    next: "endA2",
   },
   // S14 — Bảo cảnh báo nhóm lớp
   s14: {

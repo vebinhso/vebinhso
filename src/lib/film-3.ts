@@ -10,7 +10,7 @@ import s07 from "@/assets/film4/clean/s07.jpg";
 import s08 from "@/assets/film4/clean/s08.jpg";
 import s09 from "@/assets/film4/clean/s09.jpg";
 import s10 from "@/assets/film4/clean/s10.jpg";
-import s11 from "@/assets/film4/clean/s11.jpg";
+import s11 from "@/assets/film4/clean/s11c.jpg";
 import s12 from "@/assets/film4/clean/s12.jpg";
 import s13 from "@/assets/film4/clean/s13.jpg";
 import s14 from "@/assets/film4/clean/s14b.jpg";

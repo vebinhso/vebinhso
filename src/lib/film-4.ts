@@ -1,4 +1,6 @@
 import l01 from "@/assets/film5/poster.jpg";
+import l03c from "@/assets/film5/clean/l03c.jpg";
+import vl03c from "@/assets/film5/video/l03c.mp4.asset.json";
 import l03 from "@/assets/film5/clean/l03b.jpg";
 import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
 import l02c from "@/assets/film5/clean/l03.jpg";
@@ -127,11 +129,11 @@ export const FILM: Record<string, FilmNode> = {
 
   l03: {
     id: "l03",
-    image: l03,
-    video: vl03.url,
+    image: l03c,
+    video: vl03c.url,
     speaker: "L",
     action: "16:30 — Đọc email",
-    text: "Ủa... mình trúng thật sao? Email ghi là chúc mừng L đã trúng giải nhất luôn kìa...",
+    text: "Thật à, mình còn có email...",
     motion: "push",
     mood: "neutral",
     mailOverlay: true,

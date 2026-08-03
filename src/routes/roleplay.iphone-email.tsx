@@ -23,12 +23,12 @@ export const Route = createFileRoute("/roleplay/iphone-email")({
       {
         name: "description",
         content:
-          "Bài 4 nhập vai: một email thông báo trúng thưởng điện thoại. Linh sẽ làm gì trước tin vui bất ngờ từ người lạ?",
+          "Bài 4 nhập vai: một email thông báo trúng thưởng điện thoại. L sẽ làm gì trước tin vui bất ngờ từ người lạ?",
       },
       { property: "og:title", content: "Phim tương tác: Món quà đắt nhất" },
       {
         property: "og:description",
-        content: "Bạn vào vai Linh. Mỗi lựa chọn trước một phần thưởng quá đẹp đều có thể là cái bẫy.",
+        content: "Bạn vào vai L. Mỗi lựa chọn trước một phần thưởng quá đẹp đều có thể là cái bẫy.",
       },
 
       { property: "og:type", content: "video.other" },
@@ -373,7 +373,7 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-pink-300">Linh</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái
+            Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái
             bẫy?
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
@@ -602,7 +602,7 @@ function FilmPage() {
                   done && (
                     <>
                       <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-black tracking-widest text-white/70">LINH NÊN LÀM GÌ?</p>
+                        <p className="text-[11px] font-black tracking-widest text-white/70">L NÊN LÀM GÌ?</p>
                         {timeLeft !== null && (
                           <p
                             className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}

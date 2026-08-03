@@ -193,7 +193,7 @@ export const FILM: Record<string, FilmNode> = {
     motion: "freeze",
     mood: "danger",
     ending: {
-      kind: "risky",
+      kind: "loss",
       code: "A-TBC",
       title: "TIẾP TỤC",
       lesson:

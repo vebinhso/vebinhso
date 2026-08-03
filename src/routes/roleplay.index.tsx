@@ -7,6 +7,8 @@ import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
+import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
+
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,

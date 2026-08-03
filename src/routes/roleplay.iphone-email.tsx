@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
+import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 import {
   FILM,
   FILM_NOTES,

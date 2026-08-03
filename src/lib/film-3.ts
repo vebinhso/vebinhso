@@ -310,7 +310,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s11,
     video: vs11.url,
     speaker: "T",
-    action: "Màn hình chia đôi: Bảo xanh lạnh, Tuấn ấm vàng",
+    action: "Bảo nghe điện thoại giữa đêm, mặt tái đi",
     text: "Bảo ơi! Mày bị hack Facebook đúng không? Nick mày đang đi gửi link mượn năm triệu khắp lớp mình kìa!",
     motion: "shake",
     mood: "danger",

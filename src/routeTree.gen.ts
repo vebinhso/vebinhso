@@ -35,6 +35,7 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as RoleplayIndexRouteImport } from './routes/roleplay.index'
+import { Route as RoleplayBaVeLienKeRouteImport } from './routes/roleplay.ba-ve-lien-ke'
 import { Route as RoleplayIphoneEmailRouteImport } from './routes/roleplay.iphone-email'
 import { Route as RoleplayKeGiauMatRouteImport } from './routes/roleplay.ke-giau-mat'
 import { Route as RoleplayMotCuBamRouteImport } from './routes/roleplay.mot-cu-bam'
@@ -175,6 +176,11 @@ const RoleplayIndexRoute = RoleplayIndexRouteImport.update({
   path: '/',
   getParentRoute: () => RoleplayRoute,
 } as any)
+const RoleplayBaVeLienKeRoute = RoleplayBaVeLienKeRouteImport.update({
+  id: '/ba-ve-lien-ke',
+  path: '/ba-ve-lien-ke',
+  getParentRoute: () => RoleplayRoute,
+} as any)
 const RoleplayIphoneEmailRoute = RoleplayIphoneEmailRouteImport.update({
   id: '/iphone-email',
   path: '/iphone-email',
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
   '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
   '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
   '/roleplay/mot-cu-bam': typeof RoleplayMotCuBamRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
     | '/roleplay/mot-cu-bam'
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
     | '/roleplay/mot-cu-bam'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
     | '/roleplay/mot-cu-bam'
@@ -639,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoleplayIndexRouteImport
       parentRoute: typeof RoleplayRoute
     }
+    '/roleplay/ba-ve-lien-ke': {
+      id: '/roleplay/ba-ve-lien-ke'
+      path: '/ba-ve-lien-ke'
+      fullPath: '/roleplay/ba-ve-lien-ke'
+      preLoaderRoute: typeof RoleplayBaVeLienKeRouteImport
+      parentRoute: typeof RoleplayRoute
+    }
     '/roleplay/iphone-email': {
       id: '/roleplay/iphone-email'
       path: '/iphone-email'
@@ -692,6 +711,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface RoleplayRouteChildren {
+  RoleplayBaVeLienKeRoute: typeof RoleplayBaVeLienKeRoute
   RoleplayIphoneEmailRoute: typeof RoleplayIphoneEmailRoute
   RoleplayKeGiauMatRoute: typeof RoleplayKeGiauMatRoute
   RoleplayMotCuBamRoute: typeof RoleplayMotCuBamRoute
@@ -700,6 +720,7 @@ interface RoleplayRouteChildren {
 }
 
 const RoleplayRouteChildren: RoleplayRouteChildren = {
+  RoleplayBaVeLienKeRoute: RoleplayBaVeLienKeRoute,
   RoleplayIphoneEmailRoute: RoleplayIphoneEmailRoute,
   RoleplayKeGiauMatRoute: RoleplayKeGiauMatRoute,
   RoleplayMotCuBamRoute: RoleplayMotCuBamRoute,

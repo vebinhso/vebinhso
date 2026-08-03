@@ -61,6 +61,9 @@ import l16b1 from "@/assets/film5/clean/l16b1.jpg";
 import vl16b1 from "@/assets/film5/video/l16b1.mp4.asset.json";
 import l17b1 from "@/assets/film5/clean/l17b1.jpg";
 import vl17b1 from "@/assets/film5/video/l17b1.mp4.asset.json";
+import l18b1 from "@/assets/film5/clean/l18b1.jpg";
+import vl18b1 from "@/assets/film5/video/l18b1.mp4.asset.json";
+
 
 
 export type Speaker = "narrator" | "L" | "X" | "R";

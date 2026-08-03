@@ -453,6 +453,28 @@ function FilmPage() {
         />
       )}
 
+      {node.groupChatOverlay && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-end pr-[8%]">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-[30%] max-w-[260px] min-w-[150px] rounded-[1.2rem] bg-white/95 p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-neutral-900">
+            <p className="text-[9px] sm:text-[11px] font-black text-neutral-800">Nhóm lớp 10A1 ❤️</p>
+            <div className="mt-1 rounded-lg bg-amber-50 border border-amber-300 px-1.5 py-1">
+              <p className="text-[8px] sm:text-[10px] font-black text-red-600">⚠️ CẢNH BÁO MỌI NGƯỜI!</p>
+              <p className="mt-0.5 text-[7.5px] sm:text-[9.5px] font-semibold leading-snug">
+                Nick Facebook của mình vừa bị hack. Kẻ gian đang dùng nick mình để nhắn mượn tiền và
+                gửi link lừa đảo. Mọi người tuyệt đối KHÔNG bấm link, KHÔNG chuyển tiền cho bất kỳ ai
+                nhé!
+              </p>
+            </div>
+            <div className="mt-1 rounded-lg bg-neutral-100 px-1.5 py-1">
+              <p className="text-[7.5px] sm:text-[9.5px] font-semibold">Tuấn: Ok Bảo, cảm ơn mày đã báo nhé!</p>
+            </div>
+            <div className="mt-1 rounded-lg bg-neutral-100 px-1.5 py-1">
+              <p className="text-[7.5px] sm:text-[9.5px] font-semibold">Lan: Cảm ơn Bảo! May mà mày báo sớm!</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {node.linkOverlay && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
           <div className="animate-[filmFade_0.9s_ease-out_both] max-w-[92%] rounded-2xl bg-black/70 backdrop-blur-md border border-red-500/40 px-4 py-3 sm:px-6 sm:py-4 text-center shadow-[0_0_40px_rgba(0,0,0,0.6)]">

@@ -454,26 +454,39 @@ function FilmPage() {
       )}
 
       {node.groupChatOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-end pr-[8%]">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-[30%] max-w-[260px] min-w-[150px] rounded-[1.2rem] bg-white/95 p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-neutral-900">
-            <p className="text-[9px] sm:text-[11px] font-black text-neutral-800">Nhóm lớp 10A1 ❤️</p>
-            <div className="mt-1 rounded-lg bg-amber-50 border border-amber-300 px-1.5 py-1">
-              <p className="text-[8px] sm:text-[10px] font-black text-red-600">⚠️ CẢNH BÁO MỌI NGƯỜI!</p>
-              <p className="mt-0.5 text-[7.5px] sm:text-[9.5px] font-semibold leading-snug">
-                Nick Facebook của mình vừa bị hack. Kẻ gian đang dùng nick mình để nhắn mượn tiền và
-                gửi link lừa đảo. Mọi người tuyệt đối KHÔNG bấm link, KHÔNG chuyển tiền cho bất kỳ ai
-                nhé!
-              </p>
-            </div>
-            <div className="mt-1 rounded-lg bg-neutral-100 px-1.5 py-1">
-              <p className="text-[7.5px] sm:text-[9.5px] font-semibold">Tuấn: Ok Bảo, cảm ơn mày đã báo nhé!</p>
-            </div>
-            <div className="mt-1 rounded-lg bg-neutral-100 px-1.5 py-1">
-              <p className="text-[7.5px] sm:text-[9.5px] font-semibold">Lan: Cảm ơn Bảo! May mà mày báo sớm!</p>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
+          <div className="animate-[filmFade_0.9s_ease-out_both] relative w-[38vh] max-w-[250px] min-w-[170px] rounded-[2rem] border-[6px] border-neutral-900 bg-neutral-900 shadow-[0_20px_60px_rgba(0,0,0,0.75)] rotate-[-3deg]">
+            <div className="absolute left-1/2 top-1.5 z-10 h-1.5 w-14 -translate-x-1/2 rounded-full bg-neutral-700" />
+            <div className="overflow-hidden rounded-[1.6rem] bg-neutral-100 text-neutral-900">
+              <div className="flex items-center gap-1.5 bg-sky-600 px-2 pb-1.5 pt-4">
+                <div className="h-4 w-4 rounded-full bg-white/80" />
+                <p className="text-[9px] font-black text-white">Nhóm lớp 10A1 ❤️</p>
+              </div>
+              <div className="space-y-1.5 px-2 py-2">
+                <div className="max-w-[92%] rounded-2xl rounded-tl-sm bg-amber-50 border border-amber-300 px-2 py-1.5">
+                  <p className="text-[8px] font-black text-red-600">⚠️ CẢNH BÁO MỌI NGƯỜI!</p>
+                  <p className="mt-0.5 text-[7.5px] font-semibold leading-snug">
+                    Nick Facebook của mình vừa bị hack. Kẻ gian đang dùng nick mình để nhắn mượn tiền
+                    và gửi link lừa đảo. Mọi người tuyệt đối KHÔNG bấm link, KHÔNG chuyển tiền cho bất
+                    kỳ ai nhé!
+                  </p>
+                </div>
+                <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-white px-2 py-1 shadow-sm">
+                  <p className="text-[7.5px] font-semibold">Tuấn: Ok Bảo, cảm ơn mày đã báo nhé!</p>
+                </div>
+                <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-white px-2 py-1 shadow-sm">
+                  <p className="text-[7.5px] font-semibold">Lan: Cảm ơn Bảo! May mà mày báo sớm!</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 border-t border-neutral-300 bg-white px-2 py-1.5">
+                <div className="h-3 flex-1 rounded-full bg-neutral-200" />
+                <div className="h-3 w-3 rounded-full bg-sky-600" />
+              </div>
             </div>
           </div>
         </div>
       )}
+
 
       {node.linkOverlay && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">

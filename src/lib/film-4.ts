@@ -351,11 +351,33 @@ export const FILM: Record<string, FilmNode> = {
   },
   l10a2: {
     id: "l10a2",
-    image: l09c,
-    video: vl09c.url,
+    image: l12a2,
+    video: vl12a2.url,
     speaker: "narrator",
-    action: "Im lặng giấu chuyện",
-    text: "Linh bày ra vẻ im lặng, tự mang máy đi tiệm sửa và không kể với ai...",
+    action: "L12 — GIẤU",
+    text: "Linh không kể với ai. Cô bé nghĩ sửa xong máy là xong chuyện.",
+    motion: "push",
+    mood: "danger",
+    next: "l13a2",
+  },
+  l13a2: {
+    id: "l13a2",
+    image: l13a2,
+    video: vl13a2.url,
+    speaker: "Chú thợ sửa máy",
+    action: "Ở tiệm sửa điện thoại",
+    text: "Máy này bị mã độc phá hỏng phần cứng rồi, khó cứu lắm cháu ạ... Dữ liệu trong máy chú cũng không lấy lại được đâu.",
+    motion: "shake",
+    mood: "danger",
+    next: "l13a2b",
+  },
+  l13a2b: {
+    id: "l13a2b",
+    image: l13a2,
+    video: vl13a2.url,
+    speaker: "L",
+    action: "Linh hoảng hốt",
+    text: "Giờ mình phải làm sao đây... Mình không dám nói với bố mẹ...",
     motion: "shake",
     mood: "danger",
     ending: {
@@ -363,9 +385,10 @@ export const FILM: Record<string, FilmNode> = {
       code: "A2-LOSS",
       title: "HẬU QUẢ",
       lesson:
-        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Giấu chuyện chỉ khiến thiệt hại lan rộng — hãy báo người lớn ngay.",
+        "Vì không báo ai và không đổi mật khẩu kịp, kẻ gian tranh thủ dùng chính thông tin Linh vừa điền để chiếm tài khoản, rồi nhắn tin lừa tiếp bạn bè trong danh bạ. Sửa được máy cũng không lấy lại được tài khoản — hãy báo người lớn và đổi mật khẩu ngay thay vì giấu chuyện.",
     },
   },
+
 
 
 

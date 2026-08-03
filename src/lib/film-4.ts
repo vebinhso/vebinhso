@@ -13,6 +13,10 @@ import l02c from "@/assets/film5/clean/l03.jpg";
 import vl02c from "@/assets/film5/video/l03.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
+import l05a from "@/assets/film5/clean/l05a.jpg";
+import vl05a from "@/assets/film5/video/l05a.mp4.asset.json";
+import l05a2 from "@/assets/film5/clean/l05a2.jpg";
+import vl05a2 from "@/assets/film5/video/l05a2.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -41,6 +45,8 @@ export type FilmNode = {
   inspectOverlay?: boolean;
   /** Hiện lớp phủ nội dung email lừa đảo (dựng bằng CSS) */
   mailOverlay?: boolean;
+  /** Lớp phủ biểu mẫu trang web giả đòi thông tin + mật khẩu game */
+  formOverlay?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -186,20 +192,34 @@ export const FILM: Record<string, FilmNode> = {
   },
   l05a: {
     id: "l05a",
-    image: l04img,
-    speaker: "narrator",
-    action: "Nhánh A — đang xây dựng",
-    text: "L bấm vào đường link... Phần tiếp theo của nhánh này đang được dựng. Hãy quay lại sau nhé!",
-    motion: "freeze",
+    image: l05a,
+    video: vl05a.url,
+    speaker: "L",
+    action: "Vì ham phần thưởng...",
+    text: "iPhone 17 Pro Max! Thử xem sao nhỉ!",
+    motion: "push",
     mood: "danger",
+    next: "l05a2",
+  },
+  l05a2: {
+    id: "l05a2",
+    image: l05a2,
+    video: vl05a2.url,
+    speaker: "narrator",
+    action: "Trang web giả",
+    text: "Đường link mở ra một trang web lấp lánh vàng, yêu cầu L điền hàng loạt thông tin cá nhân... và cả mật khẩu tài khoản game.",
+    motion: "push",
+    mood: "danger",
+    formOverlay: true,
     ending: {
       kind: "loss",
       code: "A-TBC",
       title: "TIẾP TỤC",
       lesson:
-        "Bấm vào link lạ là bước đầu tiên khiến bạn mất tài khoản, thông tin cá nhân và cả tiền bạc.",
+        "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản.",
     },
   },
+
   l05b: {
     id: "l05b",
     image: l03d,

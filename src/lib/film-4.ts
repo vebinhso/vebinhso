@@ -63,6 +63,8 @@ import l17b1 from "@/assets/film5/clean/l17b1.jpg";
 import vl17b1 from "@/assets/film5/video/l17b1.mp4.asset.json";
 import l18b1 from "@/assets/film5/clean/l18b1.jpg";
 import vl18b1 from "@/assets/film5/video/l18b1.mp4.asset.json";
+import l19b1 from "@/assets/film5/clean/l19b1.jpg";
+import vl19b1 from "@/assets/film5/video/l19b1.mp4.asset.json";
 
 
 
@@ -536,7 +538,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "S25 — Linh được các bạn khen ngợi vì sự tỉnh táo và trách nhiệm",
     text: "“Linh siêu tỉnh táo luôn!” — “Cảm ơn Linh nha!” — “Cậu giúp tụi mình tránh được một cú lừa đó!” Sân trường sáng nay rộn tiếng cười.",
-    motion: "pull",
+    motion: "kenburns",
     mood: "safe",
     ending: {
       kind: "safe",

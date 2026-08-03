@@ -456,141 +456,152 @@ function FilmPage() {
         />
       )}
 
-      {node.emailOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[14vh] px-4">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-md rounded-2xl bg-black/75 backdrop-blur-md border border-amber-400/50 px-5 py-4 text-center shadow-[0_0_40px_rgba(0,0,0,0.6)]">
-            <p className="text-sm sm:text-xl font-black tracking-wide text-amber-200">EMAIL TRÚNG THƯỞNG ĐIỆN THOẠI</p>
-          </div>
-        </div>
-      )}
+      {(node.emailOverlay || node.mailOverlay || node.inspectOverlay || node.formOverlay || node.phoneFormOverlay) && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 py-[8vh]">
+          {/* Khung điện thoại: mọi thông tin (email, link, form) đều nằm TRONG màn hình điện thoại của nhân vật */}
+          <div
+            className="animate-[filmFade_0.9s_ease-out_both] relative h-full max-h-[74vh] aspect-[9/19] rounded-[2rem] border-[5px] border-slate-800 bg-slate-950 shadow-[0_0_60px_rgba(0,0,0,0.75)] p-[3px]"
+            style={{ transform: "rotate(-2deg)" }}
+          >
+            <div className="relative h-full w-full overflow-hidden rounded-[1.7rem] bg-slate-100 flex flex-col">
+              {/* status bar + notch */}
+              <div className="relative flex items-center justify-between px-3 pt-1.5 pb-1 text-[7px] font-bold text-slate-700 bg-slate-100">
+                <span>21:16</span>
+                <div className="absolute left-1/2 -translate-x-1/2 top-1 h-3 w-14 rounded-full bg-slate-900" />
+                <span className="tracking-tight">📶 🔋</span>
+              </div>
 
-      {node.mailOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 pb-[18vh]">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-lg rounded-2xl bg-white/95 text-slate-800 shadow-[0_0_60px_rgba(0,0,0,0.7)] border border-white/60 overflow-hidden">
-            <div className="px-4 py-2 text-[10px] sm:text-xs bg-slate-100 border-b border-slate-200 break-all">
-              <span className="text-slate-500">Từ: </span>
-              <span className="font-bold">SuKienGame_TrungThuong2026@</span>
-              <span className="font-bold text-red-600">gmail-free-service.com</span>
-            </div>
-            <div className="px-4 py-2 text-xs sm:text-base font-black leading-snug">
-              [XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!
-            </div>
-            <div className="px-4 pb-2 text-[10px] sm:text-sm leading-relaxed text-slate-700">
-              Chúc mừng bạn trúng 01 iPhone 17 Pro Max từ sự kiện tri ân game thủ. Truy cập link để hoàn tất
-              thông tin nhận thưởng trong <span className="font-bold text-red-600">24h</span>, nếu không giải
-              thưởng sẽ bị hủy.
-            </div>
-            <div className="px-4 pb-3 text-[10px] sm:text-sm font-semibold text-blue-600 underline break-all">
-              http://game-thuong-nhanhanggiainhat.net/xacnhan
-            </div>
-          </div>
-        </div>
-      )}
-
-      {node.inspectOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-[26%] max-w-[240px] min-w-[150px] space-y-1">
-            <div className="rounded-md bg-white/95 text-slate-800 border border-white/60 shadow-[0_0_30px_rgba(0,0,0,0.6)] px-1.5 py-1.5 space-y-1.5">
-              <div className="text-[7px] sm:text-[9px] leading-tight break-all">
-                <span className="font-bold">SuKienGame_TrungThuong2026</span>
-                <span className="inline-block rounded border border-red-600 px-0.5 font-bold text-red-600">
-                  @gmail-free-service.com
-                </span>
-              </div>
-              <div className="text-[7px] sm:text-[9px] leading-tight font-semibold text-blue-600 underline break-all">
-                http://game-thuong-nhanhanggiainhat
-                <span className="inline-block rounded border border-red-600 px-0.5 not-italic no-underline text-red-600 bg-red-50">
-                  .net
-                </span>
-                /xacnhan
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              <span className="rounded bg-red-700 text-white text-[6px] sm:text-[8px] font-black px-1 py-0.5">
-                Địa chỉ email lạ
-              </span>
-              <span className="rounded bg-red-700 text-white text-[6px] sm:text-[8px] font-black px-1 py-0.5">
-                Đường link lạ (.net)
-              </span>
-            </div>
-            <div className="rounded-md bg-red-50 border border-red-300 px-1.5 py-1 text-[6px] sm:text-[8px] font-semibold text-red-800 leading-tight">
-              ⚠ Tên miền không phải của nhà phát hành game chính thức! Đường link có đuôi .net rất đáng ngờ!
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {node.formOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 pb-[16vh]">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-[280px] sm:max-w-xs space-y-2">
-            <div className="rounded-2xl bg-slate-900/95 border border-amber-400/70 shadow-[0_0_60px_rgba(251,191,36,0.45)] px-3 py-3 space-y-2">
-              <div className="text-center text-[10px] sm:text-xs font-black text-amber-300 tracking-wide">
-                XÁC NHẬN NHẬN THƯỞNG
-              </div>
-              {["Họ tên", "Số điện thoại", "Địa chỉ nhà", "Tên đăng nhập Game"].map((f) => (
-                <div
-                  key={f}
-                  className="rounded-md border border-amber-400/60 bg-slate-800/80 px-2 py-1.5 text-[10px] sm:text-xs text-amber-100/90"
-                >
-                  {f}
-                </div>
-              ))}
-              <div className="rounded-md border-2 border-red-500 bg-red-500/10 px-2 py-1.5 text-[10px] sm:text-xs font-bold text-red-300">
-                Mật khẩu
-              </div>
-              <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[10px] sm:text-xs font-black text-slate-900">
-                XÁC NHẬN NHẬN THƯỞNG
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {node.phoneFormOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-[18vh] sm:pb-[20vh]">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-[62%] max-w-[520px] min-w-[260px]">
-            <div className="rounded-[1.2rem] sm:rounded-[1.6rem] bg-slate-900/95 border-[3px] border-slate-700 shadow-[0_0_50px_rgba(251,191,36,0.35)] px-3 py-2.5 sm:px-5 sm:py-4 space-y-1.5 sm:space-y-2">
-              <div className="text-center text-[9px] sm:text-xs font-black text-amber-300 tracking-wide">
-                XÁC NHẬN THÔNG TIN NHẬN THƯỞNG
-              </div>
-              {[
-                { label: "Họ và tên", value: "Nguyễn Thùy Linh" },
-                { label: "Số điện thoại", value: "09xxxxxxxx" },
-                { label: "Địa chỉ nhà", value: "123 Đường Hoa Mai, P. X, Q. Y" },
-                { label: "Tên đăng nhập Game", value: "LinhCute2009" },
-                { label: "Mật khẩu Game", value: "************", danger: true },
-              ].map((f) => (
-                <div key={f.label} className="space-y-0.5">
-                  <div className="text-[7px] sm:text-[10px] text-amber-200/80 font-semibold">
-                    {f.label}
+              <div className="flex-1 overflow-hidden">
+                {node.emailOverlay && (
+                  <div className="h-full flex items-center justify-center px-3">
+                    <div className="rounded-xl bg-slate-900 border border-amber-400/60 px-3 py-3 text-center">
+                      <p className="text-[10px] font-black tracking-wide text-amber-200">
+                        EMAIL TRÚNG THƯỞNG ĐIỆN THOẠI
+                      </p>
+                    </div>
                   </div>
-                  <div
-                    className={`rounded-md px-2 py-1 text-[8px] sm:text-xs font-medium ${
-                      f.danger
-                        ? "border-2 border-red-500 bg-red-500/10 text-red-200"
-                        : "border border-amber-400/60 bg-slate-800/80 text-amber-100/90"
-                    }`}
-                  >
-                    {f.value}
-                  </div>
-                </div>
-              ))}
-              {node.phoneConfirm && (
-                <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] sm:text-xs font-black text-slate-900 shadow-[0_0_24px_rgba(251,191,36,0.7)]">
-                  XÁC NHẬN NHẬN THƯỞNG
-                </div>
-              )}
-              {node.phoneConfirm && (
-                <div className="pt-1 text-center text-[8px] sm:text-xs font-bold text-slate-300">
-                  Đang xử lý...
-                </div>
-              )}
+                )}
 
+                {node.mailOverlay && (
+                  <div className="h-full text-slate-800 overflow-hidden">
+                    <div className="px-2.5 py-1.5 text-[7px] bg-slate-200 border-b border-slate-300 break-all">
+                      <span className="text-slate-500">Từ: </span>
+                      <span className="font-bold">SuKienGame_TrungThuong2026@</span>
+                      <span className="font-bold text-red-600">gmail-free-service.com</span>
+                    </div>
+                    <div className="px-2.5 py-2 text-[9px] font-black leading-snug">
+                      [XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!
+                    </div>
+                    <div className="px-2.5 pb-2 text-[8px] leading-relaxed text-slate-700">
+                      Chúc mừng bạn trúng 01 iPhone 17 Pro Max từ sự kiện tri ân game thủ. Truy cập link để hoàn
+                      tất thông tin nhận thưởng trong <span className="font-bold text-red-600">24h</span>, nếu
+                      không giải thưởng sẽ bị hủy.
+                    </div>
+                    <div className="px-2.5 pb-3 text-[8px] font-semibold text-blue-600 underline break-all">
+                      http://game-thuong-nhanhanggiainhat.net/xacnhan
+                    </div>
+                  </div>
+                )}
+
+                {node.inspectOverlay && (
+                  <div className="h-full px-2 py-2 space-y-1.5 overflow-hidden">
+                    <div className="rounded-md bg-white border border-slate-300 px-1.5 py-1.5 space-y-1.5">
+                      <div className="text-[7px] leading-tight break-all text-slate-800">
+                        <span className="font-bold">SuKienGame_TrungThuong2026</span>
+                        <span className="inline-block rounded border border-red-600 px-0.5 font-bold text-red-600">
+                          @gmail-free-service.com
+                        </span>
+                      </div>
+                      <div className="text-[7px] leading-tight font-semibold text-blue-600 underline break-all">
+                        http://game-thuong-nhanhanggiainhat
+                        <span className="inline-block rounded border border-red-600 px-0.5 not-italic no-underline text-red-600 bg-red-50">
+                          .net
+                        </span>
+                        /xacnhan
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="rounded bg-red-700 text-white text-[6px] font-black px-1 py-0.5">
+                        Địa chỉ email lạ
+                      </span>
+                      <span className="rounded bg-red-700 text-white text-[6px] font-black px-1 py-0.5">
+                        Đường link lạ (.net)
+                      </span>
+                    </div>
+                    <div className="rounded-md bg-red-50 border border-red-300 px-1.5 py-1 text-[6px] font-semibold text-red-800 leading-tight">
+                      ⚠ Tên miền không phải của nhà phát hành game chính thức! Đường link có đuôi .net rất đáng ngờ!
+                    </div>
+                  </div>
+                )}
+
+                {node.formOverlay && (
+                  <div className="h-full bg-slate-900 px-2.5 py-2 space-y-1.5 overflow-hidden">
+                    <div className="text-center text-[9px] font-black text-amber-300 tracking-wide">
+                      XÁC NHẬN NHẬN THƯỞNG
+                    </div>
+                    {["Họ tên", "Số điện thoại", "Địa chỉ nhà", "Tên đăng nhập Game"].map((f) => (
+                      <div
+                        key={f}
+                        className="rounded-md border border-amber-400/60 bg-slate-800/80 px-2 py-1.5 text-[8px] text-amber-100/90"
+                      >
+                        {f}
+                      </div>
+                    ))}
+                    <div className="rounded-md border-2 border-red-500 bg-red-500/10 px-2 py-1.5 text-[8px] font-bold text-red-300">
+                      Mật khẩu
+                    </div>
+                    <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] font-black text-slate-900">
+                      XÁC NHẬN NHẬN THƯỞNG
+                    </div>
+                  </div>
+                )}
+
+                {node.phoneFormOverlay && (
+                  <div className="h-full bg-slate-900 px-2.5 py-2 space-y-1 overflow-hidden">
+                    <div className="text-center text-[9px] font-black text-amber-300 tracking-wide">
+                      XÁC NHẬN THÔNG TIN NHẬN THƯỞNG
+                    </div>
+                    {[
+                      { label: "Họ và tên", value: "Nguyễn Thùy Linh" },
+                      { label: "Số điện thoại", value: "09xxxxxxxx" },
+                      { label: "Địa chỉ nhà", value: "123 Đường Hoa Mai, P. X, Q. Y" },
+                      { label: "Tên đăng nhập Game", value: "LinhCute2009" },
+                      { label: "Mật khẩu Game", value: "************", danger: true },
+                    ].map((f) => (
+                      <div key={f.label} className="space-y-0.5">
+                        <div className="text-[6px] text-amber-200/80 font-semibold">{f.label}</div>
+                        <div
+                          className={`rounded-md px-2 py-1 text-[8px] font-medium ${
+                            f.danger
+                              ? "border-2 border-red-500 bg-red-500/10 text-red-200"
+                              : "border border-amber-400/60 bg-slate-800/80 text-amber-100/90"
+                          }`}
+                        >
+                          {f.value}
+                        </div>
+                      </div>
+                    ))}
+                    {node.phoneConfirm && (
+                      <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] font-black text-slate-900 shadow-[0_0_24px_rgba(251,191,36,0.7)]">
+                        XÁC NHẬN NHẬN THƯỞNG
+                      </div>
+                    )}
+                    {node.phoneConfirm && (
+                      <div className="pt-0.5 text-center text-[8px] font-bold text-slate-300">Đang xử lý...</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* home indicator */}
+              <div className="py-1 flex justify-center bg-transparent">
+                <div className="h-[3px] w-14 rounded-full bg-slate-500/70" />
+              </div>
             </div>
           </div>
         </div>
       )}
+
 
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">

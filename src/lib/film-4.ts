@@ -227,6 +227,19 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     phoneFormOverlay: true,
+    next: "l07",
+  },
+  l07: {
+    id: "l07",
+    image: l07,
+    video: vl07.url,
+    speaker: "narrator",
+    action: "Bấm xác nhận",
+    text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
+    motion: "push",
+    mood: "danger",
+    phoneFormOverlay: true,
+    phoneConfirm: true,
     ending: {
       kind: "loss",
       code: "A-LOSS",
@@ -235,6 +248,7 @@ export const FILM: Record<string, FilmNode> = {
         "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản.",
     },
   },
+
 
   l05b: {
     id: "l05b",

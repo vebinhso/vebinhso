@@ -489,6 +489,17 @@ export const FILM: Record<string, FilmNode> = {
   },
   l16b1: {
     id: "l16b1",
+    image: l16b1,
+    video: vl16b1.url,
+    speaker: "narrator",
+    action: "S22 — Chụp màn hình làm bằng chứng",
+    text: "Linh chụp lại màn hình email lừa đảo: địa chỉ người gửi lạ, đường link lạ — đủ bằng chứng để cảnh báo mọi người.",
+    motion: "push",
+    mood: "safe",
+    next: "l17b1",
+  },
+  l17b1: {
+    id: "l17b1",
     image: l14b,
     video: vl14b.url,
     speaker: "L",

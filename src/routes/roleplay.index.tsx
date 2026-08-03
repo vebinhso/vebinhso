@@ -7,6 +7,8 @@ import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
+import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
+
 
 export const Route = createFileRoute("/roleplay/")({
   component: RoleplayPage,
@@ -84,14 +86,26 @@ const LESSONS: Lesson[] = [
     poster: FILM4_POSTER,
   },
   {
+    id: "ba-ve-lien-ke",
+    emoji: "🎫",
+    title: "Bài 5 · Ba vé liền kề",
+    desc: "Concert hết vé trong 40 giây. Một tài khoản giấu mặt rao bán ba vé liền kề giá rẻ. Tin hay soi kỹ?",
+    tag: "An toàn số",
+    gradient: "from-violet-500 to-fuchsia-600",
+    ready: true,
+    to: "/roleplay/ba-ve-lien-ke",
+    poster: FILM5_POSTER,
+  },
+  {
     id: "history",
     emoji: "🏯",
-    title: "Bài 5 · Sứ giả thời gian",
+    title: "Bài 6 · Sứ giả thời gian",
     desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.",
     tag: "Lịch sử – Văn hoá",
     gradient: "from-fuchsia-500 to-purple-700",
     ready: false,
   },
+
   {
     id: "ai",
     emoji: "🤖",

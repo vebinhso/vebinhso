@@ -576,9 +576,17 @@ function FilmPage() {
                   </div>
                 </div>
               ))}
-              <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] sm:text-xs font-black text-slate-900">
-                XÁC NHẬN NHẬN THƯỞNG
-              </div>
+              {node.phoneConfirm && (
+                <div className="rounded-md bg-amber-400 px-2 py-1.5 text-center text-[8px] sm:text-xs font-black text-slate-900 shadow-[0_0_24px_rgba(251,191,36,0.7)]">
+                  XÁC NHẬN NHẬN THƯỞNG
+                </div>
+              )}
+              {node.phoneConfirm && (
+                <div className="pt-1 text-center text-[8px] sm:text-xs font-bold text-slate-300">
+                  Đang xử lý...
+                </div>
+              )}
+
             </div>
           </div>
         </div>

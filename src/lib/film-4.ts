@@ -19,6 +19,8 @@ import l05a2 from "@/assets/film5/clean/l05a2.jpg";
 import vl05a2 from "@/assets/film5/video/l05a2.mp4.asset.json";
 import l06 from "@/assets/film5/clean/l06.jpg";
 import vl06 from "@/assets/film5/video/l06.mp4.asset.json";
+import l07 from "@/assets/film5/clean/l07.jpg";
+import vl07 from "@/assets/film5/video/l07.mp4.asset.json";
 
 export type Speaker = "narrator" | "L" | "X";
 
@@ -51,6 +53,7 @@ export type FilmNode = {
   formOverlay?: boolean;
   /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
   phoneFormOverlay?: boolean;
+  phoneConfirm?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -227,6 +230,19 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "danger",
     phoneFormOverlay: true,
+    next: "l07",
+  },
+  l07: {
+    id: "l07",
+    image: l07,
+    video: vl07.url,
+    speaker: "narrator",
+    action: "Bấm xác nhận",
+    text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
+    motion: "push",
+    mood: "danger",
+    phoneFormOverlay: true,
+    phoneConfirm: true,
     ending: {
       kind: "loss",
       code: "A-LOSS",
@@ -235,6 +251,7 @@ export const FILM: Record<string, FilmNode> = {
         "Không có chương trình trao thưởng nào cần mật khẩu game của bạn. Yêu cầu mật khẩu = dấu hiệu lừa đảo chiếm tài khoản.",
     },
   },
+
 
   l05b: {
     id: "l05b",

@@ -38,6 +38,10 @@ import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 import sAskHa from "@/assets/film4/s-ask-ha.png.asset.json";
 import vAskHa from "@/assets/film4/video/s-ask-ha.mp4.asset.json";
+import b3a from "@/assets/film4/clean/b3a.jpg";
+import b3b from "@/assets/film4/clean/b3b.jpg";
+import vb3a from "@/assets/film4/video/b3a.mp4.asset.json";
+import vb3b from "@/assets/film4/video/b3b.mp4.asset.json";
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
 

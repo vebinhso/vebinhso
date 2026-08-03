@@ -668,6 +668,19 @@ function FilmPage() {
         </button>
       </div>
 
+      {showSummary && (
+        <FilmSummaryBoard
+          onRestart={() => {
+            setShowSummary(false);
+            restart();
+          }}
+          onBack={() => {
+            setShowSummary(false);
+            back();
+          }}
+        />
+      )}
+
       <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5">
         <div className="max-w-3xl mx-auto">
           {node.ending ? (

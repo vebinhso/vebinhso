@@ -29,6 +29,8 @@ import l09c from "@/assets/film5/clean/l09c.jpg";
 import vl09c from "@/assets/film5/video/l09c.mp4.asset.json";
 import l11a1 from "@/assets/film5/clean/l11a1.jpg";
 import vl11a1 from "@/assets/film5/video/l11a1.mp4.asset.json";
+import l11a2 from "@/assets/film5/clean/l11a2.jpg";
+import vl11a2 from "@/assets/film5/video/l11a2.mp4.asset.json";
 import l12a2 from "@/assets/film5/clean/l12a2.jpg";
 import vl12a2 from "@/assets/film5/video/l12a2.mp4.asset.json";
 import l13a2 from "@/assets/film5/clean/l13a2.jpg";
@@ -326,7 +328,7 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: "A2. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
-        next: "l10a2",
+        next: "l11a2",
         tone: "risky",
       },
     ],
@@ -358,6 +360,17 @@ export const FILM: Record<string, FilmNode> = {
       lesson:
         "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mang máy đến cửa hàng uy tín để kiểm tra và gỡ mã độc. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
     },
+  },
+  l11a2: {
+    id: "l11a2",
+    image: l11a2,
+    video: vl11a2.url,
+    speaker: "narrator",
+    action: "S18 — GIẤU BỐ MẸ, NHẸ DẠ VÀ PHẢI TRẢ GIÁ",
+    text: "Kẻ gian dùng thông tin Linh vừa cung cấp để đăng nhập thành công vào tài khoản game của em: đổi mật khẩu, đổi email khôi phục, chiếm sạch vật phẩm và xu. Rồi hắn mượn danh Linh nhắn cho cả nhóm bạn: “Các bạn ơi, mình đang có sự kiện nhận quà hiếm nè! Vào link này nhanh không hết nhé!”",
+    motion: "push",
+    mood: "danger",
+    next: "l10a2",
   },
   l10a2: {
     id: "l10a2",

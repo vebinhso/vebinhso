@@ -374,7 +374,7 @@ export const FILM: Record<string, FilmNode> = {
     id: "l13a2",
     image: l13a2,
     video: vl13a2.url,
-    speaker: "Chú thợ sửa máy",
+    speaker: "R",
     action: "Ở tiệm sửa điện thoại",
     text: "Máy này bị mã độc phá hỏng phần cứng rồi, khó cứu lắm cháu ạ... Dữ liệu trong máy chú cũng không lấy lại được đâu.",
     motion: "shake",

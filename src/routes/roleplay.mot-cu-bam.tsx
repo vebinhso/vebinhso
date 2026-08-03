@@ -418,7 +418,9 @@ function FilmPage() {
 
       <div
         key={"cam" + node.id}
-        className="absolute inset-0 flex items-center justify-center will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+        className={`absolute inset-0 flex items-center justify-center will-change-transform ${
+          visual.type === "video" ? "" : "animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
+        }`}
       >
         <div className="relative w-full max-w-full max-h-full aspect-video overflow-hidden">
           {visual.type === "video" ? (
@@ -429,8 +431,9 @@ function FilmPage() {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover animate-[filmFade_0.9s_ease-out_both]"
+              className="absolute inset-0 w-full h-full object-contain animate-[filmFade_0.9s_ease-out_both]"
             />
+
           ) : (
             <img
               key={node.id + visual.src}

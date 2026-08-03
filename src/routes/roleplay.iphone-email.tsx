@@ -23,13 +23,14 @@ export const Route = createFileRoute("/roleplay/iphone-email")({
       {
         name: "description",
         content:
-          "Bài 4 nhập vai: một email thông báo trúng thưởng iPhone. Linh sẽ làm gì khi nhận được tin vui bất ngờ từ người lạ?",
+          "Bài 4 nhập vai: một email thông báo trúng thưởng điện thoại. Linh sẽ làm gì trước tin vui bất ngờ từ người lạ?",
       },
       { property: "og:title", content: "Phim tương tác: Món quà đắt nhất" },
       {
         property: "og:description",
         content: "Bạn vào vai Linh. Mỗi lựa chọn trước một phần thưởng quá đẹp đều có thể là cái bẫy.",
       },
+
       { property: "og:type", content: "video.other" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -56,6 +57,12 @@ function motionClassFor(id: string, motion?: string) {
   return pool[h % pool.length];
 }
 
+const DUSTS = Array.from({ length: 14 }, (_, i) => ({
+  left: `${(i * 7.3 + 4) % 96}%`,
+  delay: `${(i * 1.37) % 9}s`,
+  dur: `${9 + ((i * 3) % 7)}s`,
+}));
+
 function FilmPage() {
   const navigate = useNavigate();
   const tts = useServerFn(speakLine);
@@ -80,9 +87,12 @@ function FilmPage() {
 
   const node: FilmNode = FILM[nodeId] ?? FILM[FILM_START];
   const meta = SPEAKER_META[node.speaker];
-  const visual = node.video
-    ? { src: node.video, type: "video" as const }
-    : { src: node.image, type: "image" as const };
+  const visual =
+    node.choices && node.choiceImage && done
+      ? { src: node.choiceImage, type: "image" as const }
+      : node.video
+        ? { src: node.video, type: "video" as const }
+        : { src: node.image, type: "image" as const };
 
   useEffect(() => {
     if (!getCurrentUser()) navigate({ to: "/login" });
@@ -111,6 +121,7 @@ function FilmPage() {
     pendingRef.current.set(n.id, p);
   }, [tts]);
 
+  // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
   const beginFilm = useCallback(async () => {
     setPreparing(true);
     const n = FILM[FILM_START];
@@ -161,7 +172,7 @@ function FilmPage() {
     const cap = createCaptionEngine(
       text,
       (s: string) => setTyped(s),
-      () => setDone(true)
+      () => setDone(true),
     );
     capRef.current = cap;
 
@@ -173,6 +184,7 @@ function FilmPage() {
       };
     }
 
+    // Nếu giọng đọc tải lâu (>2.2s) mới cho chữ chạy trước, còn lại chữ khớp giọng
     const lateStart = window.setTimeout(() => {
       if (!cancelled && !cap.isRunning()) cap.startTimer();
     }, 2200);
@@ -218,6 +230,7 @@ function FilmPage() {
         if (cancelled || muted) return;
         window.clearTimeout(lateStart);
         if (!b64) {
+          // Không có giọng AI (hết tín dụng / lỗi) → giọng đọc trình duyệt
           speakBrowser();
           return;
         }
@@ -329,6 +342,7 @@ function FilmPage() {
 
   const progress = useMemo(() => Math.min(100, Math.round((history.length / 10) * 100)), [history.length]);
 
+  // Không giới hạn thời gian: người chơi tự do suy nghĩ trước mỗi lựa chọn.
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   useEffect(() => {
     setTimeLeft(null);
@@ -338,7 +352,7 @@ function FilmPage() {
     if (!started || !autoPlay || !done || !speechDone) return;
     if (node.choices || node.ending || !node.next) return;
     const nxt = node.next;
-    const id = window.setTimeout(() => go(nxt), 1100);
+    const id = window.setTimeout(() => go(nxt), 380);
     return () => window.clearTimeout(id);
   }, [autoPlay, done, node, speechDone, started]);
 
@@ -359,8 +373,8 @@ function FilmPage() {
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-pink-300">Linh</b>. Một email thông báo trúng thưởng iPhone — cơ hội hay
-            cái bẫy?
+            Bạn vào vai <b className="text-pink-300">Linh</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái
+            bẫy?
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
             Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
@@ -383,6 +397,7 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
+      {/* Nền mờ — dùng ảnh tĩnh cho nhẹ máy */}
       <img
         key={"bg" + node.id}
         src={node.image}
@@ -439,133 +454,194 @@ function FilmPage() {
       )}
 
       {node.emailOverlay && (
-        <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[12vh] px-4">
-          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-lg rounded-2xl bg-black/70 backdrop-blur-md border border-amber-500/40 px-5 py-4 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-300 text-lg">
-                🎁
-              </div>
-              <div>
-                <p className="font-black text-sm sm:text-base text-white">Thông báo trúng thưởng</p>
-                <p className="text-[11px] sm:text-xs font-bold text-white/60">support-apple-gift@vip-mail.xyz</p>
-              </div>
-            </div>
-            <p className="text-sm sm:text-base font-bold text-amber-200 mb-2">Chúc mừng! Bạn đã trúng iPhone 16 Pro</p>
-            <p className="text-[11px] sm:text-xs font-bold text-white/80">
-              Nhấn vào link để xác nhận nhận quà trong 24 giờ. Yêu cầu: cung cấp họ tên, số điện thoại và địa chỉ nhận
-              hàng.
-            </p>
+        <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[14vh] px-4">
+          <div className="animate-[filmFade_0.9s_ease-out_both] w-full max-w-md rounded-2xl bg-black/75 backdrop-blur-md border border-amber-400/50 px-5 py-4 text-center shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+            <p className="text-sm sm:text-xl font-black tracking-wide text-amber-200">EMAIL TRÚNG THƯỞNG ĐIỆN THOẠI</p>
           </div>
         </div>
       )}
 
-      <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 flex items-start justify-between gap-3 z-20">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {DUSTS.map((d, i) => (
+          <span
+            key={i}
+            className="film-dust"
+            style={{
+              left: d.left,
+              bottom: 0,
+              animation: `filmDust ${d.dur} linear ${d.delay} infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 film-grain" />
+      <div className="pointer-events-none absolute inset-0 bg-white animate-[filmFlicker_2.4s_steps(4,end)_infinite] mix-blend-soft-light opacity-10" />
+      <div className="pointer-events-none absolute inset-0 film-vignette" />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/5 to-black/90" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
+      <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
+        <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">
+          ← Thoát
+        </Link>
+        <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
+          <div className="h-full bg-amber-400 transition-all" style={{ width: `${progress}%` }} />
+        </div>
         <button
           onClick={back}
           disabled={!history.length}
-          className="rounded-xl bg-black/50 hover:bg-black/70 backdrop-blur px-3 py-2 text-xs sm:text-sm font-black disabled:opacity-30"
+          className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black disabled:opacity-30"
         >
-          ← Quay lại
+          ↩
         </button>
-        <div className="flex-1">
-          <div className="h-1.5 w-full max-w-md mx-auto rounded-full bg-white/20 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-amber-400 transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
         <button
-          onClick={() => setMuted((m) => !m)}
-          className="rounded-xl bg-black/50 hover:bg-black/70 backdrop-blur px-3 py-2 text-xs sm:text-sm font-black"
+          onClick={() => setAutoPlay((a) => !a)}
+          className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
+        >
+          {autoPlay ? "▶ Tự chạy" : "⏸ Thủ công"}
+        </button>
+        <button
+          onClick={() => {
+            setMuted((m) => !m);
+            stopAudio();
+          }}
+          className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
         >
           {muted ? "🔇" : "🔊"}
         </button>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 z-20">
+      <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5">
         <div className="max-w-3xl mx-auto">
-          <div className="rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 p-3 sm:p-5 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xs sm:text-sm font-black ${meta.color}`}>{meta.name}</span>
-              {node.action && (
-                <span className="text-[10px] sm:text-xs font-bold text-white/50">· {node.action}</span>
-              )}
-            </div>
-            <p className="text-sm sm:text-lg font-bold leading-relaxed min-h-[3rem]">{typed}</p>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <button
-                onClick={() => setAutoPlay((a) => !a)}
-                className={`text-[10px] sm:text-xs font-black px-2 py-1 rounded-lg ${autoPlay ? "bg-amber-500/25 text-amber-300" : "bg-white/10 text-white/70"}`}
-              >
-                {autoPlay ? "TỰ ĐỘNG CHUYỂN: BẬT" : "TỰ ĐỘNG CHUYỂN: TẮT"}
-              </button>
-              <button
-                onClick={() => setShowNotes((s) => !s)}
-                className="text-[10px] sm:text-xs font-black px-2 py-1 rounded-lg bg-white/10 text-white/70 hover:bg-white/20"
-              >
-                {showNotes ? "Ẩn ghi nhớ" : "Ghi nhớ"}
-              </button>
-            </div>
-          </div>
-
-          {showNotes && (
-            <div className="mt-3 rounded-2xl bg-amber-950/80 backdrop-blur-md border border-amber-500/30 p-4 animate-[filmFade_0.4s_ease-out_both]">
-              <p className="text-xs font-black text-amber-300 mb-2">📝 GHI NHỚ</p>
-              <ul className="space-y-1">
-                {FILM_NOTES.map((note, i) => (
-                  <li key={i} className="text-[11px] sm:text-xs font-bold text-white/90 leading-snug">
-                    • {note}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {done && speechDone && node.choices && (
-            <div className="mt-3 grid gap-2 sm:gap-3 animate-[filmFade_0.5s_ease-out_both]">
-              {node.choices.map((c, i) => (
-                <button
-                  key={i}
-                  onClick={() => go(c.next)}
-                  className={`w-full text-left rounded-2xl px-4 py-3 sm:py-4 font-black text-sm sm:text-base border-2 transition-transform hover:scale-[1.01] ${
-                    c.tone === "safe"
-                      ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-100"
-                      : c.tone === "risky"
-                        ? "bg-rose-500/20 border-rose-500/50 text-rose-100"
-                        : "bg-white/10 border-white/30 text-white"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {done && speechDone && node.ending && (
-            <div className="mt-3 rounded-2xl bg-black/80 backdrop-blur-md border border-white/10 p-4 sm:p-6 text-center animate-[filmFade_0.5s_ease-out_both]">
-              <p className={`text-xs sm:text-sm font-black mb-1 ${node.ending.kind === "safe" ? "text-emerald-400" : "text-rose-400"}`}>
-                {node.ending.code}
-              </p>
-              <h2 className="text-lg sm:text-2xl font-black mb-3">{node.ending.title}</h2>
-              <p className="text-xs sm:text-sm font-bold text-white/90 whitespace-pre-line leading-relaxed mb-4">
-                {node.ending.lesson}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <button
-                  onClick={restart}
-                  className="rounded-xl bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 text-xs sm:text-sm font-black"
-                >
-                  🔄 Chơi lại
-                </button>
-                <Link
-                  to="/roleplay"
-                  className="rounded-xl bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-xs sm:text-sm font-black"
-                >
-                  📚 Danh sách bài
-                </Link>
+          {node.ending ? (
+            showNotes ? (
+              <div className="rounded-2xl p-4 bg-black/85 backdrop-blur-md border border-amber-300/50">
+                <div className="flex gap-3 items-start">
+                  <img src={FILM_SUMMARY_IMAGE} alt="" className="hidden sm:block w-28 rounded-xl" />
+                  <div className="flex-1">
+                    <h3 className="text-base font-black text-amber-300 mb-2">📌 GHI NHỚ</h3>
+                    <ul className="space-y-1 text-xs sm:text-sm font-bold">
+                      {FILM_NOTES.map((n) => (
+                        <li key={n}>☑ {n}</li>
+                      ))}
+                    </ul>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <button
+                        onClick={restart}
+                        className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black"
+                      >
+                        🔄 Chơi lại
+                      </button>
+                      <Link to="/roleplay" className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15">
+                        📚 Bài chơi khác
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div
+                className={`rounded-2xl p-4 sm:p-5 backdrop-blur-md border-2 ${
+                  node.ending.kind === "safe" ? "bg-emerald-950/85 border-emerald-400" : "bg-red-950/85 border-red-500"
+                }`}
+              >
+                <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">CÁI KẾT CỦA BẠN</p>
+                <h2 className="text-lg sm:text-2xl font-black mb-2">
+                  {node.ending.kind === "safe" ? "✅ " : "💀 "}
+                  {node.ending.title}
+                </h2>
+                <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
+                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
+                  🎓 <b>Bài học:</b> {node.ending.lesson}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShowNotes(true)}
+                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-amber-400 text-black"
+                  >
+                    📌 Xem ghi nhớ
+                  </button>
+                  <button onClick={restart} className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black">
+                    🔄 Chơi lại từ đầu
+                  </button>
+                  <button
+                    onClick={back}
+                    disabled={!history.length}
+                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15 disabled:opacity-40"
+                  >
+                    ↩ Thử lựa chọn khác
+                  </button>
+                </div>
+              </div>
+            )
+          ) : (
+            <>
+              <div
+                className="rounded-xl bg-black/70 backdrop-blur-md px-3 py-2 border border-white/10 cursor-pointer"
+                onClick={() => {
+                  if (!done) {
+                    capRef.current?.finishNow();
+                    setTyped(node.text);
+                    setDone(true);
+                  }
+                }}
+              >
+                {node.action && <p className="text-[10px] font-bold italic text-white/45">({node.action})</p>}
+                <p className={`text-[10px] font-black tracking-widest ${meta.color}`}>{meta.name}</p>
+                <p className="text-sm sm:text-base font-bold leading-snug min-h-[2.6em]">
+                  {typed}
+                  {!done && <span className="animate-pulse">▍</span>}
+                </p>
+              </div>
+
+              <div className="mt-2 space-y-2">
+                {node.choices ? (
+                  done && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-black tracking-widest text-white/70">LINH NÊN LÀM GÌ?</p>
+                        {timeLeft !== null && (
+                          <p
+                            className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}
+                          >
+                            ⏱ {timeLeft} giây
+                          </p>
+                        )}
+                      </div>
+                      {node.choices.map((c) => (
+                        <button
+                          key={c.next + c.label}
+                          onClick={() => go(c.next)}
+                          className={`w-full text-left rounded-xl px-4 py-3 font-black text-sm border-2 backdrop-blur-md transition-transform hover:-translate-y-0.5 ${
+                            c.tone === "safe"
+                              ? "bg-emerald-600/85 border-emerald-300"
+                              : c.tone === "risky"
+                                ? "bg-red-700/85 border-red-400"
+                                : "bg-slate-700/85 border-slate-300"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </>
+                  )
+                ) : (
+                  <button
+                    onClick={() =>
+                      done
+                        ? node.next && go(node.next)
+                        : (capRef.current?.finishNow(), setTyped(node.text), setDone(true))
+                    }
+                    className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
+                  >
+                    {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

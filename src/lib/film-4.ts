@@ -25,6 +25,8 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ thông báo email giả mạo */
   emailOverlay?: boolean;
+  /** ảnh riêng khi hiện lựa chọn */
+  choiceImage?: string;
   next?: string;
   choices?: Choice[];
   ending?: {
@@ -103,6 +105,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Hai mươi mốt giờ mười lăm. Linh vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một biểu tượng phong bì nhỏ, một thanh trắng bo tròn, và đôi lông mày của Linh khẽ nhướn lên.",
     motion: "push",
     mood: "neutral",
+    emailOverlay: true,
     next: "l03",
   },
   l03: {
@@ -123,4 +126,4 @@ export const FILM: Record<string, FilmNode> = {
   },
 };
 
-export const FILM_START = "l01";
+export const FILM_START = "l02";

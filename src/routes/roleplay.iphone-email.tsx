@@ -457,11 +457,18 @@ function FilmPage() {
       )}
 
       {(node.emailOverlay || node.mailOverlay || node.inspectOverlay || node.formOverlay || node.phoneFormOverlay) && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 py-[8vh]">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          {/* Khung phủ khớp đúng khung hình 16:9 để định vị theo điện thoại nhân vật đang cầm */}
+          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
           {/* Khung điện thoại: mọi thông tin (email, link, form) đều nằm TRONG màn hình điện thoại của nhân vật */}
           <div
-            className="animate-[filmFade_0.9s_ease-out_both] relative h-full max-h-[74vh] aspect-[9/19] rounded-[2rem] border-[5px] border-slate-800 bg-slate-950 shadow-[0_0_60px_rgba(0,0,0,0.75)] p-[3px]"
-            style={{ transform: "rotate(-2deg)" }}
+            className="animate-[filmFade_0.9s_ease-out_both] absolute aspect-[9/19] rounded-[1.4rem] border-[4px] border-slate-800 bg-slate-950 shadow-[0_0_40px_rgba(0,0,0,0.7)] p-[2px]"
+            style={{
+              height: `${node.phoneAnchor?.h ?? 62}%`,
+              left: `${node.phoneAnchor?.x ?? 50}%`,
+              top: `${node.phoneAnchor?.y ?? 50}%`,
+              transform: `translate(-50%, -50%) rotate(${node.phoneAnchor?.rot ?? -2}deg)`,
+            }}
           >
             <div className="relative h-full w-full overflow-hidden rounded-[1.7rem] bg-slate-100 flex flex-col">
               {/* status bar + notch */}
@@ -599,7 +606,9 @@ function FilmPage() {
               </div>
             </div>
           </div>
+          </div>
         </div>
+
       )}
 
 

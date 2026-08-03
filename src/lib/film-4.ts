@@ -54,6 +54,8 @@ export type FilmNode = {
   /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
   phoneFormOverlay?: boolean;
   phoneConfirm?: boolean;
+  /** Vị trí khung điện thoại trên khung hình (theo % của khung 16:9), khớp với điện thoại nhân vật đang cầm */
+  phoneAnchor?: { x: number; y: number; h: number; rot?: number };
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;

@@ -1,6 +1,6 @@
 import l01 from "@/assets/film5/poster.jpg";
-import l03 from "@/assets/film5/clean/l03.jpg";
-import vl03 from "@/assets/film5/video/l03.mp4.asset.json";
+import l03 from "@/assets/film5/clean/l03b.jpg";
+import vl03 from "@/assets/film5/video/l03b.mp4.asset.json";
 import l02 from "@/assets/film5/clean/l02b.jpg";
 import vl02 from "@/assets/film5/video/l02b.mp4.asset.json";
 
@@ -27,6 +27,8 @@ export type FilmNode = {
   mood?: "danger" | "safe" | "neutral";
   /** Hiện lớp phủ thông báo email giả mạo */
   emailOverlay?: boolean;
+  /** Hiện lớp phủ nội dung email lừa đảo (dựng bằng CSS) */
+  mailOverlay?: boolean;
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -114,10 +116,11 @@ export const FILM: Record<string, FilmNode> = {
     image: l03,
     video: vl03.url,
     speaker: "L",
-    action: "16:35 — Thứ Ba, 20 tháng 5",
-    text: "Ủa... mình trúng thật sao? Email mới báo mình trúng giải nhất luôn kìa...",
+    action: "16:30 — Đọc email",
+    text: "Ủa... mình trúng thật sao? Email ghi là chúc mừng L đã trúng giải nhất luôn kìa...",
     motion: "push",
     mood: "neutral",
+    mailOverlay: true,
     next: "l04",
   },
   l04: {

@@ -359,6 +359,17 @@ export const FILM: Record<string, FilmNode> = {
         "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mang máy đến cửa hàng uy tín để kiểm tra và gỡ mã độc. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
     },
   },
+  l11a2: {
+    id: "l11a2",
+    image: l11a2,
+    video: vl11a2.url,
+    speaker: "narrator",
+    action: "S18 — GIẤU BỐ MẸ, NHẸ DẠ VÀ PHẢI TRẢ GIÁ",
+    text: "Kẻ gian dùng thông tin Linh vừa cung cấp để đăng nhập thành công vào tài khoản game của em: đổi mật khẩu, đổi email khôi phục, chiếm sạch vật phẩm và xu. Rồi hắn mượn danh Linh nhắn cho cả nhóm bạn: “Các bạn ơi, mình đang có sự kiện nhận quà hiếm nè! Vào link này nhanh không hết nhé!”",
+    motion: "push",
+    mood: "danger",
+    next: "l10a2",
+  },
   l10a2: {
     id: "l10a2",
     image: l12a2,

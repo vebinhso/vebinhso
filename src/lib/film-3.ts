@@ -38,6 +38,10 @@ import vs15 from "@/assets/film4/video/s15b.mp4.asset.json";
 import vs16 from "@/assets/film4/video/b17.mp4.asset.json";
 import sAskHa from "@/assets/film4/s-ask-ha.png.asset.json";
 import vAskHa from "@/assets/film4/video/s-ask-ha.mp4.asset.json";
+import b3a from "@/assets/film4/clean/b3a.jpg";
+import b3b from "@/assets/film4/clean/b3b.jpg";
+import vb3a from "@/assets/film4/video/b3a.mp4.asset.json";
+import vb3b from "@/assets/film4/video/b3b.mp4.asset.json";
 
 export type Speaker = "narrator" | "B" | "H" | "T" | "X";
 
@@ -504,7 +508,7 @@ export const FILM: Record<string, FilmNode> = {
       },
       {
         label: "B3. Không bấm, nhưng cũng im lặng bỏ qua, không nói với ai",
-        next: "endB3",
+        next: "b3res1",
         tone: "neutral",
       },
     ],
@@ -592,12 +596,22 @@ export const FILM: Record<string, FilmNode> = {
       },
     ],
   },
+  b3res1: {
+    id: "b3res1",
+    image: b3a,
+    video: vb3a.url,
+    speaker: "B",
+    text: "Trời ơi, Nhi với Minh cũng bị lừa giống mình!",
+    mood: "danger",
+    next: "endB3",
+  },
   endB3: {
     id: "endB3",
-    image: s10,
-    video: vs10.url,
-    speaker: "narrator",
-    text: "Bảo không bấm link nên giữ được tài khoản. Nhưng cậu im lặng, và sáng hôm sau hai bạn trong lớp đã đăng nhập vào trang giả đó.",
+    image: b3b,
+    video: vb3b.url,
+    speaker: "B",
+    text: "Biết vậy mình đã cảnh báo sớm hơn rồi, huhu hối hận quá...",
+    
     mood: "danger",
     ending: {
       kind: "loss",

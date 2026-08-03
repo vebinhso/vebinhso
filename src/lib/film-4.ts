@@ -111,8 +111,20 @@ export const FILM: Record<string, FilmNode> = {
     text: "Hai mươi mốt giờ mười lăm. L vừa tan học và đang lướt điện thoại giải trí. Bỗng một thông báo mới trượt xuống từ đầu màn hình — một phong bì hiện lên, ghi rằng bạn đã trúng thưởng điện thoại iPhone 17.",
     motion: "push",
     mood: "neutral",
+    next: "l02c",
+  },
+  l02c: {
+    id: "l02c",
+    image: l02c,
+    video: vl02c.url,
+    speaker: "L",
+    action: "21:16 — Màn hình khoá",
+    text: "Ủa... mình trúng thật sao? Thông báo ghi là chúc mừng mình trúng giải nhất luôn kìa...",
+    motion: "push",
+    mood: "neutral",
     next: "l03",
   },
+
   l03: {
     id: "l03",
     image: l03,

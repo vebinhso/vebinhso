@@ -101,6 +101,8 @@ export type FilmNode = {
   formOverlay?: boolean;
   /** Lớp phủ điện thoại hiển thị form đã điền đầy đủ thông tin */
   phoneFormOverlay?: boolean;
+  /** Lớp phủ bài đăng cảnh báo tiếng Việt hiển thị ngay trên màn hình điện thoại */
+  warnPostOverlay?: boolean;
   phoneConfirm?: boolean;
   /** Vị trí khung điện thoại trên khung hình (theo % của khung 16:9), khớp với điện thoại nhân vật đang cầm */
   phoneAnchor?: { x: number; y: number; h: number; rot?: number };
@@ -517,7 +519,8 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "L",
     action: "S23 — Đăng cảnh báo lên nhóm lớp và Facebook",
     text: "Các bạn ơi, có chiêu trò giả mạo trúng thưởng iPhone nè! Địa chỉ email và đường link đều lạ — tuyệt đối đừng bấm vào nhé!",
-
+    warnPostOverlay: true,
+    phoneAnchor: { x: 34, y: 54, h: 66, rot: -7 },
     motion: "push",
     mood: "safe",
     next: "l18b1",

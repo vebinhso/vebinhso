@@ -407,3 +407,129 @@ aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi
       tips: strArr(parsed.tips),
     };
   });
+
+/* ===================== RỦI RO LỘ THÔNG TIN ===================== */
+
+const num = (v: unknown, fb = 0) => {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : fb;
+};
+const clamp01 = (v: unknown, fb = 0) => Math.max(0, Math.min(100, num(v, fb)));
+
+type PrivacyBox = {
+  frame: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  detail: string;
+  severity: "low" | "medium" | "high";
+};
+
+const sev = (v: unknown): "low" | "medium" | "high" =>
+  v === "high" || v === "medium" || v === "low" ? v : "medium";
+
+/** Phân tích rủi ro lộ thông tin cá nhân từ ảnh / khung hình video */
+export const analyzePrivacyMedia = createServerFn({ method: "POST" })
+  .inputValidator((data: { images: string[] }) => {
+    const imgs = Array.isArray(data?.images)
+      ? data.images.filter(
+          (f) =>
+            typeof f === "string" &&
+            (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/.test(f) || /^https?:\/\//.test(f)),
+        )
+      : [];
+    if (!imgs.length) throw new Error("Thiếu ảnh hoặc khung hình video");
+    const picked = imgs.slice(0, 4);
+    const total = picked.reduce((s, f) => s + f.length, 0);
+    if (total > 12_000_000) throw new Error("Tệp quá lớn để phân tích");
+    return { images: picked };
+  })
+  .handler(async ({ data }) => {
+    const sys = `Bạn là chuyên gia bảo vệ dữ liệu cá nhân, giúp học sinh Việt Nam biết một tấm ảnh/video khi đăng lên mạng có thể làm LỘ THÔNG TIN gì.
+Hãy soi kỹ và CHỈ RA VỊ TRÍ trong ảnh của từng thứ có thể lộ: khuôn mặt, tên trên thẻ học sinh/căn cước/giấy tờ, số điện thoại, địa chỉ nhà, biển số xe, tên trường trên đồng phục/bảng hiệu, số tài khoản ngân hàng, mã QR, vé máy bay/mã đặt chỗ, màn hình điện thoại/máy tính đang mở tin nhắn, chìa khoá, tài sản đắt tiền, mốc địa lý nhận ra vị trí, đơn hàng/hoá đơn, email, biển tên lớp.
+Với MỖI phát hiện, trả về hộp bao quanh theo TỌA ĐỘ PHẦN TRĂM của ảnh (x,y là góc trên trái, w,h là chiều rộng/cao, tất cả 0-100) và số thứ tự khung hình "frame" (bắt đầu từ 0; nếu chỉ có 1 ảnh thì luôn là 0).
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"frame":0,"x":0,"y":0,"w":0,"h":0,"label":"tên ngắn ví dụ: Biển số xe","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên che/xoá gì trước khi đăng"]}
+riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+    const parsed = await callGateway({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: sys },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Đây là ${data.images.length} ảnh/khung hình. Nếu đăng công khai lên mạng thì rủi ro lộ thông tin bao nhiêu phần trăm? Chỉ rõ vị trí từng chỗ nguy hiểm.`,
+            },
+            ...data.images.map((f) => ({ type: "image_url", image_url: { url: f } })),
+          ],
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+    const findings: PrivacyBox[] = Array.isArray(parsed.findings)
+      ? parsed.findings.slice(0, 8).map((f: any) => ({
+          frame: Math.max(0, Math.min(data.images.length - 1, Math.round(num(f?.frame, 0)))),
+          x: clamp01(f?.x),
+          y: clamp01(f?.y),
+          w: Math.max(3, clamp01(f?.w, 10)),
+          h: Math.max(3, clamp01(f?.h, 10)),
+          label: str(f?.label, "Thông tin nhạy cảm").slice(0, 60),
+          detail: str(f?.detail, "").slice(0, 200),
+          severity: sev(f?.severity),
+        }))
+      : [];
+    return {
+      riskScore: clampScore(parsed.riskScore),
+      level: str(parsed.level, "unknown"),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      findings,
+      safeSigns: strArr(parsed.safeSigns),
+      advice: strArr(parsed.advice),
+    };
+  });
+
+/** Phân tích rủi ro lộ thông tin cá nhân trong văn bản */
+export const analyzePrivacyText = createServerFn({ method: "POST" })
+  .inputValidator((data: { text: string }) => {
+    const t = data?.text;
+    if (!t || typeof t !== "string" || t.trim().length < 10) {
+      throw new Error("Cần ít nhất 10 ký tự để phân tích");
+    }
+    return { text: t.trim().slice(0, 6000) };
+  })
+  .handler(async ({ data }) => {
+    const sys = `Bạn là chuyên gia bảo vệ dữ liệu cá nhân cho học sinh Việt Nam. Người dùng dán một đoạn văn bản (bài đăng, tin nhắn, chú thích ảnh) và muốn biết nếu đăng công khai thì rủi ro lộ thông tin bao nhiêu.
+Hãy CHỈ RÕ từng đoạn chữ nguy hiểm bằng cách TRÍCH NGUYÊN VĂN đoạn đó ("quote" phải xuất hiện y hệt trong văn bản gốc): họ tên đầy đủ, số điện thoại, email, địa chỉ nhà, tên trường/lớp, số căn cước, số tài khoản ngân hàng, mã OTP, mật khẩu, biển số xe, lịch trình đi lại ("nhà không có ai đến chủ nhật"), link cá nhân, tên bố mẹ, ngày sinh đầy đủ.
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"quote":"đoạn trích nguyên văn","label":"Số điện thoại","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên sửa/xoá gì trước khi đăng"],"safeVersion":"phiên bản viết lại đã che thông tin nhạy cảm"}
+Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+    const parsed = await callGateway({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: sys },
+        { role: "user", content: data.text },
+      ],
+      response_format: { type: "json_object" },
+    });
+    const findings = Array.isArray(parsed.findings)
+      ? parsed.findings.slice(0, 8).map((f: any) => ({
+          quote: str(f?.quote, "").slice(0, 200),
+          label: str(f?.label, "Thông tin nhạy cảm").slice(0, 60),
+          detail: str(f?.detail, "").slice(0, 200),
+          severity: sev(f?.severity),
+        }))
+      : [];
+    return {
+      riskScore: clampScore(parsed.riskScore),
+      level: str(parsed.level, "unknown"),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      findings: findings.filter((f) => f.quote),
+      safeSigns: strArr(parsed.safeSigns),
+      advice: strArr(parsed.advice),
+      safeVersion: str(parsed.safeVersion, ""),
+    };
+  });

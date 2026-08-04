@@ -297,16 +297,18 @@ function TraceSourcePage() {
                       ⚠️ Ảnh / thông tin này CHƯA từng xuất hiện ở bài báo, trang tin hay video nào.
                     </p>
                     <p className="text-[11px] font-bold text-amber-700">
-                      Đã quét {result.scanned} kết quả tìm kiếm nhưng không có nguồn nào thật sự đăng nội dung này —
-                      rất có thể là tin đồn, ảnh chế hoặc ảnh riêng tư. Bạn có thể tự kiểm tra thêm bằng các đường link
-                      bên dưới.
+                      Đã quét {result.scanned} kết quả và mở từng trang để đối chiếu, nhưng không trang nào đăng ĐÚNG
+                      tấm ảnh / đúng sự việc này (những trang chỉ "na ná" đã bị loại). Rất có thể là tin đồn, ảnh chế
+                      hoặc ảnh riêng tư. Bạn có thể tự kiểm tra thêm bằng các đường link bên dưới.
                     </p>
                   </div>
                 ) : (
                   <p className="text-xs font-black text-emerald-700">
-                    ✅ Đã xác minh {result.total} nguồn thật sự đăng nội dung này ({result.checkedAt})
+                    ✅ Đã đối chiếu nội dung từng trang — {result.total} nguồn đăng ĐÚNG ảnh/sự việc này (
+                    {result.checkedAt})
                   </p>
                 )}
+
 
 
                 <ResultList title="Bài báo & trang tin" icon="📰" items={result.news} />

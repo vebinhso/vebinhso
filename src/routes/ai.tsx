@@ -567,7 +567,7 @@ function AiPage() {
                   disabled={loading}
                   className="toy-button toy-button-primary flex-1 !text-xs sm:!text-sm disabled:opacity-50"
                 >
-                  {loading ? "⏳ Đang phân tích..." : "🔍 Kiểm tra ảnh"}
+                  {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🔍 Kiểm tra ảnh"}
                 </button>
                 {preview && (
                   <button
@@ -615,7 +615,7 @@ function AiPage() {
                 disabled={loading || url.trim().length < 3}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? "⏳ Đang quét..." : "🛡️ Quét đường link"}
+                {loading ? `⏳ Đang quét ${Math.round(progress)}%` : "🛡️ Quét đường link"}
               </button>
 
               {linkResult && (
@@ -650,7 +650,7 @@ function AiPage() {
                 disabled={loading || text.trim().length < 20}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? "⏳ Đang phân tích..." : "🔍 Kiểm tra văn bản"}
+                {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🔍 Kiểm tra văn bản"}
               </button>
 
               {textResult && (
@@ -686,7 +686,7 @@ function AiPage() {
                 disabled={loading || email.trim().length < 5}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? "⏳ Đang kiểm tra..." : "✉️ Kiểm tra email giả mạo"}
+                {loading ? `⏳ Đang kiểm tra ${Math.round(progress)}%` : "✉️ Kiểm tra email giả mạo"}
               </button>
 
               {emailResult && (
@@ -727,7 +727,7 @@ function AiPage() {
                 disabled={loading || news.trim().length < 15}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? "⏳ Đang kiểm chứng..." : "📰 Kiểm tra tin giả"}
+                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Kiểm tra tin giả"}
               </button>
 
               {newsResult && (

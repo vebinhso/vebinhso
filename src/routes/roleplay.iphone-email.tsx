@@ -477,6 +477,37 @@ function FilmPage() {
         </div>
       )}
 
+      {node.headlinePatch && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
+            <div
+              className="absolute flex items-center"
+              style={{
+                left: `${node.headlinePatch.x}%`,
+                top: `${node.headlinePatch.y}%`,
+                width: `${node.headlinePatch.w}%`,
+                height: `${node.headlinePatch.h}%`,
+                transform: `translate(-50%, -50%) rotate(${node.headlinePatch.rot ?? 0}deg)`,
+                background: "#fdfdfb",
+                boxShadow: "0 0 8px 6px #fdfdfb",
+              }}
+            >
+              <span
+                style={{
+                  color: "#111",
+                  fontWeight: 800,
+                  lineHeight: 1.15,
+                  fontSize: `${node.headlinePatch.size ?? 1.3}cqw`,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {node.headlinePatch.text}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {node.formScreen && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>

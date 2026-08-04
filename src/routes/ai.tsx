@@ -273,7 +273,23 @@ function AiPage() {
     setUser(u);
   }, [navigate]);
 
+  function pickVideo(f: File) {
+    if (!f.type.startsWith("video/")) {
+      setError("Chỉ nhận tệp video.");
+      return;
+    }
+    if (f.size > MAX_VID) {
+      setError("Video quá lớn (tối đa 60MB).");
+      return;
+    }
+    setError(null);
+    setVideoResult(null);
+    setVideoFile(f);
+    setVideoUrl(URL.createObjectURL(f));
+  }
+
   function readFile(f: File) {
+
     if (!f.type.startsWith("image/")) {
       setError("Chỉ nhận tệp ảnh.");
       return;

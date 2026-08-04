@@ -54,12 +54,12 @@ function ResultList({
           className="block rounded-xl border-2 border-border/60 p-2.5 hover:border-cyan-500 transition"
         >
           <p className="text-xs sm:text-sm font-black text-primary break-words">{it.title}</p>
-          <p className="text-[10px] font-black text-muted-foreground">
+          <p className="text-[10px] font-black text-foreground">
             {it.source}
             {it.date ? ` · ${it.date}` : ""}
           </p>
           {it.snippet && (
-            <p className="mt-0.5 text-[11px] font-bold text-muted-foreground line-clamp-2">{it.snippet}</p>
+            <p className="mt-0.5 text-[11px] font-bold text-foreground line-clamp-2">{it.snippet}</p>
           )}
         </a>
       ))}
@@ -180,7 +180,7 @@ function TraceSourcePage() {
           <div className="text-center mb-4">
             <div className="text-4xl sm:text-5xl mb-1">🕵️</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUY NGUỒN ẢNH & THÔNG TIN</h1>
-            <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+            <p className="text-xs sm:text-sm font-bold text-foreground">
               Dán một tấm ảnh hoặc một mẩu tin — hệ thống tìm các bài báo, trang tin (kể cả báo nhỏ như Mực Tím) và
               video đã đăng nội dung đó, kèm đường link truy cập.
             </p>
@@ -202,7 +202,7 @@ function TraceSourcePage() {
               {image ? (
                 <img src={image} alt="Ảnh cần truy nguồn" className="mx-auto max-h-56 rounded-xl object-contain" />
               ) : (
-                <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                <p className="text-xs sm:text-sm font-bold text-foreground">
                   📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh · hoặc kéo thả
                 </p>
               )}
@@ -271,7 +271,7 @@ function TraceSourcePage() {
               <div className="space-y-4 rounded-2xl border-2 border-border p-3">
                 <div>
                   <p className="text-xs sm:text-sm font-black">🔎 Nội dung nhận diện</p>
-                  <p className="text-xs sm:text-sm font-bold text-muted-foreground">{result.describe}</p>
+                  <p className="text-xs sm:text-sm font-bold text-foreground">{result.describe}</p>
                 </div>
 
                 {result.queries.length > 0 && (
@@ -310,7 +310,7 @@ function TraceSourcePage() {
                 {result.tips.length > 0 && (
                   <div className="rounded-xl border-2 border-border/60 p-3">
                     <p className="text-xs font-black mb-1">💡 Mẹo tự truy nguồn</p>
-                    <ul className="text-[11px] sm:text-xs font-bold text-muted-foreground list-disc pl-5 space-y-1">
+                    <ul className="text-[11px] sm:text-xs font-bold text-foreground list-disc pl-5 space-y-1">
                       {result.tips.map((t, i) => (
                         <li key={i}>{t}</li>
                       ))}
@@ -333,7 +333,7 @@ function TraceSourcePage() {
                       </a>
                     ))}
                   </div>
-                  <p className="mt-1 text-[10px] font-bold text-muted-foreground">
+                  <p className="mt-1 text-[10px] font-bold text-foreground">
                     * Với tìm ảnh ngược, hãy tải lại tấm ảnh của bạn lên Google Lens / TinEye / Yandex.
                   </p>
                 </div>

@@ -103,7 +103,7 @@ function Gauge({ value, label }: { value: number; label: string }) {
   return (
     <div className="space-y-1">
       <div className="flex items-baseline justify-between">
-        <span className="text-xs font-black text-muted-foreground">{label}</span>
+        <span className="text-xs font-black text-foreground">{label}</span>
         <span className={`text-2xl font-black ${scoreText(value)}`}>{value}%</span>
       </div>
       <div className="h-3 w-full rounded-full bg-black/10 overflow-hidden">
@@ -143,7 +143,7 @@ function SignList({ title, items, tone }: { title: string; items: string[]; tone
       <p className="text-xs font-black mb-1">
         {icon} {title}
       </p>
-      <ul className="text-xs sm:text-sm font-bold text-muted-foreground space-y-1 list-disc pl-5">
+      <ul className="text-xs sm:text-sm font-bold text-foreground space-y-1 list-disc pl-5">
         {items.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
@@ -547,7 +547,7 @@ function AiPage() {
           <div className="text-center mb-4">
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM KIỂM TRA AI</h1>
-            <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+            <p className="text-xs sm:text-sm font-bold text-foreground">
               Dán ảnh, video, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
             </p>
           </div>
@@ -563,7 +563,7 @@ function AiPage() {
                 className={`rounded-xl px-2 py-2 font-black text-[10px] sm:text-xs border-2 transition ${
                   tab === t.id
                     ? "bg-gradient-to-br from-cyan-500 to-blue-700 text-white border-blue-800"
-                    : "bg-background/70 border-border text-muted-foreground"
+                    : "bg-background/70 border-border text-foreground"
                 }`}
               >
                 <span className="text-base sm:text-lg block">{t.icon}</span>
@@ -599,7 +599,7 @@ function AiPage() {
                   className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
                     mediaMode === m.id
                       ? "bg-cyan-500/20 border-cyan-500 text-cyan-800"
-                      : "bg-background/60 border-border text-muted-foreground"
+                      : "bg-background/60 border-border text-foreground"
                   }`}
                 >
                   {m.label}
@@ -623,7 +623,7 @@ function AiPage() {
                 {videoUrl ? (
                   <video src={videoUrl} controls className="mx-auto max-h-64 rounded-xl" />
                 ) : (
-                  <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                  <p className="text-xs sm:text-sm font-bold text-foreground">
                     🎬 Bấm để chọn video · hoặc kéo thả tệp (tối đa 60MB)
                   </p>
                 )}
@@ -674,7 +674,7 @@ function AiPage() {
                   <SignList title="Dấu hiệu của AI" items={videoResult.aiSigns} tone="bad" />
                   <SignList title="Dấu hiệu video thật" items={videoResult.realSigns} tone="good" />
                   <SignList title="Cách kiểm chứng" items={videoResult.tips} tone="info" />
-                  <p className="text-[10px] font-bold text-muted-foreground">
+                  <p className="text-[10px] font-bold text-foreground">
                     * Hệ thống soi 4 khung hình đại diện — kết quả mang tính tham khảo.
                   </p>
                 </div>
@@ -705,7 +705,7 @@ function AiPage() {
                     className="mx-auto max-h-64 rounded-xl object-contain"
                   />
                 ) : (
-                  <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                  <p className="text-xs sm:text-sm font-bold text-foreground">
                     📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh/link ảnh · hoặc kéo thả tệp
                   </p>
                 )}
@@ -788,7 +788,7 @@ function AiPage() {
                   <SignList title="Dấu hiệu nguy hiểm" items={linkResult.redFlags} tone="bad" />
                   <SignList title="Dấu hiệu an toàn" items={linkResult.goodSigns} tone="good" />
                   <SignList title="Lời khuyên" items={linkResult.advice} tone="info" />
-                  <p className="text-[10px] font-bold text-muted-foreground">
+                  <p className="text-[10px] font-bold text-foreground">
                     * Kết quả mang tính tham khảo — tuyệt đối không nhập mật khẩu/OTP vào link lạ.
                   </p>
                 </div>
@@ -865,7 +865,7 @@ function AiPage() {
                   <SignList title="Dấu hiệu giả mạo" items={emailResult.redFlags} tone="bad" />
                   <SignList title="Dấu hiệu đáng tin" items={emailResult.goodSigns} tone="good" />
                   <SignList title="Nên làm gì" items={emailResult.advice} tone="info" />
-                  <p className="text-[10px] font-bold text-muted-foreground">
+                  <p className="text-[10px] font-bold text-foreground">
                     * Không bao giờ trả lời email lạ bằng mật khẩu, mã OTP hay số thẻ ngân hàng.
                   </p>
                 </div>
@@ -882,7 +882,7 @@ function AiPage() {
                 placeholder='Hỏi thử: "Có thật là ... không?" hoặc dán tiêu đề, nội dung tin, link bài báo...'
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
-              <p className="text-[10px] font-bold text-muted-foreground">
+              <p className="text-[10px] font-bold text-foreground">
                 🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên để xem
                 tin đã được kiểm chứng ở đâu chưa.
               </p>
@@ -941,7 +941,7 @@ function AiPage() {
                       ))}
                     </div>
                   )}
-                  <p className="text-[10px] font-bold text-muted-foreground">
+                  <p className="text-[10px] font-bold text-foreground">
                     * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
                   </p>
                 </div>
@@ -969,14 +969,14 @@ function AiPage() {
                     className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
                       riskMode === m.id
                         ? "bg-amber-500/20 border-amber-500 text-amber-800"
-                        : "bg-background/60 border-border text-muted-foreground"
+                        : "bg-background/60 border-border text-foreground"
                     }`}
                   >
                     {m.label}
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground">
+              <p className="text-[10px] sm:text-xs font-bold text-foreground">
                 🛡️ Dán ảnh, video hoặc văn bản — hệ thống chấm % rủi ro bị lộ thông tin cá nhân nếu đăng công khai, và
                 chỉ mũi tên đúng vào chỗ nguy hiểm.
               </p>
@@ -1000,7 +1000,7 @@ function AiPage() {
                     ) : riskMode === "video" && riskVideoUrl ? (
                       <video src={riskVideoUrl} controls className="mx-auto max-h-56 rounded-xl" />
                     ) : (
-                      <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                      <p className="text-xs sm:text-sm font-bold text-foreground">
                         {riskMode === "image"
                           ? "📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh · hoặc kéo thả"
                           : "🎬 Bấm để chọn video · hoặc kéo thả (tối đa 60MB)"}
@@ -1092,7 +1092,7 @@ function AiPage() {
                             <span className={SEV_TEXT[f.severity]}>➡ {i + 1}. {f.label}</span>
                           </p>
                           {f.detail && (
-                            <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{f.detail}</p>
+                            <p className="text-[11px] sm:text-xs font-bold text-foreground">{f.detail}</p>
                           )}
                         </div>
                       ))}
@@ -1100,7 +1100,7 @@ function AiPage() {
                   )}
                   <SignList title="Điều bạn đã làm tốt" items={riskMediaResult.safeSigns} tone="good" />
                   <SignList title="Nên che / xoá trước khi đăng" items={riskMediaResult.advice} tone="info" />
-                  <p className="text-[10px] font-bold text-muted-foreground">
+                  <p className="text-[10px] font-bold text-foreground">
                     * Vị trí khoanh vùng do AI ước lượng — có thể lệch đôi chút.
                   </p>
                 </div>
@@ -1124,10 +1124,10 @@ function AiPage() {
                         <div key={i} className="rounded-xl border-2 border-border/60 p-2">
                           <p className="text-xs font-black">
                             <span className={SEV_TEXT[f.severity]}>➡ {i + 1}. {f.label}</span>{" "}
-                            <span className="text-muted-foreground">“{f.quote}”</span>
+                            <span className="text-foreground">“{f.quote}”</span>
                           </p>
                           {f.detail && (
-                            <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{f.detail}</p>
+                            <p className="text-[11px] sm:text-xs font-bold text-foreground">{f.detail}</p>
                           )}
                         </div>
                       ))}

@@ -548,7 +548,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
     motion: "push",
     mood: "neutral",
-    mood: "neutral",
 
     choices: [
       {

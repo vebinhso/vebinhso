@@ -32,7 +32,7 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Tab = "image" | "link" | "text";
+type Tab = "image" | "link" | "text" | "email" | "news";
 
 const MAX_IMG = 5 * 1024 * 1024;
 

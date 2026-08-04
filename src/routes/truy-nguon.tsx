@@ -290,18 +290,20 @@ function TraceSourcePage() {
                 {result.total === 0 ? (
                   <div className="rounded-xl border-2 border-amber-400 bg-amber-50/70 p-3">
                     <p className="text-xs sm:text-sm font-black text-amber-800">
-                      ⚠️ Chưa tìm thấy bài báo hay trang tin nào đăng nội dung này.
+                      ⚠️ Ảnh / thông tin này CHƯA từng xuất hiện ở bài báo, trang tin hay video nào.
                     </p>
                     <p className="text-[11px] font-bold text-amber-700">
-                      Nội dung chưa được báo chí nào đưa tin — rất có thể là tin đồn hoặc ảnh chế. Hãy thử các đường
-                      link gợi ý bên dưới để tự tìm thêm.
+                      Đã quét {result.scanned} kết quả tìm kiếm nhưng không có nguồn nào thật sự đăng nội dung này —
+                      rất có thể là tin đồn, ảnh chế hoặc ảnh riêng tư. Bạn có thể tự kiểm tra thêm bằng các đường link
+                      bên dưới.
                     </p>
                   </div>
                 ) : (
                   <p className="text-xs font-black text-emerald-700">
-                    ✅ Tìm thấy {result.total} nguồn liên quan ({result.checkedAt})
+                    ✅ Đã xác minh {result.total} nguồn thật sự đăng nội dung này ({result.checkedAt})
                   </p>
                 )}
+
 
                 <ResultList title="Bài báo & trang tin" icon="📰" items={result.news} />
                 <ResultList title="Trang web có nội dung này" icon="🌐" items={result.web} />

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ClassroomRouteImport } from './routes/classroom'
@@ -53,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CharacterRoute = CharacterRouteImport.update({
@@ -227,6 +233,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
@@ -301,6 +309,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
@@ -451,6 +463,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AiRoute: typeof AiRoute
   CharacterRoute: typeof CharacterRoute
   ChatRoute: typeof ChatRoute
   ClassroomRoute: typeof ClassroomRoute
@@ -494,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/character': {
@@ -755,6 +775,7 @@ const RoleplayRouteWithChildren = RoleplayRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AiRoute: AiRoute,
   CharacterRoute: CharacterRoute,
   ChatRoute: ChatRoute,
   ClassroomRoute: ClassroomRoute,

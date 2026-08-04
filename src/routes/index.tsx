@@ -423,9 +423,10 @@ function Home() {
           <div className="text-9xl drop-shadow-lg animate-bounce" style={{ animationDuration: "3s" }}>
             🐕
           </div>
-          <Link to="/play" className="toy-button toy-button-primary">
-            CHƠI NGAY
+          <Link to="/experience" className="toy-button toy-button-primary">
+            TRẢI NGHIỆM
           </Link>
+
         </div>
 
         <aside className="flex flex-row md:flex-col gap-2 md:gap-3 justify-center flex-wrap md:w-[180px]">

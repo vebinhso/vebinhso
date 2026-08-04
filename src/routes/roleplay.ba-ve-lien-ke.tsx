@@ -409,6 +409,39 @@ function FilmPage() {
               className={`absolute inset-0 w-full h-full object-contain will-change-transform ${motionClassFor(node.id, node.motion)}`}
             />
           )}
+
+          {/* Lớp phủ tin nhắn trên màn hình điện thoại */}
+          {node.chatOverlay && (
+            <div className="absolute inset-0 pointer-events-none">
+              {node.chatOverlay.coverRects?.map((r, i) => (
+                <div
+                  key={`cover-${i}`}
+                  className="absolute rounded-xl bg-gray-200"
+                  style={{
+                    left: `${r.x}%`,
+                    top: `${r.y}%`,
+                    width: `${r.w}%`,
+                    height: `${r.h}%`,
+                  }}
+                />
+              ))}
+              {node.chatOverlay.messages.map((m, i) => (
+                <div
+                  key={`msg-${i}`}
+                  className={`absolute flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl text-[10px] sm:text-xs font-bold leading-tight shadow-lg text-center ${
+                    m.type === "incoming" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+                  }`}
+                  style={{
+                    left: `${m.x}%`,
+                    top: `${m.y}%`,
+                    width: `${m.w}%`,
+                  }}
+                >
+                  {m.text}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

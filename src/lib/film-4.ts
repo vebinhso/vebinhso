@@ -75,8 +75,8 @@ import l18b2img from "@/assets/film5/clean/l18b2-unaware.jpg";
 import vl18b2 from "@/assets/film5/video/l18b2-unaware.mp4.asset.json";
 import l19b2img from "@/assets/film5/clean/l19b2-victims.jpg";
 import vl19b2 from "@/assets/film5/video/l19b2-victims.mp4.asset.json";
-import l17b1 from "@/assets/film5/clean/l17b1.jpg";
-import vl17b1 from "@/assets/film5/video/l17b1.mp4.asset.json";
+import l17b1 from "@/assets/film5/clean/l17b1-v3.jpg";
+import vl17b1 from "@/assets/film5/video/l17b1-v3.mp4.asset.json";
 import l18b1 from "@/assets/film5/clean/l18b1.jpg";
 import vl18b1 from "@/assets/film5/video/l18b1.mp4.asset.json";
 import l19b1 from "@/assets/film5/clean/l19b1.jpg";
@@ -576,9 +576,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "L",
     action: "S23 — Đăng cảnh báo lên nhóm lớp và Facebook",
     text: "Các bạn ơi, có chiêu trò giả mạo trúng thưởng iPhone nè! Địa chỉ email và đường link đều lạ — tuyệt đối đừng bấm vào nhé!",
-    warnPostOverlay: true,
-    phoneAnchor: { x: 34, y: 54, h: 66, rot: -7 },
-    motion: "push",
+    motion: "freeze",
     mood: "safe",
     next: "l18b1",
   },

@@ -40,9 +40,9 @@ import mv18 from "@/assets/film6/video/v18.mp4.asset.json";
 import mv19 from "@/assets/film6/video/v19.mp4.asset.json";
 import mv20 from "@/assets/film6/video/v20.mp4.asset.json";
 import v20b from "@/assets/film6/v20b.jpg";
-import v20c from "@/assets/film6/v20c.jpg";
+import v20d from "@/assets/film6/v20d.jpg";
 import mv20b from "@/assets/film6/video/v20b.mp4.asset.json";
-import mv20c from "@/assets/film6/video/v20c.mp4.asset.json";
+import mv20d from "@/assets/film6/video/v20d.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";
@@ -390,8 +390,19 @@ export const FILM: Record<string, FilmNode> = {
     image: v19,
     video: mv19.url,
     speaker: "B",
-    action: "Phóng to ảnh xác nhận",
-    text: "Khoan đã. Logo ban tổ chức ở đây bị móp một bên, mà góc ảnh còn sót nguyên watermark của app chỉnh ảnh AI. Cái email này là ảnh ghép.",
+    action: "Phóng to ảnh xác nhận — phát hiện mã sai",
+    text: "Khoan đã. Mã vé trong ảnh này sai định dạng, logo ban tổ chức thì móp một bên, góc ảnh còn sót watermark app chỉnh ảnh. Cái email này là ảnh ghép.",
+    motion: "push",
+    mood: "safe",
+    next: "v20b",
+  },
+  v20b: {
+    id: "v20b",
+    image: v20b,
+    video: mv20b.url,
+    speaker: "B",
+    action: "Đưa điện thoại lên tai — gọi thử",
+    text: "Để tớ gọi thử xem chị ấy có nghe máy không...",
     motion: "push",
     mood: "safe",
     next: "v20",
@@ -405,34 +416,23 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bọn em muốn gọi video ba mươi giây, chị cầm vé giơ lên là xong.",
     motion: "freeze",
     mood: "safe",
-    next: "v20b",
+    next: "v20d",
   },
-  v20b: {
-    id: "v20b",
-    image: v20b,
-    video: mv20b.url,
-    speaker: "B",
-    action: "Đưa điện thoại lên tai — gọi thử",
-    text: "Để tớ gọi thử xem chị ấy có nghe máy không...",
+  v20d: {
+    id: "v20d",
+    image: v20d,
+    video: mv20d.url,
+    speaker: "A",
+    action: "Ba đứa nhìn nhau cười tươi",
+    text: "May ghê, mình đã xem kỹ nên không bị lừa!",
     motion: "push",
-    mood: "safe",
-    next: "v20c",
-  },
-  v20c: {
-    id: "v20c",
-    image: v20c,
-    video: mv20c.url,
-    speaker: "narrator",
-    action: "Hạ điện thoại xuống — màn hình báo ĐÃ CHẶN",
-    text: '"Chị V" tắt máy, rồi chặn luôn cả ba đứa.',
-    motion: "freeze",
     mood: "safe",
     ending: {
       kind: "safe",
       code: "A",
       title: "KẾT THÚC A — KHÔNG MẤT ĐỒNG NÀO",
       lesson:
-        "Không mất đồng nào.\n\nBÀI HỌC:\n• Logo méo, chữ lệch, watermark app chỉnh ảnh = ảnh ghép.\n• Người bán thật không ngại gọi video 30 giây.\n• Tài khoản mới lập, ảnh mờ, không bạn chung — đủ để nói không.",
+        "Không mất đồng nào.\n\nBÀI HỌC:\n• Mã vé sai định dạng, logo méo, watermark app chỉnh ảnh = ảnh ghép.\n• Người bán thật không ngại gọi video 30 giây.\n• Tài khoản mới lập, ảnh mờ, không bạn chung — đủ để nói không.",
     },
   },
 

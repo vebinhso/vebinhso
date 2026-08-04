@@ -31,6 +31,10 @@ import l10a1Img from "@/assets/film4/l10a1-talk.jpg.asset.json";
 import vl10a1 from "@/assets/film4/l10a1-talk.mp4.asset.json";
 import l11a1 from "@/assets/film5/clean/l11a1.jpg";
 import vl11a1 from "@/assets/film5/video/l11a1.mp4.asset.json";
+import l10a1b from "@/assets/film5/clean/l10a1b-praise.jpg";
+import vl10a1b from "@/assets/film5/video/l10a1b-praise.mp4.asset.json";
+import l12a1 from "@/assets/film5/clean/l12a1-warn.jpg";
+import vl12a1 from "@/assets/film5/video/l12a1-warn.mp4.asset.json";
 import l11a2 from "@/assets/film5/clean/l11a2.jpg";
 import vl11a2 from "@/assets/film5/video/l11a2.mp4.asset.json";
 import l12a2 from "@/assets/film5/clean/l12a2.jpg";
@@ -298,7 +302,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
-    confirmBtn: { x: 68.5, y: 69.5, w: 15, rot: -9 },
+    confirmBtn: { x: 65, y: 72, w: 15.5, rot: -12 },
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",
@@ -349,13 +353,13 @@ export const FILM: Record<string, FilmNode> = {
     choices: [
       {
         label:
-          "A1. Nói với bố mẹ, mượn máy khác đổi mật khẩu ngay, rồi mang máy đi kiểm tra",
+          "A. Nói với bố mẹ, mượn máy khác đổi mật khẩu ngay, rồi mang máy đi kiểm tra",
         next: "l10a1",
         tone: "safe",
       },
       {
-        label: "A2. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
-        next: "l11a2",
+        label: "B. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
+        next: "l10a2",
         tone: "risky",
       },
     ],
@@ -369,6 +373,17 @@ export const FILM: Record<string, FilmNode> = {
     text: "Bố mẹ ơi, con lỡ điền mật khẩu vào một trang lạ... Con cần mượn máy để đổi mật khẩu ngay!",
     motion: "push",
     mood: "safe",
+    next: "l10a1b",
+  },
+  l10a1b: {
+    id: "l10a1b",
+    image: l10a1b,
+    video: vl10a1b.url,
+    speaker: "narrator",
+    action: "Bố mẹ khen Linh vì đã nói thật",
+    text: "Bố mẹ không mắng. Mẹ ôm vai Linh: “Con nói ra sớm là đúng rồi, giỏi lắm!” Bố lấy máy tính cho Linh đổi ngay mật khẩu email và tài khoản game, bật xác thực 2 lớp.",
+    motion: "push",
+    mood: "safe",
     next: "l11a1",
   },
   l11a1: {
@@ -376,16 +391,27 @@ export const FILM: Record<string, FilmNode> = {
     image: l11a1,
     video: vl11a1.url,
     speaker: "narrator",
-    action: "Mang máy đi kiểm tra",
+    action: "Bố mẹ dẫn Linh đi sửa máy",
     text: "Ba mẹ đưa Linh đến một cửa hàng uy tín để kiểm tra và sửa chữa. Kỹ thuật viên cho biết máy đã dính mã độc làm hỏng hệ thống và sẽ khôi phục lại giúp em.",
+    motion: "push",
+    mood: "safe",
+    next: "l12a1",
+  },
+  l12a1: {
+    id: "l12a1",
+    image: l12a1,
+    video: vl12a1.url,
+    speaker: "L",
+    action: "Sửa xong — Linh cảnh báo các bạn",
+    text: "Các bạn ơi, mình vừa bị dính một email giả trúng thưởng iPhone. Đừng bấm link lạ, đừng điền mật khẩu vào form nào hết nhé — mình suýt mất cả tài khoản lẫn cái máy này đó!",
     motion: "push",
     mood: "safe",
     ending: {
       kind: "safe",
-      code: "A1-SAFE",
-      title: "XỬ LÝ ĐÚNG",
+      code: "A-SAFE",
+      title: "KẾT THÚC — XỬ LÝ ĐÚNG",
       lesson:
-        "Khi lỡ bị lừa, việc quan trọng nhất là báo người lớn và đổi mật khẩu ngay trên một thiết bị khác an toàn, bật xác thực 2 lớp, rồi mang máy đến cửa hàng uy tín để kiểm tra và gỡ mã độc. Nói ra sớm giúp chặn thiệt hại trước khi kẻ gian kịp chiếm tài khoản.",
+        "BÀI HỌC:\n• Lỡ bị lừa thì nói với người lớn NGAY — nói sớm là cách chặn thiệt hại nhanh nhất, không ai mắng con vì đã trung thực.\n• Đổi mật khẩu EMAIL trước, rồi tới các tài khoản khác, trên một thiết bị khác an toàn; bật xác thực 2 lớp.\n• Mang máy tới cửa hàng uy tín để kiểm tra và gỡ mã độc, không tự cài phần mềm lạ.\n• Cảnh báo lại bạn bè: một lời nhắc của con có thể cứu cả nhóm khỏi cùng một cái bẫy.",
     },
   },
   l11a2: {
@@ -397,7 +423,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Kẻ gian dùng thông tin Linh vừa cung cấp để đăng nhập thành công vào tài khoản game của em: đổi mật khẩu, đổi email khôi phục, chiếm sạch vật phẩm và xu. Rồi hắn mượn danh Linh nhắn cho cả nhóm bạn: “Các bạn ơi, mình đang có sự kiện nhận quà hiếm nè! Vào link này nhanh không hết nhé!”",
     motion: "push",
     mood: "danger",
-    next: "l10a2",
+    next: "l12b2",
   },
   l10a2: {
     id: "l10a2",
@@ -430,7 +456,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Giờ mình phải làm sao đây... Mình không dám nói với bố mẹ...",
     motion: "shake",
     mood: "danger",
-    next: "l12b2",
+    next: "l11a2",
   },
   l12b2: {
     id: "l12b2",

@@ -462,17 +462,25 @@ function FilmPage() {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
             <div
-              className="absolute -translate-x-1/2 -translate-y-1/2 text-center font-black text-slate-900 leading-none"
+              className="absolute flex items-center justify-center rounded-full"
               style={{
                 left: `${node.confirmBtn.x}%`,
                 top: `${node.confirmBtn.y}%`,
                 width: `${node.confirmBtn.w}%`,
+                height: `${(node.confirmBtn.w ?? 15) * 0.34}%`,
                 transform: `translate(-50%, -50%) rotate(${node.confirmBtn.rot ?? 0}deg)`,
-                fontSize: "clamp(8px, 1.15vw, 18px)",
-                textShadow: "0 1px 2px rgba(255,220,120,0.9)",
+                background: "radial-gradient(ellipse at center, rgba(253,196,20,0.98) 55%, rgba(253,196,20,0) 78%)",
               }}
             >
-              XÁC NHẬN
+              <span
+                className="font-black text-white leading-none tracking-wide"
+                style={{
+                  fontSize: "clamp(7px, 1vw, 16px)",
+                  textShadow: "0 1px 3px rgba(120,70,0,0.85)",
+                }}
+              >
+                XÁC NHẬN
+              </span>
             </div>
           </div>
         </div>
@@ -787,13 +795,14 @@ function FilmPage() {
                 }`}
               >
                 <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">CÁI KẾT CỦA BẠN</p>
-                <h2 className="text-lg sm:text-2xl font-black mb-2">
+                <h2 className="text-base sm:text-xl font-black mb-2">
                   {node.ending.kind === "safe" ? "✅ " : "💀 "}
                   {node.ending.title}
                 </h2>
-                <p className="text-sm font-bold opacity-90 mb-2">{node.text}</p>
-                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[40vh] overflow-y-auto">
-                  🎓 <b>Bài học:</b> {node.ending.lesson}
+                <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[26vh] overflow-y-auto">
+                  {node.ending.lesson.includes("BÀI HỌC:")
+                    ? node.ending.lesson.slice(node.ending.lesson.indexOf("BÀI HỌC:"))
+                    : `BÀI HỌC:\n${node.ending.lesson}`}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button

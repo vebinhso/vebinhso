@@ -1,4 +1,5 @@
 import bg from "@/assets/film5/l18-bg.jpg";
+import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 
 export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void; onBack: () => void }) {
   return (

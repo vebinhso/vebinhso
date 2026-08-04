@@ -209,13 +209,17 @@ export const FILM: Record<string, FilmNode> = {
     next: "v06",
     chatOverlay: {
       messages: [
-        { text: "Chị còn 3 vé nè, chốt lẹ kẻo hết đấy", type: "incoming", x: 19.5, y: 31.5, w: 37 },
-        { text: "để tụi em suy", type: "outgoing", x: 52, y: 62.5, w: 30 },
+        { text: "Chị còn 3 vé nè, chốt lẹ kẻo hết đấy", type: "incoming", x: 27, y: 34, w: 27 },
+        { text: "để tụi em suy", type: "outgoing", x: 55, y: 58, w: 28 },
       ],
       coverRects: [
-        { x: 57, y: 62.5, w: 23, h: 10 },
+        { x: 54.5, y: 14, w: 30, h: 19 },
+        { x: 26.5, y: 32.5, w: 28, h: 19 },
+        { x: 25.5, y: 56.5, w: 22.5, h: 13.5 },
+        { x: 54.5, y: 56.5, w: 29, h: 13.5 },
       ],
     },
+
   },
 
   /* ===== NÚT QUYẾT ĐỊNH 1 ===== */

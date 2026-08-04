@@ -445,6 +445,70 @@ function TraceSourcePage() {
             )}
           </div>
 
+          {/* Lịch sử truy nguồn */}
+          <div className="mt-5 rounded-2xl border-2 border-border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => setShowHistory((v) => !v)}
+                className="text-xs sm:text-sm font-black flex items-center gap-1"
+              >
+                🗂️ Lịch sử truy nguồn ({history.length}) {showHistory ? "▾" : "▸"}
+              </button>
+              {history.length > 0 && showHistory && (
+                <button onClick={clearHistory} className="text-[11px] font-black text-red-600">
+                  Xoá tất cả
+                </button>
+              )}
+            </div>
+
+            {showHistory && (
+              <div className="mt-2 space-y-2">
+                {history.length === 0 ? (
+                  <p className="text-[11px] font-bold text-foreground">
+                    Chưa có lần truy nguồn nào. Mỗi lần bạn bấm “Truy nguồn ngay”, kết quả sẽ được lưu lại đây để xem
+                    lại sau.
+                  </p>
+                ) : (
+                  history.map((h) => (
+                    <div
+                      key={h.id}
+                      className="flex items-center gap-2 rounded-xl border-2 border-border/60 p-2 hover:border-cyan-500 transition"
+                    >
+                      {h.thumb ? (
+                        <img src={h.thumb} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-cyan-500/10 grid place-items-center text-lg shrink-0">
+                          📝
+                        </div>
+                      )}
+                      <button onClick={() => openEntry(h)} className="flex-1 text-left min-w-0">
+                        <p className="text-[11px] sm:text-xs font-black truncate">
+                          {h.text || h.result.describe || "(ảnh)"}
+                        </p>
+                        <p className="text-[10px] font-black text-foreground">
+                          {timeAgo(h.at)} ·{" "}
+                          {h.result.total > 0 ? (
+                            <span className="text-emerald-700">✅ {h.result.total} nguồn</span>
+                          ) : (
+                            <span className="text-amber-700">⚠️ Không có nguồn</span>
+                          )}
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => removeEntry(h.id)}
+                        className="text-[11px] font-black text-red-600 px-1 shrink-0"
+                        aria-label="Xoá mục này"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/ai" className="toy-button !text-xs sm:!text-sm">
               ↩ Trung tâm kiểm tra AI

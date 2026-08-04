@@ -3,7 +3,13 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeImage, analyzeLink, analyzeText } from "@/lib/ai-detect.functions";
+import {
+  analyzeImage,
+  analyzeLink,
+  analyzeText,
+  analyzeEmail,
+  analyzeNews,
+} from "@/lib/ai-detect.functions";
 
 export const Route = createFileRoute("/ai")({
   component: AiPage,
@@ -26,7 +32,7 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Tab = "image" | "link" | "text";
+type Tab = "image" | "link" | "text" | "email" | "news";
 
 const MAX_IMG = 5 * 1024 * 1024;
 
@@ -92,6 +98,22 @@ const LEVEL_VI: Record<string, string> = {
   dangerous: "NGUY HIỂM",
   unknown: "Chưa xác định",
 };
+const NEWS_VERDICT_VI: Record<string, string> = {
+  likely_true: "Nhiều khả năng ĐÁNG TIN",
+  unverified: "CHƯA KIỂM CHỨNG được",
+  misleading: "Tin SAI LỆCH / gây hiểu lầm",
+  likely_fake: "Nhiều khả năng TIN GIẢ",
+  fake: "TIN GIẢ",
+};
+const EMAIL_TYPE_VI: Record<string, string> = {
+  phishing: "Lừa lấy thông tin (phishing)",
+  spoofing: "Giả mạo người gửi",
+  scam: "Lừa đảo",
+  spam: "Thư rác",
+  marketing: "Quảng cáo",
+  legit: "Có vẻ hợp lệ",
+  unknown: "Chưa rõ",
+};
 
 function AiPage() {
   const navigate = useNavigate();
@@ -101,6 +123,8 @@ function AiPage() {
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);
   const runText = useServerFn(analyzeText);
+  const runEmail = useServerFn(analyzeEmail);
+  const runNews = useServerFn(analyzeNews);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +138,12 @@ function AiPage() {
 
   const [text, setText] = useState("");
   const [textResult, setTextResult] = useState<Awaited<ReturnType<typeof analyzeText>> | null>(null);
+
+  const [email, setEmail] = useState("");
+  const [emailResult, setEmailResult] = useState<Awaited<ReturnType<typeof analyzeEmail>> | null>(null);
+
+  const [news, setNews] = useState("");
+  const [newsResult, setNewsResult] = useState<Awaited<ReturnType<typeof analyzeNews>> | null>(null);
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -201,6 +231,28 @@ function AiPage() {
       setLoading(false);
     }
   }
+  async function doEmail() {
+    setLoading(true);
+    setError(null);
+    try {
+      setEmailResult(await runEmail({ data: { content: email } }));
+    } catch (e: any) {
+      setError(e?.message || "Phân tích thất bại");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function doNews() {
+    setLoading(true);
+    setError(null);
+    try {
+      setNewsResult(await runNews({ data: { content: news } }));
+    } catch (e: any) {
+      setError(e?.message || "Phân tích thất bại");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (!user) return null;
 
@@ -208,6 +260,8 @@ function AiPage() {
     { id: "image", icon: "🖼️", label: "Ảnh có phải AI?" },
     { id: "link", icon: "🔗", label: "Link có độc hại?" },
     { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
+    { id: "email", icon: "✉️", label: "Email có giả mạo?" },
+    { id: "news", icon: "📰", label: "Tin tức có phải giả?" },
   ];
 
   return (
@@ -218,11 +272,11 @@ function AiPage() {
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM KIỂM TRA AI</h1>
             <p className="text-xs sm:text-sm font-bold text-muted-foreground">
-              Dán ảnh, đường link hoặc đoạn văn — AI sẽ chấm mức độ giả mạo và rủi ro.
+              Dán ảnh, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 mb-4">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -393,6 +447,86 @@ function AiPage() {
               )}
             </div>
           )}
+
+          {tab === "email" && (
+            <div className="space-y-3">
+              <textarea
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                rows={6}
+                placeholder={
+                  "Dán địa chỉ email người gửi và/hoặc nội dung email...\nVí dụ: support@shopee-vn-khuyenmai.xyz — 'Tài khoản của bạn sẽ bị khoá trong 24h, bấm vào đây để xác minh'"
+                }
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+              />
+              <button
+                onClick={doEmail}
+                disabled={loading || email.trim().length < 5}
+                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {loading ? "⏳ Đang kiểm tra..." : "✉️ Kiểm tra email giả mạo"}
+              </button>
+
+              {emailResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(emailResult.riskScore)}`}>
+                    {LEVEL_VI[emailResult.level] ?? "Chưa xác định"} ·{" "}
+                    {EMAIL_TYPE_VI[emailResult.type] ?? emailResult.type}
+                  </p>
+                  {emailResult.impersonating && (
+                    <p className="text-center text-xs sm:text-sm font-black text-red-600">
+                      ⚠️ Có dấu hiệu giả mạo: {emailResult.impersonating}
+                    </p>
+                  )}
+                  <Gauge value={emailResult.riskScore} label="Mức độ giả mạo / lừa đảo" />
+                  <p className="text-xs sm:text-sm font-bold">{emailResult.summary}</p>
+                  <SignList title="Dấu hiệu giả mạo" items={emailResult.redFlags} tone="bad" />
+                  <SignList title="Dấu hiệu đáng tin" items={emailResult.goodSigns} tone="good" />
+                  <SignList title="Nên làm gì" items={emailResult.advice} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Không bao giờ trả lời email lạ bằng mật khẩu, mã OTP hay số thẻ ngân hàng.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "news" && (
+            <div className="space-y-3">
+              <textarea
+                value={news}
+                onChange={(e) => setNews(e.target.value)}
+                rows={6}
+                placeholder="Dán tiêu đề, nội dung bản tin hoặc link bài báo cần kiểm chứng..."
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+              />
+              <button
+                onClick={doNews}
+                disabled={loading || news.trim().length < 15}
+                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {loading ? "⏳ Đang kiểm chứng..." : "📰 Kiểm tra tin giả"}
+              </button>
+
+              {newsResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(newsResult.fakeScore)}`}>
+                    {NEWS_VERDICT_VI[newsResult.verdict] ?? "Chưa kiểm chứng được"} · {newsResult.category}
+                  </p>
+                  <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
+                  <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
+                  <SignList title="Dấu hiệu tin giả" items={newsResult.redFlags} tone="bad" />
+                  <SignList title="Dấu hiệu đáng tin" items={newsResult.goodSigns} tone="good" />
+                  <SignList title="Cách tự kiểm chứng" items={newsResult.checkSteps} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/experience" className="toy-button !text-xs sm:!text-sm">

@@ -23,6 +23,7 @@ import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions,
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
+import { WorldLoadingOverlay } from "@/game/WorldLoadingOverlay";
 import { getActivePowerIds } from "@/lib/powers";
 import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { setBgm, playSfx, startLoopSfx, stopLoopSfx } from "@/lib/audio";
@@ -949,6 +950,7 @@ function GamePage() {
           signLabels={signLabels}
         />
       </Suspense>
+      <WorldLoadingOverlay />
 
       <WeatherOverlay powers={activePowers} />
       <TouchControls />

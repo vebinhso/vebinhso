@@ -143,9 +143,20 @@ function applyAllVolumes() {
   }
 }
 
-function safePlay(el: HTMLAudioElement) {
+function safePlay(el: HTMLAudioElement, retryOnBlock = false) {
   const p = el.play();
-  if (p && typeof p.catch === "function") p.catch(() => {});
+  if (p && typeof p.catch === "function") {
+    p.catch(() => {
+      // Trình duyệt chặn autoplay -> chờ thao tác đầu tiên rồi phát lại
+      if (retryOnBlock) {
+        unlocked = false;
+        pendingPlays.push(() => safePlay(el));
+        unlockAudioOnUserGesture();
+      }
+    });
+  } else {
+    unlocked = true;
+  }
 }
 
 export function setBgm(name: BgmName) {
@@ -159,11 +170,9 @@ export function setBgm(name: BgmName) {
   if (!name) return;
   const next = getBgm(name);
   next.el.volume = effectiveBgmVol();
-  if (!unlocked) {
-    pendingPlays.push(() => safePlay(next.el));
-  } else {
-    safePlay(next.el);
-  }
+  // Luôn thử phát ngay (kể cả khi chưa đăng nhập / chưa bấm gì);
+  // nếu trình duyệt chặn thì tự phát lại ở thao tác đầu tiên.
+  safePlay(next.el, true);
 }
 
 export function startLoopSfx(name: LoopSfx) {

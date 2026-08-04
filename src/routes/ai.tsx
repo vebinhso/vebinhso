@@ -10,6 +10,8 @@ import {
   analyzeEmail,
   analyzeNews,
   analyzeVideo,
+  analyzePrivacyMedia,
+  analyzePrivacyText,
 } from "@/lib/ai-detect.functions";
 
 
@@ -34,7 +36,7 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Tab = "image" | "video" | "link" | "text" | "email" | "news";
+type Tab = "news" | "media" | "link" | "email" | "text" | "risk";
 
 const MAX_IMG = 5 * 1024 * 1024;
 const MAX_VID = 60 * 1024 * 1024;
@@ -184,10 +186,59 @@ const EMAIL_TYPE_VI: Record<string, string> = {
   unknown: "Chưa rõ",
 };
 
+const SEV_BORDER: Record<string, string> = {
+  low: "border-amber-400",
+  medium: "border-orange-500",
+  high: "border-red-600",
+};
+const SEV_BG: Record<string, string> = {
+  low: "bg-amber-500",
+  medium: "bg-orange-600",
+  high: "bg-red-600",
+};
+const SEV_TEXT: Record<string, string> = {
+  low: "text-amber-600",
+  medium: "text-orange-600",
+  high: "text-red-600",
+};
+
+/** Tô sáng các đoạn chữ nhạy cảm trong văn bản gốc */
+function highlightText(
+  source: string,
+  findings: { quote: string; severity: string }[],
+): React.ReactNode[] {
+  const marks: { start: number; end: number; sev: string; idx: number }[] = [];
+  findings.forEach((f, idx) => {
+    const at = source.indexOf(f.quote);
+    if (at >= 0 && f.quote) marks.push({ start: at, end: at + f.quote.length, sev: f.severity, idx });
+  });
+  marks.sort((a, b) => a.start - b.start);
+  const out: React.ReactNode[] = [];
+  let cur = 0;
+  for (const m of marks) {
+    if (m.start < cur) continue;
+    if (m.start > cur) out.push(source.slice(cur, m.start));
+    out.push(
+      <mark
+        key={`${m.idx}-${m.start}`}
+        className={`rounded px-1 text-white ${SEV_BG[m.sev] ?? "bg-orange-600"}`}
+      >
+        {source.slice(m.start, m.end)}
+        <sup className="ml-0.5 text-[9px]">{m.idx + 1}</sup>
+      </mark>,
+    );
+    cur = m.end;
+  }
+  if (cur < source.length) out.push(source.slice(cur));
+  return out;
+}
+
 function AiPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
-  const [tab, setTab] = useState<Tab>("image");
+  const [tab, setTab] = useState<Tab>("news");
+  const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
+  const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
 
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);
@@ -195,6 +246,8 @@ function AiPage() {
   const runEmail = useServerFn(analyzeEmail);
   const runNews = useServerFn(analyzeNews);
   const runVideo = useServerFn(analyzeVideo);
+  const runPrivacyMedia = useServerFn(analyzePrivacyMedia);
+  const runPrivacyText = useServerFn(analyzePrivacyText);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -260,6 +313,14 @@ function AiPage() {
 
   const [email, setEmail] = useState("");
   const [emailResult, setEmailResult] = useState<Awaited<ReturnType<typeof analyzeEmail>> | null>(null);
+
+  const riskFileRef = useRef<HTMLInputElement>(null);
+  const [riskImages, setRiskImages] = useState<string[]>([]);
+  const [riskVideoFile, setRiskVideoFile] = useState<File | null>(null);
+  const [riskVideoUrl, setRiskVideoUrl] = useState("");
+  const [riskText, setRiskText] = useState("");
+  const [riskMediaResult, setRiskMediaResult] = useState<Awaited<ReturnType<typeof analyzePrivacyMedia>> | null>(null);
+  const [riskTextResult, setRiskTextResult] = useState<Awaited<ReturnType<typeof analyzePrivacyText>> | null>(null);
 
   const [news, setNews] = useState("");
   const [newsResult, setNewsResult] = useState<Awaited<ReturnType<typeof analyzeNews>> | null>(null);
@@ -392,16 +453,91 @@ function AiPage() {
     if (r) setNewsResult(r);
   }
 
+  async function doRiskMedia() {
+    setRiskMediaResult(null);
+    if (riskMode === "image") {
+      if (!riskImages.length) {
+        setError("Hãy chọn hoặc dán một ảnh trước.");
+        return;
+      }
+      const r = await withProgress(
+        ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang tìm thông tin nhạy cảm...", "Đang chấm rủi ro..."],
+        () => runPrivacyMedia({ data: { images: riskImages } }),
+      );
+      if (r) setRiskMediaResult(r);
+      return;
+    }
+    if (!riskVideoFile) {
+      setError("Hãy chọn một video trước.");
+      return;
+    }
+    const r = await withProgress(
+      ["Đang đọc video...", "Đang trích khung hình...", "Đang tìm thông tin nhạy cảm...", "Đang chấm rủi ro..."],
+      async (report) => {
+        const frames = await extractFrames(riskVideoFile, 4, (done, total) => {
+          report(5 + (done / total) * 35, `Đang trích khung hình ${done}/${total}...`);
+        });
+        setRiskImages(frames);
+        report(45, "Đang gửi khung hình cho AI phân tích...");
+        return runPrivacyMedia({ data: { images: frames } });
+      },
+    );
+    if (r) setRiskMediaResult(r);
+  }
+
+  async function doRiskText() {
+    setRiskTextResult(null);
+    const r = await withProgress(
+      ["Đang đọc văn bản...", "Đang tìm thông tin cá nhân...", "Đang đánh giá nguy cơ...", "Đang chấm rủi ro..."],
+      () => runPrivacyText({ data: { text: riskText } }),
+    );
+    if (r) setRiskTextResult(r);
+  }
+
+  function pickRiskFile(f: File) {
+    setError(null);
+    setRiskMediaResult(null);
+    if (riskMode === "image") {
+      if (!f.type.startsWith("image/")) return setError("Chỉ nhận tệp ảnh.");
+      if (f.size > MAX_IMG) return setError("Ảnh quá lớn (tối đa 5MB).");
+      const reader = new FileReader();
+      reader.onload = () => setRiskImages([String(reader.result || "")]);
+      reader.readAsDataURL(f);
+      return;
+    }
+    if (!f.type.startsWith("video/")) return setError("Chỉ nhận tệp video.");
+    if (f.size > MAX_VID) return setError("Video quá lớn (tối đa 60MB).");
+    setRiskImages([]);
+    setRiskVideoFile(f);
+    setRiskVideoUrl(URL.createObjectURL(f));
+  }
+
+  function onRiskPaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (it && it.kind === "file" && it.type.startsWith("image/")) {
+        const f = it.getAsFile();
+        if (f) {
+          e.preventDefault();
+          pickRiskFile(f);
+          return;
+        }
+      }
+    }
+  }
+
 
   if (!user) return null;
 
   const TABS: { id: Tab; icon: string; label: string }[] = [
-    { id: "image", icon: "🖼️", label: "Ảnh có phải AI?" },
-    { id: "video", icon: "🎬", label: "Video có phải AI?" },
-    { id: "link", icon: "🔗", label: "Link có độc hại?" },
-    { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
-    { id: "email", icon: "✉️", label: "Email có giả mạo?" },
     { id: "news", icon: "📰", label: "Tin tức có phải giả?" },
+    { id: "media", icon: "🖼️", label: "Ảnh/Video có phải AI?" },
+    { id: "link", icon: "🔗", label: "Link có giả mạo?" },
+    { id: "email", icon: "✉️", label: "Email có giả mạo?" },
+    { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
+    { id: "risk", icon: "🛡️", label: "Rủi ro lộ thông tin" },
   ];
 
   return (
@@ -448,7 +584,31 @@ function AiPage() {
             </div>
           )}
 
-          {tab === "video" && (
+          {tab === "media" && (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {([
+                { id: "image", label: "🖼️ Kiểm tra ảnh" },
+                { id: "video", label: "🎬 Kiểm tra video" },
+              ] as const).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setMediaMode(m.id);
+                    setError(null);
+                  }}
+                  className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
+                    mediaMode === m.id
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-800"
+                      : "bg-background/60 border-border text-muted-foreground"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {tab === "media" && mediaMode === "video" && (
             <div className="space-y-3">
               <div
                 onClick={() => videoRef.current?.click()}
@@ -524,7 +684,7 @@ function AiPage() {
 
 
 
-          {tab === "image" && (
+          {tab === "media" && mediaMode === "image" && (
             <div className="space-y-3">
               <div
                 tabIndex={0}
@@ -791,6 +951,200 @@ function AiPage() {
           )}
 
 
+
+          {tab === "risk" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { id: "image", label: "🖼️ Ảnh" },
+                  { id: "video", label: "🎬 Video" },
+                  { id: "text", label: "📝 Văn bản" },
+                ] as const).map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => {
+                      setRiskMode(m.id);
+                      setError(null);
+                    }}
+                    className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
+                      riskMode === m.id
+                        ? "bg-amber-500/20 border-amber-500 text-amber-800"
+                        : "bg-background/60 border-border text-muted-foreground"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground">
+                🛡️ Dán ảnh, video hoặc văn bản — hệ thống chấm % rủi ro bị lộ thông tin cá nhân nếu đăng công khai, và
+                chỉ mũi tên đúng vào chỗ nguy hiểm.
+              </p>
+
+              {riskMode !== "text" ? (
+                <>
+                  <div
+                    onClick={() => riskFileRef.current?.click()}
+                    onPaste={onRiskPaste}
+                    tabIndex={0}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const f = e.dataTransfer?.files?.[0];
+                      if (f) pickRiskFile(f);
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="cursor-pointer rounded-2xl border-2 border-dashed border-border p-4 text-center outline-none focus:ring-2 focus:ring-amber-400"
+                  >
+                    {riskMode === "image" && riskImages[0] ? (
+                      <img src={riskImages[0]} alt="Ảnh cần kiểm tra rủi ro" className="mx-auto max-h-56 rounded-xl object-contain" />
+                    ) : riskMode === "video" && riskVideoUrl ? (
+                      <video src={riskVideoUrl} controls className="mx-auto max-h-56 rounded-xl" />
+                    ) : (
+                      <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                        {riskMode === "image"
+                          ? "📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh · hoặc kéo thả"
+                          : "🎬 Bấm để chọn video · hoặc kéo thả (tối đa 60MB)"}
+                      </p>
+                    )}
+                    <input
+                      ref={riskFileRef}
+                      type="file"
+                      accept={riskMode === "image" ? "image/*" : "video/*"}
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) pickRiskFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={doRiskMedia}
+                    disabled={loading || (riskMode === "image" ? !riskImages.length : !riskVideoFile)}
+                    className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+                  >
+                    {loading ? `⏳ Đang soi ${Math.round(progress)}%` : "🛡️ Chấm rủi ro lộ thông tin"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <textarea
+                    value={riskText}
+                    onChange={(e) => setRiskText(e.target.value)}
+                    rows={6}
+                    placeholder="Dán bài đăng / chú thích ảnh / tin nhắn bạn định đăng công khai..."
+                    className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+                  />
+                  <button
+                    onClick={doRiskText}
+                    disabled={loading || riskText.trim().length < 10}
+                    className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+                  >
+                    {loading ? `⏳ Đang soi ${Math.round(progress)}%` : "🛡️ Chấm rủi ro lộ thông tin"}
+                  </button>
+                </>
+              )}
+
+              {riskMode !== "text" && riskMediaResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(riskMediaResult.riskScore)}`}>
+                    {LEVEL_VI[riskMediaResult.level] ?? "Chưa xác định"}
+                  </p>
+                  <Gauge value={riskMediaResult.riskScore} label="Rủi ro bị lộ thông tin nếu đăng công khai" />
+                  <p className="text-xs sm:text-sm font-bold">{riskMediaResult.summary}</p>
+
+                  <div className="space-y-3">
+                    {riskImages.map((src, fi) => {
+                      const boxes = riskMediaResult.findings
+                        .map((f, gi) => ({ ...f, gi }))
+                        .filter((f) => f.frame === fi);
+                      if (riskImages.length > 1 && !boxes.length) return null;
+                      return (
+                        <div key={fi} className="relative inline-block w-full">
+                          <img src={src} alt={`Khung hình ${fi + 1}`} className="w-full rounded-xl" />
+                          {boxes.map((b) => (
+                            <div
+                              key={b.gi}
+                              className="absolute"
+                              style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%` }}
+                            >
+                              <div className={`h-full w-full rounded-md border-2 ${SEV_BORDER[b.severity]}`} />
+                              <div className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center">
+                                <span
+                                  className={`whitespace-nowrap rounded-md px-1.5 py-0.5 text-[9px] sm:text-[11px] font-black text-white shadow ${SEV_BG[b.severity]}`}
+                                >
+                                  {b.gi + 1}. {b.label}
+                                </span>
+                                <span className={`text-[10px] leading-none ${SEV_TEXT[b.severity]}`}>▼</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {riskMediaResult.findings.length > 0 && (
+                    <div className="space-y-1.5">
+                      {riskMediaResult.findings.map((f, i) => (
+                        <div key={i} className="rounded-xl border-2 border-border/60 p-2">
+                          <p className="text-xs font-black">
+                            <span className={SEV_TEXT[f.severity]}>➡ {i + 1}. {f.label}</span>
+                          </p>
+                          {f.detail && (
+                            <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{f.detail}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <SignList title="Điều bạn đã làm tốt" items={riskMediaResult.safeSigns} tone="good" />
+                  <SignList title="Nên che / xoá trước khi đăng" items={riskMediaResult.advice} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Vị trí khoanh vùng do AI ước lượng — có thể lệch đôi chút.
+                  </p>
+                </div>
+              )}
+
+              {riskMode === "text" && riskTextResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(riskTextResult.riskScore)}`}>
+                    {LEVEL_VI[riskTextResult.level] ?? "Chưa xác định"}
+                  </p>
+                  <Gauge value={riskTextResult.riskScore} label="Rủi ro bị lộ thông tin nếu đăng công khai" />
+                  <p className="text-xs sm:text-sm font-bold">{riskTextResult.summary}</p>
+
+                  <div className="rounded-xl border-2 border-border/60 p-3 text-xs sm:text-sm font-bold leading-relaxed whitespace-pre-wrap">
+                    {highlightText(riskText, riskTextResult.findings)}
+                  </div>
+
+                  {riskTextResult.findings.length > 0 && (
+                    <div className="space-y-1.5">
+                      {riskTextResult.findings.map((f, i) => (
+                        <div key={i} className="rounded-xl border-2 border-border/60 p-2">
+                          <p className="text-xs font-black">
+                            <span className={SEV_TEXT[f.severity]}>➡ {i + 1}. {f.label}</span>{" "}
+                            <span className="text-muted-foreground">“{f.quote}”</span>
+                          </p>
+                          {f.detail && (
+                            <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{f.detail}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {riskTextResult.safeVersion && (
+                    <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50/60 p-3">
+                      <p className="text-xs font-black mb-1">✅ Bản viết lại an toàn hơn</p>
+                      <p className="text-xs sm:text-sm font-bold whitespace-pre-wrap">{riskTextResult.safeVersion}</p>
+                    </div>
+                  )}
+                  <SignList title="Điều bạn đã làm tốt" items={riskTextResult.safeSigns} tone="good" />
+                  <SignList title="Nên sửa trước khi đăng" items={riskTextResult.advice} tone="info" />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/experience" className="toy-button !text-xs sm:!text-sm">

@@ -65,8 +65,16 @@ import l14b from "@/assets/film5/clean/l14b.jpg";
 import vl14b from "@/assets/film5/video/l14b.mp4.asset.json";
 import l15 from "@/assets/film5/clean/l15.jpg";
 import vl15 from "@/assets/film5/video/l15.mp4.asset.json";
-import l16b1 from "@/assets/film5/clean/l16b1.jpg";
-import vl16b1 from "@/assets/film5/video/l16b1.mp4.asset.json";
+import l16b1 from "@/assets/film5/clean/l16b1-v2.jpg";
+import vl16b1 from "@/assets/film5/video/l16b1-v2.mp4.asset.json";
+import l16b2img from "@/assets/film5/clean/l16b2-delete.jpg";
+import vl16b2 from "@/assets/film5/video/l16b2-delete.mp4.asset.json";
+import l17b2img from "@/assets/film5/clean/l17b2-spread.jpg";
+import vl17b2 from "@/assets/film5/video/l17b2-spread.mp4.asset.json";
+import l18b2img from "@/assets/film5/clean/l18b2-unaware.jpg";
+import vl18b2 from "@/assets/film5/video/l18b2-unaware.mp4.asset.json";
+import l19b2img from "@/assets/film5/clean/l19b2-victims.jpg";
+import vl19b2 from "@/assets/film5/video/l19b2-victims.mp4.asset.json";
 import l17b1 from "@/assets/film5/clean/l17b1.jpg";
 import vl17b1 from "@/assets/film5/video/l17b1.mp4.asset.json";
 import l18b1 from "@/assets/film5/clean/l18b1.jpg";
@@ -534,13 +542,15 @@ export const FILM: Record<string, FilmNode> = {
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
     motion: "push",
     mood: "neutral",
+    mailOverlay: true,
+    phoneAnchor: { x: 45, y: 39, h: 71, rot: -50 },
     choices: [
       {
-        label: "B1. Chụp màn hình, đăng cảnh báo lên nhóm lớp và Facebook",
+        label: "A. Chụp màn hình, đăng cảnh báo lên nhóm lớp và Facebook",
         next: "l16b1",
         tone: "safe",
       },
-      { label: "B2. Xóa email, coi như xong", next: "l16b2", tone: "neutral" },
+      { label: "B. Xóa email, coi như xong", next: "l16b2", tone: "neutral" },
     ],
   },
   l16b1: {
@@ -548,8 +558,10 @@ export const FILM: Record<string, FilmNode> = {
     image: l16b1,
     video: vl16b1.url,
     speaker: "narrator",
-    action: "S22 — Chụp màn hình làm bằng chứng",
+    action: "Chụp màn hình làm bằng chứng",
     text: "L chụp lại màn hình email lừa đảo: địa chỉ người gửi lạ, đường link lạ — đủ bằng chứng để cảnh báo mọi người.",
+    mailOverlay: true,
+    phoneAnchor: { x: 27, y: 41, h: 47, rot: -4 },
     motion: "push",
     mood: "safe",
     next: "l17b1",
@@ -598,19 +610,52 @@ export const FILM: Record<string, FilmNode> = {
 
   l16b2: {
     id: "l16b2",
-    image: l15,
-    video: vl15.url,
-    speaker: "narrator",
-    action: "Xóa email, im lặng",
-    text: "L xóa email và không nói với ai. Em an toàn — nhưng vài ngày sau, hai bạn cùng lớp nhận đúng email đó, bấm vào link và mất tài khoản game.",
+    image: l16b2img,
+    video: vl16b2.url,
+    speaker: "L",
+    action: "Xóa email, coi như xong",
+    text: "Xóa cho khuất mắt là xong chứ gì. Mình không bấm link thì có sao đâu...",
     motion: "push",
     mood: "neutral",
+    next: "l17b2",
+  },
+  l17b2: {
+    id: "l17b2",
+    image: l17b2img,
+    video: vl17b2.url,
+    speaker: "narrator",
+    action: "Kẻ lừa đảo tiếp tục gửi cho nhiều người hơn",
+    text: "Email của L bị xóa, nhưng kẻ lừa đảo thì không dừng lại. Cùng một mẫu email đó được gửi hàng loạt tới hàng trăm hòm thư khác — trong đó có cả nhóm bạn cùng lớp của L.",
+    motion: "push",
+    mood: "danger",
+    next: "l18b2",
+  },
+  l18b2: {
+    id: "l18b2",
+    image: l18b2img,
+    video: vl18b2.url,
+    speaker: "narrator",
+    action: "Không ai được cảnh báo",
+    text: "Sáng hôm sau ở sân trường, các bạn mở điện thoại và reo lên vì “trúng thưởng”. Không một ai biết đó là bẫy, vì chẳng có lời cảnh báo nào cả.",
+    motion: "push",
+    mood: "danger",
+    next: "l19b2",
+  },
+  l19b2: {
+    id: "l19b2",
+    image: l19b2img,
+    video: vl19b2.url,
+    speaker: "narrator",
+    action: "Các bạn sập bẫy",
+    text: "Vài bạn bấm vào link, điền thông tin và mất sạch tài khoản game. L đứng nhìn, chợt nhận ra: chỉ cần một dòng cảnh báo thôi, mọi chuyện đã khác.",
+    motion: "shake",
+    mood: "danger",
     ending: {
-      kind: "safe",
-      code: "B2-OK",
-      title: "KẾT THÚC C — AN TOÀN MỘT MÌNH",
+      kind: "loss",
+      code: "B2-LOSS",
+      title: "KẾT THÚC C — IM LẶNG CŨNG CÓ CÁI GIÁ",
       lesson:
-        "Bạn đã tự bảo vệ mình rất tốt: đọc kỹ phần sau dấu @, kiểm tra tên miền đường link và nhớ rằng game thật chỉ báo thưởng trong ứng dụng.\n\nNhưng lừa đảo không chỉ nhắm vào một người. Chỉ mất 30 giây để chụp màn hình và cảnh báo nhóm lớp — điều đó có thể cứu vài người bạn khỏi mất tài khoản.",
+        "KẾT QUẢ:\n• L an toàn, nhưng email lừa đảo vẫn lan tới hàng trăm người khác.\n• Các bạn cùng lớp không được cảnh báo nên đã bấm link và mất tài khoản game.\n\nBÀI HỌC:\n• Đọc phần SAU dấu @ — đó mới là chủ nhân hòm thư (gmail-free-service.com ≠ gmail.com).\n• Kiểm tra tên miền đường link; game thật báo thưởng TRONG ỨNG DỤNG.\n• Tự mình an toàn là chưa đủ: xóa email chỉ cứu được một người.\n• Hãy báo cáo (report) email lừa đảo và cảnh báo bạn bè — 30 giây của bạn có thể cứu cả nhóm.",
     },
   },
 };

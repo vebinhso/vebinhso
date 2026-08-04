@@ -1050,18 +1050,18 @@ export default function GameWorld(props: Props) {
       camera={{ position: [0, 18, 28], fov: 55 }}
       dpr={isLowEnd ? 1 : [1, 1.25]}
       performance={{ min: 0.3 }}
-      gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.1 }}
+      gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.28 }}
     >
       {/* Solid sky-blue background so the canvas never flashes white before Sky finishes loading */}
-      <color attach="background" args={["#87ceeb"]} />
+      <color attach="background" args={["#a7d8f5"]} />
 
-      <ambientLight intensity={0.6} />
-      <hemisphereLight args={["#cfe9ff", "#5a8a4a", 0.6]} />
+      <ambientLight intensity={0.85} />
+      <hemisphereLight args={["#e8f6ff", "#7fae63", 0.95]} />
       <directionalLight
         castShadow
         position={[25, 35, 18]}
-        intensity={2}
-        color="#fff5e1"
+        intensity={2.3}
+        color="#fffaf0"
         shadow-mapSize-width={isLowEnd ? 512 : 1024}
         shadow-mapSize-height={isLowEnd ? 512 : 1024}
         shadow-camera-left={-24}
@@ -1073,7 +1073,7 @@ export default function GameWorld(props: Props) {
       />
       {/* Bầu trời nhẹ; bỏ HDRI Environment (tải nặng) và mây động trên máy yếu */}
       <Suspense fallback={null}>
-        <Sky sunPosition={[100, 30, 100]} turbidity={1.5} rayleigh={0.4} mieCoefficient={0.005} mieDirectionalG={0.85} />
+        <Sky sunPosition={[100, 60, 100]} turbidity={0.6} rayleigh={0.18} mieCoefficient={0.003} mieDirectionalG={0.9} />
         {!isLowEnd && (
           <Clouds material={THREE.MeshBasicMaterial}>
             <Cloud position={[-15, 18, -10]} speed={0.2} opacity={0.5} />
@@ -1089,7 +1089,7 @@ export default function GameWorld(props: Props) {
       {!isLowEnd && (
         <ContactShadows position={[0, 0.03, 0]} opacity={0.35} scale={40} blur={2.2} far={10} resolution={256} frames={1} />
       )}
-      <fog attach="fog" args={["#dbeafe", 95, 220]} />
+      <fog attach="fog" args={["#eaf6ff", 110, 250]} />
 
       <OrbitControls
         ref={controlsRef}

@@ -43,6 +43,14 @@ import v20b from "@/assets/film6/v20b.jpg";
 import v20d from "@/assets/film6/v20d.jpg";
 import mv20b from "@/assets/film6/video/v20b.mp4.asset.json";
 import mv20d from "@/assets/film6/video/v20d.mp4.asset.json";
+import v18b from "@/assets/film6/v18b.jpg";
+import v18c from "@/assets/film6/v18c.jpg";
+import v18d from "@/assets/film6/v18d.jpg";
+import v18e from "@/assets/film6/v18e.jpg";
+import mv18b from "@/assets/film6/video/v18b.mp4.asset.json";
+import mv18c from "@/assets/film6/video/v18c.mp4.asset.json";
+import mv18d from "@/assets/film6/video/v18d.mp4.asset.json";
+import mv18e from "@/assets/film6/video/v18e.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";
@@ -375,14 +383,59 @@ export const FILM: Record<string, FilmNode> = {
     text: "Không chuyển thì mất cọc nhé. Đừng có nhắn nữa. Loại trẻ ranh không có tiền còn bày đặt.",
     motion: "shake",
     mood: "danger",
+    next: "v18b",
+  },
+  v18b: {
+    id: "v18b",
+    image: v18b,
+    video: mv18b.url,
+    speaker: "A",
+    action: "Ba đứa đi tới trụ sở công an",
+    text: "Không chuyển thêm đồng nào nữa. Mình phải đi trình báo công an thôi!",
+    motion: "push",
+    mood: "safe",
+    next: "v18c",
+  },
+  v18c: {
+    id: "v18c",
+    image: v18c,
+    video: mv18c.url,
+    speaker: "N",
+    action: "Trình báo — đưa toàn bộ bằng chứng",
+    text: "Chú ơi, tụi con bị lừa mua vé concert. Đây là toàn bộ tin nhắn, số tài khoản và biên lai chuyển khoản ạ.",
+    motion: "freeze",
+    mood: "safe",
+    next: "v18d",
+  },
+  v18d: {
+    id: "v18d",
+    image: v18d,
+    video: mv18d.url,
+    speaker: "narrator",
+    action: "Chú công an khen ba bạn",
+    text: "Các cháu giỏi lắm! Biết dừng đúng lúc và giữ lại đầy đủ bằng chứng để trình báo — nhờ vậy chú mới lần được dấu vết của kẻ lừa đảo.",
+    motion: "push",
+    mood: "safe",
+    next: "v18e",
+  },
+  v18e: {
+    id: "v18e",
+    image: v18e,
+    video: mv18e.url,
+    speaker: "narrator",
+    action: "Buổi tuyên truyền ở sân trường — cả trường vỗ tay",
+    text: "Chú công an mang câu chuyện của ba bạn đi tuyên truyền cho cả trường, rồi vỗ tay khen ba bạn đã tỉnh táo.",
+    motion: "kenburns",
+    mood: "safe",
     ending: {
       kind: "safe",
       code: "B",
-      title: "KẾT THÚC B — DỪNG ĐÚNG LÚC",
+      title: "KẾT THÚC B — DỪNG ĐÚNG LÚC & TRÌNH BÁO",
       lesson:
-        "Mất 3.000.000đ tiền cọc, nhưng giữ lại được phần còn lại.\n\nBÀI HỌC:\n• Ngay khi người bán đổi giọng, ép giờ hoặc xúc phạm — đó là lúc dừng, không phải lúc cố.\n• Số tiền đã mất không kéo về được bằng cách mất thêm.\n• Chụp màn hình toàn bộ hội thoại, số tài khoản, bài đăng rồi báo người lớn và trình báo công an.\n• Cảnh báo lại nhóm bạn để không ai chuyển tiền cho tài khoản đó.",
+        "Mất 3.000.000đ tiền cọc, nhưng dừng đúng lúc và trình báo kịp thời.\n\nBÀI HỌC:\n• Người bán đổi giọng, ép giờ, xúc phạm — đó là lúc dừng.\n• Giữ lại tin nhắn, số tài khoản, biên lai làm bằng chứng.\n• Trình báo công an và kể cho người lớn biết ngay.\n• Cảnh báo bạn bè để không ai chuyển tiền cho tài khoản đó.",
     },
   },
+
 
   /* ===== NHÁNH 1B — SOI KỸ ===== */
   v19: {

@@ -51,6 +51,14 @@ export type Choice = {
 
 export type Motion = "kenburns" | "push" | "shake" | "freeze";
 
+export type ChatOverlayMessage = {
+  text: string;
+  type: "incoming" | "outgoing";
+  x: number;
+  y: number;
+  w: number;
+};
+
 export type FilmNode = {
   id: string;
   image: string;
@@ -68,6 +76,10 @@ export type FilmNode = {
     code: string;
     title: string;
     lesson: string;
+  };
+  chatOverlay?: {
+    messages: ChatOverlayMessage[];
+    coverRects?: { x: number; y: number; w: number; h: number }[];
   };
 };
 
@@ -191,10 +203,19 @@ export const FILM: Record<string, FilmNode> = {
     video: mv05.url,
     speaker: "X",
     action: "Tin nhắn đầu tiên",
-    text: "Chị còn đúng ba vé liền kề nè em. Nhiều bạn đang hỏi lắm, ai cọc trước chị giữ cho nha.",
+    text: "Chị còn 3 vé nè, chốt lẹ kẻo hết đấy.",
     motion: "freeze",
     mood: "danger",
     next: "v06",
+    chatOverlay: {
+      messages: [
+        { text: "Chị còn 3 vé nè, chốt lẹ kẻo hết đấy", type: "incoming", x: 19.5, y: 31.5, w: 37 },
+        { text: "để tụi em suy", type: "outgoing", x: 52, y: 62.5, w: 30 },
+      ],
+      coverRects: [
+        { x: 57, y: 62.5, w: 23, h: 10 },
+      ],
+    },
   },
 
   /* ===== NÚT QUYẾT ĐỊNH 1 ===== */

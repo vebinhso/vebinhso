@@ -354,13 +354,13 @@ function FilmPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-8 sm:pb-12 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-amber-300 mb-2 drop-shadow-lg">
-            PHIM TƯƠNG TÁC · BÀI 4
+            PHIM TƯƠNG TÁC · BÀI 5
           </p>
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái bẫy?
+            Bạn vào vai <b className="text-pink-300">An</b>, <b className="text-sky-300">Ngân</b> và <b className="text-emerald-300">Bình</b>. Ba vé concert liền kề giá rẻ — may mắn hay cái bẫy của kẻ giấu mặt?
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
             Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
@@ -408,6 +408,39 @@ function FilmPage() {
               decoding="async"
               className={`absolute inset-0 w-full h-full object-contain will-change-transform ${motionClassFor(node.id, node.motion)}`}
             />
+          )}
+
+          {/* Lớp phủ tin nhắn trên màn hình điện thoại */}
+          {node.chatOverlay && (
+            <div className="absolute inset-0 pointer-events-none">
+              {node.chatOverlay.coverRects?.map((r, i) => (
+                <div
+                  key={`cover-${i}`}
+                  className="absolute rounded-xl bg-gray-200"
+                  style={{
+                    left: `${r.x}%`,
+                    top: `${r.y}%`,
+                    width: `${r.w}%`,
+                    height: `${r.h}%`,
+                  }}
+                />
+              ))}
+              {node.chatOverlay.messages.map((m, i) => (
+                <div
+                  key={`msg-${i}`}
+                  className={`absolute flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl text-[10px] sm:text-xs font-bold leading-tight shadow-lg text-center ${
+                    m.type === "incoming" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+                  }`}
+                  style={{
+                    left: `${m.x}%`,
+                    top: `${m.y}%`,
+                    width: `${m.w}%`,
+                  }}
+                >
+                  {m.text}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

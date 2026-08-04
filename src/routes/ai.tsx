@@ -9,7 +9,9 @@ import {
   analyzeText,
   analyzeEmail,
   analyzeNews,
+  analyzeVideo,
 } from "@/lib/ai-detect.functions";
+
 
 export const Route = createFileRoute("/ai")({
   component: AiPage,

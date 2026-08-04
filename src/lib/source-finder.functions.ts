@@ -191,7 +191,7 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
     const all = dedupe(settled.flat()).slice(0, 40);
 
     // Bước xác minh: chỉ giữ lại nguồn THỰC SỰ đăng nội dung/ảnh này
-    let kept = all;
+    let kept: (FoundItem & { why?: string })[] = all;
     if (all.length) {
       const list = all
         .map((it, i) => `${i}. [${it.source}] ${it.title} — ${it.snippet}`.slice(0, 300))

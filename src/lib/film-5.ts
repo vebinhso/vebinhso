@@ -402,7 +402,29 @@ export const FILM: Record<string, FilmNode> = {
     video: mv20.url,
     speaker: "N",
     action: "Yêu cầu gọi video",
-    text: 'Bọn em muốn gọi video ba mươi giây, chị cầm vé giơ lên là xong. "Chị V" tắt máy, rồi chặn luôn cả ba đứa.',
+    text: "Bọn em muốn gọi video ba mươi giây, chị cầm vé giơ lên là xong.",
+    motion: "freeze",
+    mood: "safe",
+    next: "v20b",
+  },
+  v20b: {
+    id: "v20b",
+    image: v20b,
+    video: mv20b.url,
+    speaker: "B",
+    action: "Đưa điện thoại lên tai — gọi thử",
+    text: "Để tớ gọi thử xem chị ấy có nghe máy không...",
+    motion: "push",
+    mood: "safe",
+    next: "v20c",
+  },
+  v20c: {
+    id: "v20c",
+    image: v20c,
+    video: mv20c.url,
+    speaker: "narrator",
+    action: "Hạ điện thoại xuống — màn hình báo ĐÃ CHẶN",
+    text: '"Chị V" tắt máy, rồi chặn luôn cả ba đứa.',
     motion: "freeze",
     mood: "safe",
     ending: {
@@ -410,9 +432,10 @@ export const FILM: Record<string, FilmNode> = {
       code: "A",
       title: "KẾT THÚC A — KHÔNG MẤT ĐỒNG NÀO",
       lesson:
-        "Không mất tiền. Ba đứa còn đăng bài cảnh báo cho cả nhóm fan.\n\nBÀI HỌC:\n• Phóng to ảnh 'bằng chứng': logo méo, chữ lệch, watermark app chỉnh ảnh là dấu hiệu ảnh ghép.\n• Người bán thật không ngại gọi video 30 giây. Người từ chối gọi video luôn có lý do.\n• Ảnh đại diện mờ, tài khoản mới lập, không có bạn chung — ba dấu hiệu đủ để nói không.\n• Nói ra nghi ngờ với bạn bè: một câu cảnh báo mất 30 giây, im lặng khiến người khác mất cả triệu đồng.",
+        "Không mất đồng nào.\n\nBÀI HỌC:\n• Logo méo, chữ lệch, watermark app chỉnh ảnh = ảnh ghép.\n• Người bán thật không ngại gọi video 30 giây.\n• Tài khoản mới lập, ảnh mờ, không bạn chung — đủ để nói không.",
     },
   },
+
   v21: {
     id: "v21",
     image: v21,

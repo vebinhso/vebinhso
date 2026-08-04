@@ -353,13 +353,13 @@ export const FILM: Record<string, FilmNode> = {
     choices: [
       {
         label:
-          "A1. Nói với bố mẹ, mượn máy khác đổi mật khẩu ngay, rồi mang máy đi kiểm tra",
+          "A. Nói với bố mẹ, mượn máy khác đổi mật khẩu ngay, rồi mang máy đi kiểm tra",
         next: "l10a1",
         tone: "safe",
       },
       {
-        label: "A2. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
-        next: "l11a2",
+        label: "B. Giấu bố mẹ, tự mang máy đi tiệm sửa, không kể với ai",
+        next: "l10a2",
         tone: "risky",
       },
     ],

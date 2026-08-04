@@ -215,3 +215,53 @@ fakeScore = mức độ tin này là tin giả/sai lệch. Nếu không có đ�
       checkSteps: strArr(parsed.checkSteps),
     };
   });
+
+/** Kiểm tra video: có phải do AI tạo (deepfake / AI video) hoặc chứa nội dung AI không */
+export const analyzeVideo = createServerFn({ method: "POST" })
+  .inputValidator((data: { frames: string[]; note?: string }) => {
+    const frames = Array.isArray(data?.frames)
+      ? data.frames.filter(
+          (f) => typeof f === "string" && /^data:image\/(png|jpeg|jpg|webp);base64,/.test(f),
+        )
+      : [];
+    if (!frames.length) throw new Error("Không đọc được khung hình từ video");
+    const picked = frames.slice(0, 5);
+    const total = picked.reduce((s, f) => s + f.length, 0);
+    if (total > 12_000_000) throw new Error("Video quá lớn để phân tích");
+    return { frames: picked, note: typeof data?.note === "string" ? data.note.slice(0, 500) : "" };
+  })
+  .handler(async ({ data }) => {
+    const sys = `Bạn là chuyên gia pháp y video số, phát hiện video do AI tạo (Sora, Veo, Kling, Runway), deepfake hoán đổi gương mặt, lồng tiếng AI, hoặc video thật nhưng CHỨA nội dung do AI dựng.
+Người dùng gửi nhiều KHUNG HÌNH liên tiếp trích từ một video. Hãy so sánh các khung hình: khuôn mặt có biến dạng/nhấp nháy giữa các khung không, viền mặt – tóc – tai có nhoè hay không khớp, mắt/răng bất thường, tay và ngón tay, chữ trong khung bị loạn, hậu cảnh trôi/biến hình, ánh sáng và bóng đổ không nhất quán, kết cấu da quá mượt, chuyển động vật lý phi thực tế, watermark của công cụ AI.
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"aiScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"deepfakeScore":0-100,"editedScore":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"realSigns":["dấu hiệu video thật"],"tips":["cách kiểm chứng"]}
+aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi hoán đổi gương mặt. editedScore = mức độ đã cắt ghép/chỉnh sửa. Viết tiếng Việt dễ hiểu với học sinh.`;
+    const parsed = await callGateway({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: sys },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Đây là ${data.frames.length} khung hình trích từ một video theo thứ tự thời gian. Video này có phải do AI tạo hoặc chứa nội dung AI không?${data.note ? ` Ghi chú: ${data.note}` : ""}`,
+            },
+            ...data.frames.map((f) => ({ type: "image_url", image_url: { url: f } })),
+          ],
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+    return {
+      aiScore: clampScore(parsed.aiScore),
+      verdict: str(parsed.verdict, "uncertain"),
+      confidence: clampScore(parsed.confidence),
+      deepfakeScore: clampScore(parsed.deepfakeScore),
+      editedScore: clampScore(parsed.editedScore),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      aiSigns: strArr(parsed.aiSigns),
+      realSigns: strArr(parsed.realSigns),
+      tips: strArr(parsed.tips),
+    };
+  });

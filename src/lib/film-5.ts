@@ -19,6 +19,26 @@ import v18 from "@/assets/film6/v18.jpg";
 import v19 from "@/assets/film6/v19.jpg";
 import v20 from "@/assets/film6/v20.jpg";
 import v21 from "@/assets/film6/v21-bg.jpg";
+import mv01 from "@/assets/film6/video/v01.mp4.asset.json";
+import mv02 from "@/assets/film6/video/v02.mp4.asset.json";
+import mv03 from "@/assets/film6/video/v03.mp4.asset.json";
+import mv04 from "@/assets/film6/video/v04.mp4.asset.json";
+import mv05 from "@/assets/film6/video/v05.mp4.asset.json";
+import mv06 from "@/assets/film6/video/v06.mp4.asset.json";
+import mv07 from "@/assets/film6/video/v07.mp4.asset.json";
+import mv08 from "@/assets/film6/video/v08.mp4.asset.json";
+import mv09 from "@/assets/film6/video/v09.mp4.asset.json";
+import mv10 from "@/assets/film6/video/v10.mp4.asset.json";
+import mv11 from "@/assets/film6/video/v11.mp4.asset.json";
+import mv12 from "@/assets/film6/video/v12.mp4.asset.json";
+import mv13 from "@/assets/film6/video/v13.mp4.asset.json";
+import mv14 from "@/assets/film6/video/v14.mp4.asset.json";
+import mv15 from "@/assets/film6/video/v15.mp4.asset.json";
+import mv16 from "@/assets/film6/video/v16.mp4.asset.json";
+import mv17 from "@/assets/film6/video/v17.mp4.asset.json";
+import mv18 from "@/assets/film6/video/v18.mp4.asset.json";
+import mv19 from "@/assets/film6/video/v19.mp4.asset.json";
+import mv20 from "@/assets/film6/video/v20.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";
@@ -124,6 +144,7 @@ export const FILM: Record<string, FilmNode> = {
   v01: {
     id: "v01",
     image: v01,
+    video: mv01.url,
     speaker: "narrator",
     action: "Ba đứa, một tấm poster",
     text: "An, Ngân và Bình đã đếm ngược concert này suốt bốn tháng. Tấm poster dán trên tường quán trà sữa góc phố như một lời hứa.",
@@ -134,6 +155,7 @@ export const FILM: Record<string, FilmNode> = {
   v02: {
     id: "v02",
     image: v02,
+    video: mv02.url,
     speaker: "A",
     action: "20:00 — mở bán",
     text: "Hết vé rồi... Mới có bốn mươi giây thôi mà. Tớ bấm nhanh hết sức rồi đấy.",
@@ -144,6 +166,7 @@ export const FILM: Record<string, FilmNode> = {
   v03: {
     id: "v03",
     image: v03,
+    video: mv03.url,
     speaker: "B",
     action: "Ba chiếc điện thoại trên bàn",
     text: "Còn cách khác. Mấy hội nhóm pass vé lúc nào chẳng có người bán lại. Để tớ tìm.",
@@ -154,6 +177,7 @@ export const FILM: Record<string, FilmNode> = {
   v04: {
     id: "v04",
     image: v04,
+    video: mv04.url,
     speaker: "narrator",
     action: "Bài đăng vừa lên hai phút",
     text: 'Một tài khoản tên "Chị V" đăng bán ba vé liền kề, rẻ hơn giá gốc. Ảnh đại diện là một hình bóng mờ, không rõ mặt. Trang cá nhân mới lập tháng trước.',
@@ -164,6 +188,7 @@ export const FILM: Record<string, FilmNode> = {
   v05: {
     id: "v05",
     image: v05,
+    video: mv05.url,
     speaker: "X",
     action: "Tin nhắn đầu tiên",
     text: "Chị còn đúng ba vé liền kề nè em. Nhiều bạn đang hỏi lắm, ai cọc trước chị giữ cho nha.",
@@ -176,6 +201,7 @@ export const FILM: Record<string, FilmNode> = {
   v06: {
     id: "v06",
     image: v06,
+    video: mv06.url,
     speaker: "narrator",
     action: "★ NÚT QUYẾT ĐỊNH 1",
     text: "Ba khuôn mặt, một màn hình. An muốn tin. Bình muốn chốt ngay. Ngân muốn kiểm tra. Ba đứa nhìn nhau, không ai dám quyết một mình.",
@@ -191,6 +217,7 @@ export const FILM: Record<string, FilmNode> = {
   v07: {
     id: "v07",
     image: v07,
+    video: mv07.url,
     speaker: "X",
     action: "Ảnh email xác nhận",
     text: "Đây là email ban tổ chức gửi chị nè. Chị mua chính chủ, có xác nhận đàng hoàng, em yên tâm.",
@@ -201,6 +228,7 @@ export const FILM: Record<string, FilmNode> = {
   v08: {
     id: "v08",
     image: v08,
+    video: mv08.url,
     speaker: "A",
     action: "Nhẹ cả người",
     text: "Có email hẳn hoi này. Chị ấy trả lời nhanh, nói chuyện dễ thương nữa. Tớ tin được mà.",
@@ -211,6 +239,7 @@ export const FILM: Record<string, FilmNode> = {
   v09: {
     id: "v09",
     image: v09,
+    video: mv09.url,
     speaker: "X",
     action: "Tin nhắn dồn dập",
     text: "Có bạn khác vừa chuyển cọc rồi đó em. Chị giữ thêm mười phút thôi nha, quá giờ chị nhả vé.",
@@ -221,6 +250,7 @@ export const FILM: Record<string, FilmNode> = {
   v10: {
     id: "v10",
     image: v10,
+    video: mv10.url,
     speaker: "A",
     action: "Chuyển 3.000.000đ tiền cọc",
     text: "Tớ chuyển đây. Tiền để dành cả năm của tớ... nhưng ba đứa mình phải đi cùng nhau chứ.",
@@ -231,6 +261,7 @@ export const FILM: Record<string, FilmNode> = {
   v11: {
     id: "v11",
     image: v11,
+    video: mv11.url,
     speaker: "narrator",
     action: "Một file PDF được gửi tới",
     text: '"Chị V" gửi lại một file vé điện tử. Bình reo lên. Ngân im lặng — cô thấy mã QR trong file mờ hơn bình thường một chút.',
@@ -241,6 +272,7 @@ export const FILM: Record<string, FilmNode> = {
   v12: {
     id: "v12",
     image: v12,
+    video: mv12.url,
     speaker: "X",
     action: "Yêu cầu mới",
     text: "Vé này chị phải sang tên trên hệ thống. Em chuyển nốt 100% rồi chị sang tên luôn, không thì hệ thống huỷ mất.",
@@ -253,6 +285,7 @@ export const FILM: Record<string, FilmNode> = {
   v13: {
     id: "v13",
     image: v13,
+    video: mv13.url,
     speaker: "narrator",
     action: "★ NÚT QUYẾT ĐỊNH 2",
     text: "Ba triệu đã đi rồi. Chuyển nốt thì có thể mất thêm. Không chuyển thì coi như mất cọc. An siết chặt điện thoại, không biết chọn đường nào.",
@@ -268,6 +301,7 @@ export const FILM: Record<string, FilmNode> = {
   v14: {
     id: "v14",
     image: v14,
+    video: mv14.url,
     speaker: "A",
     action: "Chuyển nốt",
     text: "Lỡ rồi... Nếu dừng lại bây giờ thì ba triệu kia thành công cốc. Tớ chuyển nốt.",
@@ -278,6 +312,7 @@ export const FILM: Record<string, FilmNode> = {
   v15: {
     id: "v15",
     image: v15,
+    video: mv15.url,
     speaker: "narrator",
     action: "Tài khoản đã bị chặn",
     text: "Ba phút sau, tin nhắn không gửi được nữa. Trang cá nhân biến mất. Bài đăng bán vé cũng không còn.",
@@ -288,6 +323,7 @@ export const FILM: Record<string, FilmNode> = {
   v16: {
     id: "v16",
     image: v16,
+    video: mv16.url,
     speaker: "narrator",
     action: "Trước cổng concert",
     text: 'Máy quét kêu một tiếng khô khốc rồi báo đỏ. Mã QR trong file PDF chỉ là ảnh in lại của một vé đã dùng.',
@@ -306,6 +342,7 @@ export const FILM: Record<string, FilmNode> = {
   v17: {
     id: "v17",
     image: v17,
+    video: mv17.url,
     speaker: "N",
     action: "Giữ lại điện thoại",
     text: "Không chuyển nữa. Người bán thật không bao giờ ép giờ như vậy. Mình dừng ở đây, mất ba triệu còn hơn mất sáu.",
@@ -316,6 +353,7 @@ export const FILM: Record<string, FilmNode> = {
   v18: {
     id: "v18",
     image: v18,
+    video: mv18.url,
     speaker: "X",
     action: '"Chị V" trở mặt',
     text: "Không chuyển thì mất cọc nhé. Đừng có nhắn nữa. Loại trẻ ranh không có tiền còn bày đặt.",
@@ -334,6 +372,7 @@ export const FILM: Record<string, FilmNode> = {
   v19: {
     id: "v19",
     image: v19,
+    video: mv19.url,
     speaker: "B",
     action: "Phóng to ảnh xác nhận",
     text: "Khoan đã. Logo ban tổ chức ở đây bị móp một bên, mà góc ảnh còn sót nguyên watermark của app chỉnh ảnh AI. Cái email này là ảnh ghép.",
@@ -344,6 +383,7 @@ export const FILM: Record<string, FilmNode> = {
   v20: {
     id: "v20",
     image: v20,
+    video: mv20.url,
     speaker: "N",
     action: "Yêu cầu gọi video",
     text: 'Bọn em muốn gọi video ba mươi giây, chị cầm vé giơ lên là xong. "Chị V" tắt máy, rồi chặn luôn cả ba đứa.',

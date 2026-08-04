@@ -65,8 +65,8 @@ import l14b from "@/assets/film5/clean/l14b.jpg";
 import vl14b from "@/assets/film5/video/l14b.mp4.asset.json";
 import l15 from "@/assets/film5/clean/l15.jpg";
 import vl15 from "@/assets/film5/video/l15-v2.mp4.asset.json";
-import l16b1 from "@/assets/film5/clean/l16b1-v2.jpg";
-import vl16b1 from "@/assets/film5/video/l16b1-v2.mp4.asset.json";
+import l16b1 from "@/assets/film5/clean/l16b1-v3.jpg";
+import vl16b1 from "@/assets/film5/video/l16b1-v3.mp4.asset.json";
 import l16b2img from "@/assets/film5/clean/l16b2-delete.jpg";
 import vl16b2 from "@/assets/film5/video/l16b2-delete.mp4.asset.json";
 import l17b2img from "@/assets/film5/clean/l17b2-spread.jpg";
@@ -565,8 +565,6 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Chụp màn hình làm bằng chứng",
     text: "L chụp lại màn hình email lừa đảo: địa chỉ người gửi lạ, đường link lạ — đủ bằng chứng để cảnh báo mọi người.",
-    mailOverlay: true,
-    phoneAnchor: { x: 27, y: 41, h: 47, rot: -4 },
     motion: "push",
     mood: "safe",
     next: "l17b1",

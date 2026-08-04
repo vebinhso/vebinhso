@@ -59,12 +59,6 @@ function motionClassFor(id: string, motion?: string) {
   return pool[h % pool.length];
 }
 
-const DUSTS = Array.from({ length: 14 }, (_, i) => ({
-  left: `${(i * 7.3 + 4) % 96}%`,
-  delay: `${(i * 1.37) % 9}s`,
-  dur: `${9 + ((i * 3) % 7)}s`,
-}));
-
 function FilmPage() {
   const navigate = useNavigate();
   const tts = useServerFn(speakLine);
@@ -80,7 +74,6 @@ function FilmPage() {
   const [showNotes, setShowNotes] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [speechDone, setSpeechDone] = useState(false);
-  const [prevVisual, setPrevVisual] = useState<{ src: string; type: "image" | "video" } | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const capRef = useRef<CaptionEngine | null>(null);
@@ -159,12 +152,6 @@ function FilmPage() {
     setDone(false);
     setSpeechDone(false);
   }, [nodeId]);
-
-  useEffect(() => {
-    if (!prevVisual) return;
-    const id = window.setTimeout(() => setPrevVisual(null), 1700);
-    return () => window.clearTimeout(id);
-  }, [prevVisual]);
 
   useEffect(() => {
     if (!started) return;
@@ -321,14 +308,12 @@ function FilmPage() {
 
   const go = (next: string) => {
     stopAudio();
-    setPrevVisual({ src: node.image, type: "image" });
     setHistory((h) => [...h, nodeId]);
     setNodeId(next);
   };
 
   const restart = () => {
     stopAudio();
-    setPrevVisual({ src: node.image, type: "image" });
     setHistory([]);
     setShowNotes(false);
     setNodeId(FILM_START);
@@ -337,7 +322,6 @@ function FilmPage() {
   const back = () => {
     if (!history.length) return;
     stopAudio();
-    setPrevVisual({ src: node.image, type: "image" });
     const prev = history[history.length - 1];
     setHistory((h) => h.slice(0, -1));
     setNodeId(prev);

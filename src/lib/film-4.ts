@@ -35,6 +35,8 @@ import l10a1b from "@/assets/film5/clean/l10a1b-praise.jpg";
 import vl10a1b from "@/assets/film5/video/l10a1b-praise.mp4.asset.json";
 import l12a1 from "@/assets/film5/clean/l12a1-warn.jpg";
 import vl12a1 from "@/assets/film5/video/l12a1-warn.mp4.asset.json";
+import l13a1 from "@/assets/film5/clean/l13a1-applause.jpg";
+import vl13a1 from "@/assets/film5/video/l13a1-applause.mp4.asset.json";
 import l11a2 from "@/assets/film5/clean/l11a2.jpg";
 import vl11a2 from "@/assets/film5/video/l11a2.mp4.asset.json";
 import l12a2 from "@/assets/film5/clean/l12a2.jpg";
@@ -404,6 +406,17 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "L",
     action: "Sửa xong — L cảnh báo các bạn",
     text: "Các bạn ơi, mình vừa bị dính một email giả trúng thưởng iPhone. Đừng bấm link lạ, đừng điền mật khẩu vào form nào hết nhé — mình suýt mất cả tài khoản lẫn cái máy này đó!",
+    motion: "push",
+    mood: "safe",
+    next: "l13a1",
+  },
+  l13a1: {
+    id: "l13a1",
+    image: l13a1,
+    video: vl13a1.url,
+    speaker: "narrator",
+    action: "",
+    text: "",
     motion: "push",
     mood: "safe",
     ending: {

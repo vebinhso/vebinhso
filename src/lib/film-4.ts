@@ -35,6 +35,8 @@ import l10a1b from "@/assets/film5/clean/l10a1b-praise.jpg";
 import vl10a1b from "@/assets/film5/video/l10a1b-praise.mp4.asset.json";
 import l12a1 from "@/assets/film5/clean/l12a1-warn.jpg";
 import vl12a1 from "@/assets/film5/video/l12a1-warn.mp4.asset.json";
+import l13a1 from "@/assets/film5/clean/l13a1-applause.jpg";
+import vl13a1 from "@/assets/film5/video/l13a1-applause.mp4.asset.json";
 import l11a2 from "@/assets/film5/clean/l11a2.jpg";
 import vl11a2 from "@/assets/film5/video/l11a2.mp4.asset.json";
 import l12a2 from "@/assets/film5/clean/l12a2.jpg";

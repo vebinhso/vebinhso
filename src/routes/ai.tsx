@@ -34,9 +34,57 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Tab = "image" | "link" | "text" | "email" | "news";
+type Tab = "image" | "video" | "link" | "text" | "email" | "news";
 
 const MAX_IMG = 5 * 1024 * 1024;
+const MAX_VID = 60 * 1024 * 1024;
+
+/** Trích khung hình từ video ngay trên trình duyệt */
+async function extractFrames(
+  file: File,
+  count = 4,
+  onStep?: (done: number, total: number) => void,
+): Promise<string[]> {
+  const url = URL.createObjectURL(file);
+  const video = document.createElement("video");
+  video.src = url;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  try {
+    await new Promise<void>((resolve, reject) => {
+      video.onloadedmetadata = () => resolve();
+      video.onerror = () => reject(new Error("Không đọc được video này"));
+    });
+    const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
+    const w = 512;
+    const h = Math.max(1, Math.round((video.videoHeight / (video.videoWidth || 1)) * w)) || 288;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Trình duyệt không hỗ trợ trích khung hình");
+    const frames: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const t = (dur * (i + 0.5)) / count;
+      await new Promise<void>((resolve) => {
+        const onSeek = () => {
+          video.removeEventListener("seeked", onSeek);
+          resolve();
+        };
+        video.addEventListener("seeked", onSeek);
+        video.currentTime = Math.min(Math.max(t, 0), Math.max(dur - 0.05, 0));
+      });
+      ctx.drawImage(video, 0, 0, w, h);
+      frames.push(canvas.toDataURL("image/jpeg", 0.7));
+      onStep?.(i + 1, count);
+    }
+    return frames;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 
 function scoreColor(v: number) {
   if (v >= 70) return "bg-red-500";

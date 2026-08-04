@@ -318,60 +318,64 @@ function AiPage() {
       setError("Hãy dán hoặc tải một ảnh lên trước.");
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      setImgResult(await runImage({ data: { imageUrl: preview } }));
-    } catch (e: any) {
-      setError(e?.message || "Phân tích thất bại");
-    } finally {
-      setLoading(false);
+    setImgResult(null);
+    const r = await withProgress(
+      ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang đối chiếu dấu hiệu AI...", "Đang chấm điểm..."],
+      () => runImage({ data: { imageUrl: preview } }),
+    );
+    if (r) setImgResult(r);
+  }
+  async function doVideo() {
+    if (!videoFile) {
+      setError("Hãy chọn một video trước.");
+      return;
     }
+    setVideoResult(null);
+    const r = await withProgress(
+      ["Đang đọc video...", "Đang trích khung hình...", "Đang soi từng khung hình...", "Đang chấm điểm..."],
+      async (report) => {
+        const frames = await extractFrames(videoFile, 4, (done, total) => {
+          report(5 + (done / total) * 35, `Đang trích khung hình ${done}/${total}...`);
+        });
+        report(45, "Đang gửi khung hình cho AI phân tích...");
+        return runVideo({ data: { frames } });
+      },
+    );
+    if (r) setVideoResult(r);
   }
   async function doLink() {
-    setLoading(true);
-    setError(null);
-    try {
-      setLinkResult(await runLink({ data: { url } }));
-    } catch (e: any) {
-      setError(e?.message || "Phân tích thất bại");
-    } finally {
-      setLoading(false);
-    }
+    setLinkResult(null);
+    const r = await withProgress(
+      ["Đang đọc đường link...", "Đang kiểm tra tên miền...", "Đang dò dấu hiệu lừa đảo...", "Đang chấm điểm rủi ro..."],
+      () => runLink({ data: { url } }),
+    );
+    if (r) setLinkResult(r);
   }
   async function doText() {
-    setLoading(true);
-    setError(null);
-    try {
-      setTextResult(await runText({ data: { text } }));
-    } catch (e: any) {
-      setError(e?.message || "Phân tích thất bại");
-    } finally {
-      setLoading(false);
-    }
+    setTextResult(null);
+    const r = await withProgress(
+      ["Đang đọc văn bản...", "Đang phân tích văn phong...", "Đang so sánh mẫu văn AI...", "Đang chấm điểm..."],
+      () => runText({ data: { text } }),
+    );
+    if (r) setTextResult(r);
   }
   async function doEmail() {
-    setLoading(true);
-    setError(null);
-    try {
-      setEmailResult(await runEmail({ data: { content: email } }));
-    } catch (e: any) {
-      setError(e?.message || "Phân tích thất bại");
-    } finally {
-      setLoading(false);
-    }
+    setEmailResult(null);
+    const r = await withProgress(
+      ["Đang đọc email...", "Đang kiểm tra người gửi...", "Đang dò dấu hiệu phishing...", "Đang chấm điểm..."],
+      () => runEmail({ data: { content: email } }),
+    );
+    if (r) setEmailResult(r);
   }
   async function doNews() {
-    setLoading(true);
-    setError(null);
-    try {
-      setNewsResult(await runNews({ data: { content: news } }));
-    } catch (e: any) {
-      setError(e?.message || "Phân tích thất bại");
-    } finally {
-      setLoading(false);
-    }
+    setNewsResult(null);
+    const r = await withProgress(
+      ["Đang đọc bản tin...", "Đang kiểm tra nguồn tin...", "Đang đối chiếu dấu hiệu tin giả...", "Đang chấm điểm..."],
+      () => runNews({ data: { content: news } }),
+    );
+    if (r) setNewsResult(r);
   }
+
 
   if (!user) return null;
 

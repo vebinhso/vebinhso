@@ -216,6 +216,20 @@ function TraceSourcePage() {
       setProgress(100);
       setPhase("Hoàn tất!");
       setResult(r);
+      const u = user ?? getCurrentUser();
+      if (u) {
+        const thumb = await makeThumb(image);
+        const entry: HistoryEntry = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          at: Date.now(),
+          text: text.trim(),
+          thumb,
+          result: r,
+        };
+        const next = [entry, ...history].slice(0, HISTORY_MAX);
+        setHistory(next);
+        saveHistory(u.id, next);
+      }
     } catch (e: any) {
       setError(e?.message || "Không tìm được nguồn, thử lại nhé.");
     } finally {
@@ -224,6 +238,28 @@ function TraceSourcePage() {
       setTimeout(() => setLoading(false), 200);
     }
   }
+
+  function openEntry(h: HistoryEntry) {
+    setResult(h.result);
+    setText(h.text);
+    setImage(h.thumb);
+    setError(null);
+    setShowHistory(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function removeEntry(id: string) {
+    const next = history.filter((h) => h.id !== id);
+    setHistory(next);
+    if (user) saveHistory(user.id, next);
+  }
+
+  function clearHistory() {
+    if (!confirm("Xoá toàn bộ lịch sử truy nguồn?")) return;
+    setHistory([]);
+    if (user) saveHistory(user.id, []);
+  }
+
 
   if (!user) return null;
 

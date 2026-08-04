@@ -462,17 +462,25 @@ function FilmPage() {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
             <div
-              className="absolute -translate-x-1/2 -translate-y-1/2 text-center font-black text-slate-900 leading-none"
+              className="absolute flex items-center justify-center rounded-full"
               style={{
                 left: `${node.confirmBtn.x}%`,
                 top: `${node.confirmBtn.y}%`,
                 width: `${node.confirmBtn.w}%`,
+                height: `${(node.confirmBtn.w ?? 15) * 0.34}%`,
                 transform: `translate(-50%, -50%) rotate(${node.confirmBtn.rot ?? 0}deg)`,
-                fontSize: "clamp(8px, 1.15vw, 18px)",
-                textShadow: "0 1px 2px rgba(255,220,120,0.9)",
+                background: "radial-gradient(ellipse at center, rgba(253,196,20,0.98) 55%, rgba(253,196,20,0) 78%)",
               }}
             >
-              XÁC NHẬN
+              <span
+                className="font-black text-white leading-none tracking-wide"
+                style={{
+                  fontSize: "clamp(7px, 1vw, 16px)",
+                  textShadow: "0 1px 3px rgba(120,70,0,0.85)",
+                }}
+              >
+                XÁC NHẬN
+              </span>
             </div>
           </div>
         </div>

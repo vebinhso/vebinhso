@@ -1,9 +1,11 @@
 {
   "version": 1,
-  "asset_id": "acb2055a-fe80-4b2c-a1c4-62b19e53054f",
+  "asset_id": "056faa8a-1698-4537-a1ca-8d217c609cee",
   "project_id": "f35aafa9-00d3-41f4-91f4-ed8fec6bb8f1",
-  "url": "/assets/film6/video/v03.mp4",
+  "url": "/__l5e/assets-v1/056faa8a-1698-4537-a1ca-8d217c609cee/v03.mp4",
+  "r2_key": "a/v1/f35aafa9-00d3-41f4-91f4-ed8fec6bb8f1/056faa8a-1698-4537-a1ca-8d217c609cee/v03.mp4",
   "original_filename": "v03.mp4",
-  "size": 1096253,
-  "created_at": "2026-08-04T06:23:00Z"
+  "size": 6413343,
+  "content_type": "video/mp4",
+  "created_at": "2026-08-04T14:02:32Z"
 }

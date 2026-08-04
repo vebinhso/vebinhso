@@ -60,6 +60,9 @@ export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void;
             </a>
           </section>
 
+          <FinalLessonQuiz />
+
+
           <div className="flex flex-wrap gap-2 justify-center pb-6">
             <button onClick={onRestart} className="rounded-xl px-5 py-3 font-black text-sm bg-primary text-primary-foreground">
               ▶ CHƠI LẠI

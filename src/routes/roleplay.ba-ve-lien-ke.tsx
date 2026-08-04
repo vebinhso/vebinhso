@@ -399,29 +399,7 @@ function FilmPage() {
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none">
-      {/* Nền mờ — dùng ảnh tĩnh cho nhẹ máy */}
-      <img
-        key={"bg" + node.id}
-        src={node.image}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 w-full h-full object-cover scale-125 blur-xl opacity-35"
-      />
-
-      {prevVisual && (
-        <img
-          key={"prev" + prevVisual.src}
-          src={prevVisual.src}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-contain animate-[filmFadeOut_0.9s_ease-in_forwards] scale-105"
-        />
-      )}
-
-      <div
-        key={"cam" + node.id}
-        className="absolute inset-0 flex items-center justify-center will-change-transform animate-[filmDrift_18s_ease-in-out_infinite_alternate]"
-      >
+      <div className="absolute inset-0 flex items-center justify-center">
         {/* Khung 16:9 khoá cứng — mọi cảnh dùng chung tỉ lệ, không cắt/lệch */}
         <div
           className="relative aspect-video w-full max-h-full overflow-hidden bg-black"
@@ -435,54 +413,28 @@ function FilmPage() {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-contain animate-[filmFade_0.9s_ease-out_both]"
+              preload="auto"
+              className="absolute inset-0 w-full h-full object-contain"
             />
           ) : (
             <img
               key={node.id + visual.src}
               src={visual.src}
               alt=""
-              className={`absolute inset-0 w-full h-full object-contain will-change-transform animate-[filmFade_0.9s_ease-out_both] ${motionClassFor(node.id, node.motion)}`}
+              decoding="async"
+              className={`absolute inset-0 w-full h-full object-contain will-change-transform ${motionClassFor(node.id, node.motion)}`}
             />
           )}
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-y-10 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-2xl animate-[filmSweep_11s_linear_infinite]" />
-      </div>
-
-      {node.mood && node.mood !== "neutral" && (
-        <div
-          className="pointer-events-none absolute inset-0 mix-blend-overlay"
-          style={{ backgroundColor: node.mood === "danger" ? "#0b3d5c" : "#f0b429", opacity: 0.35 }}
-        />
-      )}
-
-
-
-
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {DUSTS.map((d, i) => (
-          <span
-            key={i}
-            className="film-dust"
-            style={{
-              left: d.left,
-              bottom: 0,
-              animation: `filmDust ${d.dur} linear ${d.delay} infinite`,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 film-grain" />
-      <div className="pointer-events-none absolute inset-0 bg-white animate-[filmFlicker_2.4s_steps(4,end)_infinite] mix-blend-soft-light opacity-10" />
       <div className="pointer-events-none absolute inset-0 film-vignette" />
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/5 to-black/90" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[16vh] bg-gradient-to-b from-black/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[38vh] bg-gradient-to-t from-black/90 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[5vh] bg-black" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[5vh] bg-black" />
+
 
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
         <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">

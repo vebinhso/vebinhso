@@ -8,6 +8,8 @@ import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
 import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
+import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/roleplay/")({
@@ -121,6 +123,7 @@ function RoleplayPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [picked, setPicked] = useState<Lesson | null>(null);
+  const [claimed, setClaimed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -129,6 +132,9 @@ function RoleplayPage() {
       return;
     }
     setUser(u);
+    const map: Record<string, boolean> = {};
+    for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
+    setClaimed(map);
   }, [navigate]);
 
   if (!user) return null;

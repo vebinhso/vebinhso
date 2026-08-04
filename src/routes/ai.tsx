@@ -236,7 +236,9 @@ function highlightText(
 function AiPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
+  const [section, setSection] = useState<"check" | "social">("check");
   const [tab, setTab] = useState<Tab>("news");
+
   const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
   const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
 

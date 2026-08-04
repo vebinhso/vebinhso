@@ -114,7 +114,26 @@ function Gauge({ value, label }: { value: number; label: string }) {
   );
 }
 
+/** Thanh tiến trình khi đang phân tích */
+function AnalyzingBar({ percent, phase }: { percent: number; phase: string }) {
+  return (
+    <div className="rounded-2xl border-2 border-cyan-300 bg-cyan-50/60 p-3 space-y-2">
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs sm:text-sm font-black text-cyan-800">⏳ {phase}</span>
+        <span className="text-xl font-black text-cyan-700">{Math.round(percent)}%</span>
+      </div>
+      <div className="h-3 w-full rounded-full bg-cyan-900/10 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 transition-all duration-300"
+          style={{ width: `${Math.min(100, Math.max(2, percent))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function SignList({ title, items, tone }: { title: string; items: string[]; tone: "bad" | "good" | "info" }) {
+
   if (!items.length) return null;
   const icon = tone === "bad" ? "⚠️" : tone === "good" ? "✅" : "💡";
   return (

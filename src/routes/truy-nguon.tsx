@@ -61,6 +61,10 @@ function ResultList({
           {it.snippet && (
             <p className="mt-0.5 text-[11px] font-bold text-foreground line-clamp-2">{it.snippet}</p>
           )}
+          {"why" in it && (it as { why?: string }).why && (
+            <p className="mt-0.5 text-[10px] font-black text-emerald-700">✔ {(it as { why?: string }).why}</p>
+          )}
+
         </a>
       ))}
     </div>

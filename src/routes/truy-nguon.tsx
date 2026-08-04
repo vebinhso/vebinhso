@@ -140,6 +140,8 @@ function TraceSourcePage() {
   const [phase, setPhase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -149,7 +151,9 @@ function TraceSourcePage() {
       return;
     }
     setUser(u);
+    setHistory(loadHistory(u.id));
   }, [navigate]);
+
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);

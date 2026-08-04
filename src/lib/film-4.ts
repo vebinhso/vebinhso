@@ -18,6 +18,7 @@ import vl03g from "@/assets/film5/video/l03g.mp4.asset.json";
 import l06b from "@/assets/film5/clean/l06b.jpg";
 import vl06b from "@/assets/film5/video/l05a2-v2.mp4.asset.json";
 import l07b from "@/assets/film5/clean/l06-v2.jpg";
+import vl07b from "@/assets/film5/video/l06-v3.mp4.asset.json";
 import l08 from "@/assets/film5/clean/l08-v2.jpg";
 import vl08 from "@/assets/film5/video/l08-v2.mp4.asset.json";
 import l08b from "@/assets/film5/clean/l08b.jpg";
@@ -303,6 +304,7 @@ export const FILM: Record<string, FilmNode> = {
   l06: {
     id: "l06",
     image: l07b,
+    video: vl07b.url,
     speaker: "L",
     action: "Điền thông tin",
     text: "Chỉ cần điền nốt mật khẩu là xong... Mình sẽ có iPhone 17 Pro Max thôi!",

@@ -479,7 +479,10 @@ function FilmPage() {
 
       {node.headlinePatch && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
+          <div
+            className="relative aspect-video w-full max-h-full"
+            style={{ maxWidth: "calc(100dvh * 16 / 9)", containerType: "inline-size" }}
+          >
             <div
               className="absolute flex items-center"
               style={{

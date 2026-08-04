@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
+import { SocialSimulator } from "@/components/SocialSimulator";
+
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
@@ -236,7 +238,9 @@ function highlightText(
 function AiPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
+  const [section, setSection] = useState<"check" | "social">("check");
   const [tab, setTab] = useState<Tab>("news");
+
   const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
   const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
 
@@ -546,11 +550,51 @@ function AiPage() {
         <div className="glass-card w-full max-w-3xl p-4 sm:p-6">
           <div className="text-center mb-4">
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
-            <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM KIỂM TRA AI</h1>
+            <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM AI</h1>
             <p className="text-xs sm:text-sm font-bold text-foreground">
-              Dán ảnh, video, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
+              Kiểm tra thật – giả, và tập đăng bài an toàn trên mạng xã hội mô phỏng.
             </p>
           </div>
+
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {(
+              [
+                { id: "check", icon: "🔍", label: "Thật vs giả" },
+                { id: "social", icon: "📱", label: "Mô phỏng Mạng xã hội" },
+              ] as const
+            ).map((s) => (
+              <button
+                key={s.id}
+                onClick={() => {
+                  setSection(s.id);
+                  setError(null);
+                }}
+                className={`rounded-2xl px-3 py-2 font-black text-xs sm:text-sm border-2 transition ${
+                  section === s.id
+                    ? "bg-gradient-to-br from-fuchsia-500 to-indigo-700 text-white border-indigo-800"
+                    : "bg-background/70 border-border text-foreground"
+                }`}
+              >
+                <span className="text-lg sm:text-xl block">{s.icon}</span>
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {section === "social" && (
+            <div className="space-y-3">
+              <p className="text-xs sm:text-sm font-bold text-foreground">
+                Đây là trang Facebook giả lập. Hãy thử soạn bài và chọn ảnh — trước khi bài được đăng, AI sẽ quét xem
+                ảnh và nội dung có lộ địa chỉ nhà, trường lớp, ngày sinh, nhóm máu, chỉ số sức khoẻ hay lịch trình hằng
+                ngày của bạn không.
+              </p>
+              <SocialSimulator />
+            </div>
+          )}
+
+          {section === "check" && (
+          <>
+
 
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-4">
             {TABS.map((t) => (
@@ -1145,6 +1189,10 @@ function AiPage() {
               )}
             </div>
           )}
+          </>
+          )}
+
+
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/truy-nguon" className="toy-button toy-button-primary !text-xs sm:!text-sm">

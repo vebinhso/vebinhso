@@ -51,6 +51,16 @@ import mv18b from "@/assets/film6/video/v18b.mp4.asset.json";
 import mv18c from "@/assets/film6/video/v18c.mp4.asset.json";
 import mv18d from "@/assets/film6/video/v18d.mp4.asset.json";
 import mv18e from "@/assets/film6/video/v18e.mp4.asset.json";
+import v14b from "@/assets/film6/v14b.jpg";
+import v14c from "@/assets/film6/v14c.jpg";
+import v15b from "@/assets/film6/v15b.jpg";
+import v15c from "@/assets/film6/v15c.jpg";
+import v16b from "@/assets/film6/v16b.jpg";
+import mv14b from "@/assets/film6/video/v14b.mp4.asset.json";
+import mv14c from "@/assets/film6/video/v14c.mp4.asset.json";
+import mv15b from "@/assets/film6/video/v15b.mp4.asset.json";
+import mv15c from "@/assets/film6/video/v15c.mp4.asset.json";
+import mv16b from "@/assets/film6/video/v16b.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";
@@ -331,17 +341,28 @@ export const FILM: Record<string, FilmNode> = {
     text: "Lỡ rồi... Nếu dừng lại bây giờ thì ba triệu kia thành công cốc. Tớ chuyển nốt.",
     motion: "push",
     mood: "danger",
-    next: "v15",
+    next: "v14b",
   },
-  v15: {
-    id: "v15",
-    image: v15,
-    video: mv15.url,
+  v14b: {
+    id: "v14b",
+    image: v14b,
+    video: mv14b.url,
     speaker: "narrator",
-    action: "Tài khoản đã bị chặn",
-    text: "Ba phút sau, tin nhắn không gửi được nữa. Trang cá nhân biến mất. Bài đăng bán vé cũng không còn.",
-    motion: "freeze",
-    mood: "danger",
+    action: "Ba phút sau — một file PDF được gửi tới",
+    text: 'Ba phút sau, "chị V" gửi một tấm vé concert dưới dạng file PDF. Ba đứa chụm đầu vào màn hình.',
+    motion: "push",
+    mood: "neutral",
+    next: "v14c",
+  },
+  v14c: {
+    id: "v14c",
+    image: v14c,
+    video: mv14c.url,
+    speaker: "B",
+    action: "Ba bạn vui mừng",
+    text: "Có vé thật rồi! Thấy chưa, mình đâu có bị lừa. Tối mai đi concert thôi!",
+    motion: "kenburns",
+    mood: "neutral",
     next: "v16",
   },
   v16: {
@@ -349,8 +370,41 @@ export const FILM: Record<string, FilmNode> = {
     image: v16,
     video: mv16.url,
     speaker: "narrator",
-    action: "Trước cổng concert",
-    text: 'Máy quét kêu một tiếng khô khốc rồi báo đỏ. Mã QR trong file PDF chỉ là ảnh in lại của một vé đã dùng.',
+    action: "Trước cổng concert — máy quét báo đỏ",
+    text: "Máy quét kêu một tiếng khô khốc rồi báo đỏ. Mã QR trong file PDF chỉ là ảnh in lại của một vé đã dùng.",
+    motion: "kenburns",
+    mood: "danger",
+    next: "v15b",
+  },
+  v15b: {
+    id: "v15b",
+    image: v15b,
+    video: mv15b.url,
+    speaker: "A",
+    action: "Nhắn tin hỏi — không gửi được",
+    text: "Chị ơi... vé không quét được! Sao tin nhắn của em không gửi đi được nữa?",
+    motion: "shake",
+    mood: "danger",
+    next: "v15c",
+  },
+  v15c: {
+    id: "v15c",
+    image: v15c,
+    video: mv15c.url,
+    speaker: "N",
+    action: "Ba bạn nhìn nhau, hoảng sợ",
+    text: "Tài khoản chị ta biến mất rồi... Sáu triệu của tụi mình. Mình bị lừa thật rồi.",
+    motion: "push",
+    mood: "danger",
+    next: "v16b",
+  },
+  v16b: {
+    id: "v16b",
+    image: v16b,
+    video: mv16b.url,
+    speaker: "narrator",
+    action: "Ngồi lại bên ngoài cổng",
+    text: "Tiếng nhạc vọng ra từ bên trong. Ba đứa ngồi bệt xuống vỉa hè: mất sáu triệu, và cũng chẳng có tấm vé nào.",
     motion: "kenburns",
     mood: "danger",
     ending: {
@@ -358,9 +412,10 @@ export const FILM: Record<string, FilmNode> = {
       code: "C",
       title: "KẾT THÚC C — ĐỨNG NGOÀI CỔNG",
       lesson:
-        "Mất trắng toàn bộ tiền vé.\n\nBÀI HỌC:\n• Đã lỡ mất tiền cọc thì dừng lại vẫn rẻ hơn chuyển tiếp — kẻ lừa đảo luôn khai thác tâm lý 'tiếc tiền đã bỏ ra'.\n• File PDF, mã QR, email xác nhận đều có thể làm giả trong vài phút.\n• Chuyển khoản cho người lạ là mất dấu. Hãy mua qua kênh chính thức hoặc gặp mặt trực tiếp.\n• Nếu đã chuyển tiền: lưu toàn bộ tin nhắn, sao kê và báo ngay cho người lớn và cơ quan công an.",
+        "Mất trắng 6.000.000đ và không có vé.\n\nBÀI HỌC:\n• Đã lỡ mất cọc thì dừng lại vẫn rẻ hơn chuyển tiếp.\n• File PDF, mã QR, email xác nhận đều có thể làm giả trong vài phút.\n• Chuyển khoản cho người lạ là mất dấu.\n• Nếu đã chuyển tiền: giữ tin nhắn, sao kê và báo ngay cho người lớn và công an.",
     },
   },
+
 
   /* ===== 2B — DỪNG LẠI ===== */
   v17: {

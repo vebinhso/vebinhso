@@ -27,8 +27,8 @@ import l09 from "@/assets/film5/clean/l09b.jpg";
 import vl09 from "@/assets/film5/video/l09b.mp4.asset.json";
 import l09c from "@/assets/film5/clean/l09c.jpg";
 import vl09c from "@/assets/film5/video/l09c.mp4.asset.json";
-import l10a1Img from "@/assets/film4/l10a1-talk.jpg.asset.json";
-import vl10a1 from "@/assets/film4/l10a1-talk.mp4.asset.json";
+import l10a1Img from "@/assets/film5/clean/l10a1-talk-v2.jpg";
+import vl10a1 from "@/assets/film5/video/l10a1-talk-v2.mp4.asset.json";
 import l11a1 from "@/assets/film5/clean/l11a1.jpg";
 import vl11a1 from "@/assets/film5/video/l11a1.mp4.asset.json";
 import l10a1b from "@/assets/film5/clean/l10a1b-praise.jpg";
@@ -366,7 +366,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   l10a1: {
     id: "l10a1",
-    image: l10a1Img.url,
+    image: l10a1Img,
     video: vl10a1.url,
     speaker: "L",
     action: "Nói thật với bố mẹ",

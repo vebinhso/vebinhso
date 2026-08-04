@@ -302,7 +302,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
-    confirmBtn: { x: 68.5, y: 69.5, w: 15, rot: -9 },
+    confirmBtn: { x: 65, y: 72, w: 15.5, rot: -12 },
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",

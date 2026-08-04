@@ -548,8 +548,8 @@ export const FILM: Record<string, FilmNode> = {
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
     motion: "push",
     mood: "neutral",
-    mailOverlay: true,
-    phoneAnchor: { x: 46, y: 38, h: 56, rot: -40 },
+    mood: "neutral",
+
     choices: [
       {
         label: "A. Chụp màn hình, đăng cảnh báo lên nhóm lớp và Facebook",

@@ -40,9 +40,9 @@ import mv18 from "@/assets/film6/video/v18.mp4.asset.json";
 import mv19 from "@/assets/film6/video/v19.mp4.asset.json";
 import mv20 from "@/assets/film6/video/v20.mp4.asset.json";
 import v20b from "@/assets/film6/v20b.jpg";
-import v20c from "@/assets/film6/v20c.jpg";
+import v20d from "@/assets/film6/v20d.jpg";
 import mv20b from "@/assets/film6/video/v20b.mp4.asset.json";
-import mv20c from "@/assets/film6/video/v20c.mp4.asset.json";
+import mv20d from "@/assets/film6/video/v20d.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";

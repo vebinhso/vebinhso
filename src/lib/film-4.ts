@@ -366,7 +366,7 @@ export const FILM: Record<string, FilmNode> = {
   },
   l10a1: {
     id: "l10a1",
-    image: l10a1Img.url,
+    image: l10a1Img,
     video: vl10a1.url,
     speaker: "L",
     action: "Nói thật với bố mẹ",

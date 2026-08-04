@@ -30,6 +30,62 @@ const MAX_IMG = 5 * 1024 * 1024;
 
 type Result = Awaited<ReturnType<typeof findSources>>;
 
+type HistoryEntry = {
+  id: string;
+  at: number;
+  text: string;
+  thumb: string;
+  result: Result;
+};
+
+const HISTORY_MAX = 20;
+const historyKey = (uid: string) => `truynguon-history-${uid}`;
+
+function loadHistory(uid: string): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(historyKey(uid));
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? (arr as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(uid: string, list: HistoryEntry[]) {
+  try {
+    localStorage.setItem(historyKey(uid), JSON.stringify(list.slice(0, HISTORY_MAX)));
+  } catch {
+    /* quota */
+  }
+}
+
+/** Thu nhỏ ảnh thành thumbnail để lưu lịch sử không tốn dung lượng */
+async function makeThumb(dataUrl: string): Promise<string> {
+  if (!dataUrl) return "";
+  try {
+    const img = new Image();
+    await new Promise<void>((res, rej) => {
+      img.onload = () => res();
+      img.onerror = () => rej(new Error("img"));
+      img.src = dataUrl;
+    });
+    const max = 160;
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.7);
+  } catch {
+    return "";
+  }
+}
+
+function timeAgo(ts: number) {
+  return new Date(ts).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+}
+
+
 function ResultList({
   title,
   icon,

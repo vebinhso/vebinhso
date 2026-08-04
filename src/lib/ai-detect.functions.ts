@@ -181,7 +181,116 @@ riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việ
     };
   });
 
-/** Kiểm tra tin tức có phải tin giả không */
+const TRUSTED_FEEDS = [
+  { name: "VnExpress", url: "https://vnexpress.net/rss/tin-moi-nhat.rss" },
+  { name: "Tuổi Trẻ", url: "https://tuoitre.vn/rss/tin-moi-nhat.rss" },
+  { name: "Thanh Niên", url: "https://thanhnien.vn/rss/home.rss" },
+];
+
+function decodeXml(s: string) {
+  return s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+type Headline = { title: string; source: string; date: string; link: string };
+
+function parseRss(xml: string, fallbackSource: string, limit: number): Headline[] {
+  const out: Headline[] = [];
+  const items = xml.split(/<item[\s>]/).slice(1);
+  for (const raw of items.slice(0, limit)) {
+    const title = decodeXml(raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "");
+    if (!title) continue;
+    const link = decodeXml(raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? "").slice(0, 300);
+    const date = decodeXml(raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "");
+    const src = decodeXml(raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "") || fallbackSource;
+    out.push({ title: title.slice(0, 200), source: src.slice(0, 60), date, link });
+  }
+  return out;
+}
+
+const VI_STOP = new Set(
+  "và là của có trong cho với những các một được người khi này đã đang sẽ từ về không tại theo ra vào bị nhưng thì mà nếu như để trên dưới sau trước rất đến hơn nữa cũng chỉ vì nên hay đó nó tin tức bài báo".split(
+    " ",
+  ),
+);
+
+function buildQuery(content: string) {
+  const cleaned = content.replace(/https?:\/\/\S+/g, " ");
+  const words = cleaned
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length > 1 && !VI_STOP.has(w.toLowerCase()));
+  const freq = new Map<string, number>();
+  for (const w of words) {
+    const k = w.toLowerCase();
+    freq.set(k, (freq.get(k) ?? 0) + 1 + (/^\p{Lu}/u.test(w) ? 1 : 0));
+  }
+  const top = [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([w]) => w);
+  return (top.length ? top.join(" ") : cleaned.slice(0, 80)).slice(0, 120);
+}
+
+async function fetchLatestNews(content: string): Promise<Headline[]> {
+  const q = buildQuery(content);
+  const urls = [
+    {
+      name: "Google Tin tức",
+      url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`,
+      limit: 12,
+    },
+    ...TRUSTED_FEEDS.map((f) => ({ name: f.name, url: f.url, limit: 12 })),
+  ];
+  const results = await Promise.all(
+    urls.map(async (u) => {
+      try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch(u.url, {
+          signal: ctrl.signal,
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; VeBinhSoBot/1.0)" },
+        });
+        clearTimeout(timer);
+        if (!res.ok) return [];
+        return parseRss(await res.text(), u.name, u.limit);
+      } catch {
+        return [];
+      }
+    }),
+  );
+  const google = results[0] ?? [];
+  const keys = new Set(
+    buildQuery(content)
+      .split(" ")
+      .filter((w) => w.length > 2),
+  );
+  const others = results
+    .slice(1)
+    .flat()
+    .filter((h) => {
+      const t = h.title.toLowerCase();
+      return [...keys].some((k) => t.includes(k));
+    });
+  const seen = new Set<string>();
+  return [...google, ...others]
+    .filter((h) => {
+      const k = h.title.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, 18);
+}
+
+/** Kiểm tra tin tức: tin giả / tin lá cải / tin truyền miệng — đối chiếu tin mới nhất mỗi ngày */
 export const analyzeNews = createServerFn({ method: "POST" })
   .inputValidator((data: { content: string }) => {
     const t = data?.content;
@@ -191,30 +300,49 @@ export const analyzeNews = createServerFn({ method: "POST" })
     return { content: t.trim().slice(0, 6000) };
   })
   .handler(async ({ data }) => {
-    const sys = `Bạn là chuyên gia kiểm chứng tin tức (fact-check) cho học sinh Việt Nam. Người dùng dán tiêu đề, nội dung tin hoặc link bài báo.
-Phân tích: tiêu đề giật gân/câu view, không nêu nguồn hoặc nguồn mơ hồ ("theo một số nguồn tin"), không có tên tác giả/thời gian, số liệu không kiểm chứng, ngôn ngữ cảm xúc – kích động, kêu gọi chia sẻ gấp, thuyết âm mưu, ảnh cũ dùng lại, mạo danh báo chính thống (VTV, VnExpress, Tuổi Trẻ), nội dung mâu thuẫn với kiến thức phổ thông, tin lừa đảo tài chính/sức khoẻ.
+    const headlines = await fetchLatestNews(data.content);
+    const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+    const feedBlock = headlines.length
+      ? headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}${h.date ? ` (${h.date})` : ""}`).join("\n")
+      : "(Không tìm được tin liên quan trên Google Tin tức và các báo lớn trong hôm nay)";
+
+    const sys = `Bạn là chuyên gia kiểm chứng tin tức (fact-check) cho học sinh Việt Nam. Hôm nay là ${today}.
+Người dùng dán tiêu đề, nội dung tin hoặc link bài báo. Bạn được cung cấp DANH SÁCH TIN MỚI NHẤT hôm nay lấy trực tiếp từ Google Tin tức và các báo lớn (VnExpress, Tuổi Trẻ, Thanh Niên) để đối chiếu.
+Hãy làm 3 việc:
+1) TIN GIẢ: tiêu đề giật gân, nguồn mơ hồ ("theo một số nguồn tin"), không tác giả/thời gian, số liệu không kiểm chứng, kêu gọi chia sẻ gấp, thuyết âm mưu, mạo danh báo chính thống, lừa đảo tài chính/sức khoẻ.
+2) TIN LÁ CẢI / TRUYỀN MIỆNG: tin vỉa hè, đồn thổi, "nghe nói", "bạn của bạn tôi kể", drama showbiz câu view, đời tư, giật tít câu click, nội dung cảm xúc nhưng không có dữ kiện, chỉ lan trên mạng xã hội/nhóm chat mà không báo chính thống nào đưa.
+3) ĐỐI CHIẾU: có báo chính thống nào trong danh sách đưa tin tương tự không. Nếu KHÔNG có báo nào đưa → nêu rõ "chưa có báo chính thống nào xác nhận" và tăng tabloidScore.
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"fakeScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu tin giả"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
-fakeScore = mức độ tin này là tin giả/sai lệch. Nếu không có đủ dữ kiện, chọn "unverified" và nói rõ cần kiểm chứng. Viết tiếng Việt.`;
+{"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
+fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. Viết tiếng Việt dễ hiểu.`;
+
     const parsed = await callGateway({
       model: "google/gemini-3.5-flash",
       messages: [
         { role: "system", content: sys },
-        { role: "user", content: `Kiểm tra tin tức này:\n${data.content}` },
+        {
+          role: "user",
+          content: `TIN CẦN KIỂM TRA:\n${data.content}\n\nTIN MỚI NHẤT HÔM NAY (${today}) TỪ GOOGLE TIN TỨC & BÁO LỚN:\n${feedBlock}`,
+        },
       ],
       response_format: { type: "json_object" },
     });
     return {
       fakeScore: clampScore(parsed.fakeScore),
+      tabloidScore: clampScore(parsed.tabloidScore),
       level: str(parsed.level, "unknown"),
       verdict: str(parsed.verdict, "unverified"),
       category: str(parsed.category, "chưa rõ"),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      matchedNews: strArr(parsed.matchedNews, 4),
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
       checkSteps: strArr(parsed.checkSteps),
+      checkedAt: today,
+      sources: headlines.slice(0, 6).map((h) => ({ title: h.title, source: h.source, link: h.link })),
     };
   });
+
 
 /** Kiểm tra video: có phải do AI tạo (deepfake / AI video) hoặc chứa nội dung AI không */
 export const analyzeVideo = createServerFn({ method: "POST" })

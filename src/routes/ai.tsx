@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
+import { SocialSimulator } from "@/components/SocialSimulator";
+
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";

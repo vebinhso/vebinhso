@@ -126,6 +126,8 @@ export type FilmNode = {
   formScreen?: { x: number; y: number; w: number; h: number; rot?: number };
   /** Vá tối một vùng màn hình điện thoại để che biểu tượng có sẵn trong video */
   screenPatch?: { x: number; y: number; w: number; h: number; rot?: number };
+  /** Vá tiêu đề email bằng chữ tiếng Việt sắc nét đè lên vùng chữ bị nhoè trong video */
+  headlinePatch?: { x: number; y: number; w: number; h: number; rot?: number; text: string; size?: number };
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -546,8 +548,17 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "LINH ĐÃ AN TOÀN. CÒN BẠN BÈ THÌ SAO?",
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
-    motion: "push",
+    motion: "freeze",
     mood: "neutral",
+    headlinePatch: {
+      x: 44.6,
+      y: 30.8,
+      w: 17.5,
+      h: 7.2,
+      rot: -8,
+      size: 1.35,
+      text: "[XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!",
+    },
 
     choices: [
       {

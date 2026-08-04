@@ -78,7 +78,7 @@ const LESSONS: Lesson[] = [
     id: "iphone-email",
     emoji: "🎁",
     title: "Bài 4 · Món quà đắt nhất",
-    desc: "Một email thông báo trúng thưởng iPhone. Linh sẽ làm gì khi nhận được tin vui bất ngờ từ người lạ?",
+    desc: "Một email thông báo trúng thưởng iPhone. L sẽ làm gì khi nhận được tin vui bất ngờ từ người lạ?",
     tag: "An toàn số",
     gradient: "from-amber-500 to-orange-600",
     ready: true,

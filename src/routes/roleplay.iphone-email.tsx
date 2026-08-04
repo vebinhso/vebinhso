@@ -599,10 +599,10 @@ function FilmPage() {
                       XÁC NHẬN THÔNG TIN NHẬN THƯỞNG
                     </div>
                     {[
-                      { label: "Họ và tên", value: "Nguyễn Thùy Linh" },
+                      { label: "Họ và tên", value: "Nguyễn Thùy L" },
                       { label: "Số điện thoại", value: "09xxxxxxxx" },
                       { label: "Địa chỉ nhà", value: "123 Đường Hoa Mai, P. X, Q. Y" },
-                      { label: "Tên đăng nhập Game", value: "LinhCute2009" },
+                      { label: "Tên đăng nhập Game", value: "LCute2009" },
                       { label: "Mật khẩu Game", value: "************", danger: true },
                     ].map((f) => (
                       <div key={f.label} className="space-y-0.5">
@@ -638,7 +638,7 @@ function FilmPage() {
                     <div className="px-2 py-1.5 flex items-center gap-1.5 border-b border-slate-200">
                       <div className="h-4 w-4 rounded-full bg-slate-300" />
                       <div>
-                        <div className="text-[7px] font-black text-slate-900">Linh Cute</div>
+                        <div className="text-[7px] font-black text-slate-900">L Cute</div>
                         <div className="text-[6px] text-slate-500">Vừa xong · 🌐</div>
                       </div>
                     </div>

@@ -30,6 +30,62 @@ const MAX_IMG = 5 * 1024 * 1024;
 
 type Result = Awaited<ReturnType<typeof findSources>>;
 
+type HistoryEntry = {
+  id: string;
+  at: number;
+  text: string;
+  thumb: string;
+  result: Result;
+};
+
+const HISTORY_MAX = 20;
+const historyKey = (uid: string) => `truynguon-history-${uid}`;
+
+function loadHistory(uid: string): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(historyKey(uid));
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? (arr as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(uid: string, list: HistoryEntry[]) {
+  try {
+    localStorage.setItem(historyKey(uid), JSON.stringify(list.slice(0, HISTORY_MAX)));
+  } catch {
+    /* quota */
+  }
+}
+
+/** Thu nhỏ ảnh thành thumbnail để lưu lịch sử không tốn dung lượng */
+async function makeThumb(dataUrl: string): Promise<string> {
+  if (!dataUrl) return "";
+  try {
+    const img = new Image();
+    await new Promise<void>((res, rej) => {
+      img.onload = () => res();
+      img.onerror = () => rej(new Error("img"));
+      img.src = dataUrl;
+    });
+    const max = 160;
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.7);
+  } catch {
+    return "";
+  }
+}
+
+function timeAgo(ts: number) {
+  return new Date(ts).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+}
+
+
 function ResultList({
   title,
   icon,
@@ -84,6 +140,8 @@ function TraceSourcePage() {
   const [phase, setPhase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -93,7 +151,9 @@ function TraceSourcePage() {
       return;
     }
     setUser(u);
+    setHistory(loadHistory(u.id));
   }, [navigate]);
+
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -156,6 +216,20 @@ function TraceSourcePage() {
       setProgress(100);
       setPhase("Hoàn tất!");
       setResult(r);
+      const u = user ?? getCurrentUser();
+      if (u) {
+        const thumb = await makeThumb(image);
+        const entry: HistoryEntry = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          at: Date.now(),
+          text: text.trim(),
+          thumb,
+          result: r,
+        };
+        const next = [entry, ...history].slice(0, HISTORY_MAX);
+        setHistory(next);
+        saveHistory(u.id, next);
+      }
     } catch (e: any) {
       setError(e?.message || "Không tìm được nguồn, thử lại nhé.");
     } finally {
@@ -164,6 +238,28 @@ function TraceSourcePage() {
       setTimeout(() => setLoading(false), 200);
     }
   }
+
+  function openEntry(h: HistoryEntry) {
+    setResult(h.result);
+    setText(h.text);
+    setImage(h.thumb);
+    setError(null);
+    setShowHistory(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function removeEntry(id: string) {
+    const next = history.filter((h) => h.id !== id);
+    setHistory(next);
+    if (user) saveHistory(user.id, next);
+  }
+
+  function clearHistory() {
+    if (!confirm("Xoá toàn bộ lịch sử truy nguồn?")) return;
+    setHistory([]);
+    if (user) saveHistory(user.id, []);
+  }
+
 
   if (!user) return null;
 
@@ -348,6 +444,70 @@ function TraceSourcePage() {
               </div>
             )}
           </div>
+
+          {/* Lịch sử truy nguồn */}
+          <div className="mt-5 rounded-2xl border-2 border-border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => setShowHistory((v) => !v)}
+                className="text-xs sm:text-sm font-black flex items-center gap-1"
+              >
+                🗂️ Lịch sử truy nguồn ({history.length}) {showHistory ? "▾" : "▸"}
+              </button>
+              {history.length > 0 && showHistory && (
+                <button onClick={clearHistory} className="text-[11px] font-black text-red-600">
+                  Xoá tất cả
+                </button>
+              )}
+            </div>
+
+            {showHistory && (
+              <div className="mt-2 space-y-2">
+                {history.length === 0 ? (
+                  <p className="text-[11px] font-bold text-foreground">
+                    Chưa có lần truy nguồn nào. Mỗi lần bạn bấm “Truy nguồn ngay”, kết quả sẽ được lưu lại đây để xem
+                    lại sau.
+                  </p>
+                ) : (
+                  history.map((h) => (
+                    <div
+                      key={h.id}
+                      className="flex items-center gap-2 rounded-xl border-2 border-border/60 p-2 hover:border-cyan-500 transition"
+                    >
+                      {h.thumb ? (
+                        <img src={h.thumb} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-cyan-500/10 grid place-items-center text-lg shrink-0">
+                          📝
+                        </div>
+                      )}
+                      <button onClick={() => openEntry(h)} className="flex-1 text-left min-w-0">
+                        <p className="text-[11px] sm:text-xs font-black truncate">
+                          {h.text || h.result.describe || "(ảnh)"}
+                        </p>
+                        <p className="text-[10px] font-black text-foreground">
+                          {timeAgo(h.at)} ·{" "}
+                          {h.result.total > 0 ? (
+                            <span className="text-emerald-700">✅ {h.result.total} nguồn</span>
+                          ) : (
+                            <span className="text-amber-700">⚠️ Không có nguồn</span>
+                          )}
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => removeEntry(h.id)}
+                        className="text-[11px] font-black text-red-600 px-1 shrink-0"
+                        aria-label="Xoá mục này"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/ai" className="toy-button !text-xs sm:!text-sm">

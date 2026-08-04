@@ -2,14 +2,14 @@ import v01 from "@/assets/film6/v01.jpg";
 import v02 from "@/assets/film6/v02.jpg";
 import v03 from "@/assets/film6/v03.jpg";
 import v04 from "@/assets/film6/v04.jpg";
-import v05 from "@/assets/film6/v05.jpg";
+import v05 from "@/assets/film6/v05-chat.png";
 import v06 from "@/assets/film6/v06.jpg";
-import v07 from "@/assets/film6/v07.jpg";
+import v07 from "@/assets/film6/v07-clean.jpg";
 import v08 from "@/assets/film6/v08.jpg";
 import v09 from "@/assets/film6/v09.jpg";
 import v10 from "@/assets/film6/v10.jpg";
 import v11 from "@/assets/film6/v11.jpg";
-import v12 from "@/assets/film6/v12.jpg";
+import v12 from "@/assets/film6/v12-clean.jpg";
 import v13 from "@/assets/film6/v13.jpg";
 import v14 from "@/assets/film6/v14.jpg";
 import v15 from "@/assets/film6/v15.jpg";
@@ -23,14 +23,14 @@ import mv01 from "@/assets/film6/video/v01.mp4.asset.json";
 import mv02 from "@/assets/film6/video/v02.mp4.asset.json";
 import mv03 from "@/assets/film6/video/v03.mp4.asset.json";
 import mv04 from "@/assets/film6/video/v04.mp4.asset.json";
-import mv05 from "@/assets/film6/video/v05.mp4.asset.json";
+import mv05 from "@/assets/film6/video/v05b.mp4.asset.json";
 import mv06 from "@/assets/film6/video/v06.mp4.asset.json";
-import mv07 from "@/assets/film6/video/v07.mp4.asset.json";
+import mv07 from "@/assets/film6/video/v07b.mp4.asset.json";
 import mv08 from "@/assets/film6/video/v08.mp4.asset.json";
 import mv09 from "@/assets/film6/video/v09.mp4.asset.json";
 import mv10 from "@/assets/film6/video/v10.mp4.asset.json";
 import mv11 from "@/assets/film6/video/v11.mp4.asset.json";
-import mv12 from "@/assets/film6/video/v12.mp4.asset.json";
+import mv12 from "@/assets/film6/video/v12b.mp4.asset.json";
 import mv13 from "@/assets/film6/video/v13.mp4.asset.json";
 import mv14 from "@/assets/film6/video/v14.mp4.asset.json";
 import mv15 from "@/assets/film6/video/v15.mp4.asset.json";
@@ -39,6 +39,10 @@ import mv17 from "@/assets/film6/video/v17.mp4.asset.json";
 import mv18 from "@/assets/film6/video/v18.mp4.asset.json";
 import mv19 from "@/assets/film6/video/v19.mp4.asset.json";
 import mv20 from "@/assets/film6/video/v20.mp4.asset.json";
+import v20b from "@/assets/film6/v20b.jpg";
+import v20c from "@/assets/film6/v20c.jpg";
+import mv20b from "@/assets/film6/video/v20b.mp4.asset.json";
+import mv20c from "@/assets/film6/video/v20c.mp4.asset.json";
 
 /** A = người lỡ vé · N = người cẩn trọng · B = người hành động · X = "chị V" (avatar vô danh) */
 export type Speaker = "narrator" | "A" | "N" | "B" | "X";
@@ -207,19 +211,6 @@ export const FILM: Record<string, FilmNode> = {
     motion: "freeze",
     mood: "danger",
     next: "v06",
-    chatOverlay: {
-      messages: [
-        { text: "Chị còn 3 vé nè, chốt lẹ kẻo hết đấy", type: "incoming", x: 27, y: 34, w: 27 },
-        { text: "để tụi em suy", type: "outgoing", x: 55, y: 58, w: 28 },
-      ],
-      coverRects: [
-        { x: 54.5, y: 14, w: 30, h: 19 },
-        { x: 26.5, y: 32.5, w: 28, h: 19 },
-        { x: 25.5, y: 56.5, w: 22.5, h: 13.5 },
-        { x: 54.5, y: 56.5, w: 29, h: 13.5 },
-      ],
-    },
-
   },
 
   /* ===== NÚT QUYẾT ĐỊNH 1 ===== */

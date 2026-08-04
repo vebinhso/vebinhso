@@ -98,6 +98,22 @@ const LEVEL_VI: Record<string, string> = {
   dangerous: "NGUY HIỂM",
   unknown: "Chưa xác định",
 };
+const NEWS_VERDICT_VI: Record<string, string> = {
+  likely_true: "Nhiều khả năng ĐÁNG TIN",
+  unverified: "CHƯA KIỂM CHỨNG được",
+  misleading: "Tin SAI LỆCH / gây hiểu lầm",
+  likely_fake: "Nhiều khả năng TIN GIẢ",
+  fake: "TIN GIẢ",
+};
+const EMAIL_TYPE_VI: Record<string, string> = {
+  phishing: "Lừa lấy thông tin (phishing)",
+  spoofing: "Giả mạo người gửi",
+  scam: "Lừa đảo",
+  spam: "Thư rác",
+  marketing: "Quảng cáo",
+  legit: "Có vẻ hợp lệ",
+  unknown: "Chưa rõ",
+};
 
 function AiPage() {
   const navigate = useNavigate();

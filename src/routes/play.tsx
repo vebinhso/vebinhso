@@ -17,8 +17,19 @@ function PlayPage() {
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
     setHasOutfit(!!loadOutfit());
-    // Preload the heavy 3D chunk so entering the house map feels instant.
-    import("@/game/GameWorld").catch(() => {});
+    // Nạp trước phần nặng để vào bản đồ là chơi ngay, không khựng.
+    const warm = () => {
+      import("@/game/GameWorld").catch(() => {});
+      import("@/game/questions")
+        .then((m) => m.loadQuestionsFromDB?.())
+        .catch(() => {});
+      import("@/lib/worldPickups")
+        .then((m) => m.loadPickupConfig?.())
+        .catch(() => {});
+    };
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    if (ric) ric(warm);
+    else window.setTimeout(warm, 300);
   }, [navigate]);
 
   if (!user) return null;

@@ -363,15 +363,21 @@ function FilmPage() {
       <div className="fixed inset-0 bg-black text-white overflow-hidden">
         <img
           src={FILM_POSTER}
-          alt="Poster phim tương tác Món quà đắt nhất"
-          className="absolute inset-0 w-full h-full object-cover"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
-        <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-8 sm:pb-12 overflow-y-auto">
+        <img
+          src={FILM_POSTER}
+          alt="Poster phim tương tác Món quà đắt nhất"
+          className="absolute inset-x-0 top-0 h-[62%] sm:h-[68%] w-full object-contain object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black via-black/85 to-transparent" />
+        <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-6 sm:pb-10 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-amber-300 mb-2 drop-shadow-lg">
             PHIM TƯƠNG TÁC · BÀI 4
           </p>
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-3 leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 leading-tight tracking-wide drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {FILM_TITLE}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">

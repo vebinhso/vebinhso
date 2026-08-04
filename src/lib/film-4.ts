@@ -122,6 +122,10 @@ export type FilmNode = {
   confirmBtn?: { x: number; y: number; w: number; rot?: number };
   /** Vị trí khung điện thoại trên khung hình (theo % của khung 16:9), khớp với điện thoại nhân vật đang cầm */
   phoneAnchor?: { x: number; y: number; h: number; rot?: number };
+  /** Dựng lại màn hình form nhận thưởng bằng CSS cho rõ nét (đè lên vùng màn hình trong khung 16:9) */
+  formScreen?: { x: number; y: number; w: number; h: number; rot?: number };
+  /** Vá tối một vùng màn hình điện thoại để che biểu tượng có sẵn trong video */
+  screenPatch?: { x: number; y: number; w: number; h: number; rot?: number };
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;
@@ -301,6 +305,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl07b.url,
     speaker: "L",
     action: "Điền thông tin",
+    formScreen: { x: 46.2, y: 57, w: 39.6, h: 86 },
     text: "Chỉ cần điền nốt mật khẩu là xong... Mình sẽ có iPhone 17 Pro Max thôi!",
     motion: "push",
     mood: "danger",
@@ -312,7 +317,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
-    confirmBtn: { x: 65, y: 72, w: 15.5, rot: -12 },
+    confirmBtn: { x: 66.5, y: 73, w: 15.5, rot: 14 },
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",
@@ -324,6 +329,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl08.url,
     speaker: "narrator",
     action: "Máy bắt đầu lạ",
+    screenPatch: { x: 43.4, y: 53.5, w: 8.4, h: 23.5, rot: -8 },
     text: "Máy chậm hẳn, màn hình giật lag liên tục và pin tụt nhanh bất thường. L bấm mãi mà mọi thứ cứ đứng im.",
     motion: "shake",
     mood: "danger",
@@ -543,7 +549,7 @@ export const FILM: Record<string, FilmNode> = {
     motion: "push",
     mood: "neutral",
     mailOverlay: true,
-    phoneAnchor: { x: 45, y: 39, h: 71, rot: -50 },
+    phoneAnchor: { x: 46, y: 38, h: 56, rot: -40 },
     choices: [
       {
         label: "A. Chụp màn hình, đăng cảnh báo lên nhóm lớp và Facebook",

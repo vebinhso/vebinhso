@@ -458,6 +458,81 @@ function FilmPage() {
         />
       )}
 
+      {node.screenPatch && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
+            <div
+              className="absolute rounded-[6px]"
+              style={{
+                left: `${node.screenPatch.x}%`,
+                top: `${node.screenPatch.y}%`,
+                width: `${node.screenPatch.w}%`,
+                height: `${node.screenPatch.h}%`,
+                transform: `translate(-50%, -50%) rotate(${node.screenPatch.rot ?? 0}deg)`,
+                background:
+                  "radial-gradient(ellipse at center, rgba(9,14,26,1) 45%, rgba(9,14,26,0.85) 72%, rgba(9,14,26,0) 100%)",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {node.formScreen && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
+            <div
+              className="absolute overflow-hidden"
+              style={{
+                left: `${node.formScreen.x}%`,
+                top: `${node.formScreen.y}%`,
+                width: `${node.formScreen.w}%`,
+                height: `${node.formScreen.h}%`,
+                transform: `translate(-50%, -50%) rotate(${node.formScreen.rot ?? 0}deg)`,
+                background: "#0b0b0d",
+              }}
+            >
+              <div className="h-full w-full px-[6%] py-[3%] flex flex-col justify-start gap-[1.6%]">
+                <div
+                  className="text-center font-black text-[#ffd24a] leading-tight"
+                  style={{ fontSize: "clamp(9px, 1.5vw, 26px)", textShadow: "0 0 10px rgba(255,196,0,0.6)" }}
+                >
+                  XÁC NHẬN THÔNG TIN
+                  <br />
+                  NHẬN THƯỞNG
+                </div>
+                {[
+                  { label: "Họ và tên", value: "Nguyễn Thùy L" },
+                  { label: "Số điện thoại", value: "09xxxxxxxx" },
+                  { label: "Địa chỉ nhà", value: "123 Đường Hoa Mai, P. X, Q. Y" },
+                  { label: "Tên đăng nhập Game", value: "LCute2009" },
+                  { label: "Mật khẩu", value: "••••••••••", danger: true },
+                ].map((f) => (
+                  <div key={f.label} className="space-y-[1px]">
+                    <div
+                      className="font-bold text-[#ffd24a]"
+                      style={{ fontSize: "clamp(7px, 0.95vw, 16px)", textShadow: "0 0 6px rgba(255,196,0,0.5)" }}
+                    >
+                      {f.label}
+                    </div>
+                    <div
+                      className="rounded-full px-[4%] py-[1.2%] text-slate-100"
+                      style={{
+                        fontSize: "clamp(8px, 1.15vw, 20px)",
+                        border: `2px solid ${f.danger ? "#ff6b6b" : "#f2c94c"}`,
+                        boxShadow: `0 0 10px ${f.danger ? "rgba(255,107,107,0.55)" : "rgba(242,201,76,0.55)"}`,
+                        background: "rgba(0,0,0,0.35)",
+                      }}
+                    >
+                      {f.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {node.confirmBtn && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>

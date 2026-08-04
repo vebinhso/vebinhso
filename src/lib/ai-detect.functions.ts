@@ -307,13 +307,16 @@ export const analyzeNews = createServerFn({ method: "POST" })
       : "(Không tìm được tin liên quan trên Google Tin tức và các báo lớn trong hôm nay)";
 
     const sys = `Bạn là chuyên gia kiểm chứng tin tức (fact-check) cho học sinh Việt Nam. Hôm nay là ${today}.
-Người dùng dán tiêu đề, nội dung tin hoặc link bài báo. Bạn được cung cấp DANH SÁCH TIN MỚI NHẤT hôm nay lấy trực tiếp từ Google Tin tức và các báo lớn (VnExpress, Tuổi Trẻ, Thanh Niên) để đối chiếu.
-Hãy làm 3 việc:
-1) TIN GIẢ: tiêu đề giật gân, nguồn mơ hồ ("theo một số nguồn tin"), không tác giả/thời gian, số liệu không kiểm chứng, kêu gọi chia sẻ gấp, thuyết âm mưu, mạo danh báo chính thống, lừa đảo tài chính/sức khoẻ.
-2) TIN LÁ CẢI / TRUYỀN MIỆNG: tin vỉa hè, đồn thổi, "nghe nói", "bạn của bạn tôi kể", drama showbiz câu view, đời tư, giật tít câu click, nội dung cảm xúc nhưng không có dữ kiện, chỉ lan trên mạng xã hội/nhóm chat mà không báo chính thống nào đưa.
-3) ĐỐI CHIẾU: có báo chính thống nào trong danh sách đưa tin tương tự không. Nếu KHÔNG có báo nào đưa → nêu rõ "chưa có báo chính thống nào xác nhận" và tăng tabloidScore.
+Người dùng có thể DÁN một tin, hoặc ĐẶT CÂU HỎI kiểu "có thật là ... không?", "nghe nói ... đúng không?". Bạn được cung cấp DANH SÁCH TIN MỚI NHẤT hôm nay lấy trực tiếp từ Google Tin tức và các báo lớn (VnExpress, Tuổi Trẻ, Thanh Niên) để đối chiếu.
+Nhiệm vụ:
+1) TRẢ LỜI TRỰC TIẾP câu hỏi/nội dung của người dùng bằng 1-3 câu ("answer").
+2) KIỂM CHỨNG: thông tin này đã được kiểm chứng ở đâu chưa? Nếu trong danh sách tin có báo chính thống đưa tin trùng khớp → verified = true, liệt kê tên báo trong "verifiedBy" và tiêu đề trùng khớp trong "matchedNews".
+   Nếu KHÔNG có nguồn nào xác nhận → verified = false, verdict = "unverified", và answer PHẢI nói rõ: "Đây là thông tin CHƯA được kiểm chứng, chưa có báo chính thống nào xác nhận — không nên tin hay chia sẻ."
+3) TIN GIẢ: tiêu đề giật gân, nguồn mơ hồ, không tác giả/thời gian, số liệu không kiểm chứng, kêu gọi chia sẻ gấp, thuyết âm mưu, mạo danh báo chính thống, lừa đảo tài chính/sức khoẻ.
+4) TIN LÁ CẢI / TRUYỀN MIỆNG: tin vỉa hè, đồn thổi, "nghe nói", "bạn của bạn tôi kể", drama showbiz câu view, giật tít câu click, chỉ lan trên mạng xã hội/nhóm chat.
+Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách.
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
+{"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
 fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. Viết tiếng Việt dễ hiểu.`;
 
     const parsed = await callGateway({
@@ -322,16 +325,26 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
         { role: "system", content: sys },
         {
           role: "user",
-          content: `TIN CẦN KIỂM TRA:\n${data.content}\n\nTIN MỚI NHẤT HÔM NAY (${today}) TỪ GOOGLE TIN TỨC & BÁO LỚN:\n${feedBlock}`,
+          content: `NGƯỜI DÙNG HỎI / TIN CẦN KIỂM TRA:\n${data.content}\n\nTIN MỚI NHẤT HÔM NAY (${today}) TỪ GOOGLE TIN TỨC & BÁO LỚN:\n${feedBlock}`,
         },
       ],
       response_format: { type: "json_object" },
     });
+    const verifiedBy = strArr(parsed.verifiedBy, 5);
+    const verified = parsed.verified === true && verifiedBy.length > 0;
     return {
+      answer: str(
+        parsed.answer,
+        verified
+          ? "Thông tin này có nguồn báo chính thống đưa tin."
+          : "Đây là thông tin CHƯA được kiểm chứng — chưa có báo chính thống nào xác nhận, bạn không nên tin hay chia sẻ.",
+      ),
+      verified,
+      verifiedBy,
       fakeScore: clampScore(parsed.fakeScore),
       tabloidScore: clampScore(parsed.tabloidScore),
       level: str(parsed.level, "unknown"),
-      verdict: str(parsed.verdict, "unverified"),
+      verdict: verified ? str(parsed.verdict, "likely_true") : "unverified",
       category: str(parsed.category, "chưa rõ"),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
       matchedNews: strArr(parsed.matchedNews, 4),
@@ -342,6 +355,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       sources: headlines.slice(0, 6).map((h) => ({ title: h.title, source: h.source, link: h.link })),
     };
   });
+
 
 
 /** Kiểm tra video: có phải do AI tạo (deepfake / AI video) hoặc chứa nội dung AI không */

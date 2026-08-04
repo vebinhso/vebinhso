@@ -459,7 +459,7 @@ function FilmPage() {
         />
       )}
 
-      {(node.emailOverlay || node.mailOverlay || node.inspectOverlay || node.formOverlay || node.phoneFormOverlay) && (
+      {(node.emailOverlay || node.mailOverlay || node.inspectOverlay || node.formOverlay || node.phoneFormOverlay || node.warnPostOverlay) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           {/* Khung phủ khớp đúng khung hình 16:9 để định vị theo điện thoại nhân vật đang cầm */}
           <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>

@@ -415,7 +415,7 @@ function FilmPage() {
               {node.chatOverlay.coverRects?.map((r, i) => (
                 <div
                   key={`cover-${i}`}
-                  className="absolute rounded-xl bg-gray-200"
+                  className="absolute rounded-2xl bg-gray-100"
                   style={{
                     left: `${r.x}%`,
                     top: `${r.y}%`,

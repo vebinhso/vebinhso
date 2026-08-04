@@ -601,7 +601,58 @@ function FilmPage() {
                     )}
                   </div>
                 )}
+
+                {node.warnPostOverlay && (
+                  <div className="h-full bg-white overflow-hidden flex flex-col">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-[#1877f2] text-white">
+                      <span className="text-[8px]">‹</span>
+                      <span className="text-[8px] font-black">Nhóm Game lớp 8A</span>
+                    </div>
+                    <div className="px-2 py-1.5 flex items-center gap-1.5 border-b border-slate-200">
+                      <div className="h-4 w-4 rounded-full bg-slate-300" />
+                      <div>
+                        <div className="text-[7px] font-black text-slate-900">Linh Cute</div>
+                        <div className="text-[6px] text-slate-500">Vừa xong · 🌐</div>
+                      </div>
+                    </div>
+                    <div className="px-2 py-1.5 space-y-1">
+                      <div className="text-[8px] font-black text-slate-900 leading-tight">
+                        ⚠️ CẢNH BÁO MỌI NGƯỜI NHÉ! ⚠️
+                      </div>
+                      <div className="text-[7px] font-semibold text-slate-800 leading-snug">
+                        Có chiêu trò giả mạo trúng thưởng iPhone nè! Tuyệt đối đừng bấm link nhé!
+                      </div>
+                    </div>
+                    <div className="mx-2 rounded-md border border-slate-300 bg-slate-50 p-1.5 space-y-1">
+                      <div className="text-[6px] font-bold text-slate-800 leading-tight">
+                        [XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="rounded-full border border-red-500 px-1 text-[5px] font-bold text-red-600 break-all">
+                          SuKienGame_TrungThuong2026@gmail-free-service.com
+                        </span>
+                        <span className="text-[5px] font-black text-red-600 whitespace-nowrap">← Email giả mạo!</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[5px] font-semibold text-blue-600 underline break-all">
+                          http://game-thuong-nhanhanggiainhat.net/xacnhan
+                        </span>
+                        <span className="text-[5px] font-black text-red-600 whitespace-nowrap">← Link lạ!</span>
+                      </div>
+                    </div>
+                    <div className="mt-auto px-2 py-1 flex items-center justify-between border-t border-slate-200">
+                      <span className="text-[6px]">👍❤️😮 <span className="font-bold text-slate-700">128</span></span>
+                      <span className="text-[6px] text-slate-500">12 bình luận</span>
+                    </div>
+                    <div className="flex items-center justify-around py-1 border-t border-slate-200 text-[6px] font-semibold text-slate-600">
+                      <span>👍 Thích</span>
+                      <span>💬 Bình luận</span>
+                      <span>↪ Chia sẻ</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
 
               {/* home indicator */}
               <div className="py-1 flex justify-center bg-transparent">

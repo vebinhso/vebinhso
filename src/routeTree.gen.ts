@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as CharacterRouteImport } from './routes/character'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as ClassroomRouteImport } from './routes/classroom'
 import { Route as EventsRouteImport } from './routes/events'
+import { Route as ExperienceRouteImport } from './routes/experience'
 import { Route as FriendsMapRouteImport } from './routes/friends-map'
 import { Route as GameRouteImport } from './routes/game'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -54,6 +56,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CharacterRoute = CharacterRouteImport.update({
   id: '/character',
   path: '/character',
@@ -72,6 +79,11 @@ const ClassroomRoute = ClassroomRouteImport.update({
 const EventsRoute = EventsRouteImport.update({
   id: '/events',
   path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExperienceRoute = ExperienceRouteImport.update({
+  id: '/experience',
+  path: '/experience',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FriendsMapRoute = FriendsMapRouteImport.update({
@@ -221,10 +233,12 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
   '/events': typeof EventsRoute
+  '/experience': typeof ExperienceRoute
   '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
@@ -257,10 +271,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
   '/events': typeof EventsRoute
+  '/experience': typeof ExperienceRoute
   '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
@@ -293,10 +309,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai': typeof AiRoute
   '/character': typeof CharacterRoute
   '/chat': typeof ChatRoute
   '/classroom': typeof ClassroomRoute
   '/events': typeof EventsRoute
+  '/experience': typeof ExperienceRoute
   '/friends-map': typeof FriendsMapRoute
   '/game': typeof GameRoute
   '/inventory': typeof InventoryRoute
@@ -331,10 +349,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
     | '/events'
+    | '/experience'
     | '/friends-map'
     | '/game'
     | '/inventory'
@@ -367,10 +387,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
     | '/events'
+    | '/experience'
     | '/friends-map'
     | '/game'
     | '/inventory'
@@ -402,10 +424,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/ai'
     | '/character'
     | '/chat'
     | '/classroom'
     | '/events'
+    | '/experience'
     | '/friends-map'
     | '/game'
     | '/inventory'
@@ -439,10 +463,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AiRoute: typeof AiRoute
   CharacterRoute: typeof CharacterRoute
   ChatRoute: typeof ChatRoute
   ClassroomRoute: typeof ClassroomRoute
   EventsRoute: typeof EventsRoute
+  ExperienceRoute: typeof ExperienceRoute
   FriendsMapRoute: typeof FriendsMapRoute
   GameRoute: typeof GameRoute
   InventoryRoute: typeof InventoryRoute
@@ -483,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/character': {
       id: '/character'
       path: '/character'
@@ -509,6 +542,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/events'
       preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/experience': {
+      id: '/experience'
+      path: '/experience'
+      fullPath: '/experience'
+      preLoaderRoute: typeof ExperienceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/friends-map': {
@@ -735,10 +775,12 @@ const RoleplayRouteWithChildren = RoleplayRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AiRoute: AiRoute,
   CharacterRoute: CharacterRoute,
   ChatRoute: ChatRoute,
   ClassroomRoute: ClassroomRoute,
   EventsRoute: EventsRoute,
+  ExperienceRoute: ExperienceRoute,
   FriendsMapRoute: FriendsMapRoute,
   GameRoute: GameRoute,
   InventoryRoute: InventoryRoute,

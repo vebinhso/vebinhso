@@ -423,7 +423,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Kẻ gian dùng thông tin Linh vừa cung cấp để đăng nhập thành công vào tài khoản game của em: đổi mật khẩu, đổi email khôi phục, chiếm sạch vật phẩm và xu. Rồi hắn mượn danh Linh nhắn cho cả nhóm bạn: “Các bạn ơi, mình đang có sự kiện nhận quà hiếm nè! Vào link này nhanh không hết nhé!”",
     motion: "push",
     mood: "danger",
-    next: "l10a2",
+    next: "l12b2",
   },
   l10a2: {
     id: "l10a2",
@@ -456,7 +456,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "Giờ mình phải làm sao đây... Mình không dám nói với bố mẹ...",
     motion: "shake",
     mood: "danger",
-    next: "l12b2",
+    next: "l11a2",
   },
   l12b2: {
     id: "l12b2",

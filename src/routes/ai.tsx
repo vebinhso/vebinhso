@@ -3,7 +3,13 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { useServerFn } from "@tanstack/react-start";
-import { analyzeImage, analyzeLink, analyzeText } from "@/lib/ai-detect.functions";
+import {
+  analyzeImage,
+  analyzeLink,
+  analyzeText,
+  analyzeEmail,
+  analyzeNews,
+} from "@/lib/ai-detect.functions";
 
 export const Route = createFileRoute("/ai")({
   component: AiPage,

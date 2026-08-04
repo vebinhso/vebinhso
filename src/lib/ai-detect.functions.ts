@@ -515,7 +515,8 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
       ],
       response_format: { type: "json_object" },
     });
-    const findings = Array.isArray(parsed.findings)
+    type TextFinding = { quote: string; label: string; detail: string; severity: "low" | "medium" | "high" };
+    const findings: TextFinding[] = Array.isArray(parsed.findings)
       ? parsed.findings.slice(0, 8).map((f: any) => ({
           quote: str(f?.quote, "").slice(0, 200),
           label: str(f?.label, "Thông tin nhạy cảm").slice(0, 60),

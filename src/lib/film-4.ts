@@ -304,7 +304,6 @@ export const FILM: Record<string, FilmNode> = {
   l06: {
     id: "l06",
     image: l07b,
-    video: vl07b.url,
     speaker: "L",
     action: "Điền thông tin",
     text: "Chỉ cần điền nốt mật khẩu là xong... Mình sẽ có iPhone 17 Pro Max thôi!",

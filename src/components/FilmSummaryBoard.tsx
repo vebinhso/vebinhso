@@ -1,4 +1,5 @@
 import bg from "@/assets/film5/l18-bg.jpg";
+import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 
 export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void; onBack: () => void }) {
   return (
@@ -59,6 +60,9 @@ export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void;
               canhbao.khonggianmang.vn
             </a>
           </section>
+
+          <FinalLessonQuiz />
+
 
           <div className="flex flex-wrap gap-2 justify-center pb-6">
             <button onClick={onRestart} className="rounded-xl px-5 py-3 font-black text-sm bg-primary text-primary-foreground">

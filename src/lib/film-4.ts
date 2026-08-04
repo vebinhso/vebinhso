@@ -104,6 +104,8 @@ export type FilmNode = {
   /** Lớp phủ bài đăng cảnh báo tiếng Việt hiển thị ngay trên màn hình điện thoại */
   warnPostOverlay?: boolean;
   phoneConfirm?: boolean;
+  /** Nhãn tiếng Việt hiển thị đè lên nút vàng trong khung hình (theo % khung 16:9) */
+  confirmBtn?: { x: number; y: number; w: number; rot?: number };
   /** Vị trí khung điện thoại trên khung hình (theo % của khung 16:9), khớp với điện thoại nhân vật đang cầm */
   phoneAnchor?: { x: number; y: number; h: number; rot?: number };
   /** ảnh riêng khi hiện lựa chọn */
@@ -296,6 +298,7 @@ export const FILM: Record<string, FilmNode> = {
     video: vl07e.url,
     speaker: "narrator",
     action: "Bấm xác nhận",
+    confirmBtn: { x: 68.5, y: 69.5, w: 15, rot: -9 },
     text: "L điền xong và bấm nút XÁC NHẬN NHẬN THƯỞNG. Ánh sáng vàng của trang web tắt ngấm, chỉ còn một màn hình xám đang xử lý...",
     motion: "push",
     mood: "danger",

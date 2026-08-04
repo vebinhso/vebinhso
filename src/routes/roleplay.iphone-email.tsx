@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
-import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 import { FilmSummaryBoard } from "@/components/FilmSummaryBoard";
 import {
   FILM,
@@ -459,6 +458,26 @@ function FilmPage() {
         />
       )}
 
+      {node.confirmBtn && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="relative aspect-video w-full max-h-full" style={{ maxWidth: "calc(100dvh * 16 / 9)" }}>
+            <div
+              className="absolute -translate-x-1/2 -translate-y-1/2 text-center font-black text-slate-900 leading-none"
+              style={{
+                left: `${node.confirmBtn.x}%`,
+                top: `${node.confirmBtn.y}%`,
+                width: `${node.confirmBtn.w}%`,
+                transform: `translate(-50%, -50%) rotate(${node.confirmBtn.rot ?? 0}deg)`,
+                fontSize: "clamp(8px, 1.15vw, 18px)",
+                textShadow: "0 1px 2px rgba(255,220,120,0.9)",
+              }}
+            >
+              XÁC NHẬN
+            </div>
+          </div>
+        </div>
+      )}
+
       {(node.emailOverlay || node.mailOverlay || node.inspectOverlay || node.formOverlay || node.phoneFormOverlay || node.warnPostOverlay) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           {/* Khung phủ khớp đúng khung hình 16:9 để định vị theo điện thoại nhân vật đang cầm */}
@@ -776,7 +795,6 @@ function FilmPage() {
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[40vh] overflow-y-auto">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
-                <FinalLessonQuiz />
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowSummary(true)}

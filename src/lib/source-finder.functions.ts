@@ -188,14 +188,49 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
     }
     tasks.push(ddg(`${queries[0]} site:youtube.com`, "video"));
     const settled = await Promise.all(tasks);
-    const all = dedupe(settled.flat());
+    const all = dedupe(settled.flat()).slice(0, 40);
 
-    const news = all.filter((i) => i.kind === "news").slice(0, 12);
-    const video = all
+    // Bước xác minh: chỉ giữ lại nguồn THỰC SỰ đăng nội dung/ảnh này
+    let kept = all;
+    if (all.length) {
+      const list = all
+        .map((it, i) => `${i}. [${it.source}] ${it.title} — ${it.snippet}`.slice(0, 300))
+        .join("\n");
+      const verifySys = `Bạn là người kiểm chứng nguồn. Người dùng có một nội dung/ảnh. Dưới đây là danh sách kết quả tìm kiếm thô.
+Chỉ chọn những mục THỰC SỰ nói về đúng nội dung/ảnh đó (cùng sự việc, cùng nhân vật, cùng sự kiện). Loại bỏ mọi mục chỉ trùng từ khoá chung chung, khác sự việc, hoặc không liên quan.
+Nếu KHÔNG có mục nào thật sự khớp, trả mảng rỗng.
+Trả về CHÍNH XÁC JSON: {"matches":[{"i":số thứ tự,"score":0-100,"why":"lý do ngắn"}],"verdict":"mô tả 1 câu"}
+Chỉ đưa mục có score >= 70.`;
+      const vUser: any[] = [
+        {
+          type: "text",
+          text: `Nội dung cần truy nguồn: ${data.text || "(xem ảnh đính kèm)"}\nMô tả nhận diện: ${str(parsed.describe, "")}\n\nKẾT QUẢ TÌM KIẾM:\n${list}`,
+        },
+      ];
+      if (data.imageUrl) vUser.push({ type: "image_url", image_url: { url: data.imageUrl } });
+      const v = await callGateway({
+        model: "google/gemini-3.5-flash",
+        messages: [
+          { role: "system", content: verifySys },
+          { role: "user", content: vUser },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const matches = Array.isArray(v?.matches) ? v.matches : [];
+      const picked = matches
+        .filter((m: any) => typeof m?.i === "number" && Number(m?.score ?? 0) >= 70 && all[m.i])
+        .map((m: any) => ({ ...all[m.i]!, why: str(m.why, "") }));
+      kept = picked;
+    }
+
+    const news = kept.filter((i) => i.kind === "news").slice(0, 12);
+    const video = kept
       .filter((i) => i.kind === "video" || /youtube\.com|youtu\.be|tiktok\.com/.test(i.link))
       .slice(0, 6);
     const videoLinks = new Set(video.map((v) => v.link));
-    const web = all.filter((i) => i.kind === "web" && !videoLinks.has(i.link)).slice(0, 12);
+    const web = kept.filter((i) => i.kind === "web" && !videoLinks.has(i.link)).slice(0, 12);
+
+    const total = news.length + web.length + video.length;
 
     return {
       describe: str(parsed.describe, "Đã phân tích nội dung bạn gửi."),
@@ -205,7 +240,10 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
       news,
       web,
       video,
-      total: news.length + web.length + video.length,
+      total,
+      scanned: all.length,
+      found: total > 0,
       checkedAt: new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
     };
   });
+

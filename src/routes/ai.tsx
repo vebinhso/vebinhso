@@ -194,13 +194,63 @@ function AiPage() {
   const runText = useServerFn(analyzeText);
   const runEmail = useServerFn(analyzeEmail);
   const runNews = useServerFn(analyzeNews);
+  const runVideo = useServerFn(analyzeVideo);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [phase, setPhase] = useState("Đang phân tích...");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /** Chạy một tác vụ phân tích kèm hiển thị % tiến trình */
+  async function withProgress<T>(
+    phases: string[],
+    fn: (report: (p: number, label?: string) => void) => Promise<T>,
+  ): Promise<T | null> {
+    setLoading(true);
+    setError(null);
+    setProgress(3);
+    setPhase(phases[0] ?? "Đang phân tích...");
+    let pct = 3;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      pct = Math.min(95, pct + Math.max(0.4, (95 - pct) * 0.06));
+      setProgress(pct);
+      const idx = Math.min(phases.length - 1, Math.floor((pct / 100) * phases.length));
+      setPhase(phases[idx] ?? phases[0]!);
+    }, 220);
+    try {
+      const res = await fn((p, label) => {
+        pct = Math.max(pct, p);
+        setProgress(pct);
+        if (label) setPhase(label);
+      });
+      setProgress(100);
+      setPhase("Hoàn tất!");
+      return res;
+    } catch (e: any) {
+      setError(e?.message || "Phân tích thất bại");
+      return null;
+    } finally {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+      setTimeout(() => setLoading(false), 200);
+    }
+  }
+
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, []);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>("");
   const [imgResult, setImgResult] = useState<Awaited<ReturnType<typeof analyzeImage>> | null>(null);
+
+  const videoRef = useRef<HTMLInputElement>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [videoResult, setVideoResult] = useState<Awaited<ReturnType<typeof analyzeVideo>> | null>(null);
+
 
   const [url, setUrl] = useState("");
   const [linkResult, setLinkResult] = useState<Awaited<ReturnType<typeof analyzeLink>> | null>(null);

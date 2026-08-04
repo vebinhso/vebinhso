@@ -53,12 +53,12 @@ import mv18d from "@/assets/film6/video/v18d.mp4.asset.json";
 import mv18e from "@/assets/film6/video/v18e.mp4.asset.json";
 import v14b from "@/assets/film6/v14b.jpg";
 import v14c from "@/assets/film6/v14c.jpg";
-import v15b from "@/assets/film6/v15b.jpg";
+import v15b from "@/assets/film6/v15d.jpg";
 import v15c from "@/assets/film6/v15c.jpg";
 import v16b from "@/assets/film6/v16b.jpg";
 import mv14b from "@/assets/film6/video/v14b.mp4.asset.json";
 import mv14c from "@/assets/film6/video/v14c.mp4.asset.json";
-import mv15b from "@/assets/film6/video/v15b.mp4.asset.json";
+import mv15b from "@/assets/film6/video/v15d.mp4.asset.json";
 import mv15c from "@/assets/film6/video/v15c.mp4.asset.json";
 import mv16b from "@/assets/film6/video/v16b.mp4.asset.json";
 
@@ -382,7 +382,7 @@ export const FILM: Record<string, FilmNode> = {
     video: mv15b.url,
     speaker: "A",
     action: "Nhắn tin hỏi — không gửi được",
-    text: "Chị ơi... vé không quét được! Sao tin nhắn của em không gửi đi được nữa?",
+    text: "Chị ơi, sao tụi em không vào được concert vậy? Ơ... tin nhắn không gửi đi được nữa!",
     motion: "shake",
     mood: "danger",
     next: "v15c",
@@ -412,7 +412,7 @@ export const FILM: Record<string, FilmNode> = {
       code: "C",
       title: "KẾT THÚC C — ĐỨNG NGOÀI CỔNG",
       lesson:
-        "Mất trắng 6.000.000đ và không có vé.\n\nBÀI HỌC:\n• Đã lỡ mất cọc thì dừng lại vẫn rẻ hơn chuyển tiếp.\n• File PDF, mã QR, email xác nhận đều có thể làm giả trong vài phút.\n• Chuyển khoản cho người lạ là mất dấu.\n• Nếu đã chuyển tiền: giữ tin nhắn, sao kê và báo ngay cho người lớn và công an.",
+        "Mất trắng 6.000.000đ và không có vé.\n• PDF, mã QR, email xác nhận đều có thể làm giả.\n• Lỡ mất cọc thì dừng lại vẫn rẻ hơn chuyển tiếp.\n• Đã chuyển tiền: giữ bằng chứng, báo người lớn và công an.",
     },
   },
 

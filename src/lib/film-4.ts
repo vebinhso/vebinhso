@@ -122,6 +122,10 @@ export type FilmNode = {
   confirmBtn?: { x: number; y: number; w: number; rot?: number };
   /** Vị trí khung điện thoại trên khung hình (theo % của khung 16:9), khớp với điện thoại nhân vật đang cầm */
   phoneAnchor?: { x: number; y: number; h: number; rot?: number };
+  /** Dựng lại màn hình form nhận thưởng bằng CSS cho rõ nét (đè lên vùng màn hình trong khung 16:9) */
+  formScreen?: { x: number; y: number; w: number; h: number; rot?: number };
+  /** Vá tối một vùng màn hình điện thoại để che biểu tượng có sẵn trong video */
+  screenPatch?: { x: number; y: number; w: number; h: number; rot?: number };
   /** ảnh riêng khi hiện lựa chọn */
   choiceImage?: string;
   next?: string;

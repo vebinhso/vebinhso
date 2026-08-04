@@ -567,7 +567,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Chụp màn hình làm bằng chứng",
     text: "L chụp lại màn hình email lừa đảo: địa chỉ người gửi lạ, đường link lạ — đủ bằng chứng để cảnh báo mọi người.",
-    motion: "push",
+    motion: "freeze",
     mood: "safe",
     next: "l17b1",
   },

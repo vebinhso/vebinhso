@@ -193,21 +193,53 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
     // Bước xác minh: chỉ giữ lại nguồn THỰC SỰ đăng nội dung/ảnh này
     let kept: (FoundItem & { why?: string })[] = all;
     if (all.length) {
-      const list = all
-        .map((it, i) => `${i}. [${it.source}] ${it.title} — ${it.snippet}`.slice(0, 300))
-        .join("\n");
-      const verifySys = `Bạn là người kiểm chứng nguồn. Người dùng có một nội dung/ảnh. Dưới đây là danh sách kết quả tìm kiếm thô.
-Chỉ chọn những mục THỰC SỰ nói về đúng nội dung/ảnh đó (cùng sự việc, cùng nhân vật, cùng sự kiện). Loại bỏ mọi mục chỉ trùng từ khoá chung chung, khác sự việc, hoặc không liên quan.
-Nếu KHÔNG có mục nào thật sự khớp, trả mảng rỗng.
-Trả về CHÍNH XÁC JSON: {"matches":[{"i":số thứ tự,"score":0-100,"why":"lý do ngắn"}],"verdict":"mô tả 1 câu"}
-Chỉ đưa mục có score >= 70.`;
+      // Mở thử từng trang ứng viên để lấy nội dung thật + ảnh đại diện (og:image)
+      const candidates = all.slice(0, 10);
+      const pages = await Promise.all(
+        candidates.map(async (it) => {
+          const html = await safeFetch(it.link, 7000);
+          if (!html) return { og: "", body: "" };
+          const og =
+            html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
+            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
+            "";
+          const body = decodeXml(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, "")).slice(0, 900);
+          return { og: /^https?:\/\//.test(og) ? og : "", body };
+        }),
+      );
+
+      const list = candidates
+        .map((it, i) => `${i}. [${it.source}] ${it.title}\nNỘI DUNG TRANG: ${pages[i]?.body || it.snippet}`.slice(0, 1100))
+        .join("\n---\n");
+
+      const verifySys = `Bạn là người kiểm chứng nguồn RẤT NGHIÊM NGẶT.
+Người dùng có một tấm ảnh và/hoặc một nội dung. Dưới đây là các trang web đã tìm được (kèm nội dung thật của trang, và có thể kèm ảnh đại diện của trang).
+QUY TẮC:
+- Chỉ chấp nhận khi trang ĐĂNG ĐÚNG TẤM ẢNH ĐÓ (y hệt: cùng khung hình, cùng người, cùng bối cảnh, cùng góc chụp) hoặc ĐÚNG SỰ VIỆC ĐÓ (cùng nhân vật, cùng thời gian, cùng địa điểm).
+- TUYỆT ĐỐI LOẠI BỎ những trang chỉ "na ná", cùng chủ đề, cùng loại cảnh, cùng phong cách, ảnh minh hoạ tương tự, hoặc chỉ trùng từ khoá. Giống nhau KHÔNG PHẢI là giống y chang.
+- Nếu bạn không chắc chắn 100%, LOẠI BỎ.
+- Thà trả mảng rỗng còn hơn đưa ra nguồn sai.
+Trả về CHÍNH XÁC JSON: {"matches":[{"i":số thứ tự,"score":0-100,"exact":true/false,"why":"nêu rõ chi tiết trùng khớp cụ thể"}],"verdict":"mô tả 1 câu"}
+exact=true nghĩa là chắc chắn cùng một tấm ảnh/cùng một sự việc. Chỉ đưa mục có exact=true và score >= 85.`;
+
       const vUser: any[] = [
         {
           type: "text",
-          text: `Nội dung cần truy nguồn: ${data.text || "(xem ảnh đính kèm)"}\nMô tả nhận diện: ${str(parsed.describe, "")}\n\nKẾT QUẢ TÌM KIẾM:\n${list}`,
+          text: `Nội dung cần truy nguồn: ${data.text || "(xem ảnh đính kèm đầu tiên)"}\nMô tả nhận diện: ${str(parsed.describe, "")}\n\nCÁC TRANG TÌM ĐƯỢC:\n${list}`,
         },
       ];
       if (data.imageUrl) vUser.push({ type: "image_url", image_url: { url: data.imageUrl } });
+      // Kèm ảnh đại diện của tối đa 4 trang để so sánh trực quan
+      if (data.imageUrl) {
+        let added = 0;
+        for (let i = 0; i < candidates.length && added < 4; i++) {
+          const og = pages[i]?.og;
+          if (!og) continue;
+          vUser.push({ type: "text", text: `Ảnh đại diện của mục ${i}:` });
+          vUser.push({ type: "image_url", image_url: { url: og } });
+          added++;
+        }
+      }
       const v = await callGateway({
         model: "google/gemini-3.5-flash",
         messages: [
@@ -218,10 +250,14 @@ Chỉ đưa mục có score >= 70.`;
       });
       const matches = Array.isArray(v?.matches) ? v.matches : [];
       const picked = matches
-        .filter((m: any) => typeof m?.i === "number" && Number(m?.score ?? 0) >= 70 && all[m.i])
-        .map((m: any) => ({ ...all[m.i]!, why: str(m.why, "") }));
+        .filter(
+          (m: any) =>
+            typeof m?.i === "number" && m?.exact === true && Number(m?.score ?? 0) >= 85 && candidates[m.i],
+        )
+        .map((m: any) => ({ ...candidates[m.i]!, why: str(m.why, "") }));
       kept = picked;
     }
+
 
     const news = kept.filter((i) => i.kind === "news").slice(0, 12);
     const video = kept

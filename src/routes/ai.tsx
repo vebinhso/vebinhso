@@ -448,6 +448,86 @@ function AiPage() {
             </div>
           )}
 
+          {tab === "email" && (
+            <div className="space-y-3">
+              <textarea
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                rows={6}
+                placeholder={
+                  "Dán địa chỉ email người gửi và/hoặc nội dung email...\nVí dụ: support@shopee-vn-khuyenmai.xyz — 'Tài khoản của bạn sẽ bị khoá trong 24h, bấm vào đây để xác minh'"
+                }
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+              />
+              <button
+                onClick={doEmail}
+                disabled={loading || email.trim().length < 5}
+                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {loading ? "⏳ Đang kiểm tra..." : "✉️ Kiểm tra email giả mạo"}
+              </button>
+
+              {emailResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(emailResult.riskScore)}`}>
+                    {LEVEL_VI[emailResult.level] ?? "Chưa xác định"} ·{" "}
+                    {EMAIL_TYPE_VI[emailResult.type] ?? emailResult.type}
+                  </p>
+                  {emailResult.impersonating && (
+                    <p className="text-center text-xs sm:text-sm font-black text-red-600">
+                      ⚠️ Có dấu hiệu giả mạo: {emailResult.impersonating}
+                    </p>
+                  )}
+                  <Gauge value={emailResult.riskScore} label="Mức độ giả mạo / lừa đảo" />
+                  <p className="text-xs sm:text-sm font-bold">{emailResult.summary}</p>
+                  <SignList title="Dấu hiệu giả mạo" items={emailResult.redFlags} tone="bad" />
+                  <SignList title="Dấu hiệu đáng tin" items={emailResult.goodSigns} tone="good" />
+                  <SignList title="Nên làm gì" items={emailResult.advice} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Không bao giờ trả lời email lạ bằng mật khẩu, mã OTP hay số thẻ ngân hàng.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "news" && (
+            <div className="space-y-3">
+              <textarea
+                value={news}
+                onChange={(e) => setNews(e.target.value)}
+                rows={6}
+                placeholder="Dán tiêu đề, nội dung bản tin hoặc link bài báo cần kiểm chứng..."
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+              />
+              <button
+                onClick={doNews}
+                disabled={loading || news.trim().length < 15}
+                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {loading ? "⏳ Đang kiểm chứng..." : "📰 Kiểm tra tin giả"}
+              </button>
+
+              {newsResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(newsResult.fakeScore)}`}>
+                    {NEWS_VERDICT_VI[newsResult.verdict] ?? "Chưa kiểm chứng được"} · {newsResult.category}
+                  </p>
+                  <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
+                  <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
+                  <SignList title="Dấu hiệu tin giả" items={newsResult.redFlags} tone="bad" />
+                  <SignList title="Dấu hiệu đáng tin" items={newsResult.goodSigns} tone="good" />
+                  <SignList title="Cách tự kiểm chứng" items={newsResult.checkSteps} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
+
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/experience" className="toy-button !text-xs sm:!text-sm">
               ↩ Quay lại trải nghiệm

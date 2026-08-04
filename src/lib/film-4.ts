@@ -64,7 +64,7 @@ import vl14a from "@/assets/film5/video/l14a.mp4.asset.json";
 import l14b from "@/assets/film5/clean/l14b.jpg";
 import vl14b from "@/assets/film5/video/l14b.mp4.asset.json";
 import l15 from "@/assets/film5/clean/l15.jpg";
-import vl15 from "@/assets/film5/video/l15.mp4.asset.json";
+import vl15 from "@/assets/film5/video/l15-v2.mp4.asset.json";
 import l16b1 from "@/assets/film5/clean/l16b1-v2.jpg";
 import vl16b1 from "@/assets/film5/video/l16b1-v2.mp4.asset.json";
 import l16b2img from "@/assets/film5/clean/l16b2-delete.jpg";
@@ -548,8 +548,7 @@ export const FILM: Record<string, FilmNode> = {
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
     motion: "push",
     mood: "neutral",
-    mailOverlay: true,
-    phoneAnchor: { x: 46, y: 38, h: 56, rot: -40 },
+
     choices: [
       {
         label: "A. Chụp màn hình, đăng cảnh báo lên nhóm lớp và Facebook",

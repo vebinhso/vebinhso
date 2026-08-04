@@ -381,6 +381,7 @@ function AiPage() {
 
   const TABS: { id: Tab; icon: string; label: string }[] = [
     { id: "image", icon: "🖼️", label: "Ảnh có phải AI?" },
+    { id: "video", icon: "🎬", label: "Video có phải AI?" },
     { id: "link", icon: "🔗", label: "Link có độc hại?" },
     { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
     { id: "email", icon: "✉️", label: "Email có giả mạo?" },
@@ -395,11 +396,11 @@ function AiPage() {
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM KIỂM TRA AI</h1>
             <p className="text-xs sm:text-sm font-bold text-muted-foreground">
-              Dán ảnh, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
+              Dán ảnh, video, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 mb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-4">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -424,6 +425,88 @@ function AiPage() {
               {error}
             </div>
           )}
+
+          {loading && (
+            <div className="mb-3">
+              <AnalyzingBar percent={progress} phase={phase} />
+            </div>
+          )}
+
+          {tab === "video" && (
+            <div className="space-y-3">
+              <div
+                onClick={() => videoRef.current?.click()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const f = e.dataTransfer?.files?.[0];
+                  if (f) pickVideo(f);
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                className="cursor-pointer rounded-2xl border-2 border-dashed border-border p-4 text-center"
+              >
+                {videoUrl ? (
+                  <video src={videoUrl} controls className="mx-auto max-h-64 rounded-xl" />
+                ) : (
+                  <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+                    🎬 Bấm để chọn video · hoặc kéo thả tệp (tối đa 60MB)
+                  </p>
+                )}
+                <input
+                  ref={videoRef}
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) pickVideo(f);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={doVideo}
+                  disabled={loading || !videoFile}
+                  className="toy-button toy-button-primary flex-1 !text-xs sm:!text-sm disabled:opacity-50"
+                >
+                  {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🎬 Kiểm tra video"}
+                </button>
+                {videoFile && (
+                  <button
+                    onClick={() => {
+                      setVideoFile(null);
+                      setVideoUrl("");
+                      setVideoResult(null);
+                    }}
+                    className="toy-button !text-xs sm:!text-sm"
+                  >
+                    Xoá
+                  </button>
+                )}
+              </div>
+
+              {videoResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(videoResult.aiScore)}`}>
+                    {VERDICT_VI[videoResult.verdict] ?? "Chưa chắc chắn"}
+                  </p>
+                  <Gauge value={videoResult.aiScore} label="Mức độ do AI tạo / dựng" />
+                  <Gauge value={videoResult.deepfakeScore} label="Nguy cơ deepfake (hoán đổi gương mặt)" />
+                  <Gauge value={videoResult.editedScore} label="Mức độ đã cắt ghép / chỉnh sửa" />
+                  <Gauge value={videoResult.confidence} label="Độ tin cậy của kết luận" />
+                  <p className="text-xs sm:text-sm font-bold">{videoResult.summary}</p>
+                  <SignList title="Dấu hiệu của AI" items={videoResult.aiSigns} tone="bad" />
+                  <SignList title="Dấu hiệu video thật" items={videoResult.realSigns} tone="good" />
+                  <SignList title="Cách kiểm chứng" items={videoResult.tips} tone="info" />
+                  <p className="text-[10px] font-bold text-muted-foreground">
+                    * Hệ thống soi 4 khung hình đại diện — kết quả mang tính tham khảo.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
 
           {tab === "image" && (
             <div className="space-y-3">

@@ -16,7 +16,7 @@ import vl03f from "@/assets/film5/video/l03f.mp4.asset.json";
 import l03g from "@/assets/film5/clean/l03g.jpg";
 import vl03g from "@/assets/film5/video/l03g.mp4.asset.json";
 import l06b from "@/assets/film5/clean/l06b.jpg";
-import vl06b from "@/assets/film5/video/l06b.mp4.asset.json";
+import vl06b from "@/assets/film5/video/l05a2-v2.mp4.asset.json";
 import l07b from "@/assets/film5/clean/l07b.jpg";
 import vl07b from "@/assets/film5/video/l07b.mp4.asset.json";
 import l08 from "@/assets/film5/clean/l08-v2.jpg";
@@ -297,7 +297,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Trang web giả",
     text: "Đường link mở ra một trang web lấp lánh vàng, yêu cầu L điền hàng loạt thông tin cá nhân... và cả mật khẩu tài khoản game.",
-    motion: "push",
+    motion: "freeze",
     mood: "danger",
     next: "l06",
   },

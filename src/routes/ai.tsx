@@ -1147,6 +1147,9 @@ function AiPage() {
           )}
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
+            <Link to="/truy-nguon" className="toy-button toy-button-primary !text-xs sm:!text-sm">
+              🕵️ Truy nguồn ảnh / thông tin
+            </Link>
             <Link to="/experience" className="toy-button !text-xs sm:!text-sm">
               ↩ Quay lại trải nghiệm
             </Link>

@@ -191,7 +191,7 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
     const all = dedupe(settled.flat()).slice(0, 40);
 
     // Bước xác minh: chỉ giữ lại nguồn THỰC SỰ đăng nội dung/ảnh này
-    let kept: (FoundItem & { why?: string })[] = all;
+    let kept: (FoundItem & { why?: string; quote?: string; moment?: string; score?: number })[] = all;
     if (all.length) {
       // Mở thử từng trang ứng viên để lấy nội dung thật + ảnh đại diện (og:image)
       const candidates = all.slice(0, 10);
@@ -203,13 +203,18 @@ queries: 2-4 truy vấn ngắn (3-10 từ), khác góc độ nhau, tiếng Việ
             html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
             html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
             "";
-          const body = decodeXml(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, "")).slice(0, 900);
+          const body = decodeXml(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, "")).slice(0, 1800);
           return { og: /^https?:\/\//.test(og) ? og : "", body };
         }),
       );
 
       const list = candidates
-        .map((it, i) => `${i}. [${it.source}] ${it.title}\nNỘI DUNG TRANG: ${pages[i]?.body || it.snippet}`.slice(0, 1100))
+        .map((it, i) =>
+          `${i}. [${it.source}] ${it.title} (${/youtube\.com|youtu\.be|tiktok\.com/.test(it.link) ? "VIDEO" : "trang web"})\nNỘI DUNG TRANG: ${pages[i]?.body || it.snippet}`.slice(
+            0,
+            2000,
+          ),
+        )
         .join("\n---\n");
 
       const verifySys = `Bạn là người kiểm chứng nguồn RẤT NGHIÊM NGẶT.
@@ -219,7 +224,10 @@ QUY TẮC:
 - TUYỆT ĐỐI LOẠI BỎ những trang chỉ "na ná", cùng chủ đề, cùng loại cảnh, cùng phong cách, ảnh minh hoạ tương tự, hoặc chỉ trùng từ khoá. Giống nhau KHÔNG PHẢI là giống y chang.
 - Nếu bạn không chắc chắn 100%, LOẠI BỎ.
 - Thà trả mảng rỗng còn hơn đưa ra nguồn sai.
-Trả về CHÍNH XÁC JSON: {"matches":[{"i":số thứ tự,"score":0-100,"exact":true/false,"why":"nêu rõ chi tiết trùng khớp cụ thể"}],"verdict":"mô tả 1 câu"}
+BẰNG CHỨNG (bắt buộc cho mỗi mục được chọn):
+- "quote": TRÍCH NGUYÊN VĂN 1-2 câu LẤY ĐÚNG TỪ "NỘI DUNG TRANG" của mục đó, là đoạn khớp nhất với nội dung người dùng. Không tự bịa, không viết lại.
+- "moment": nếu là VIDEO và trong nội dung/mô tả có mốc thời gian, ghi dạng "mm:ss" (hoặc "mm:ss–mm:ss"); nếu không có thì để "".
+Trả về CHÍNH XÁC JSON: {"matches":[{"i":số thứ tự,"score":0-100,"exact":true/false,"why":"lý do ngắn","quote":"trích nguyên văn","moment":"mm:ss hoặc rỗng"}],"verdict":"mô tả 1 câu"}
 exact=true nghĩa là chắc chắn cùng một tấm ảnh/cùng một sự việc. Chỉ đưa mục có exact=true và score >= 85.`;
 
       const vUser: any[] = [
@@ -249,14 +257,25 @@ exact=true nghĩa là chắc chắn cùng một tấm ảnh/cùng một sự vi�
         response_format: { type: "json_object" },
       });
       const matches = Array.isArray(v?.matches) ? v.matches : [];
+      const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
       const picked = matches
         .filter(
           (m: any) =>
             typeof m?.i === "number" && m?.exact === true && Number(m?.score ?? 0) >= 85 && candidates[m.i],
         )
-        .map((m: any) => ({ ...candidates[m.i]!, why: str(m.why, "") }));
+        .map((m: any) => {
+          const item = candidates[m.i]!;
+          let quote = str(m.quote, "").slice(0, 320);
+          // Chỉ giữ trích dẫn thật sự có trong nội dung trang (chống bịa)
+          const body = norm(pages[m.i]?.body || item.snippet || "");
+          const key = norm(quote).split(" ").slice(0, 8).join(" ");
+          if (quote && key.length > 12 && body && !body.includes(key)) quote = "";
+          const moment = (str(m.moment, "").match(/\d{1,2}:\d{2}(?:\s*[–-]\s*\d{1,2}:\d{2})?/)?.[0] ?? "").slice(0, 20);
+          return { ...item, why: str(m.why, ""), quote, moment, score: Math.round(Number(m.score ?? 0)) };
+        });
       kept = picked;
     }
+
 
 
     const news = kept.filter((i) => i.kind === "news").slice(0, 12);

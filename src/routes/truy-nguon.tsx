@@ -117,9 +117,28 @@ function ResultList({
           {it.snippet && (
             <p className="mt-0.5 text-[11px] font-bold text-foreground line-clamp-2">{it.snippet}</p>
           )}
-          {"why" in it && (it as { why?: string }).why && (
-            <p className="mt-0.5 text-[10px] font-black text-emerald-700">✔ {(it as { why?: string }).why}</p>
-          )}
+          {(() => {
+            const ev = it as { why?: string; quote?: string; moment?: string; score?: number };
+            const isVideo = /youtube\.com|youtu\.be|tiktok\.com/.test(it.link);
+            if (!ev.why && !ev.quote && !ev.moment) return null;
+            return (
+              <div className="mt-1.5 rounded-lg border-2 border-emerald-500/40 bg-emerald-500/10 p-2">
+                <p className="text-[10px] font-black text-emerald-700">
+                  🔍 BẰNG CHỨNG KHỚP{typeof ev.score === "number" && ev.score > 0 ? ` · ${ev.score}%` : ""}
+                </p>
+                {ev.moment && (
+                  <p className="mt-0.5 text-[10px] font-black text-foreground">
+                    ⏱️ {isVideo ? "Mốc thời gian trong video" : "Mốc thời gian"}: {ev.moment}
+                  </p>
+                )}
+                {ev.quote && (
+                  <p className="mt-0.5 text-[11px] font-bold italic text-foreground break-words">“{ev.quote}”</p>
+                )}
+                {ev.why && <p className="mt-0.5 text-[10px] font-black text-emerald-700">✔ {ev.why}</p>}
+              </div>
+            );
+          })()}
+
 
         </a>
       ))}

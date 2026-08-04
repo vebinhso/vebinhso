@@ -231,6 +231,28 @@ function AiPage() {
       setLoading(false);
     }
   }
+  async function doEmail() {
+    setLoading(true);
+    setError(null);
+    try {
+      setEmailResult(await runEmail({ data: { content: email } }));
+    } catch (e: any) {
+      setError(e?.message || "Phân tích thất bại");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function doNews() {
+    setLoading(true);
+    setError(null);
+    try {
+      setNewsResult(await runNews({ data: { content: news } }));
+    } catch (e: any) {
+      setError(e?.message || "Phân tích thất bại");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (!user) return null;
 
@@ -238,6 +260,8 @@ function AiPage() {
     { id: "image", icon: "🖼️", label: "Ảnh có phải AI?" },
     { id: "link", icon: "🔗", label: "Link có độc hại?" },
     { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
+    { id: "email", icon: "✉️", label: "Email có giả mạo?" },
+    { id: "news", icon: "📰", label: "Tin tức có phải giả?" },
   ];
 
   return (
@@ -248,11 +272,11 @@ function AiPage() {
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM KIỂM TRA AI</h1>
             <p className="text-xs sm:text-sm font-bold text-muted-foreground">
-              Dán ảnh, đường link hoặc đoạn văn — AI sẽ chấm mức độ giả mạo và rủi ro.
+              Dán ảnh, link, văn bản, email hoặc tin tức — AI sẽ chấm mức độ giả mạo và rủi ro.
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 mb-4">
             {TABS.map((t) => (
               <button
                 key={t.id}

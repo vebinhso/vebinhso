@@ -8,6 +8,8 @@ import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
 import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
 import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
+import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/roleplay/")({
@@ -121,6 +123,7 @@ function RoleplayPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [picked, setPicked] = useState<Lesson | null>(null);
+  const [claimed, setClaimed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -129,6 +132,9 @@ function RoleplayPage() {
       return;
     }
     setUser(u);
+    const map: Record<string, boolean> = {};
+    for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
+    setClaimed(map);
   }, [navigate]);
 
   if (!user) return null;
@@ -213,17 +219,42 @@ function RoleplayPage() {
                         </span>
                       )}
                     </div>
+                    {l.ready && (
+                      <div className="mt-2 flex justify-end">
+                        <span
+                          className={`text-[11px] font-black px-2.5 py-1 rounded-full border-2 ${
+                            claimed[l.id]
+                              ? "border-border bg-muted text-muted-foreground"
+                              : "border-amber-400/70 bg-amber-400/20 text-amber-700 dark:text-amber-300"
+                          }`}
+                        >
+                          {claimed[l.id] ? "✔ Đã nhận +50đ" : "🪙 +50đ khi vào chơi"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </>
               );
 
               if (l.ready && l.to) {
                 return (
-                  <button key={l.id} onClick={() => navigate({ to: l.to as never })} className={cardClass}>
+                  <button
+                    key={l.id}
+                    onClick={() => {
+                      const got = claimReward("start", l.id);
+                      if (got > 0) {
+                        setClaimed((c) => ({ ...c, [l.id]: true }));
+                        toast.success(`🪙 +${got} đồng cho bài chơi mới!`);
+                      }
+                      navigate({ to: l.to as never });
+                    }}
+                    className={cardClass}
+                  >
                     {inner}
                   </button>
                 );
               }
+
 
               return (
                 <button key={l.id} onClick={() => setPicked(l)} className={cardClass}>

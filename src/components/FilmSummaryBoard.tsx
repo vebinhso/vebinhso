@@ -1,18 +1,29 @@
 import bg from "@/assets/film5/l18-bg.jpg";
 import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 
-export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void; onBack: () => void }) {
+export function FilmSummaryBoard({
+  onRestart,
+  onBack,
+  poster,
+  lessonId = "default",
+}: {
+  onRestart: () => void;
+  onBack: () => void;
+  poster?: string;
+  lessonId?: string;
+}) {
   return (
     <div className="fixed inset-0 z-50 bg-background">
       <img
-        src={bg}
+        src={poster || bg}
         alt=""
         width={1920}
         height={1080}
         loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover opacity-80"
+        className="absolute inset-0 w-full h-full object-cover scale-105 blur-[2px]"
       />
-      <div className="absolute inset-0 bg-background/60" />
+      <div className="absolute inset-0 bg-background/85" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background/90" />
       <div className="relative h-full overflow-y-auto p-4 sm:p-8">
         <div className="max-w-3xl mx-auto space-y-4">
           <h2 className="text-xl sm:text-3xl font-black tracking-wide text-center">📋 TỔNG KẾT</h2>
@@ -61,7 +72,7 @@ export function FilmSummaryBoard({ onRestart, onBack }: { onRestart: () => void;
             </a>
           </section>
 
-          <FinalLessonQuiz />
+          <FinalLessonQuiz lessonId={lessonId} />
 
 
           <div className="flex flex-wrap gap-2 justify-center pb-6">

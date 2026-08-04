@@ -485,6 +485,8 @@ function FilmPage() {
 
       {showSummary && (
         <FilmSummaryBoard
+          lessonId="ba-ve-lien-ke"
+          poster={FILM_POSTER}
           onRestart={() => {
             setShowSummary(false);
             restart();
@@ -543,9 +545,12 @@ function FilmPage() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowSummary(true)}
-                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-primary text-primary-foreground"
+                    className="rounded-xl px-4 py-2.5 font-black text-sm bg-primary text-primary-foreground inline-flex items-center gap-2"
                   >
                     📋 Tổng kết
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-black">
+                      +20đ
+                    </span>
                   </button>
                   <button
                     onClick={() => setShowNotes(true)}

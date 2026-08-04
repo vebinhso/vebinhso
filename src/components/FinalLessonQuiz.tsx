@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
+import { toast } from "sonner";
 
 type Opt = { key: "A" | "B" | "C" | "D"; text: string; feedback: string };
 
@@ -27,13 +29,38 @@ const OPTIONS: Opt[] = [
 
 const CORRECT = "D";
 
-export function FinalLessonQuiz() {
+export function FinalLessonQuiz({ lessonId = "default" }: { lessonId?: string }) {
   const [picked, setPicked] = useState<string | null>(null);
+  const [earned, setEarned] = useState(0);
+  const [already, setAlready] = useState(() => hasClaimed("summary", lessonId));
+
+  function handlePick(k: string) {
+    setPicked(k);
+    if (k === CORRECT) {
+      const got = claimReward("summary", lessonId);
+      if (got > 0) {
+        setEarned(got);
+        setAlready(true);
+        toast.success(`🪙 +${got} đồng cho câu trả lời đúng!`);
+      }
+    }
+  }
   const chosen = OPTIONS.find((o) => o.key === picked);
 
   return (
     <div className="rounded-2xl border-2 border-primary/50 bg-background/70 p-3 sm:p-4 mb-3">
-      <h3 className="text-sm sm:text-base font-black text-primary mb-2">🎯 BÀI HỌC CUỐI CÙNG</h3>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h3 className="text-sm sm:text-base font-black text-primary">🎯 BÀI HỌC CUỐI CÙNG</h3>
+        <span
+          className={`text-[11px] font-black px-2.5 py-1 rounded-full border-2 shrink-0 ${
+            already && earned === 0
+              ? "border-border bg-muted text-muted-foreground"
+              : "border-amber-400/70 bg-amber-400/20 text-amber-700 dark:text-amber-300"
+          }`}
+        >
+          {earned > 0 ? `🪙 +${earned}đ` : already ? "✔ Đã nhận +20đ" : "🪙 Trả lời đúng +20đ"}
+        </span>
+      </div>
       <p className="text-xs font-bold opacity-80 mb-2">
         Khi nhận được một email báo trúng thưởng, em nên làm gì?
       </p>
@@ -52,7 +79,7 @@ export function FinalLessonQuiz() {
           return (
             <button
               key={o.key}
-              onClick={() => setPicked(o.key)}
+              onClick={() => handlePick(o.key)}
               disabled={picked !== null}
               className={`flex gap-2 items-start text-left rounded-xl border-2 p-2.5 transition-colors ${state}`}
             >

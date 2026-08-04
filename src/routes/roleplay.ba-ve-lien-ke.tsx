@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
-import { FinalLessonQuiz } from "@/components/FinalLessonQuiz";
 import { FilmSummaryBoard } from "@/components/FilmSummaryBoard";
 import {
   FILM,
@@ -540,7 +539,7 @@ function FilmPage() {
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[40vh] overflow-y-auto">
                   🎓 <b>Bài học:</b> {node.ending.lesson}
                 </p>
-                <FinalLessonQuiz />
+                
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowSummary(true)}

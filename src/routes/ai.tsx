@@ -123,6 +123,8 @@ function AiPage() {
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);
   const runText = useServerFn(analyzeText);
+  const runEmail = useServerFn(analyzeEmail);
+  const runNews = useServerFn(analyzeNews);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,6 +138,12 @@ function AiPage() {
 
   const [text, setText] = useState("");
   const [textResult, setTextResult] = useState<Awaited<ReturnType<typeof analyzeText>> | null>(null);
+
+  const [email, setEmail] = useState("");
+  const [emailResult, setEmailResult] = useState<Awaited<ReturnType<typeof analyzeEmail>> | null>(null);
+
+  const [news, setNews] = useState("");
+  const [newsResult, setNewsResult] = useState<Awaited<ReturnType<typeof analyzeNews>> | null>(null);
 
   useEffect(() => {
     const u = getCurrentUser();

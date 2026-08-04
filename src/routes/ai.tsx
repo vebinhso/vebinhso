@@ -722,12 +722,15 @@ function AiPage() {
                 placeholder="Dán tiêu đề, nội dung bản tin hoặc link bài báo cần kiểm chứng..."
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
+              <p className="text-[10px] font-bold text-muted-foreground">
+                🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên.
+              </p>
               <button
                 onClick={doNews}
                 disabled={loading || news.trim().length < 15}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Kiểm tra tin giả"}
+                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Kiểm tra tin giả / tin lá cải"}
               </button>
 
               {newsResult && (
@@ -736,15 +739,38 @@ function AiPage() {
                     {NEWS_VERDICT_VI[newsResult.verdict] ?? "Chưa kiểm chứng được"} · {newsResult.category}
                   </p>
                   <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
+                  <Gauge value={newsResult.tabloidScore} label="Mức độ lá cải / tin đồn truyền miệng" />
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
-                  <SignList title="Dấu hiệu tin giả" items={newsResult.redFlags} tone="bad" />
+                  {newsResult.matchedNews.length > 0 && (
+                    <SignList title="Báo chính thống có đưa tin tương tự" items={newsResult.matchedNews} tone="good" />
+                  )}
+                  <SignList title="Dấu hiệu tin giả / lá cải" items={newsResult.redFlags} tone="bad" />
                   <SignList title="Dấu hiệu đáng tin" items={newsResult.goodSigns} tone="good" />
                   <SignList title="Cách tự kiểm chứng" items={newsResult.checkSteps} tone="info" />
+                  {newsResult.sources.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-black">
+                        📚 Tin mới nhất đã đối chiếu ({newsResult.checkedAt})
+                      </p>
+                      {newsResult.sources.map((s, i) => (
+                        <a
+                          key={i}
+                          href={s.link}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="block text-[10px] font-bold text-primary underline break-words"
+                        >
+                          [{s.source}] {s.title}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   <p className="text-[10px] font-bold text-muted-foreground">
                     * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
                   </p>
                 </div>
               )}
+
             </div>
           )}
 

@@ -719,28 +719,44 @@ function AiPage() {
                 value={news}
                 onChange={(e) => setNews(e.target.value)}
                 rows={6}
-                placeholder="Dán tiêu đề, nội dung bản tin hoặc link bài báo cần kiểm chứng..."
+                placeholder='Hỏi thử: "Có thật là ... không?" hoặc dán tiêu đề, nội dung tin, link bài báo...'
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <p className="text-[10px] font-bold text-muted-foreground">
-                🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên.
+                🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên để xem
+                tin đã được kiểm chứng ở đâu chưa.
               </p>
               <button
                 onClick={doNews}
                 disabled={loading || news.trim().length < 15}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Kiểm tra tin giả / tin lá cải"}
+                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Hỏi & kiểm chứng tin"}
               </button>
 
               {newsResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <div
+                    className={`rounded-xl border-2 p-3 ${
+                      newsResult.verified
+                        ? "border-emerald-500 bg-emerald-500/10"
+                        : "border-red-500 bg-red-500/10"
+                    }`}
+                  >
+                    <p className="text-xs sm:text-sm font-black">
+                      {newsResult.verified
+                        ? `✅ ĐÃ ĐƯỢC KIỂM CHỨNG bởi: ${newsResult.verifiedBy.join(", ")}`
+                        : "⚠️ THÔNG TIN CHƯA ĐƯỢC KIỂM CHỨNG — chưa có báo chính thống nào xác nhận. Đừng vội tin hay chia sẻ!"}
+                    </p>
+                    <p className="mt-1 text-xs sm:text-sm font-bold">{newsResult.answer}</p>
+                  </div>
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(newsResult.fakeScore)}`}>
                     {NEWS_VERDICT_VI[newsResult.verdict] ?? "Chưa kiểm chứng được"} · {newsResult.category}
                   </p>
                   <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
                   <Gauge value={newsResult.tabloidScore} label="Mức độ lá cải / tin đồn truyền miệng" />
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
+
                   {newsResult.matchedNews.length > 0 && (
                     <SignList title="Báo chính thống có đưa tin tương tự" items={newsResult.matchedNews} tone="good" />
                   )}

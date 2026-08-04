@@ -576,7 +576,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "L",
     action: "S23 — Đăng cảnh báo lên nhóm lớp và Facebook",
     text: "Các bạn ơi, có chiêu trò giả mạo trúng thưởng iPhone nè! Địa chỉ email và đường link đều lạ — tuyệt đối đừng bấm vào nhé!",
-    motion: "none",
+    motion: "still",
     mood: "safe",
     next: "l18b1",
   },

@@ -64,7 +64,7 @@ import vl14a from "@/assets/film5/video/l14a.mp4.asset.json";
 import l14b from "@/assets/film5/clean/l14b.jpg";
 import vl14b from "@/assets/film5/video/l14b.mp4.asset.json";
 import l15 from "@/assets/film5/clean/l15.jpg";
-import vl15 from "@/assets/film5/video/l15-v2.mp4.asset.json";
+import vl15 from "@/assets/film5/video/l15-v3.mp4.asset.json";
 import l16b1 from "@/assets/film5/clean/l16b1-v3.jpg";
 import vl16b1 from "@/assets/film5/video/l16b1-v3.mp4.asset.json";
 import l16b2img from "@/assets/film5/clean/l16b2-delete.jpg";
@@ -550,15 +550,6 @@ export const FILM: Record<string, FilmNode> = {
     text: "L không bấm vào link, không điền gì cả. Nhưng email lừa đảo này chắc chắn cũng được gửi cho rất nhiều bạn khác. L nên làm gì tiếp theo?",
     motion: "freeze",
     mood: "neutral",
-    headlinePatch: {
-      x: 44.6,
-      y: 30.8,
-      w: 17.5,
-      h: 7.2,
-      rot: -8,
-      size: 1.35,
-      text: "[XÁC NHẬN] Chúc mừng bạn đã trúng GIẢI NHẤT sự kiện Game!",
-    },
 
     choices: [
       {

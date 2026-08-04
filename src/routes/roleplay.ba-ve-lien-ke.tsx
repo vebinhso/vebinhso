@@ -592,7 +592,7 @@ function FilmPage() {
                   done && (
                     <>
                       <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-black tracking-widest text-white/70">L NÊN LÀM GÌ?</p>
+                        <p className="text-[11px] font-black tracking-widest text-white/70">3 BẠN NÊN LÀM GÌ?</p>
                         {timeLeft !== null && (
                           <p
                             className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}

@@ -145,3 +145,73 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt
       tips: strArr(parsed.tips),
     };
   });
+
+/** Kiểm tra email có phải giả mạo / lừa đảo không */
+export const analyzeEmail = createServerFn({ method: "POST" })
+  .inputValidator((data: { content: string }) => {
+    const t = data?.content;
+    if (!t || typeof t !== "string" || t.trim().length < 5) {
+      throw new Error("Hãy dán địa chỉ email hoặc nội dung email cần kiểm tra");
+    }
+    return { content: t.trim().slice(0, 6000) };
+  })
+  .handler(async ({ data }) => {
+    const sys = `Bạn là hệ thống phát hiện email giả mạo (phishing / spoofing / BEC) cho học sinh Việt Nam. Người dùng có thể chỉ dán ĐỊA CHỈ EMAIL, hoặc dán cả NỘI DUNG email (tiêu đề, người gửi, thân thư, link đính kèm).
+Hãy phân tích: tên miền người gửi có giống thương hiệu thật không (typosquatting: g00gle, faceb0ok-support, shopee-vn.info), dùng gmail/outlook miễn phí nhưng tự xưng là ngân hàng/công ty, tên hiển thị khác địa chỉ thật, tên miền mới lạ, ký tự lạ/Unicode giả, giọng văn hối thúc – doạ khoá tài khoản, yêu cầu OTP/mật khẩu/số thẻ, link không khớp thương hiệu, tệp đính kèm nguy hiểm (.exe .zip .html), lỗi chính tả, lời chào chung chung ("Kính gửi quý khách").
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","type":"phishing|spoofing|scam|spam|marketing|legit|unknown","impersonating":"tên thương hiệu bị giả mạo hoặc rỗng","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu giả mạo"],"goodSigns":["dấu hiệu đáng tin"],"advice":["nên làm gì"]}
+riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việt dễ hiểu.`;
+    const parsed = await callGateway({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: sys },
+        { role: "user", content: `Kiểm tra email này:\n${data.content}` },
+      ],
+      response_format: { type: "json_object" },
+    });
+    return {
+      riskScore: clampScore(parsed.riskScore),
+      level: str(parsed.level, "unknown"),
+      type: str(parsed.type, "unknown"),
+      impersonating: str(parsed.impersonating, ""),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      redFlags: strArr(parsed.redFlags),
+      goodSigns: strArr(parsed.goodSigns),
+      advice: strArr(parsed.advice),
+    };
+  });
+
+/** Kiểm tra tin tức có phải tin giả không */
+export const analyzeNews = createServerFn({ method: "POST" })
+  .inputValidator((data: { content: string }) => {
+    const t = data?.content;
+    if (!t || typeof t !== "string" || t.trim().length < 15) {
+      throw new Error("Cần ít nhất 15 ký tự (tiêu đề, nội dung tin hoặc link bài báo)");
+    }
+    return { content: t.trim().slice(0, 6000) };
+  })
+  .handler(async ({ data }) => {
+    const sys = `Bạn là chuyên gia kiểm chứng tin tức (fact-check) cho học sinh Việt Nam. Người dùng dán tiêu đề, nội dung tin hoặc link bài báo.
+Phân tích: tiêu đề giật gân/câu view, không nêu nguồn hoặc nguồn mơ hồ ("theo một số nguồn tin"), không có tên tác giả/thời gian, số liệu không kiểm chứng, ngôn ngữ cảm xúc – kích động, kêu gọi chia sẻ gấp, thuyết âm mưu, ảnh cũ dùng lại, mạo danh báo chính thống (VTV, VnExpress, Tuổi Trẻ), nội dung mâu thuẫn với kiến thức phổ thông, tin lừa đảo tài chính/sức khoẻ.
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"fakeScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu tin giả"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
+fakeScore = mức độ tin này là tin giả/sai lệch. Nếu không có đủ dữ kiện, chọn "unverified" và nói rõ cần kiểm chứng. Viết tiếng Việt.`;
+    const parsed = await callGateway({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: sys },
+        { role: "user", content: `Kiểm tra tin tức này:\n${data.content}` },
+      ],
+      response_format: { type: "json_object" },
+    });
+    return {
+      fakeScore: clampScore(parsed.fakeScore),
+      level: str(parsed.level, "unknown"),
+      verdict: str(parsed.verdict, "unverified"),
+      category: str(parsed.category, "chưa rõ"),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      redFlags: strArr(parsed.redFlags),
+      goodSigns: strArr(parsed.goodSigns),
+      checkSteps: strArr(parsed.checkSteps),
+    };
+  });

@@ -73,7 +73,7 @@ import vm20 from "@/assets/film3/video/m20.mp4.asset.json";
 import vm21 from "@/assets/film3/video/m21.mp4.asset.json";
 import vm22 from "@/assets/film3/video/m22b.mp4.asset.json";
 import vm23 from "@/assets/film3/video/m23.mp4.asset.json";
-import vm24 from "@/assets/film3/video/m24b.mp4.asset.json";
+import vm24 from "@/assets/film3/video/m24c.mp4.asset.json";
 import vm25 from "@/assets/film3/video/m25.mp4.asset.json";
 
 export type Speaker = "A" | "M" | "narrator";

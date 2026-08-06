@@ -136,6 +136,39 @@ function AnalyzingBar({ percent, phase }: { percent: number; phase: string }) {
   );
 }
 
+/** Ghi chú sai số: kết quả đã được đối chiếu chéo giữa 2 mô hình AI */
+function AccuracyNote({
+  accuracy,
+}: {
+  accuracy?: { margin: number; within: boolean; crossChecked: boolean; models: string[]; note: string } | null;
+}) {
+  if (!accuracy) return null;
+  const ok = accuracy.within;
+  return (
+    <div
+      className={`rounded-2xl border-2 p-3 ${
+        ok ? "border-emerald-400 bg-emerald-50/70" : "border-amber-400 bg-amber-50/70"
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className={`text-xs sm:text-sm font-black ${ok ? "text-emerald-800" : "text-amber-800"}`}>
+          {ok ? "✅ ĐỘ TIN CẬY ĐẠT CHUẨN" : "⚠️ SAI SỐ VƯỢT NGƯỠNG"}
+        </span>
+        <span className={`text-xl font-black ${ok ? "text-emerald-700" : "text-amber-700"}`}>
+          ±{accuracy.margin}%
+        </span>
+      </div>
+      <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">{accuracy.note}</p>
+      <p className="mt-1 text-[11px] font-bold text-foreground/80">
+        Nguồn đối chiếu: {accuracy.models.join(" + ")} · Ngưỡng cho phép: ±5% · Nên kiểm chứng lại bằng Google và báo
+        chính thống.
+      </p>
+    </div>
+  );
+}
+
+
+
 function SignList({ title, items, tone }: { title: string; items: string[]; tone: "bad" | "good" | "info" }) {
 
   if (!items.length) return null;

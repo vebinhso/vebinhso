@@ -168,19 +168,23 @@ Yêu cầu: 4-6 bộ phận, 3-4 sections, 4-6 keyPoints, ĐÚNG 5 câu hỏi tr
 export const generateAiLesson = createServerFn({ method: "POST" })
   .inputValidator((data: GenInput) => {
     if (!data?.imageBase64) throw new Error("Thiếu ảnh");
+    const q: Quality =
+      data.quality === "smooth" || data.quality === "real" ? data.quality : "fast";
     return {
       imageBase64: data.imageBase64,
       mimeType: data.mimeType || "image/png",
       title: (data.title || "").slice(0, 200),
       description: (data.description || "").slice(0, 3000),
       reviseNote: (data.reviseNote || "").slice(0, 1000),
+      quality: q,
     } as GenInput;
   })
   .handler(async ({ data }) => {
     const apiKey = key();
+    const angles = ANGLE_SETS[data.quality || "fast"];
     const [lessonRaw, ...frames] = await Promise.all([
       buildLesson(apiKey, data),
-      ...ANGLES.map((a) => renderAngle(apiKey, data, a)),
+      ...angles.map((a) => renderAngle(apiKey, data, a)),
     ]);
 
     const lesson = lessonRaw || {};
@@ -188,7 +192,8 @@ export const generateAiLesson = createServerFn({ method: "POST" })
     delete lesson.questions;
 
     const pairs = (frames as (string | null)[])
-      .map((f, i) => ({ f, a: ANGLES[i] }))
+      .map((f, i) => ({ f, a: angles[i] }))
+
       .filter((p): p is { f: string; a: number } => !!p.f);
 
     return {

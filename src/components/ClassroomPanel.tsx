@@ -14,6 +14,7 @@ import {
   type RosterMember,
 } from "@/lib/classroom-posts";
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
+import { PasteDropZone } from "@/components/PasteDropZone";
 
 type Tab = "announcement" | "material" | "assignment" | "people";
 
@@ -212,7 +213,9 @@ function PostsTab({
                   />
                 </label>
               )}
-              <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+              <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
+                <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+              </PasteDropZone>
               <button
                 onClick={save}
                 disabled={busy}
@@ -358,7 +361,9 @@ function PostCard({
                       ✅ Đã nộp: {subs[0].file_name || subs[0].note}
                     </div>
                   )}
-                  <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+                  <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
+                <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+              </PasteDropZone>
                   <input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}

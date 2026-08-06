@@ -479,22 +479,14 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
 
       {draft && (
         <div className="flex flex-col gap-2 border-t-2 border-violet-100 pt-2">
-          <div className="text-xs font-black text-violet-600">👀 XEM THỬ</div>
-          <div className="rounded-2xl bg-white border-2 border-violet-200 overflow-hidden" style={{ height: 220 }}>
-            <img
-              src={`data:image/png;base64,${draft.frames[frameIdx]}`}
-              alt="Mô hình 3D"
-              className="w-full h-full object-contain"
-            />
+          <div className="text-xs font-black text-violet-600">
+            👀 XEM THỬ — giữ chuột & kéo để xoay 360°
           </div>
-          <input
-            type="range"
-            min={0}
-            max={draft.frames.length - 1}
-            value={frameIdx}
-            onChange={(e) => setFrameIdx(Number(e.target.value))}
-            className="w-full accent-violet-500"
+          <Spin360
+            urls={draft.frames.map((f) => `data:image/png;base64,${f}`)}
+            height={220}
           />
+
           <LessonBody lesson={draft.lesson} />
           <div className="text-xs font-black">📝 CÂU HỎI ĐỀ XUẤT ({draft.questions.length})</div>
           {draft.questions.map((q, k) => (

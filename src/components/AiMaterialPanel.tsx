@@ -403,11 +403,12 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           title: title.trim(),
           description,
           reviseNote,
+          quality,
         },
       });
       if (!res.frames.length) throw new Error("AI chưa dựng được mô hình, thử ảnh rõ nét hơn");
       setDraft({ frames: res.frames, lesson: res.lesson as AiLessonBody, questions: res.questions as AiQuestion[] });
-      setFrameIdx(0);
+
       toast.success("Đã tạo bản xem thử!");
     } catch (e: any) {
       toast.error(e?.message || "Không tạo được học liệu");

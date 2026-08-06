@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import LoadingPercent from "@/components/LoadingPercent";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -420,7 +421,7 @@ function StudentsPanel({ classId }: { classId: string }) {
   useEffect(() => {
     getClassStudents(classId).then((s: ClassroomStudent[]) => { setRows(s); setBusy(false); }).catch(() => setBusy(false));
   }, [classId]);
-  if (busy) return <p className="font-bold">Đang tải...</p>;
+  if (busy) return <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>;
   if (rows.length === 0) return <p className="font-bold text-muted-foreground">Chưa có học sinh nào tham gia. Chia sẻ mã lớp cho học sinh!</p>;
   return (
     <>
@@ -512,7 +513,7 @@ function StudentStatsModal({ classId, student, onClose }: { classId: string; stu
 
         <div className="p-4 overflow-y-auto flex-1">
           {err && <p className="text-red-600 font-bold">{err}</p>}
-          {!rows && !err && <p className="font-bold">Đang tải...</p>}
+          {!rows && !err && <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>}
           {rows && rows.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có câu hỏi để thống kê.</p>}
           {rows && rows.length > 0 && (
             <table className="w-full text-sm">
@@ -799,7 +800,7 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
         <button onClick={reload} className="toy-button text-xs">🔄 Làm mới</button>
       </div>
 
-      {busy ? <p className="font-bold">Đang tải...</p> : (
+      {busy ? <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div> : (
         list.length === 0 ? <p className="text-muted-foreground font-bold">Chưa có câu hỏi. Dùng biểu mẫu trên hoặc tab "Nhập dữ liệu".</p> : (
           <div className="grid gap-2">
             {list.map((q) => {

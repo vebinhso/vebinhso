@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { PasteDropZone } from "@/components/PasteDropZone";
 import { generateAiLesson } from "@/lib/ai-lesson.functions";
 import {
   listAiLessons,

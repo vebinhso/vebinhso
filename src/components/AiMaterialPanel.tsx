@@ -38,7 +38,10 @@ function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }
         className="rounded-2xl bg-slate-100 grid place-items-center text-xs font-bold text-muted-foreground"
         style={{ height }}
       >
-        Đang tải mô hình 3D...
+        <div className="flex flex-col items-center gap-2">
+          <span>Đang tải mô hình 3D...</span>
+          <LoadingPercent light={false} />
+        </div>
       </div>
     );
 
@@ -374,6 +377,11 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         >
           {busy ? phase || "Đang xử lý..." : "✨ Tạo mô hình 3D + bài học"}
         </button>
+      )}
+      {busy && (
+        <div className="flex justify-center">
+          <LoadingPercent light={false} />
+        </div>
       )}
 
       {draft && (

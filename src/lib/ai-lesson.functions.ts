@@ -20,40 +20,56 @@ function key() {
 }
 
 async function renderAngle(apiKey: string, input: GenInput, angle: number): Promise<string | null> {
-  const prompt = `Dựng lại vật thể chính trong ảnh thành một MÔ HÌNH 3D render chất lượng cao (giống ảnh render từ phần mềm 3D), nhìn từ góc xoay ${angle} độ quanh trục dọc.
-Yêu cầu bắt buộc:
-- Giữ đúng hình dạng, tỉ lệ, màu sắc và cấu trúc của vật thể gốc.
-- Nền TRẮNG trơn hoàn toàn, vật thể nằm chính giữa, cùng khoảng cách và cùng kích thước ở mọi góc.
-- Ánh sáng studio mềm, có khối 3D rõ ràng, chi tiết giải phẫu/cấu tạo chính xác.
-- TUYỆT ĐỐI KHÔNG có chữ, số, watermark hay nhãn trong ảnh.
+  const prompt = `Bạn là phần mềm dựng hình 3D. Hãy tái tạo VẬT THỂ CHÍNH trong ảnh thành MỘT MÔ HÌNH 3D và xuất ra 1 khung hình của vòng quay turntable ở góc ${angle}° quanh trục dọc (0° = đúng góc nhìn của ảnh gốc, quay theo chiều kim đồng hồ).
+Yêu cầu bắt buộc (rất quan trọng để 12 khung ghép lại thành mô hình xoay mượt):
+- Cùng MỘT mô hình duy nhất ở mọi khung: giữ nguyên hình dạng, tỉ lệ, màu sắc, vật liệu và mọi chi tiết của vật thể gốc.
+- Camera CỐ ĐỊNH: cùng tiêu cự, cùng độ cao ngang tầm mắt, cùng khoảng cách; vật thể luôn nằm CHÍNH GIỮA và chiếm đúng cùng một tỉ lệ khung hình.
+- Ánh sáng studio ba điểm cố định, mềm, không đổi giữa các khung; có khối và chiều sâu 3D rõ ràng.
+- Nền TRẮNG trơn tuyệt đối, không bóng đổ nền, không sàn, không đạo cụ, không hậu cảnh.
+- Ảnh vuông, render sạch, chi tiết giải phẫu/cấu tạo chính xác khoa học.
+- TUYỆT ĐỐI KHÔNG có chữ, số, mũi tên, watermark hay nhãn trong ảnh.
 ${input.reviseNote ? `- Yêu cầu chỉnh sửa thêm của giáo viên: ${input.reviseNote}` : ""}
 Bối cảnh bài học: ${input.description || input.title}`;
 
-  const res = await fetch(`${GATEWAY}/images/generations`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-3.1-flash-image",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${GATEWAY}/images/generations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3.1-flash-image",
+          messages: [
             {
-              type: "image_url",
-              image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}` },
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                {
+                  type: "image_url",
+                  image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}` },
+                },
+              ],
             },
           ],
-        },
-      ],
-      modalities: ["image", "text"],
-    }),
-  });
-  if (!res.ok) return null;
-  const j: any = await res.json();
-  const b64 = j?.data?.[0]?.b64_json;
-  return typeof b64 === "string" ? b64 : null;
+          modalities: ["image", "text"],
+        }),
+      });
+      if (!res.ok) {
+        if (res.status === 429 || res.status >= 500) {
+          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+      const j: any = await res.json();
+      const b64 = j?.data?.[0]?.b64_json;
+      if (typeof b64 === "string") return b64;
+    } catch {
+      /* thử lại */
+    }
+  }
+  return null;
 }
+
 
 async function buildLesson(apiKey: string, input: GenInput) {
   const sys = `Bạn là chuyên gia thiết kế bài giảng số cho học sinh Việt Nam (lớp 6-12).

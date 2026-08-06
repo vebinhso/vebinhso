@@ -288,13 +288,37 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
   const [revise, setRevise] = useState("");
   const [frameIdx, setFrameIdx] = useState(0);
 
-  const pick = (f: File | null) => {
+  // Nén ảnh về tối đa 768px + JPEG để gửi lên AI nhanh hơn nhiều
+  const compress = (f: File) =>
+    new Promise<string>((resolve) => {
+      const r = new FileReader();
+      r.onload = () => {
+        const src = String(r.result);
+        const img = new Image();
+        img.onload = () => {
+          const max = 768;
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          const ctx = c.getContext("2d");
+          if (!ctx) return resolve(src);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = () => resolve(src);
+        img.src = src;
+      };
+      r.readAsDataURL(f);
+    });
+
+  const pick = async (f: File | null) => {
     setFile(f);
     setDraft(null);
     if (!f) return setPreview("");
-    const r = new FileReader();
-    r.onload = () => setPreview(String(r.result));
-    r.readAsDataURL(f);
+    setPreview(await compress(f));
   };
 
   const run = async (reviseNote?: string) => {
@@ -307,7 +331,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
       const res = await generateAiLesson({
         data: {
           imageBase64: b64,
-          mimeType: file.type || "image/png",
+          mimeType: preview.startsWith("data:image/jpeg") ? "image/jpeg" : file.type || "image/png",
           title: title.trim(),
           description,
           reviseNote,

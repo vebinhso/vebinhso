@@ -51,13 +51,11 @@ ${input.reviseNote ? `- Yêu cầu chỉnh sửa thêm của giáo viên: ${inpu
 Bối cảnh bài học: ${input.description || input.title}`;
 
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const res = await fetch(`${GATEWAY}/images/generations`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-3.1-flash-lite-image",
+  const model = MODEL_BY_QUALITY[quality];
+  const body =
+    quality === "fast"
+      ? {
+          model,
           contents: [
             {
               role: "user",
@@ -68,7 +66,30 @@ Bối cảnh bài học: ${input.description || input.title}`;
             },
           ],
           generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-        }),
+        }
+      : {
+          model,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                {
+                  type: "image_url",
+                  image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}` },
+                },
+              ],
+            },
+          ],
+          modalities: ["image", "text"],
+        };
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${GATEWAY}/images/generations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         if (res.status === 429 || res.status >= 500) {
@@ -78,8 +99,11 @@ Bối cảnh bài học: ${input.description || input.title}`;
         return null;
       }
       const j: any = await res.json();
-      const b64 = j?.data?.[0]?.b64_json;
+      const b64 =
+        j?.data?.[0]?.b64_json ??
+        j?.choices?.[0]?.message?.images?.[0]?.image_url?.url?.split(",")[1];
       if (typeof b64 === "string") return b64;
+
     } catch {
       /* thử lại */
     }

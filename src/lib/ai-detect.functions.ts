@@ -39,6 +39,62 @@ const strArr = (v: unknown, max = 6) =>
     : [];
 const str = (v: unknown, fb = "") => (typeof v === "string" && v.trim() ? v.slice(0, 600) : fb);
 
+/* ============ ĐỐI CHIẾU CHÉO 2 MÔ HÌNH — SAI SỐ TỐI ĐA 5% ============ */
+
+const PRIMARY_MODEL = "google/gemini-3.5-flash";
+const CROSS_MODEL = "openai/gpt-5.6-terra";
+
+export type Accuracy = {
+  margin: number;
+  within: boolean;
+  crossChecked: boolean;
+  models: string[];
+  note: string;
+};
+
+/**
+ * Gọi 2 mô hình AI khác nhau cho cùng một câu hỏi, lấy trung bình các điểm số
+ * và tính SAI SỐ (nửa khoảng chênh lệch). Nếu sai số > 5% thì cảnh báo người dùng.
+ */
+async function callGatewayVerified(body: Record<string, unknown>, scoreKeys: string[]) {
+  const [a, b] = await Promise.all([
+    callGateway({ ...body, model: PRIMARY_MODEL }),
+    callGateway({ ...body, model: CROSS_MODEL, reasoning_effort: "none" }).catch(() => null),
+  ]);
+  const primary = (a ?? {}) as Record<string, unknown>;
+  const merged: Record<string, unknown> = { ...primary };
+  let maxDiff = 0;
+  let compared = 0;
+  if (b) {
+    for (const k of scoreKeys) {
+      const x = Number((primary as any)[k]);
+      const y = Number((b as any)[k]);
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        compared++;
+        maxDiff = Math.max(maxDiff, Math.abs(x - y));
+        merged[k] = Math.round((x + y) / 2);
+      }
+    }
+  }
+  const crossChecked = Boolean(b) && compared > 0;
+  const margin = crossChecked ? Math.min(50, Math.round(maxDiff / 2)) : 15;
+  const within = crossChecked && margin <= 5;
+  const accuracy: Accuracy = {
+    margin,
+    within,
+    crossChecked,
+    models: crossChecked ? ["Google Gemini", "OpenAI GPT"] : ["Google Gemini"],
+    note: crossChecked
+      ? within
+        ? `Đã đối chiếu chéo 2 mô hình AI (Google Gemini & OpenAI GPT) — kết quả khớp nhau, sai số ước tính ±${margin}% (trong ngưỡng cho phép 5%).`
+        : `Hai mô hình AI (Google Gemini & OpenAI GPT) chưa thống nhất — sai số ước tính ±${margin}%, VƯỢT ngưỡng 5%. Hãy tự kiểm chứng thêm bằng Google hoặc nguồn chính thống trước khi tin.`
+      : `Chỉ một mô hình AI trả lời được nên chưa đối chiếu chéo — sai số có thể tới ±${margin}%. Hãy kiểm chứng thêm bằng Google hoặc nguồn chính thống.`,
+  };
+  merged["accuracy"] = accuracy;
+  return merged as any;
+}
+
+
 /** Phân tích ảnh: có phải do AI tạo không, mức độ bao nhiêu */
 export const analyzeImage = createServerFn({ method: "POST" })
   .inputValidator((data: { imageUrl: string }) => {
@@ -55,8 +111,7 @@ export const analyzeImage = createServerFn({ method: "POST" })
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"realSigns":["dấu hiệu ảnh thật"],"editedScore":0-100,"tips":["lời khuyên kiểm chứng"]}
 aiScore = mức độ ảnh do AI tạo (100 = chắc chắn AI). editedScore = mức độ đã qua chỉnh sửa/ghép. Viết tiếng Việt, dễ hiểu với học sinh.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         {
@@ -68,8 +123,9 @@ aiScore = mức độ ảnh do AI tạo (100 = chắc chắn AI). editedScore = 
         },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["aiScore", "confidence", "editedScore"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -93,15 +149,15 @@ export const analyzeLink = createServerFn({ method: "POST" })
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","category":"phishing|malware|scam|adult|gambling|shortener|unknown|clean","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu nguy hiểm"],"goodSigns":["dấu hiệu an toàn"],"advice":["nên làm gì"]}
 Viết tiếng Việt. Nếu không chắc, nói rõ là không chắc và khuyên thận trọng.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         { role: "user", content: `Kiểm tra link này: ${data.url}` },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["riskScore"]);
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       category: str(parsed.category, "unknown"),
@@ -126,15 +182,15 @@ export const analyzeText = createServerFn({ method: "POST" })
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"tips":["cách kiểm chứng thông tin"]}
 misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["aiScore", "confidence", "misinfoRisk"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -161,15 +217,15 @@ Hãy phân tích: tên miền người gửi có giống thương hiệu thật 
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","type":"phishing|spoofing|scam|spam|marketing|legit|unknown","impersonating":"tên thương hiệu bị giả mạo hoặc rỗng","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu giả mạo"],"goodSigns":["dấu hiệu đáng tin"],"advice":["nên làm gì"]}
 riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việt dễ hiểu.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         { role: "user", content: `Kiểm tra email này:\n${data.content}` },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["riskScore"]);
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       type: str(parsed.type, "unknown"),
@@ -319,8 +375,7 @@ Trả về CHÍNH XÁC một JSON (không markdown):
 {"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
 fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. Viết tiếng Việt dễ hiểu.`;
 
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         {
@@ -329,10 +384,11 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
         },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["fakeScore", "tabloidScore"]);
     const verifiedBy = strArr(parsed.verifiedBy, 5);
     const verified = parsed.verified === true && verifiedBy.length > 0;
     return {
+      accuracy: parsed.accuracy,
       answer: str(
         parsed.answer,
         verified
@@ -378,8 +434,7 @@ Người dùng gửi nhiều KHUNG HÌNH liên tiếp trích từ một video. H
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"deepfakeScore":0-100,"editedScore":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"realSigns":["dấu hiệu video thật"],"tips":["cách kiểm chứng"]}
 aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi hoán đổi gương mặt. editedScore = mức độ đã cắt ghép/chỉnh sửa. Viết tiếng Việt dễ hiểu với học sinh.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         {
@@ -394,8 +449,9 @@ aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi
         },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["aiScore", "confidence", "deepfakeScore", "editedScore"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -507,14 +563,13 @@ Hãy CHỈ RÕ từng đoạn chữ nguy hiểm bằng cách TRÍCH NGUYÊN VĂN
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"quote":"đoạn trích nguyên văn","label":"Số điện thoại","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên sửa/xoá gì trước khi đăng"],"safeVersion":"phiên bản viết lại đã che thông tin nhạy cảm"}
 Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
-    const parsed = await callGateway({
-      model: "google/gemini-3.5-flash",
+    const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
-    });
+    }, ["riskScore"]);
     type TextFinding = { quote: string; label: string; detail: string; severity: "low" | "medium" | "high" };
     const findings: TextFinding[] = Array.isArray(parsed.findings)
       ? parsed.findings.slice(0, 8).map((f: any) => ({
@@ -525,6 +580,7 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
         }))
       : [];
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),

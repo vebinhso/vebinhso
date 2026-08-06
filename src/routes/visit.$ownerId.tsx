@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import LoadingPercent from "@/components/LoadingPercent";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -77,6 +78,7 @@ function VisitPage() {
         <div className="text-center">
           <div className="text-5xl mb-2 animate-spin inline-block">🏠</div>
           <p className="font-black">Đang mở cửa nhà…</p>
+          <div className="mt-3 flex justify-center"><LoadingPercent light={false} /></div>
         </div>
       </main>
     );

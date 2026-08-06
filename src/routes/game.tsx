@@ -23,6 +23,7 @@ import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions,
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
+import LoadingPercent from "@/components/LoadingPercent";
 import { WorldLoadingOverlay } from "@/game/WorldLoadingOverlay";
 import { getActivePowerIds } from "@/lib/powers";
 import { useWorldToggles, setToggles } from "@/lib/world-toggles";
@@ -889,6 +890,7 @@ function GamePage() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-sky-300 to-sky-500">
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-white/50 border-t-white" />
             <div className="text-white font-black text-xl">Đang tải bản đồ nhà...</div>
+            <LoadingPercent />
           </div>
         }
       >

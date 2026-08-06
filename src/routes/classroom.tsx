@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import LoadingPercent from "@/components/LoadingPercent";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

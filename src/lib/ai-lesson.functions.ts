@@ -146,9 +146,13 @@ export const generateAiLesson = createServerFn({ method: "POST" })
     const questions = Array.isArray(lesson.questions) ? lesson.questions.slice(0, 8) : [];
     delete lesson.questions;
 
+    const pairs = (frames as (string | null)[])
+      .map((f, i) => ({ f, a: ANGLES[i] }))
+      .filter((p): p is { f: string; a: number } => !!p.f);
+
     return {
-      frames: (frames as (string | null)[]).filter((f): f is string => !!f),
-      angles: ANGLES,
+      frames: pairs.map((p) => p.f),
+      angles: pairs.map((p) => p.a),
       lesson,
       questions,
     };

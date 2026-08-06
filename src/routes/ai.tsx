@@ -661,6 +661,29 @@ function AiPage() {
             </div>
           )}
 
+          {!loading && (() => {
+            const acc =
+              tab === "news"
+                ? newsResult?.accuracy
+                : tab === "media"
+                  ? mediaMode === "image"
+                    ? imgResult?.accuracy
+                    : videoResult?.accuracy
+                  : tab === "link"
+                    ? linkResult?.accuracy
+                    : tab === "email"
+                      ? emailResult?.accuracy
+                      : tab === "text"
+                        ? textResult?.accuracy
+                        : riskTextResult?.accuracy;
+            return acc ? (
+              <div className="mb-3">
+                <AccuracyNote accuracy={acc} />
+              </div>
+            ) : null;
+          })()}
+
+
           {tab === "media" && (
             <div className="mb-3 grid grid-cols-2 gap-2">
               {([

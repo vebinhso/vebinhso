@@ -463,6 +463,32 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         <img src={preview} alt="Ảnh gốc" className="max-h-40 object-contain rounded-xl bg-white" />
       )}
 
+      <div className="flex flex-col gap-1">
+        <div className="text-[11px] font-black text-muted-foreground">
+          🎚️ ĐỘ CHÂN THẬT CỦA MÔ HÌNH 3D
+        </div>
+        <div className="flex gap-1 flex-wrap">
+          {[
+            { k: "fast", t: "⚡ Nhanh (8 góc)" },
+            { k: "smooth", t: "🎯 Mượt (12 góc)" },
+            { k: "real", t: "💎 Chân thật (16 góc)" },
+          ].map((o) => (
+            <button
+              key={o.k}
+              onClick={() => setQuality(o.k as any)}
+              className={`px-2 py-1 rounded-lg text-[11px] font-black border-2 ${
+                quality === o.k
+                  ? "bg-violet-500 text-white border-violet-500"
+                  : "bg-white border-gray-200"
+              }`}
+            >
+              {o.t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+
       {!draft && (
         <button
           onClick={() => run()}

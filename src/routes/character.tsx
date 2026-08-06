@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/character";
 import { generateOutfit } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { PasteDropZone } from "@/components/PasteDropZone";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -84,7 +85,10 @@ function CharacterPage() {
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (file) await uploadAvatarFile(file);
+  };
+
+  const uploadAvatarFile = async (file: File) => {
     const u = getCurrentUser();
     if (!u) return;
     if (!file.type.startsWith("image/")) { setErr("Vui lòng chọn tệp ảnh"); return; }
@@ -143,10 +147,12 @@ function CharacterPage() {
             <div className="w-24 h-24 rounded-full bg-white/70 border-2 border-black/20 overflow-hidden flex items-center justify-center text-4xl">
               {avatarUrl ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
             </div>
-            <label className="toy-button !text-sm py-2 px-4 cursor-pointer">
-              {uploading ? "Đang tải..." : "📷 Tải ảnh đại diện"}
-              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
-            </label>
+            <PasteDropZone onFile={uploadAvatarFile} className="p-2" hint="Ctrl+V để dán ảnh · hoặc kéo thả ảnh vào đây">
+              <label className="toy-button !text-sm py-2 px-4 cursor-pointer">
+                {uploading ? "Đang tải..." : "📷 Tải ảnh đại diện"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+              </label>
+            </PasteDropZone>
             <p className="text-xs font-bold text-muted-foreground">Ảnh tối đa 2MB · JPG, PNG</p>
           </div>
 

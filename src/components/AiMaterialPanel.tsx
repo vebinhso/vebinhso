@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { PasteDropZone } from "@/components/PasteDropZone";
 import { generateAiLesson } from "@/lib/ai-lesson.functions";
 import {
   listAiLessons,
@@ -358,7 +359,9 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         placeholder="Mô tả: bạn muốn truyền tải bộ phận nào, kiến thức nào? (AI sẽ dựa vào đây để đề xuất bài học)"
         className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
       />
-      <input type="file" accept="image/*" onChange={(e) => pick(e.target.files?.[0] ?? null)} className="text-xs" />
+      <PasteDropZone onFile={(f) => pick(f)} className="border-2 border-dashed border-gray-200 p-2">
+        <input type="file" accept="image/*" onChange={(e) => pick(e.target.files?.[0] ?? null)} className="text-xs" />
+      </PasteDropZone>
       {preview && !draft && (
         <img src={preview} alt="Ảnh gốc" className="max-h-40 object-contain rounded-xl bg-white" />
       )}

@@ -219,6 +219,7 @@ export function SocialSimulator() {
               {scanning ? "🔎 AI đang quét ảnh..." : "Đăng bài"}
             </button>
           </div>
+          </PasteDropZone>
 
           {error && (
             <div className="mt-2 rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">

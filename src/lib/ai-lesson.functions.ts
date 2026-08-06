@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
-/** Các góc xoay dùng để dựng mô hình 360°. */
-const ANGLES = [0, 60, 120, 180, 240, 300];
+/** Các góc xoay dùng để dựng mô hình 360° (bước 30° = 12 khung, xoay mượt). */
+const ANGLES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
 type GenInput = {
   imageBase64: string; // raw base64 (không có tiền tố data:)

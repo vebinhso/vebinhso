@@ -125,6 +125,7 @@ aiScore = mức độ ảnh do AI tạo (100 = chắc chắn AI). editedScore = 
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "editedScore"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -156,6 +157,7 @@ Viết tiếng Việt. Nếu không chắc, nói rõ là không chắc và khuy�
       response_format: { type: "json_object" },
     }, ["riskScore"]);
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       category: str(parsed.category, "unknown"),
@@ -188,6 +190,7 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "misinfoRisk"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -222,6 +225,7 @@ riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việ
       response_format: { type: "json_object" },
     }, ["riskScore"]);
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       type: str(parsed.type, "unknown"),
@@ -384,6 +388,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
     const verifiedBy = strArr(parsed.verifiedBy, 5);
     const verified = parsed.verified === true && verifiedBy.length > 0;
     return {
+      accuracy: parsed.accuracy,
       answer: str(
         parsed.answer,
         verified
@@ -446,6 +451,7 @@ aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "deepfakeScore", "editedScore"]);
     return {
+      accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
@@ -574,6 +580,7 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
         }))
       : [];
     return {
+      accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),

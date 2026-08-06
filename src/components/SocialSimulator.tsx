@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { PasteDropZone } from "@/components/PasteDropZone";
 import { analyzePrivacyMedia, analyzePrivacyText } from "@/lib/ai-detect.functions";
 
 type MediaResult = Awaited<ReturnType<typeof analyzePrivacyMedia>>;
@@ -191,7 +192,8 @@ export function SocialSimulator() {
             </div>
           )}
 
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <PasteDropZone onFile={pickFile} hint="Ctrl+V để dán ảnh · hoặc kéo thả ảnh vào đây" className="mt-2 p-2 border-2 border-dashed border-slate-200">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => fileRef.current?.click()}
               className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-800"
@@ -208,7 +210,7 @@ export function SocialSimulator() {
                 if (f) pickFile(f);
               }}
             />
-            <span className="text-[11px] font-bold text-slate-500">Có thể dán ảnh bằng Ctrl+V</span>
+
             <button
               onClick={scanAndPost}
               disabled={scanning}

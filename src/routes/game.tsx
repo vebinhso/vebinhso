@@ -23,6 +23,7 @@ import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions,
 import { QuestionView } from "@/game/QuestionView";
 
 const GameWorld = lazy(() => import("@/game/GameWorld"));
+import LoadingPercent from "@/components/LoadingPercent";
 import { WorldLoadingOverlay } from "@/game/WorldLoadingOverlay";
 import { getActivePowerIds } from "@/lib/powers";
 import { useWorldToggles, setToggles } from "@/lib/world-toggles";

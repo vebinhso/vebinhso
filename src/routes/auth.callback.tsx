@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import LoadingPercent from "@/components/LoadingPercent";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
@@ -52,6 +53,7 @@ function AuthCallbackPage() {
       <div className="glass-card p-8 text-center">
         <div className="text-5xl mb-3 animate-spin inline-block">⏳</div>
         <div className="text-lg font-black">Đang đăng nhập...</div>
+        <div className="mt-3 flex justify-center"><LoadingPercent light={false} /></div>
         {error && <div className="mt-3 text-sm text-red-600 font-bold">{error}</div>}
       </div>
     </div>

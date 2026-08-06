@@ -77,6 +77,7 @@ function VisitPage() {
         <div className="text-center">
           <div className="text-5xl mb-2 animate-spin inline-block">🏠</div>
           <p className="font-black">Đang mở cửa nhà…</p>
+          <div className="mt-3 flex justify-center"><LoadingPercent light={false} /></div>
         </div>
       </main>
     );

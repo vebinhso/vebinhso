@@ -20,21 +20,39 @@ const REWARD_PER_Q = 10;
 
 /* ---------------- 360° viewer ---------------- */
 
-/** Trình xoay 360°: kéo chuột/chạm để xoay, có quán tính + tự xoay. */
+/**
+ * Trình xem mô hình 3D: kéo để xoay 360° (có quán tính + tự xoay),
+ * cuộn/pinch để phóng to, kéo bằng chuột phải (hoặc khi đã zoom) để di chuyển.
+ */
 export function Spin360({ urls, height = 260 }: { urls: string[]; height?: number }) {
-  const [i, setI] = useState(0);
+  const [, force] = useState(0);
   const [auto, setAuto] = useState(true);
-  const pos = useRef(0); // vị trí khung dạng số thực
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [ready, setReady] = useState(0);
+  const pos = useRef(0); // vị trí khung dạng số thực (cho phép nội suy mượt)
   const vel = useRef(0);
-  const drag = useRef<{ x: number; t: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; pan: boolean } | null>(null);
+  const pinch = useRef<{ d: number; z: number } | null>(null);
+  const pts = useRef(new Map<number, { x: number; y: number }>());
   const n = urls.length;
+  const loadedAll = n > 0 && ready >= n;
 
-  // tải trước tất cả khung để xoay không giật
+  // tải trước tất cả khung để xoay không giật + báo % thật
   useEffect(() => {
+    setReady(0);
+    if (!n) return;
+    let alive = true;
     urls.forEach((u) => {
       const im = new Image();
+      const bump = () => alive && setReady((r) => r + 1);
+      im.onload = bump;
+      im.onerror = bump;
       im.src = u;
     });
+    return () => {
+      alive = false;
+    };
   }, [urls.join("|")]);
 
   // vòng lặp animation: quán tính + tự xoay
@@ -43,14 +61,14 @@ export function Spin360({ urls, height = 260 }: { urls: string[]; height?: numbe
     let raf = 0;
     const tick = () => {
       if (!drag.current) {
-        if (Math.abs(vel.current) > 0.001) {
+        if (Math.abs(vel.current) > 0.0015) {
           pos.current += vel.current;
-          vel.current *= 0.94;
+          vel.current *= 0.95;
+          force((v) => v + 1);
         } else if (auto) {
-          pos.current += 0.045;
+          pos.current += 0.035;
+          force((v) => v + 1);
         }
-        const idx = ((Math.round(pos.current) % n) + n) % n;
-        setI((p) => (p === idx ? p : idx));
       }
       raf = requestAnimationFrame(tick);
     };
@@ -58,7 +76,7 @@ export function Spin360({ urls, height = 260 }: { urls: string[]; height?: numbe
     return () => cancelAnimationFrame(raf);
   }, [n, auto]);
 
-  if (n === 0)
+  if (n === 0 || !loadedAll)
     return (
       <div
         className="rounded-2xl bg-slate-100 grid place-items-center text-xs font-bold text-muted-foreground"
@@ -66,68 +84,119 @@ export function Spin360({ urls, height = 260 }: { urls: string[]; height?: numbe
       >
         <div className="flex flex-col items-center gap-2">
           <span>Đang tải mô hình 3D...</span>
-          <LoadingPercent light={false} />
+          <LoadingPercent light={false} percent={n ? (ready / n) * 100 : undefined} />
         </div>
       </div>
     );
 
-  const onMove = (x: number) => {
-    const d = drag.current;
-    if (!d) return;
-    const dx = x - d.x;
-    d.x = x;
-    const step = dx / 14; // độ nhạy xoay
-    pos.current += step;
-    vel.current = step;
-    const idx = ((Math.round(pos.current) % n) + n) % n;
-    setI(idx);
+  // nội suy: hiện khung chính + khung kế tiếp mờ dần cho chuyển động mượt như 3D thật
+  const f = ((pos.current % n) + n) % n;
+  const i0 = Math.floor(f) % n;
+  const i1 = (i0 + 1) % n;
+  const t = f - Math.floor(f);
+
+  const endDrag = (id?: number) => {
+    if (id !== undefined) pts.current.delete(id);
+    if (pts.current.size < 2) pinch.current = null;
+    if (pts.current.size === 0) drag.current = null;
   };
 
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="relative rounded-2xl bg-white border-2 border-orange-200 overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
+        className="relative rounded-2xl bg-gradient-to-b from-white to-slate-100 border-2 border-orange-200 overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
         style={{ height }}
         onPointerDown={(e) => {
           (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-          drag.current = { x: e.clientX, t: performance.now() };
+          pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          drag.current = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
           vel.current = 0;
           setAuto(false);
         }}
-        onPointerMove={(e) => onMove(e.clientX)}
-        onPointerUp={() => (drag.current = null)}
-        onPointerLeave={() => (drag.current = null)}
+        onPointerMove={(e) => {
+          if (!pts.current.has(e.pointerId)) return;
+          pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+          if (pts.current.size >= 2) {
+            const [a, b] = [...pts.current.values()];
+            const d = Math.hypot(a.x - b.x, a.y - b.y);
+            if (!pinch.current) pinch.current = { d, z: zoom };
+            else setZoom(Math.max(1, Math.min(4, (pinch.current.z * d) / pinch.current.d)));
+            return;
+          }
+
+          const d = drag.current;
+          if (!d) return;
+          const dx = e.clientX - d.x;
+          const dy = e.clientY - d.y;
+          d.x = e.clientX;
+          d.y = e.clientY;
+
+          if (d.pan || zoom > 1.02) {
+            setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+            return;
+          }
+          const step = dx / 12; // độ nhạy xoay
+          pos.current += step;
+          vel.current = step;
+          force((v) => v + 1);
+        }}
+        onPointerUp={(e) => endDrag(e.pointerId)}
+        onPointerCancel={(e) => endDrag(e.pointerId)}
+        onPointerLeave={(e) => endDrag(e.pointerId)}
+        onContextMenu={(e) => e.preventDefault()}
+        onWheel={(e) => {
+          setZoom((z) => Math.max(1, Math.min(4, z - e.deltaY * 0.0015)));
+        }}
       >
-        {urls.map((u, k) => (
-          <img
-            key={k}
-            src={u}
-            alt="Mô hình 3D"
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-            style={{ opacity: k === i ? 1 : 0 }}
-            draggable={false}
-          />
-        ))}
-        <button
-          onClick={() => setAuto((a) => !a)}
-          className="absolute top-1 right-1 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
+        <div
+          className="absolute inset-0"
+          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center" }}
         >
-          {auto ? "⏸ DỪNG XOAY" : "▶ TỰ XOAY"}
-        </button>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5">
-          ↔ GIỮ & KÉO ĐỂ XOAY 360° ({i + 1}/{n})
+          {urls.map((u, k) => (
+            <img
+              key={k}
+              src={u}
+              alt="Mô hình 3D"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+              style={{ opacity: k === i0 ? 1 - t : k === i1 ? t : 0 }}
+              draggable={false}
+            />
+          ))}
+        </div>
+
+        <div className="absolute top-1 right-1 flex gap-1">
+          <button
+            onClick={() => setAuto((a) => !a)}
+            className="text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
+          >
+            {auto ? "⏸ DỪNG XOAY" : "▶ TỰ XOAY"}
+          </button>
+          <button
+            onClick={() => {
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            }}
+            className="text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
+          >
+            ⟲ RESET
+          </button>
+        </div>
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5 whitespace-nowrap">
+          ↔ KÉO ĐỂ XOAY · CUỘN/PINCH ĐỂ PHÓNG ({Math.round((f / n) * 360)}°)
         </div>
       </div>
       <input
         type="range"
         min={0}
-        max={n - 1}
-        value={i}
+        max={n}
+        step={0.05}
+        value={f}
         onChange={(e) => {
           setAuto(false);
           vel.current = 0;
           pos.current = Number(e.target.value);
-          setI(Number(e.target.value));
+          force((v) => v + 1);
         }}
         className="w-full accent-orange-500"
       />
@@ -148,6 +217,7 @@ function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }
 
   return <Spin360 urls={urls} height={height} />;
 }
+
 
 
 /* ---------------- Bài học + câu hỏi ---------------- */

@@ -13,6 +13,7 @@ import {
   type ClassSubmission,
   type RosterMember,
 } from "@/lib/classroom-posts";
+import { AiMaterialPanel } from "@/components/AiMaterialPanel";
 
 type Tab = "announcement" | "material" | "assignment" | "people";
 

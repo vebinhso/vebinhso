@@ -8,17 +8,19 @@ import { useProgress } from "@react-three/drei";
 export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." }: { label?: string }) {
   const { active, progress, loaded, total } = useProgress();
   const [hidden, setHidden] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  const done = !active && (total === 0 || loaded >= total);
 
   useEffect(() => {
-    // Nếu scene không có asset async nào thì vẫn phải ẩn sau một nhịp ngắn
-    const done = !active && (total === 0 || loaded >= total);
     if (!done) return;
-    const id = window.setTimeout(() => setHidden(true), 450);
+    setFinished(true);
+    const id = window.setTimeout(() => setHidden(true), 650);
     return () => window.clearTimeout(id);
-  }, [active, loaded, total]);
+  }, [done]);
 
   if (hidden) return null;
-  const pct = total === 0 ? 90 : Math.max(5, Math.round(progress));
+  const pct = finished ? 100 : total === 0 ? 90 : Math.min(99, Math.max(5, Math.floor(progress)));
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-sky-300 to-sky-600">
@@ -30,6 +32,7 @@ export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." 
       <div className="text-white/85 text-xs font-black">{pct}%</div>
     </div>
   );
+
 }
 
 export default WorldLoadingOverlay;

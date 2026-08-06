@@ -353,7 +353,8 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
   const [phase, setPhase] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [revise, setRevise] = useState("");
-  const [frameIdx, setFrameIdx] = useState(0);
+  const [quality, setQuality] = useState<"fast" | "smooth" | "real">("smooth");
+
 
   // Nén ảnh về tối đa 768px + JPEG để gửi lên AI nhanh hơn nhiều
   const compress = (f: File) =>

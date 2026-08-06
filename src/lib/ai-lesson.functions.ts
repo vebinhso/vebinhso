@@ -21,7 +21,7 @@ function key() {
 
 async function renderAngle(apiKey: string, input: GenInput, angle: number): Promise<string | null> {
   const prompt = `Bạn là phần mềm dựng hình 3D. Hãy tái tạo VẬT THỂ CHÍNH trong ảnh thành MỘT MÔ HÌNH 3D và xuất ra 1 khung hình của vòng quay turntable ở góc ${angle}° quanh trục dọc (0° = đúng góc nhìn của ảnh gốc, quay theo chiều kim đồng hồ).
-Yêu cầu bắt buộc (rất quan trọng để 12 khung ghép lại thành mô hình xoay mượt):
+Yêu cầu bắt buộc (rất quan trọng để các khung ghép lại thành mô hình xoay mượt):
 - Cùng MỘT mô hình duy nhất ở mọi khung: giữ nguyên hình dạng, tỉ lệ, màu sắc, vật liệu và mọi chi tiết của vật thể gốc.
 - Camera CỐ ĐỊNH: cùng tiêu cự, cùng độ cao ngang tầm mắt, cùng khoảng cách; vật thể luôn nằm CHÍNH GIỮA và chiếm đúng cùng một tỉ lệ khung hình.
 - Ánh sáng studio ba điểm cố định, mềm, không đổi giữa các khung; có khối và chiều sâu 3D rõ ràng.
@@ -37,25 +37,22 @@ Bối cảnh bài học: ${input.description || input.title}`;
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3.1-flash-image",
-          messages: [
+          model: "google/gemini-3.1-flash-lite-image",
+          contents: [
             {
               role: "user",
-              content: [
-                { type: "text", text: prompt },
-                {
-                  type: "image_url",
-                  image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}` },
-                },
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: input.mimeType, data: input.imageBase64 } },
               ],
             },
           ],
-          modalities: ["image", "text"],
+          generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
         }),
       });
       if (!res.ok) {
         if (res.status === 429 || res.status >= 500) {
-          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+          await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
           continue;
         }
         return null;

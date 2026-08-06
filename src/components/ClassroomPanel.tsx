@@ -13,6 +13,7 @@ import {
   type ClassSubmission,
   type RosterMember,
 } from "@/lib/classroom-posts";
+import { AiMaterialPanel } from "@/components/AiMaterialPanel";
 
 type Tab = "announcement" | "material" | "assignment" | "people";
 
@@ -50,9 +51,43 @@ export function ClassroomPanel({
       </div>
       {tab === "people" ? (
         <PeopleTab classId={classId} />
+      ) : tab === "material" ? (
+        <MaterialTab classId={classId} canPost={canPost} compact={compact} />
       ) : (
         <PostsTab classId={classId} kind={tab} canPost={canPost} compact={compact} />
       )}
+    </div>
+  );
+}
+
+function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
+  const [mode, setMode] = useState<"ai" | "classic">("classic");
+  return (
+    <div className="flex flex-col gap-2 min-w-0">
+      <div className="flex gap-1">
+        <button
+          onClick={() => setMode("classic")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "classic" ? "bg-orange-500 text-white shadow" : "bg-white/70 hover:bg-orange-100"
+          }`}
+        >
+          📗 HỌC LIỆU TRUYỀN THỐNG
+        </button>
+        <button
+          onClick={() => setMode("ai")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "ai" ? "bg-violet-600 text-white shadow" : "bg-white/70 hover:bg-violet-100"
+          }`}
+        >
+          🤖 HỌC LIỆU AI
+        </button>
+      </div>
+      {mode === "ai" ? (
+        <AiMaterialPanel classId={classId} canPost={canPost} />
+      ) : (
+        <PostsTab classId={classId} kind="material" canPost={canPost} compact={compact} />
+      )}
+
     </div>
   );
 }

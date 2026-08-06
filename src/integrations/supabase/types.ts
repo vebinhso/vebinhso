@@ -50,6 +50,59 @@ export type Database = {
         }
         Relationships: []
       }
+      class_ai_lessons: {
+        Row: {
+          class_id: string
+          created_at: string
+          description: string | null
+          frames: Json
+          id: string
+          lesson: Json
+          published: boolean
+          questions: Json
+          source_image_url: string | null
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          description?: string | null
+          frames?: Json
+          id?: string
+          lesson?: Json
+          published?: boolean
+          questions?: Json
+          source_image_url?: string | null
+          teacher_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          description?: string | null
+          frames?: Json
+          id?: string
+          lesson?: Json
+          published?: boolean
+          questions?: Json
+          source_image_url?: string | null
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_ai_lessons_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_join_requests: {
         Row: {
           class_id: string

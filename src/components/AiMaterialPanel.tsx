@@ -20,20 +20,45 @@ const REWARD_PER_Q = 10;
 
 /* ---------------- 360° viewer ---------------- */
 
-function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }) {
-  const [urls, setUrls] = useState<string[]>([]);
+/** Trình xoay 360°: kéo chuột/chạm để xoay, có quán tính + tự xoay. */
+export function Spin360({ urls, height = 260 }: { urls: string[]; height?: number }) {
   const [i, setI] = useState(0);
-  const drag = useRef<{ x: number; start: number } | null>(null);
+  const [auto, setAuto] = useState(true);
+  const pos = useRef(0); // vị trí khung dạng số thực
+  const vel = useRef(0);
+  const drag = useRef<{ x: number; t: number } | null>(null);
+  const n = urls.length;
 
+  // tải trước tất cả khung để xoay không giật
   useEffect(() => {
-    let alive = true;
-    frameUrls(paths).then((u) => alive && setUrls(u));
-    return () => {
-      alive = false;
-    };
-  }, [paths.join("|")]);
+    urls.forEach((u) => {
+      const im = new Image();
+      im.src = u;
+    });
+  }, [urls.join("|")]);
 
-  if (urls.length === 0)
+  // vòng lặp animation: quán tính + tự xoay
+  useEffect(() => {
+    if (n === 0) return;
+    let raf = 0;
+    const tick = () => {
+      if (!drag.current) {
+        if (Math.abs(vel.current) > 0.001) {
+          pos.current += vel.current;
+          vel.current *= 0.94;
+        } else if (auto) {
+          pos.current += 0.045;
+        }
+        const idx = ((Math.round(pos.current) % n) + n) % n;
+        setI((p) => (p === idx ? p : idx));
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [n, auto]);
+
+  if (n === 0)
     return (
       <div
         className="rounded-2xl bg-slate-100 grid place-items-center text-xs font-bold text-muted-foreground"
@@ -46,42 +71,84 @@ function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }
       </div>
     );
 
-  const move = (x: number) => {
-    if (!drag.current) return;
-    const dx = x - drag.current.x;
-    const step = Math.round(dx / 24);
-    setI(((drag.current.start + step) % urls.length + urls.length) % urls.length);
+  const onMove = (x: number) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = x - d.x;
+    d.x = x;
+    const step = dx / 14; // độ nhạy xoay
+    pos.current += step;
+    vel.current = step;
+    const idx = ((Math.round(pos.current) % n) + n) % n;
+    setI(idx);
   };
 
   return (
     <div className="flex flex-col gap-2">
       <div
-        className="relative rounded-2xl bg-white border-2 border-orange-200 overflow-hidden touch-none select-none cursor-ew-resize"
+        className="relative rounded-2xl bg-white border-2 border-orange-200 overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
         style={{ height }}
         onPointerDown={(e) => {
           (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-          drag.current = { x: e.clientX, start: i };
+          drag.current = { x: e.clientX, t: performance.now() };
+          vel.current = 0;
+          setAuto(false);
         }}
-        onPointerMove={(e) => move(e.clientX)}
+        onPointerMove={(e) => onMove(e.clientX)}
         onPointerUp={() => (drag.current = null)}
         onPointerLeave={() => (drag.current = null)}
       >
-        <img src={urls[i]} alt="Mô hình 3D" className="w-full h-full object-contain pointer-events-none" />
+        {urls.map((u, k) => (
+          <img
+            key={k}
+            src={u}
+            alt="Mô hình 3D"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            style={{ opacity: k === i ? 1 : 0 }}
+            draggable={false}
+          />
+        ))}
+        <button
+          onClick={() => setAuto((a) => !a)}
+          className="absolute top-1 right-1 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
+        >
+          {auto ? "⏸ DỪNG XOAY" : "▶ TỰ XOAY"}
+        </button>
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5">
-          ↔ KÉO ĐỂ XOAY 360° ({i + 1}/{urls.length})
+          ↔ GIỮ & KÉO ĐỂ XOAY 360° ({i + 1}/{n})
         </div>
       </div>
       <input
         type="range"
         min={0}
-        max={urls.length - 1}
+        max={n - 1}
         value={i}
-        onChange={(e) => setI(Number(e.target.value))}
+        onChange={(e) => {
+          setAuto(false);
+          vel.current = 0;
+          pos.current = Number(e.target.value);
+          setI(Number(e.target.value));
+        }}
         className="w-full accent-orange-500"
       />
     </div>
   );
 }
+
+function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }) {
+  const [urls, setUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    frameUrls(paths).then((u) => alive && setUrls(u));
+    return () => {
+      alive = false;
+    };
+  }, [paths.join("|")]);
+
+  return <Spin360 urls={urls} height={height} />;
+}
+
 
 /* ---------------- Bài học + câu hỏi ---------------- */
 

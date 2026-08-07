@@ -187,17 +187,23 @@ export function cachedClassUrl(path?: string | null): string | null {
 export async function prefetchClassUrls(paths: string[]): Promise<void> {
   const now = Date.now();
   const need = [...new Set(paths.filter((p) => p && (urlCache.get(p)?.exp ?? 0) <= now))];
+  const ready = paths.map((p) => cachedClassUrl(p)).filter(Boolean) as string[];
+  if (typeof window !== "undefined") {
+    const { warmImage } = await import("./image-progress");
+    ready.forEach(warmImage);
+  }
   if (need.length === 0) return;
   const { data } = await supabase.storage.from("classroom").createSignedUrls(need, 60 * 60 * 8);
+  const fresh: string[] = [];
   for (const d of data || []) {
     if (d?.signedUrl && d.path) {
       urlCache.set(d.path, { url: d.signedUrl, exp: now + 1000 * 60 * 60 * 7 });
-      if (typeof window !== "undefined") {
-        const img = new Image();
-        img.decoding = "async";
-        img.src = d.signedUrl;
-      }
+      fresh.push(d.signedUrl);
     }
+  }
+  if (typeof window !== "undefined" && fresh.length) {
+    const { warmImage } = await import("./image-progress");
+    fresh.forEach(warmImage);
   }
   persistUrlStore();
 }

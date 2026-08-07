@@ -50,15 +50,27 @@ export function LoadingPercent({
   // làm tròn xuống để không hiện 100% khi chưa thật sự xong
   const shown = pct >= 99.5 ? 100 : Math.floor(pct);
   return (
-    <div className={`flex w-56 max-w-[70vw] flex-col items-center gap-1.5 ${className}`}>
+    <div className={`flex w-56 max-w-[70vw] flex-col items-center gap-1 ${className}`}>
+      {/* số % chạy theo đầu thanh */}
+      <div className="relative h-5 w-full">
+        <div
+          className="absolute top-0 -translate-x-1/2 transition-[left] duration-200"
+          style={{ left: `${pct}%` }}
+        >
+          <span
+            className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums shadow ${
+              light ? "bg-white text-slate-800" : "bg-primary text-primary-foreground"
+            }`}
+          >
+            {shown}%
+          </span>
+        </div>
+      </div>
       <div className={`h-2.5 w-full overflow-hidden rounded-full ${light ? "bg-white/30" : "bg-foreground/15"}`}>
         <div
           className={`h-full rounded-full transition-[width] duration-200 ${light ? "bg-white" : "bg-primary"}`}
           style={{ width: `${pct}%` }}
         />
-      </div>
-      <div className={`text-xs font-black tabular-nums ${light ? "text-white/90" : "text-muted-foreground"}`}>
-        {shown}%
       </div>
     </div>
   );

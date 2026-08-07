@@ -106,6 +106,39 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
   );
 }
 
+function AssignmentTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
+  const [mode, setMode] = useState<"classic" | "pin">("classic");
+  return (
+    <div className="flex flex-col gap-2 min-w-0">
+      <div className="flex gap-1 flex-wrap">
+        <button
+          onClick={() => setMode("classic")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "classic" ? "bg-orange-500 text-white shadow" : "bg-white/70 hover:bg-orange-100"
+          }`}
+        >
+          📝 BÀI TẬP TRUYỀN THỐNG
+        </button>
+        <button
+          onClick={() => setMode("pin")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "pin" ? "bg-sky-600 text-white shadow" : "bg-white/70 hover:bg-sky-100"
+          }`}
+        >
+          📍 BÀI TẬP TRÊN ẢNH
+        </button>
+      </div>
+      {mode === "pin" ? (
+        <AnnotatedImagePanel classId={classId} canPost={canPost} kind="exercise" />
+      ) : (
+        <PostsTab classId={classId} kind="assignment" canPost={canPost} compact={compact} />
+      )}
+    </div>
+  );
+}
+
+
+
 function PeopleTab({ classId }: { classId: string }) {
   const [rows, setRows] = useState<RosterMember[]>([]);
   useEffect(() => {

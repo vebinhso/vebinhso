@@ -448,7 +448,59 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
     <div className="flex flex-col gap-2">
       {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
       {src ? (
-        <PinnedImage src={src} notes={row.notes} activeId={active} onPick={setActive} />
+        <PinnedImage
+          src={src}
+          notes={row.notes}
+          activeId={active}
+          onPick={setActive}
+          renderActive={(note) => (
+            <div className="flex flex-col gap-2">
+              <div className="text-sm font-black" style={{ color: note.color }}>
+                📍 {note.title || "Ghi chú"}
+              </div>
+              {row.kind === "material" ? (
+                <p className="text-sm whitespace-pre-wrap">{note.content || "(chưa có nội dung)"}</p>
+              ) : (
+                <>
+                  <p className="text-sm font-bold whitespace-pre-wrap">{note.question || "(chưa có câu hỏi)"}</p>
+                  {canPost ? (
+                    note.expected && (
+                      <p className="text-xs font-bold text-emerald-700 whitespace-pre-wrap">
+                        ✅ Đáp án gợi ý: {note.expected}
+                      </p>
+                    )
+                  ) : (
+                    <>
+                      <textarea
+                        value={draft[note.id] ?? ""}
+                        onChange={(e) => setDraft((d) => ({ ...d, [note.id]: e.target.value }))}
+                        rows={3}
+                        placeholder="Câu trả lời của bạn..."
+                        className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                      />
+                      <button
+                        onClick={() => send(note.id)}
+                        disabled={busy}
+                        className="toy-button toy-button-primary justify-center text-xs disabled:opacity-50 self-start"
+                      >
+                        {mine.find((m) => m.note_id === note.id) ? "🔁 Nộp lại" : "📤 Nộp câu trả lời"}
+                      </button>
+                      {(() => {
+                        const a = mine.find((m) => m.note_id === note.id);
+                        return a?.grade ? (
+                          <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-2 text-xs font-bold">
+                            🏅 Điểm: {a.grade}
+                            {a.feedback && <div className="mt-1">💬 {a.feedback}</div>}
+                          </div>
+                        ) : null;
+                      })()}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        />
       ) : (
         <div className="flex justify-center py-4">
           <LoadingPercent light={false} />
@@ -457,54 +509,6 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
       <p className="text-[11px] font-black text-muted-foreground">
         👉 Bấm vào các chấm màu trên ảnh để xem {row.kind === "material" ? "học liệu" : "câu hỏi"}.
       </p>
-
-      {note && (
-        <div
-          className="rounded-2xl border-2 bg-white/95 p-3 flex flex-col gap-2"
-          style={{ borderColor: note.color }}
-        >
-          <div className="text-sm font-black" style={{ color: note.color }}>
-            📍 {note.title || "Ghi chú"}
-          </div>
-          {row.kind === "material" ? (
-            <p className="text-sm whitespace-pre-wrap">{note.content || "(chưa có nội dung)"}</p>
-          ) : (
-            <>
-              <p className="text-sm font-bold whitespace-pre-wrap">{note.question || "(chưa có câu hỏi)"}</p>
-              {canPost ? (
-                note.expected && (
-                  <p className="text-xs font-bold text-emerald-700 whitespace-pre-wrap">
-                    ✅ Đáp án gợi ý: {note.expected}
-                  </p>
-                )
-              ) : (
-                <>
-                  <textarea
-                    value={draft[note.id] ?? ""}
-                    onChange={(e) => setDraft((d) => ({ ...d, [note.id]: e.target.value }))}
-                    rows={3}
-                    placeholder="Câu trả lời của bạn..."
-                    className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-                  />
-                  <button
-                    onClick={send}
-                    disabled={busy}
-                    className="toy-button toy-button-primary justify-center text-xs disabled:opacity-50 self-start"
-                  >
-                    {myAnswer ? "🔁 Nộp lại" : "📤 Nộp câu trả lời"}
-                  </button>
-                  {myAnswer?.grade && (
-                    <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-2 text-xs font-bold">
-                      🏅 Điểm: {myAnswer.grade}
-                      {myAnswer.feedback && <div className="mt-1">💬 {myAnswer.feedback}</div>}
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </div>
-      )}
 
       {canPost && row.kind === "exercise" && <GradingList row={row} />}
     </div>

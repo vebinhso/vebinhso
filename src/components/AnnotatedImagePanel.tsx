@@ -12,6 +12,7 @@ import {
   submitNoteAnswer,
   gradeNoteAnswer,
   signedClassUrl,
+  prefetchClassUrls,
   NOTE_COLORS,
   type AnnotatedImage,
   type ImageNote,

@@ -621,10 +621,6 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
             </div>
           )}
         />
-      ) : (
-        <div className="flex justify-center py-4">
-          <LoadingPercent light={false} />
-        </div>
       )}
       <p className="text-[11px] font-black text-muted-foreground">
         👉 Bấm vào các chấm màu trên ảnh để xem {row.kind === "material" ? "học liệu" : "câu hỏi"}.

@@ -31,7 +31,6 @@ import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RoleplayRouteImport } from './routes/roleplay'
 import { Route as ShopRouteImport } from './routes/shop'
-import { Route as TruyNguonRouteImport } from './routes/truy-nguon'
 import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -157,11 +156,6 @@ const ShopRoute = ShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TruyNguonRoute = TruyNguonRouteImport.update({
-  id: '/truy-nguon',
-  path: '/truy-nguon',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TutorialRoute = TutorialRouteImport.update({
   id: '/tutorial',
   path: '/tutorial',
@@ -259,7 +253,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
-  '/truy-nguon': typeof TruyNguonRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -297,7 +290,6 @@ export interface FileRoutesByTo {
   '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/shop': typeof ShopRoute
-  '/truy-nguon': typeof TruyNguonRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -337,7 +329,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/roleplay': typeof RoleplayRouteWithChildren
   '/shop': typeof ShopRoute
-  '/truy-nguon': typeof TruyNguonRoute
   '/tutorial': typeof TutorialRoute
   '/verify': typeof VerifyRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -378,7 +369,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/roleplay'
     | '/shop'
-    | '/truy-nguon'
     | '/tutorial'
     | '/verify'
     | '/.mcp/list-tools'
@@ -416,7 +406,6 @@ export interface FileRouteTypes {
     | '/ranking'
     | '/reset-password'
     | '/shop'
-    | '/truy-nguon'
     | '/tutorial'
     | '/verify'
     | '/.mcp/list-tools'
@@ -455,7 +444,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/roleplay'
     | '/shop'
-    | '/truy-nguon'
     | '/tutorial'
     | '/verify'
     | '/.mcp/list-tools'
@@ -495,7 +483,6 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoleplayRoute: typeof RoleplayRouteWithChildren
   ShopRoute: typeof ShopRoute
-  TruyNguonRoute: typeof TruyNguonRoute
   TutorialRoute: typeof TutorialRoute
   VerifyRoute: typeof VerifyRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -662,13 +649,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/truy-nguon': {
-      id: '/truy-nguon'
-      path: '/truy-nguon'
-      fullPath: '/truy-nguon'
-      preLoaderRoute: typeof TruyNguonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tutorial': {
       id: '/tutorial'
       path: '/tutorial'
@@ -815,7 +795,6 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   RoleplayRoute: RoleplayRouteWithChildren,
   ShopRoute: ShopRoute,
-  TruyNguonRoute: TruyNguonRoute,
   TutorialRoute: TutorialRoute,
   VerifyRoute: VerifyRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,

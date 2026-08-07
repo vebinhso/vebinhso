@@ -176,6 +176,13 @@ function persistUrlStore() {
   }, 300);
 }
 
+/** Link đã có sẵn trong bộ nhớ đệm (dùng được ngay, không cần chờ mạng) */
+export function cachedClassUrl(path?: string | null): string | null {
+  if (!path) return null;
+  const hit = urlCache.get(path);
+  return hit && hit.exp > Date.now() ? hit.url : null;
+}
+
 /** Lấy nhiều link một lượt (nhanh hơn gọi từng cái) và nạp sẵn ảnh vào bộ nhớ đệm trình duyệt. */
 export async function prefetchClassUrls(paths: string[]): Promise<void> {
   const now = Date.now();
@@ -192,6 +199,7 @@ export async function prefetchClassUrls(paths: string[]): Promise<void> {
       }
     }
   }
+  persistUrlStore();
 }
 
 export async function signedClassUrl(path: string): Promise<string> {
@@ -205,7 +213,10 @@ export async function signedClassUrl(path: string): Promise<string> {
     .createSignedUrl(path, 60 * 60 * 8)
     .then(({ data }) => {
       const url = data?.signedUrl || "";
-      if (url) urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+      if (url) {
+        urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+        persistUrlStore();
+      }
       urlPending.delete(path);
       return url;
     })

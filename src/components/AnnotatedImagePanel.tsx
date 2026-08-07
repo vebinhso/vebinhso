@@ -405,7 +405,7 @@ function Editor({
 
 function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
   const [src, setSrc] = useState("");
-  const [active, setActive] = useState<string | null>(row.notes[0]?.id ?? null);
+  const [active, setActive] = useState<string | null>(null);
   const [mine, setMine] = useState<NoteAnswer[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);

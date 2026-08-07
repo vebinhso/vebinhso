@@ -247,10 +247,11 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
   const [preview, setPreview] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState("");
+  const [progress, setProgress] = useState(0);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [revise, setRevise] = useState("");
 
-  // Nén ảnh về tối đa 1024px + JPEG để gửi lên AI nhanh hơn
+  // Ảnh 768px đủ để AI đọc nội dung nhưng nhẹ hơn đáng kể khi gửi.
   const compress = (f: File) =>
     new Promise<string>((resolve) => {
       const r = new FileReader();
@@ -258,7 +259,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         const src = String(r.result);
         const img = new Image();
         img.onload = () => {
-          const max = 1024;
+          const max = 768;
           const scale = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement("canvas");
           c.width = Math.round(img.width * scale);
@@ -268,7 +269,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL("image/jpeg", 0.85));
+          resolve(c.toDataURL("image/jpeg", 0.72));
         };
         img.onerror = () => resolve(src);
         img.src = src;
@@ -287,9 +288,11 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     if (!title.trim()) return toast.error("Nhập tiêu đề bài học");
     if (!description.trim() && !preview) return toast.error("Nhập mô tả hoặc chọn ảnh");
     setBusy(true);
+    setProgress(8);
     setPhase("✍️ Đang soạn nội dung bài học...");
     try {
       const b64 = preview ? (preview.split(",")[1] ?? "") : undefined;
+      setProgress(24);
       const res = await generateAiLesson({
         data: {
           imageBase64: b64,
@@ -299,22 +302,31 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           reviseNote,
         },
       });
+      setProgress(92);
       setDraft({ lesson: res.lesson as AiLessonBody, questions: res.questions as AiQuestion[] });
+      setProgress(100);
       toast.success("Đã tạo bản xem thử!");
     } catch (e: any) {
       toast.error(e?.message || "Không tạo được học liệu");
     }
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setPhase("");
     setBusy(false);
+    setProgress(0);
   };
 
   const publish = async (published: boolean) => {
     if (!draft) return;
     setBusy(true);
+    setProgress(12);
     setPhase("📤 Đang lưu...");
     try {
       let path: string | null = null;
-      if (file) path = await uploadClassFile(classId, file);
+      if (file) {
+        setProgress(30);
+        path = await uploadClassFile(classId, file);
+      }
+      setProgress(72);
       await saveAiLesson({
         classId,
         title: title.trim(),
@@ -325,13 +337,16 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         sourceImageUrl: path,
         published,
       });
+      setProgress(100);
       toast.success(published ? "Đã đăng cho học sinh!" : "Đã lưu nháp");
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Lỗi khi lưu");
     }
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setPhase("");
     setBusy(false);
+    setProgress(0);
   };
 
   return (
@@ -373,7 +388,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
       )}
       {busy && (
         <div className="flex justify-center">
-          <LoadingPercent light={false} />
+          <LoadingPercent percent={progress} done={progress === 100} light={false} />
         </div>
       )}
 

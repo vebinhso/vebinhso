@@ -120,6 +120,7 @@ function PinnedImage({
   onAdd,
   renderActive,
   onRetry,
+  error,
 }: {
   src: string;
   notes: ImageNote[];
@@ -128,12 +129,14 @@ function PinnedImage({
   onAdd?: (x: number, y: number) => void;
   renderActive?: (note: ImageNote) => ReactNode;
   onRetry?: () => void;
+  error?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  const [state, setState] = useState<"loading" | "ok" | "error">(src ? "loading" : "ok");
   useEffect(() => {
-    setState("loading");
+    setState(src ? "loading" : "ok");
   }, [src]);
+  const view = error ? "error" : state;
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (

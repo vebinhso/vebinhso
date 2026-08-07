@@ -276,6 +276,8 @@ function AiPage() {
 
   const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
   const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
+  const [phishMode, setPhishMode] = useState<"link" | "email">("link");
+  const [riskSection, setRiskSection] = useState<"classic" | "social">("classic");
 
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);
@@ -571,10 +573,8 @@ function AiPage() {
   const TABS: { id: Tab; icon: string; label: string }[] = [
     { id: "news", icon: "📰", label: "Tin tức có phải giả?" },
     { id: "media", icon: "🖼️", label: "Ảnh/Video có phải AI?" },
-    { id: "link", icon: "🔗", label: "Link có giả mạo?" },
-    { id: "email", icon: "✉️", label: "Email có giả mạo?" },
+    { id: "link", icon: "🔗", label: "Link / Email có giả mạo?" },
     { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
-    { id: "risk", icon: "🛡️", label: "Rủi ro lộ thông tin" },
   ];
 
   return (
@@ -585,7 +585,7 @@ function AiPage() {
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
             <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM AI</h1>
             <p className="text-xs sm:text-sm font-bold text-foreground">
-              Kiểm tra thật – giả, và tập đăng bài an toàn trên mạng xã hội mô phỏng.
+              Kiểm tra thật – giả, và soi rủi ro lộ thông tin trước khi đăng lên mạng.
             </p>
           </div>
 
@@ -593,7 +593,7 @@ function AiPage() {
             {(
               [
                 { id: "check", icon: "🔍", label: "Thật vs giả" },
-                { id: "social", icon: "📱", label: "Mô phỏng Mạng xã hội" },
+                { id: "social", icon: "🛡️", label: "Rủi ro lộ thông tin" },
               ] as const
             ).map((s) => (
               <button
@@ -615,6 +615,33 @@ function AiPage() {
           </div>
 
           {section === "social" && (
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {(
+                [
+                  { id: "classic", icon: "🧰", label: "Truyền thống" },
+                  { id: "social", icon: "📱", label: "Mô phỏng Mạng xã hội" },
+                ] as const
+              ).map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setRiskSection(s.id);
+                    setError(null);
+                  }}
+                  className={`rounded-xl px-2 py-2 font-black text-[11px] sm:text-sm border-2 transition ${
+                    riskSection === s.id
+                      ? "bg-amber-500/20 border-amber-500 text-amber-800"
+                      : "bg-background/60 border-border text-foreground"
+                  }`}
+                >
+                  <span className="text-base sm:text-lg block">{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {section === "social" && riskSection === "social" && (
             <div className="space-y-3">
               <p className="text-xs sm:text-sm font-bold text-foreground">
                 Đây là trang Facebook giả lập. Hãy thử soạn bài và chọn ảnh — trước khi bài được đăng, AI sẽ quét xem
@@ -625,11 +652,22 @@ function AiPage() {
             </div>
           )}
 
+          {error && (
+            <div className="mb-3 rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
+              {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="mb-3">
+              <AnalyzingBar percent={progress} phase={phase} />
+            </div>
+          )}
+
           {section === "check" && (
           <>
 
-
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-4">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -649,18 +687,6 @@ function AiPage() {
             ))}
           </div>
 
-          {error && (
-            <div className="mb-3 rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-              {error}
-            </div>
-          )}
-
-          {loading && (
-            <div className="mb-3">
-              <AnalyzingBar percent={progress} phase={phase} />
-            </div>
-          )}
-
           {!loading && (() => {
             const acc =
               tab === "news"
@@ -670,12 +696,10 @@ function AiPage() {
                     ? imgResult?.accuracy
                     : videoResult?.accuracy
                   : tab === "link"
-                    ? linkResult?.accuracy
-                    : tab === "email"
-                      ? emailResult?.accuracy
-                      : tab === "text"
-                        ? textResult?.accuracy
-                        : riskTextResult?.accuracy;
+                    ? phishMode === "link"
+                      ? linkResult?.accuracy
+                      : emailResult?.accuracy
+                    : textResult?.accuracy;
             return acc ? (
               <div className="mb-3">
                 <AccuracyNote accuracy={acc} />
@@ -860,6 +884,30 @@ function AiPage() {
           )}
 
           {tab === "link" && (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {([
+                { id: "link", label: "🔗 Kiểm tra link" },
+                { id: "email", label: "✉️ Kiểm tra email" },
+              ] as const).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setPhishMode(m.id);
+                    setError(null);
+                  }}
+                  className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
+                    phishMode === m.id
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-800"
+                      : "bg-background/60 border-border text-foreground"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {tab === "link" && phishMode === "link" && (
             <div className="space-y-3">
               <input
                 value={url}
@@ -930,7 +978,7 @@ function AiPage() {
             </div>
           )}
 
-          {tab === "email" && (
+          {tab === "link" && phishMode === "email" && (
             <div className="space-y-3">
               <textarea
                 value={email}
@@ -1049,10 +1097,10 @@ function AiPage() {
 
             </div>
           )}
+          </>
+          )}
 
-
-
-          {tab === "risk" && (
+          {section === "social" && riskSection === "classic" && (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 {([
@@ -1244,8 +1292,6 @@ function AiPage() {
                 </div>
               )}
             </div>
-          )}
-          </>
           )}
 
 

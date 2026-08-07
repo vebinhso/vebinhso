@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { generateAiLesson } from "@/lib/ai-lesson.functions";
 import {
   listAiLessons,
-  uploadFrames,
   saveAiLesson,
   setAiLessonPublished,
   deleteAiLesson,
@@ -14,211 +13,38 @@ import {
   type AiLessonBody,
   type AiQuestion,
 } from "@/lib/ai-lessons";
+import { uploadClassFile, openClassFile } from "@/lib/classroom-posts";
 import { loadGame, saveGame } from "@/lib/game";
 
 const REWARD_PER_Q = 10;
 
-/* ---------------- 360° viewer ---------------- */
+/* ---------------- Ảnh đính kèm ---------------- */
 
-/**
- * Trình xem mô hình 3D: kéo để xoay 360° (có quán tính + tự xoay),
- * cuộn/pinch để phóng to, kéo bằng chuột phải (hoặc khi đã zoom) để di chuyển.
- */
-export function Spin360({ urls, height = 260 }: { urls: string[]; height?: number }) {
-  const [, force] = useState(0);
-  const [auto, setAuto] = useState(true);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [ready, setReady] = useState(0);
-  const pos = useRef(0); // vị trí khung dạng số thực (cho phép nội suy mượt)
-  const vel = useRef(0);
-  const drag = useRef<{ x: number; y: number; pan: boolean } | null>(null);
-  const pinch = useRef<{ d: number; z: number } | null>(null);
-  const pts = useRef(new Map<number, { x: number; y: number }>());
-  const n = urls.length;
-  const loadedAll = n > 0 && ready >= n;
-
-  // tải trước tất cả khung để xoay không giật + báo % thật
+function AttachedImage({ path }: { path: string }) {
+  const [url, setUrl] = useState<string>("");
   useEffect(() => {
-    setReady(0);
-    if (!n) return;
     let alive = true;
-    urls.forEach((u) => {
-      const im = new Image();
-      const bump = () => alive && setReady((r) => r + 1);
-      im.onload = bump;
-      im.onerror = bump;
-      im.src = u;
-    });
+    frameUrls([path]).then((u) => alive && setUrl(u[0] || ""));
     return () => {
       alive = false;
     };
-  }, [urls.join("|")]);
+  }, [path]);
 
-  // vòng lặp animation: quán tính + tự xoay
-  useEffect(() => {
-    if (n === 0) return;
-    let raf = 0;
-    const tick = () => {
-      if (!drag.current) {
-        if (Math.abs(vel.current) > 0.0015) {
-          pos.current += vel.current;
-          vel.current *= 0.95;
-          force((v) => v + 1);
-        } else if (auto) {
-          pos.current += 0.035;
-          force((v) => v + 1);
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [n, auto]);
-
-  if (n === 0 || !loadedAll)
+  if (!url)
     return (
-      <div
-        className="rounded-2xl bg-slate-100 grid place-items-center text-xs font-bold text-muted-foreground"
-        style={{ height }}
-      >
-        <div className="flex flex-col items-center gap-2">
-          <span>Đang tải mô hình 3D...</span>
-          <LoadingPercent light={false} percent={n ? (ready / n) * 100 : undefined} />
-        </div>
-      </div>
+      <button onClick={() => openClassFile(path)} className="text-xs font-black text-emerald-700 text-left">
+        📎 Mở tệp đính kèm
+      </button>
     );
-
-  // nội suy: hiện khung chính + khung kế tiếp mờ dần cho chuyển động mượt như 3D thật
-  const f = ((pos.current % n) + n) % n;
-  const i0 = Math.floor(f) % n;
-  const i1 = (i0 + 1) % n;
-  const t = f - Math.floor(f);
-
-  const endDrag = (id?: number) => {
-    if (id !== undefined) pts.current.delete(id);
-    if (pts.current.size < 2) pinch.current = null;
-    if (pts.current.size === 0) drag.current = null;
-  };
-
   return (
-    <div className="flex flex-col gap-2">
-      <div
-        className="relative rounded-2xl bg-gradient-to-b from-white to-slate-100 border-2 border-orange-200 overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
-        style={{ height }}
-        onPointerDown={(e) => {
-          (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-          pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-          drag.current = { x: e.clientX, y: e.clientY, pan: e.button === 2 || e.shiftKey };
-          vel.current = 0;
-          setAuto(false);
-        }}
-        onPointerMove={(e) => {
-          if (!pts.current.has(e.pointerId)) return;
-          pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-          if (pts.current.size >= 2) {
-            const [a, b] = [...pts.current.values()];
-            const d = Math.hypot(a.x - b.x, a.y - b.y);
-            if (!pinch.current) pinch.current = { d, z: zoom };
-            else setZoom(Math.max(1, Math.min(4, (pinch.current.z * d) / pinch.current.d)));
-            return;
-          }
-
-          const d = drag.current;
-          if (!d) return;
-          const dx = e.clientX - d.x;
-          const dy = e.clientY - d.y;
-          d.x = e.clientX;
-          d.y = e.clientY;
-
-          if (d.pan || zoom > 1.02) {
-            setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
-            return;
-          }
-          const step = dx / 12; // độ nhạy xoay
-          pos.current += step;
-          vel.current = step;
-          force((v) => v + 1);
-        }}
-        onPointerUp={(e) => endDrag(e.pointerId)}
-        onPointerCancel={(e) => endDrag(e.pointerId)}
-        onPointerLeave={(e) => endDrag(e.pointerId)}
-        onContextMenu={(e) => e.preventDefault()}
-        onWheel={(e) => {
-          setZoom((z) => Math.max(1, Math.min(4, z - e.deltaY * 0.0015)));
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center" }}
-        >
-          {urls.map((u, k) => (
-            <img
-              key={k}
-              src={u}
-              alt="Mô hình 3D"
-              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-              style={{ opacity: k === i0 ? 1 - t : k === i1 ? t : 0 }}
-              draggable={false}
-            />
-          ))}
-        </div>
-
-        <div className="absolute top-1 right-1 flex gap-1">
-          <button
-            onClick={() => setAuto((a) => !a)}
-            className="text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
-          >
-            {auto ? "⏸ DỪNG XOAY" : "▶ TỰ XOAY"}
-          </button>
-          <button
-            onClick={() => {
-              setZoom(1);
-              setPan({ x: 0, y: 0 });
-            }}
-            className="text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5"
-          >
-            ⟲ RESET
-          </button>
-        </div>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-black bg-black/60 text-white rounded-full px-2 py-0.5 whitespace-nowrap">
-          ↔ KÉO ĐỂ XOAY · CUỘN/PINCH ĐỂ PHÓNG ({Math.round((f / n) * 360)}°)
-        </div>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={n}
-        step={0.05}
-        value={f}
-        onChange={(e) => {
-          setAuto(false);
-          vel.current = 0;
-          pos.current = Number(e.target.value);
-          force((v) => v + 1);
-        }}
-        className="w-full accent-orange-500"
-      />
-    </div>
+    <img
+      src={url}
+      alt="Ảnh minh hoạ bài học"
+      loading="lazy"
+      className="w-full max-h-64 object-contain rounded-2xl bg-white border-2 border-orange-100"
+    />
   );
 }
-
-function Viewer360({ paths, height = 260 }: { paths: string[]; height?: number }) {
-  const [urls, setUrls] = useState<string[]>([]);
-
-  useEffect(() => {
-    let alive = true;
-    frameUrls(paths).then((u) => alive && setUrls(u));
-    return () => {
-      alive = false;
-    };
-  }, [paths.join("|")]);
-
-  return <Spin360 urls={urls} height={height} />;
-}
-
-
 
 /* ---------------- Bài học + câu hỏi ---------------- */
 
@@ -228,7 +54,7 @@ function LessonBody({ lesson }: { lesson: AiLessonBody }) {
       {lesson.summary && <p className="font-bold">{lesson.summary}</p>}
       {!!lesson.parts?.length && (
         <div className="bg-orange-50 rounded-xl p-2">
-          <div className="text-xs font-black mb-1">🧩 CÁC BỘ PHẬN</div>
+          <div className="text-xs font-black mb-1">🧩 CÁC Ý CHÍNH</div>
           {lesson.parts.map((p, k) => (
             <div key={k} className="text-xs">
               <span className="font-black">{p.name}:</span> {p.role}
@@ -344,7 +170,7 @@ export function AiMaterialPanel({ classId, canPost }: { classId: string; canPost
       {canPost && (
         <div className="bg-white/80 rounded-2xl p-3 border-2 border-violet-200">
           <button onClick={() => setOpenForm((v) => !v)} className="text-xs font-black text-violet-600">
-            {openForm ? "▲ Đóng" : "🤖 Tạo học liệu AI (mô hình 3D + bài học)"}
+            {openForm ? "▲ Đóng" : "🤖 Tạo học liệu AI (nội dung bài học + bài tập)"}
           </button>
           {openForm && <Generator classId={classId} onSaved={() => { setOpenForm(false); reload(); }} />}
         </div>
@@ -365,7 +191,7 @@ function LessonCard({ row, canPost, onChanged }: { row: AiLesson; canPost: boole
   return (
     <div className="bg-white/90 rounded-2xl p-3 border-2 border-white shadow-sm min-w-0">
       <div className="flex items-start gap-2">
-        <span className="text-lg">🧊</span>
+        <span className="text-lg">🤖</span>
         <button onClick={() => setOpen((v) => !v)} className="flex-1 min-w-0 text-left">
           <div className="font-black text-sm truncate">{row.title}</div>
           <div className="text-[10px] font-bold text-muted-foreground">
@@ -399,7 +225,8 @@ function LessonCard({ row, canPost, onChanged }: { row: AiLesson; canPost: boole
       </div>
       {open && (
         <div className="mt-2 flex flex-col gap-3">
-          <Viewer360 paths={row.frames} />
+          {row.source_image_url && <AttachedImage path={row.source_image_url} />}
+          {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
           <LessonBody lesson={row.lesson} />
           <Quiz lessonId={row.id} questions={row.questions} />
         </div>
@@ -409,7 +236,6 @@ function LessonCard({ row, canPost, onChanged }: { row: AiLesson; canPost: boole
 }
 
 type Draft = {
-  frames: string[]; // base64
   lesson: AiLessonBody;
   questions: AiQuestion[];
 };
@@ -423,10 +249,8 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
   const [phase, setPhase] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [revise, setRevise] = useState("");
-  const [quality, setQuality] = useState<"fast" | "smooth" | "real">("smooth");
 
-
-  // Nén ảnh về tối đa 768px + JPEG để gửi lên AI nhanh hơn nhiều
+  // Nén ảnh về tối đa 1024px + JPEG để gửi lên AI nhanh hơn
   const compress = (f: File) =>
     new Promise<string>((resolve) => {
       const r = new FileReader();
@@ -434,7 +258,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         const src = String(r.result);
         const img = new Image();
         img.onload = () => {
-          const max = 768;
+          const max = 1024;
           const scale = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement("canvas");
           c.width = Math.round(img.width * scale);
@@ -444,7 +268,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL("image/jpeg", 0.82));
+          resolve(c.toDataURL("image/jpeg", 0.85));
         };
         img.onerror = () => resolve(src);
         img.src = src;
@@ -454,31 +278,28 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
 
   const pick = async (f: File | null) => {
     setFile(f);
-    setDraft(null);
     if (!f) return setPreview("");
-    setPreview(await compress(f));
+    if (f.type.startsWith("image/")) setPreview(await compress(f));
+    else setPreview("");
   };
 
   const run = async (reviseNote?: string) => {
-    if (!file || !preview) return toast.error("Chọn ảnh trước");
     if (!title.trim()) return toast.error("Nhập tiêu đề bài học");
+    if (!description.trim() && !preview) return toast.error("Nhập mô tả hoặc chọn ảnh");
     setBusy(true);
-    setPhase("🎨 Đang dựng mô hình 3D & soạn bài học...");
+    setPhase("✍️ Đang soạn nội dung bài học...");
     try {
-      const b64 = preview.split(",")[1] ?? "";
+      const b64 = preview ? (preview.split(",")[1] ?? "") : undefined;
       const res = await generateAiLesson({
         data: {
           imageBase64: b64,
-          mimeType: preview.startsWith("data:image/jpeg") ? "image/jpeg" : file.type || "image/png",
+          mimeType: preview.startsWith("data:image/jpeg") ? "image/jpeg" : file?.type || "image/png",
           title: title.trim(),
           description,
           reviseNote,
-          quality,
         },
       });
-      if (!res.frames.length) throw new Error("AI chưa dựng được mô hình, thử ảnh rõ nét hơn");
-      setDraft({ frames: res.frames, lesson: res.lesson as AiLessonBody, questions: res.questions as AiQuestion[] });
-
+      setDraft({ lesson: res.lesson as AiLessonBody, questions: res.questions as AiQuestion[] });
       toast.success("Đã tạo bản xem thử!");
     } catch (e: any) {
       toast.error(e?.message || "Không tạo được học liệu");
@@ -492,14 +313,16 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     setBusy(true);
     setPhase("📤 Đang lưu...");
     try {
-      const paths = await uploadFrames(classId, draft.frames);
+      let path: string | null = null;
+      if (file) path = await uploadClassFile(classId, file);
       await saveAiLesson({
         classId,
         title: title.trim(),
         description,
-        frames: paths,
+        frames: [],
         lesson: draft.lesson,
         questions: draft.questions,
+        sourceImageUrl: path,
         published,
       });
       toast.success(published ? "Đã đăng cho học sinh!" : "Đã lưu nháp");
@@ -523,41 +346,21 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={3}
-        placeholder="Mô tả: bạn muốn truyền tải bộ phận nào, kiến thức nào? (AI sẽ dựa vào đây để đề xuất bài học)"
+        placeholder="Mô tả: bạn muốn truyền tải kiến thức nào? (AI sẽ dựa vào đây để soạn bài học)"
         className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
       />
-      <PasteDropZone onFile={(f) => pick(f)} className="border-2 border-dashed border-gray-200 p-2">
-        <input type="file" accept="image/*" onChange={(e) => pick(e.target.files?.[0] ?? null)} className="text-xs" />
+      <PasteDropZone onFile={(f) => pick(f)} accept={() => true} className="border-2 border-dashed border-gray-200 p-2">
+        <input type="file" onChange={(e) => pick(e.target.files?.[0] ?? null)} className="text-xs" />
       </PasteDropZone>
-      {preview && !draft && (
-        <img src={preview} alt="Ảnh gốc" className="max-h-40 object-contain rounded-xl bg-white" />
+      <p className="text-[11px] font-bold text-muted-foreground">
+        📎 Có thể chọn tệp hoặc dán / kéo thả ảnh vào đây (tuỳ chọn).
+      </p>
+      {preview && (
+        <img src={preview} alt="Ảnh đính kèm" className="max-h-40 object-contain rounded-xl bg-white" />
       )}
-
-      <div className="flex flex-col gap-1">
-        <div className="text-[11px] font-black text-muted-foreground">
-          🎚️ ĐỘ CHÂN THẬT CỦA MÔ HÌNH 3D
-        </div>
-        <div className="flex gap-1 flex-wrap">
-          {[
-            { k: "fast", t: "⚡ Nhanh (8 góc)" },
-            { k: "smooth", t: "🎯 Mượt (12 góc)" },
-            { k: "real", t: "💎 Chân thật (16 góc)" },
-          ].map((o) => (
-            <button
-              key={o.k}
-              onClick={() => setQuality(o.k as any)}
-              className={`px-2 py-1 rounded-lg text-[11px] font-black border-2 ${
-                quality === o.k
-                  ? "bg-violet-500 text-white border-violet-500"
-                  : "bg-white border-gray-200"
-              }`}
-            >
-              {o.t}
-            </button>
-          ))}
-        </div>
-      </div>
-
+      {file && !preview && (
+        <div className="text-xs font-bold text-emerald-700 truncate">📎 {file.name}</div>
+      )}
 
       {!draft && (
         <button
@@ -565,7 +368,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           disabled={busy}
           className="toy-button toy-button-primary justify-center text-sm disabled:opacity-50"
         >
-          {busy ? phase || "Đang xử lý..." : "✨ Tạo mô hình 3D + bài học"}
+          {busy ? phase || "Đang xử lý..." : "✨ Tạo nội dung bài học"}
         </button>
       )}
       {busy && (
@@ -576,14 +379,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
 
       {draft && (
         <div className="flex flex-col gap-2 border-t-2 border-violet-100 pt-2">
-          <div className="text-xs font-black text-violet-600">
-            👀 XEM THỬ — giữ chuột & kéo để xoay 360°
-          </div>
-          <Spin360
-            urls={draft.frames.map((f) => `data:image/png;base64,${f}`)}
-            height={220}
-          />
-
+          <div className="text-xs font-black text-violet-600">👀 XEM THỬ</div>
           <LessonBody lesson={draft.lesson} />
           <div className="text-xs font-black">📝 CÂU HỎI ĐỀ XUẤT ({draft.questions.length})</div>
           {draft.questions.map((q, k) => (

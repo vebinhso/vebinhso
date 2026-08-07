@@ -4,7 +4,7 @@ import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { uploadClassFile, getClassRoster, type RosterMember } from "@/lib/classroom-posts";
 import { suggestNote } from "@/lib/ai-note.functions";
-import { useImageProgress, warmImage } from "@/lib/image-progress";
+import { useImageProgress } from "@/lib/image-progress";
 import {
   listAnnotatedImages,
   saveAnnotatedImage,

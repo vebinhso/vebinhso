@@ -24,6 +24,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
   const respondFn = useServerFn(respondDuel);
   const [inviting, setInviting] = useState<string | null>(null);
   const [pendingDuelId, setPendingDuelId] = useState<string | null>(null);
+  const [invitedId, setInvitedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const notify = (msg: string) => {
@@ -37,6 +38,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
     try {
       const r = await createFn({ data: { guestId: peer.userId, ownerId } });
       setPendingDuelId(r.duelId);
+      setInvitedId(peer.userId);
       sendInvite(peer.userId, r.duelId);
       notify(`📨 Đã gửi lời mời tới @${peer.username}`);
       // Wait for the guest to accept; useHouseDuel's "start" broadcast will
@@ -46,6 +48,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
           if (cur === r.duelId && !activeDuelId) {
             cancelInvite(r.duelId);
             notify("⏰ Đối thủ không phản hồi");
+            setInvitedId(null);
             return null;
           }
           return cur;
@@ -83,6 +86,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
     if (activeDuelId) announceEnd(activeDuelId);
     setActiveDuelId(null);
     setPendingDuelId(null);
+    setInvitedId(null);
     if (result && result.delta !== 0) {
       onPayout?.(result.delta);
       notify(result.delta > 0 ? `💰 +${result.delta}đ` : `💸 ${result.delta}đ`);

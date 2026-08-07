@@ -145,6 +145,24 @@ export async function gradeNoteAnswer(id: string, grade: string, feedback: strin
 const urlCache = new Map<string, { url: string; exp: number }>();
 const urlPending = new Map<string, Promise<string>>();
 
+/** Lấy nhiều link một lượt (nhanh hơn gọi từng cái) và nạp sẵn ảnh vào bộ nhớ đệm trình duyệt. */
+export async function prefetchClassUrls(paths: string[]): Promise<void> {
+  const now = Date.now();
+  const need = [...new Set(paths.filter((p) => p && !(urlCache.get(p)?.exp ?? 0) })].filter(Boolean);
+  if (need.length === 0) return;
+  const { data } = await supabase.storage.from("classroom").createSignedUrls(need, 60 * 60 * 8);
+  for (const d of data || []) {
+    if (d?.signedUrl && d.path) {
+      urlCache.set(d.path, { url: d.signedUrl, exp: now + 1000 * 60 * 60 * 7 });
+      if (typeof window !== "undefined") {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = d.signedUrl;
+      }
+    }
+  }
+}
+
 export async function signedClassUrl(path: string): Promise<string> {
   const now = Date.now();
   const hit = urlCache.get(path);

@@ -218,7 +218,8 @@ function Editor({
     setBusy(true);
     setProgress(12);
     try {
-      const b64 = preview.startsWith("data:") ? (preview.split(",")[1] ?? "") : undefined;
+      const small = preview.startsWith("data:") ? await shrinkForAi(preview) : "";
+      const b64 = small ? (small.split(",")[1] ?? "") : undefined;
       setProgress(28);
       const res = await suggestNote({
         data: {

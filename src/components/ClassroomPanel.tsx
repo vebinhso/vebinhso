@@ -14,7 +14,9 @@ import {
   type RosterMember,
 } from "@/lib/classroom-posts";
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
+import { AnnotatedImagePanel } from "@/components/AnnotatedImagePanel";
 import { PasteDropZone } from "@/components/PasteDropZone";
+
 
 type Tab = "announcement" | "material" | "assignment" | "people";
 

@@ -21,6 +21,25 @@ import {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+/** Thu nhỏ ảnh trước khi gửi AI để phản hồi nhanh hơn nhiều. */
+const shrinkForAi = (src: string) =>
+  new Promise<string>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 640;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      const ctx = c.getContext("2d");
+      if (!ctx) return resolve(src);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL("image/jpeg", 0.6));
+    };
+    img.onerror = () => resolve(src);
+    img.src = src;
+  });
+
 /* ---------- Ảnh + các chấm ghi chú ---------- */
 
 function NotePopup({
@@ -218,7 +237,8 @@ function Editor({
     setBusy(true);
     setProgress(12);
     try {
-      const b64 = preview.startsWith("data:") ? (preview.split(",")[1] ?? "") : undefined;
+      const small = preview.startsWith("data:") ? await shrinkForAi(preview) : "";
+      const b64 = small ? (small.split(",")[1] ?? "") : undefined;
       setProgress(28);
       const res = await suggestNote({
         data: {

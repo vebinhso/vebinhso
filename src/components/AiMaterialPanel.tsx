@@ -259,7 +259,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
         const src = String(r.result);
         const img = new Image();
         img.onload = () => {
-          const max = 768;
+          const max = 640;
           const scale = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement("canvas");
           c.width = Math.round(img.width * scale);
@@ -269,7 +269,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
           ctx.fillStyle = "#fff";
           ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL("image/jpeg", 0.72));
+          resolve(c.toDataURL("image/jpeg", 0.65));
         };
         img.onerror = () => resolve(src);
         img.src = src;

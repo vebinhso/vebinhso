@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";

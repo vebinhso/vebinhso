@@ -276,6 +276,8 @@ function AiPage() {
 
   const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
   const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
+  const [phishMode, setPhishMode] = useState<"link" | "email">("link");
+  const [riskSection, setRiskSection] = useState<"classic" | "social">("classic");
 
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);

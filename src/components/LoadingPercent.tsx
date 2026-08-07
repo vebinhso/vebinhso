@@ -98,7 +98,7 @@ export function LoadingPercent({
   return (
     <div className={`flex w-56 max-w-[70vw] flex-col items-center gap-1 ${className}`}>
       {/* số % chạy theo đầu thanh */}
-      <div className="relative h-5 w-full overflow-hidden">
+      <div className="relative h-5 w-full">
         <div ref={labelRef} className="absolute top-0 left-0 w-full will-change-transform">
           <span
             className={`inline-block -translate-x-1/2 rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums shadow ${

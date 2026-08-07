@@ -13,6 +13,7 @@ import {
   gradeNoteAnswer,
   signedClassUrl,
   cachedClassUrl,
+  invalidateClassUrl,
   prefetchClassUrls,
   NOTE_COLORS,
   type AnnotatedImage,

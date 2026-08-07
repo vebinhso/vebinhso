@@ -119,6 +119,7 @@ function PinnedImage({
   onPick,
   onAdd,
   renderActive,
+  onRetry,
 }: {
   src: string;
   notes: ImageNote[];
@@ -126,9 +127,13 @@ function PinnedImage({
   onPick: (id: string | null) => void;
   onAdd?: (x: number, y: number) => void;
   renderActive?: (note: ImageNote) => ReactNode;
+  onRetry?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { src: imgSrc, percent, ready } = useImageProgress(src);
+  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  useEffect(() => {
+    setState("loading");
+  }, [src]);
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
@@ -145,23 +150,37 @@ function PinnedImage({
         onAdd(Math.max(1, Math.min(99, x)), Math.max(1, Math.min(99, y)));
       }}
     >
-      {imgSrc ? (
+      {src ? (
         <img
-          src={imgSrc}
+          key={src}
+          src={src}
           alt="Ảnh học liệu có chú thích"
           decoding="async"
           // @ts-expect-error thuộc tính chuẩn của trình duyệt
           fetchpriority="high"
+          onLoad={() => setState("ok")}
+          onError={() => setState("error")}
           className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
         />
       ) : (
         <div className="w-full min-h-[160px] rounded-2xl border-2 border-orange-100 bg-orange-50/70" />
       )}
-      {!ready && (
+      {state === "loading" && (
         <div className="absolute inset-0 grid place-items-center rounded-2xl bg-orange-50/70">
-          <LoadingPercent percent={percent} done={percent >= 100} light={false} />
+          <LoadingPercent done={false} light={false} />
         </div>
       )}
+      {state === "error" && (
+        <div className="absolute inset-0 grid place-items-center gap-2 rounded-2xl bg-orange-50/90 p-3 text-center">
+          <div className="text-xs font-black text-muted-foreground">Không tải được ảnh 😢</div>
+          {onRetry && (
+            <button onClick={onRetry} className="toy-button toy-button-primary text-xs justify-center">
+              🔄 Tải lại
+            </button>
+          )}
+        </div>
+      )}
+
       {notes.map((n, i) => (
         <button
           key={n.id}

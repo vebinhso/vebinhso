@@ -24,6 +24,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
   const respondFn = useServerFn(respondDuel);
   const [inviting, setInviting] = useState<string | null>(null);
   const [pendingDuelId, setPendingDuelId] = useState<string | null>(null);
+  const [invitedId, setInvitedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const notify = (msg: string) => {
@@ -37,6 +38,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
     try {
       const r = await createFn({ data: { guestId: peer.userId, ownerId } });
       setPendingDuelId(r.duelId);
+      setInvitedId(peer.userId);
       sendInvite(peer.userId, r.duelId);
       notify(`📨 Đã gửi lời mời tới @${peer.username}`);
       // Wait for the guest to accept; useHouseDuel's "start" broadcast will
@@ -46,6 +48,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
           if (cur === r.duelId && !activeDuelId) {
             cancelInvite(r.duelId);
             notify("⏰ Đối thủ không phản hồi");
+            setInvitedId(null);
             return null;
           }
           return cur;
@@ -83,6 +86,7 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
     if (activeDuelId) announceEnd(activeDuelId);
     setActiveDuelId(null);
     setPendingDuelId(null);
+    setInvitedId(null);
     if (result && result.delta !== 0) {
       onPayout?.(result.delta);
       notify(result.delta > 0 ? `💰 +${result.delta}đ` : `💸 ${result.delta}đ`);
@@ -97,12 +101,14 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
           <div className="glass-card p-3 shadow-xl border-4 border-purple-400">
             <div className="text-sm font-black text-purple-700 px-1 mb-2">⚔️ VÀO PHÒNG THI ĐẤU</div>
             <div className="flex flex-col gap-2 max-h-[45vh] overflow-y-auto">
-              {peers.map((p) => (
+              {peers.map((p) => {
+                const sent = invitedId === p.userId && !!pendingDuelId;
+                return (
                 <button
                   key={p.userId}
                   disabled={!!inviting || !!pendingDuelId}
                   onClick={() => invite(p)}
-                  className={`toy-button toy-button-primary !text-base !py-3 !px-4 flex items-center gap-3 ${inviting === p.userId ? "opacity-70" : ""}`}
+                  className={`toy-button ${sent ? "toy-button-ghost opacity-70 cursor-not-allowed" : "toy-button-primary"} !text-base !py-3 !px-4 flex items-center gap-3 ${inviting === p.userId ? "opacity-70" : ""}`}
                 >
                   {p.avatarUrl ? (
                     <img src={p.avatarUrl} className="w-10 h-10 rounded-full" alt="" />
@@ -111,10 +117,14 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
                       {(p.username || "?").charAt(0).toUpperCase()}
                     </span>
                   )}
-                  <span className="truncate max-w-[12rem]">@{p.username}</span>
-                  <span className="ml-1 text-xl">⚔️</span>
+                  <span className="truncate max-w-[10rem]">@{p.username}</span>
+                  <span className="ml-auto text-sm font-black">
+                    {sent ? "⏳ Đã gửi lời mời" : "📨 Gửi lời mời"}
+                  </span>
                 </button>
-              ))}
+                );
+              })}
+
             </div>
           </div>
         </div>

@@ -159,13 +159,47 @@ function FriendsMapPage() {
         <Link to="/" className="toy-button toy-button-ghost !text-sm">Trang chủ →</Link>
       </header>
 
-      <div className="px-3 sm:px-4 pb-3 text-sm text-muted-foreground">
-        {housesQ.isLoading
-          ? "Đang tải bạn bè..."
-          : houses.length === 0
-          ? "Chưa có bạn bè nào để hiển thị. Kết bạn ở trang chủ trước nhé!"
-          : `Đang hiển thị ${houses.length} căn nhà bạn bè.`}
+      <div className="px-3 sm:px-4 pb-3 flex flex-wrap items-center gap-2">
+        <span className="text-sm font-bold text-emerald-700">
+          {housesQ.isLoading
+            ? "Đang tải bạn bè..."
+            : houses.length === 0
+            ? "Chưa có bạn bè nào để hiển thị. Kết bạn ở trang chủ trước nhé!"
+            : `Đang hiển thị ${houses.length} căn nhà bạn bè.`}
+        </span>
+        <span className="text-xs font-bold text-muted-foreground">· Nhà của tôi:</span>
+        <div className="flex items-center gap-1">
+          {PRIVACY_OPTIONS.map((o) => {
+            const cur = (mineQ.data as any)?.house_privacy === "private" ? "closed" : (mineQ.data as any)?.house_privacy;
+            const active = cur === o.id;
+            return (
+              <button
+                key={o.id}
+                title={o.hint}
+                onClick={async () => {
+                  await updateFn({ data: { privacy: o.id } });
+                  await qc.invalidateQueries({ queryKey: ["my-house"] });
+                  await qc.invalidateQueries({ queryKey: ["friend-houses"] });
+                }}
+                className={`px-2.5 py-1 rounded-full text-xs font-black border-2 transition ${
+                  active
+                    ? "bg-emerald-500 text-white border-emerald-600"
+                    : "bg-white/80 border-emerald-200 hover:bg-white"
+                }`}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="px-2.5 py-1 rounded-full text-xs font-black border-2 bg-white/80 border-orange-300 hover:bg-white"
+          >
+            ⚙️ Chi tiết
+          </button>
+        </div>
       </div>
+
 
       <div
         ref={ref}

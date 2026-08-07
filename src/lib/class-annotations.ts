@@ -208,6 +208,14 @@ export async function prefetchClassUrls(paths: string[]): Promise<void> {
   persistUrlStore();
 }
 
+/** Bỏ link đã lưu đệm (khi ảnh lỗi/hết hạn) để lấy link mới. */
+export function invalidateClassUrl(path?: string | null) {
+  if (!path) return;
+  urlCache.delete(path);
+  urlPending.delete(path);
+  persistUrlStore();
+}
+
 export async function signedClassUrl(path: string): Promise<string> {
   const now = Date.now();
   const hit = urlCache.get(path);
@@ -217,13 +225,12 @@ export async function signedClassUrl(path: string): Promise<string> {
   const p = supabase.storage
     .from("classroom")
     .createSignedUrl(path, 60 * 60 * 8)
-    .then(({ data }) => {
+    .then(({ data, error }) => {
       const url = data?.signedUrl || "";
-      if (url) {
-        urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
-        persistUrlStore();
-      }
       urlPending.delete(path);
+      if (!url) throw error || new Error("Không lấy được link ảnh");
+      urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+      persistUrlStore();
       return url;
     })
     .catch((e) => {

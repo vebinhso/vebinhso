@@ -4,7 +4,6 @@ import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { uploadClassFile, getClassRoster, type RosterMember } from "@/lib/classroom-posts";
 import { suggestNote } from "@/lib/ai-note.functions";
-import { useImageProgress } from "@/lib/image-progress";
 import {
   listAnnotatedImages,
   saveAnnotatedImage,
@@ -14,6 +13,7 @@ import {
   gradeNoteAnswer,
   signedClassUrl,
   cachedClassUrl,
+  invalidateClassUrl,
   prefetchClassUrls,
   NOTE_COLORS,
   type AnnotatedImage,
@@ -119,6 +119,8 @@ function PinnedImage({
   onPick,
   onAdd,
   renderActive,
+  onRetry,
+  error,
 }: {
   src: string;
   notes: ImageNote[];
@@ -126,9 +128,15 @@ function PinnedImage({
   onPick: (id: string | null) => void;
   onAdd?: (x: number, y: number) => void;
   renderActive?: (note: ImageNote) => ReactNode;
+  onRetry?: () => void;
+  error?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { src: imgSrc, percent, ready } = useImageProgress(src);
+  const [state, setState] = useState<"loading" | "ok" | "error">(src ? "loading" : "ok");
+  useEffect(() => {
+    setState(src ? "loading" : "ok");
+  }, [src]);
+  const view = error ? "error" : state;
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
@@ -145,23 +153,37 @@ function PinnedImage({
         onAdd(Math.max(1, Math.min(99, x)), Math.max(1, Math.min(99, y)));
       }}
     >
-      {imgSrc ? (
+      {src ? (
         <img
-          src={imgSrc}
+          key={src}
+          src={src}
           alt="Ảnh học liệu có chú thích"
           decoding="async"
           // @ts-expect-error thuộc tính chuẩn của trình duyệt
           fetchpriority="high"
+          onLoad={() => setState("ok")}
+          onError={() => setState("error")}
           className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
         />
       ) : (
         <div className="w-full min-h-[160px] rounded-2xl border-2 border-orange-100 bg-orange-50/70" />
       )}
-      {!ready && (
+      {view === "loading" && (
         <div className="absolute inset-0 grid place-items-center rounded-2xl bg-orange-50/70">
-          <LoadingPercent percent={percent} done={percent >= 100} light={false} />
+          <LoadingPercent done={false} light={false} />
         </div>
       )}
+      {view === "error" && (
+        <div className="absolute inset-0 grid place-items-center gap-2 rounded-2xl bg-orange-50/90 p-3 text-center">
+          <div className="text-xs font-black text-muted-foreground">Không tải được ảnh 😢</div>
+          {onRetry && (
+            <button onClick={onRetry} className="toy-button toy-button-primary text-xs justify-center">
+              🔄 Tải lại
+            </button>
+          )}
+        </div>
+      )}
+
       {notes.map((n, i) => (
         <button
           key={n.id}
@@ -502,14 +524,29 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
       .catch(() => setMine([]));
   }, [row.id]);
 
+  const [urlErr, setUrlErr] = useState(false);
+  const loadSrc = useCallback(
+    (fresh = false) => {
+      if (!row.image_url) return;
+      setUrlErr(false);
+      if (fresh) {
+        invalidateClassUrl(row.image_url);
+        setSrc("");
+      } else {
+        const c = cachedClassUrl(row.image_url);
+        if (c) return setSrc(c);
+      }
+      signedClassUrl(row.image_url)
+        .then(setSrc)
+        .catch(() => setUrlErr(true));
+    },
+    [row.image_url],
+  );
+
   useEffect(() => {
-    if (row.image_url) {
-      const c = cachedClassUrl(row.image_url);
-      if (c) setSrc(c);
-      else signedClassUrl(row.image_url).then(setSrc).catch(() => {});
-    }
+    loadSrc();
     if (row.kind === "exercise") reloadMine();
-  }, [row.image_url, row.kind, reloadMine]);
+  }, [loadSrc, row.kind, reloadMine]);
 
   const send = async (noteId: string) => {
     const text = (draft[noteId] || "").trim();
@@ -528,9 +565,11 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
   return (
     <div className="flex flex-col gap-2">
       {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
-      {src ? (
+      {(
         <PinnedImage
           src={src}
+          error={urlErr}
+          onRetry={() => loadSrc(true)}
           notes={row.notes}
           activeId={active}
           onPick={setActive}
@@ -582,10 +621,6 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
             </div>
           )}
         />
-      ) : (
-        <div className="flex justify-center py-4">
-          <LoadingPercent light={false} />
-        </div>
       )}
       <p className="text-[11px] font-black text-muted-foreground">
         👉 Bấm vào các chấm màu trên ảnh để xem {row.kind === "material" ? "học liệu" : "câu hỏi"}.

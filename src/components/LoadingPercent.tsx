@@ -74,10 +74,11 @@ export function LoadingPercent({
       const dt = Math.min(80, now - last);
       last = now;
 
-      const goal = autoRef.current ? (doneRef.current ? 100 : 90) : target.current;
+      const goal = autoRef.current ? (doneRef.current ? 100 : 99) : target.current;
       const remaining = goal - value;
-      // tiến nhanh khi còn xa, mượt dần khi tới đích; xong thì lao lên 100
-      value += remaining * Math.min(1, dt / (doneRef.current ? 200 : 500));
+      // tiến nhanh lúc đầu, bò chậm dần ở cuối để không đứng yên một chỗ
+      const ease = doneRef.current ? 200 : value < 70 ? 420 : value < 90 ? 1600 : 6000;
+      value += remaining * Math.min(1, dt / ease);
       if (doneRef.current && remaining < 0.3) value = 100;
       if (value < 0) value = 0;
       if (value > 100) value = 100;

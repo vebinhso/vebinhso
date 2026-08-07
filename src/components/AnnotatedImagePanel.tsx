@@ -230,7 +230,7 @@ function Editor({
   const [notes, setNotes] = useState<ImageNote[]>(row?.notes ?? []);
   const [active, setActive] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState(() => cachedClassUrl(row?.image_url) || "");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -481,7 +481,7 @@ function Editor({
 /* ---------- Xem & làm bài ---------- */
 
 function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
-  const [src, setSrc] = useState("");
+  const [src, setSrc] = useState(() => cachedClassUrl(row.image_url) || "");
   const [active, setActive] = useState<string | null>(null);
   const [mine, setMine] = useState<NoteAnswer[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -503,7 +503,11 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
   }, [row.id]);
 
   useEffect(() => {
-    if (row.image_url) signedClassUrl(row.image_url).then(setSrc).catch(() => {});
+    if (row.image_url) {
+      const c = cachedClassUrl(row.image_url);
+      if (c) setSrc(c);
+      else signedClassUrl(row.image_url).then(setSrc).catch(() => {});
+    }
     if (row.kind === "exercise") reloadMine();
   }, [row.image_url, row.kind, reloadMine]);
 
@@ -737,7 +741,7 @@ export function AnnotatedImagePanel({
   const reload = useCallback(() => {
     listAnnotatedImages(classId, kind, !canPost)
       .then((r) => {
-        listCache.set(cacheKey, r);
+        rememberList(cacheKey, r);
         setRows(r);
         // nạp sẵn link + ảnh để mở bài là hiện ngay
         prefetchClassUrls(r.map((x) => x.image_url || "").filter(Boolean)).catch(() => {});

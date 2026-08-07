@@ -520,14 +520,29 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
       .catch(() => setMine([]));
   }, [row.id]);
 
+  const [urlErr, setUrlErr] = useState(false);
+  const loadSrc = useCallback(
+    (fresh = false) => {
+      if (!row.image_url) return;
+      setUrlErr(false);
+      if (fresh) {
+        invalidateClassUrl(row.image_url);
+        setSrc("");
+      } else {
+        const c = cachedClassUrl(row.image_url);
+        if (c) return setSrc(c);
+      }
+      signedClassUrl(row.image_url)
+        .then(setSrc)
+        .catch(() => setUrlErr(true));
+    },
+    [row.image_url],
+  );
+
   useEffect(() => {
-    if (row.image_url) {
-      const c = cachedClassUrl(row.image_url);
-      if (c) setSrc(c);
-      else signedClassUrl(row.image_url).then(setSrc).catch(() => {});
-    }
+    loadSrc();
     if (row.kind === "exercise") reloadMine();
-  }, [row.image_url, row.kind, reloadMine]);
+  }, [loadSrc, row.kind, reloadMine]);
 
   const send = async (noteId: string) => {
     const text = (draft[noteId] || "").trim();

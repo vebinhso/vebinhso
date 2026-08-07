@@ -12,6 +12,7 @@ import {
   submitNoteAnswer,
   gradeNoteAnswer,
   signedClassUrl,
+  prefetchClassUrls,
   NOTE_COLORS,
   type AnnotatedImage,
   type ImageNote,
@@ -20,6 +21,9 @@ import {
 } from "@/lib/class-annotations";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+/** Bộ nhớ đệm danh sách để mở lại lớp là thấy ngay, không phải chờ tải lại. */
+const listCache = new Map<string, AnnotatedImage[]>();
 
 /** Thu nhỏ ảnh trước khi gửi AI để phản hồi nhanh hơn nhiều. */
 const shrinkForAi = (src: string) =>
@@ -699,20 +703,27 @@ export function AnnotatedImagePanel({
   canPost: boolean;
   kind: NoteKind;
 }) {
-  const [rows, setRows] = useState<AnnotatedImage[] | null>(null);
+  const cacheKey = `${classId}|${kind}|${canPost ? "t" : "s"}`;
+  const [rows, setRows] = useState<AnnotatedImage[] | null>(() => listCache.get(cacheKey) ?? null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const reload = useCallback(() => {
     listAnnotatedImages(classId, kind, !canPost)
-      .then(setRows)
-      .catch(() => setRows([]));
-  }, [classId, kind, canPost]);
+      .then((r) => {
+        listCache.set(cacheKey, r);
+        setRows(r);
+        // nạp sẵn link + ảnh để mở bài là hiện ngay
+        prefetchClassUrls(r.map((x) => x.image_url || "").filter(Boolean)).catch(() => {});
+      })
+      .catch(() => setRows((prev) => prev ?? []));
+  }, [classId, kind, canPost, cacheKey]);
 
   useEffect(() => {
+    setRows(listCache.get(cacheKey) ?? null);
     reload();
-  }, [reload]);
+  }, [reload, cacheKey]);
 
   return (
     <div className="flex flex-col gap-2 min-w-0">

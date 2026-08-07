@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
@@ -23,24 +23,68 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ---------- Ảnh + các chấm ghi chú ---------- */
 
+function NotePopup({
+  note,
+  index,
+  children,
+  onClose,
+}: {
+  note: ImageNote;
+  index: number;
+  children: ReactNode;
+  onClose: () => void;
+}) {
+  const tx = note.x <= 70 ? "8px" : "calc(-100% - 8px)";
+  const ty = note.y <= 70 ? "-50%" : "calc(-100% - 8px)";
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="absolute z-20"
+      style={{ left: `${note.x}%`, top: `${note.y}%`, transform: `translate(${tx}, ${ty})` }}
+    >
+      <div
+        className="min-w-[220px] max-w-[280px] max-h-[320px] overflow-y-auto rounded-2xl border-2 bg-white/95 p-3 shadow-xl"
+        style={{ borderColor: note.color }}
+      >
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="text-xs font-black" style={{ color: note.color }}>
+            📍 Ghi chú {index + 1}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[11px] font-black text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function PinnedImage({
   src,
   notes,
   activeId,
   onPick,
   onAdd,
+  renderActive,
 }: {
   src: string;
   notes: ImageNote[];
   activeId?: string | null;
-  onPick: (id: string) => void;
+  onPick: (id: string | null) => void;
   onAdd?: (x: number, y: number) => void;
+  renderActive?: (note: ImageNote) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const activeIndex = notes.findIndex((n) => n.id === activeId);
+  const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
     <div
       ref={ref}
-      className={`relative w-full overflow-hidden rounded-2xl border-2 border-orange-100 bg-white ${
+      className={`relative w-full rounded-2xl bg-white overflow-visible ${
         onAdd ? "cursor-crosshair" : ""
       }`}
       onClick={(e) => {
@@ -51,7 +95,11 @@ function PinnedImage({
         onAdd(Math.max(1, Math.min(99, x)), Math.max(1, Math.min(99, y)));
       }}
     >
-      <img src={src} alt="Ảnh học liệu có chú thích" className="w-full object-contain" />
+      <img
+        src={src}
+        alt="Ảnh học liệu có chú thích"
+        className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
+      />
       {notes.map((n, i) => (
         <button
           key={n.id}
@@ -68,6 +116,11 @@ function PinnedImage({
           {i + 1}
         </button>
       ))}
+      {activeNote && renderActive && (
+        <NotePopup note={activeNote} index={activeIndex} onClose={() => onPick(null)}>
+          {renderActive(activeNote)}
+        </NotePopup>
+      )}
     </div>
   );
 }
@@ -257,6 +310,59 @@ function Editor({
               setNotes((all) => [...all, n]);
               setActive(n.id);
             }}
+            renderActive={(n) => (
+              <div className="flex flex-col gap-2">
+                <ColorPicker value={n.color} onChange={(c) => patch({ color: c })} />
+                <input
+                  value={n.title}
+                  onChange={(e) => patch({ title: e.target.value })}
+                  placeholder="Tên chi tiết (VD: Van 2 lá)"
+                  className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
+                />
+                {kind === "material" ? (
+                  <textarea
+                    value={n.content ?? ""}
+                    onChange={(e) => patch({ content: e.target.value })}
+                    rows={4}
+                    placeholder="Nội dung học liệu tại điểm này (tự nhập hoặc bấm AI đề xuất)"
+                    className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                  />
+                ) : (
+                  <>
+                    <textarea
+                      value={n.question ?? ""}
+                      onChange={(e) => patch({ question: e.target.value })}
+                      rows={3}
+                      placeholder="Câu hỏi cho học sinh tại điểm này"
+                      className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                    />
+                    <textarea
+                      value={n.expected ?? ""}
+                      onChange={(e) => patch({ expected: e.target.value })}
+                      rows={2}
+                      placeholder="Đáp án gợi ý (chỉ giáo viên thấy)"
+                      className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                    />
+                  </>
+                )}
+                <button
+                  onClick={askAi}
+                  disabled={busy}
+                  className="toy-button justify-center text-xs disabled:opacity-50 self-start"
+                >
+                  🤖 AI đề xuất nội dung cho chấm này
+                </button>
+                <button
+                  onClick={() => {
+                    setNotes((all) => all.filter((x) => x.id !== n.id));
+                    setActive(null);
+                  }}
+                  className="text-[11px] font-black text-red-500 self-start"
+                >
+                  xoá chấm
+                </button>
+              </div>
+            )}
           />
           <button
             onClick={() => {
@@ -268,65 +374,6 @@ function Editor({
             ✕ Đổi ảnh khác
           </button>
         </>
-      )}
-
-      {note && (
-        <div className="rounded-2xl border-2 border-orange-200 bg-white/90 p-3 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-black">
-              📍 Ghi chú {notes.findIndex((n) => n.id === note.id) + 1}
-            </div>
-            <button
-              onClick={() => {
-                setNotes((all) => all.filter((n) => n.id !== note.id));
-                setActive(null);
-              }}
-              className="text-[11px] font-black text-red-500"
-            >
-              xoá chấm
-            </button>
-          </div>
-          <ColorPicker value={note.color} onChange={(c) => patch({ color: c })} />
-          <input
-            value={note.title}
-            onChange={(e) => patch({ title: e.target.value })}
-            placeholder="Tên chi tiết (VD: Van 2 lá)"
-            className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
-          />
-          {kind === "material" ? (
-            <textarea
-              value={note.content ?? ""}
-              onChange={(e) => patch({ content: e.target.value })}
-              rows={4}
-              placeholder="Nội dung học liệu tại điểm này (tự nhập hoặc bấm AI đề xuất)"
-              className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-            />
-          ) : (
-            <>
-              <textarea
-                value={note.question ?? ""}
-                onChange={(e) => patch({ question: e.target.value })}
-                rows={3}
-                placeholder="Câu hỏi cho học sinh tại điểm này"
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-              />
-              <textarea
-                value={note.expected ?? ""}
-                onChange={(e) => patch({ expected: e.target.value })}
-                rows={2}
-                placeholder="Đáp án gợi ý (chỉ giáo viên thấy)"
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-              />
-            </>
-          )}
-          <button
-            onClick={askAi}
-            disabled={busy}
-            className="toy-button justify-center text-xs disabled:opacity-50 self-start"
-          >
-            🤖 AI đề xuất nội dung cho chấm này
-          </button>
-        </div>
       )}
 
       {busy && (
@@ -358,7 +405,7 @@ function Editor({
 
 function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
   const [src, setSrc] = useState("");
-  const [active, setActive] = useState<string | null>(row.notes[0]?.id ?? null);
+  const [active, setActive] = useState<string | null>(null);
   const [mine, setMine] = useState<NoteAnswer[]>([]);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -383,16 +430,12 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
     if (row.kind === "exercise") reloadMine();
   }, [row.image_url, row.kind, reloadMine]);
 
-  const note = row.notes.find((n) => n.id === active) || null;
-  const myAnswer = mine.find((m) => m.note_id === active) || null;
-
-  const send = async () => {
-    if (!note) return;
-    const text = (draft[note.id] || "").trim();
+  const send = async (noteId: string) => {
+    const text = (draft[noteId] || "").trim();
     if (!text) return toast.error("Hãy điền câu trả lời");
     setBusy(true);
     try {
-      await submitNoteAnswer({ imageId: row.id, classId: row.class_id, noteId: note.id, answer: text });
+      await submitNoteAnswer({ imageId: row.id, classId: row.class_id, noteId, answer: text });
       toast.success("Đã nộp bài!");
       reloadMine();
     } catch (e: any) {
@@ -405,7 +448,59 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
     <div className="flex flex-col gap-2">
       {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
       {src ? (
-        <PinnedImage src={src} notes={row.notes} activeId={active} onPick={setActive} />
+        <PinnedImage
+          src={src}
+          notes={row.notes}
+          activeId={active}
+          onPick={setActive}
+          renderActive={(note) => (
+            <div className="flex flex-col gap-2">
+              <div className="text-sm font-black" style={{ color: note.color }}>
+                📍 {note.title || "Ghi chú"}
+              </div>
+              {row.kind === "material" ? (
+                <p className="text-sm whitespace-pre-wrap">{note.content || "(chưa có nội dung)"}</p>
+              ) : (
+                <>
+                  <p className="text-sm font-bold whitespace-pre-wrap">{note.question || "(chưa có câu hỏi)"}</p>
+                  {canPost ? (
+                    note.expected && (
+                      <p className="text-xs font-bold text-emerald-700 whitespace-pre-wrap">
+                        ✅ Đáp án gợi ý: {note.expected}
+                      </p>
+                    )
+                  ) : (
+                    <>
+                      <textarea
+                        value={draft[note.id] ?? ""}
+                        onChange={(e) => setDraft((d) => ({ ...d, [note.id]: e.target.value }))}
+                        rows={3}
+                        placeholder="Câu trả lời của bạn..."
+                        className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                      />
+                      <button
+                        onClick={() => send(note.id)}
+                        disabled={busy}
+                        className="toy-button toy-button-primary justify-center text-xs disabled:opacity-50 self-start"
+                      >
+                        {mine.find((m) => m.note_id === note.id) ? "🔁 Nộp lại" : "📤 Nộp câu trả lời"}
+                      </button>
+                      {(() => {
+                        const a = mine.find((m) => m.note_id === note.id);
+                        return a?.grade ? (
+                          <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-2 text-xs font-bold">
+                            🏅 Điểm: {a.grade}
+                            {a.feedback && <div className="mt-1">💬 {a.feedback}</div>}
+                          </div>
+                        ) : null;
+                      })()}
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        />
       ) : (
         <div className="flex justify-center py-4">
           <LoadingPercent light={false} />
@@ -414,54 +509,6 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
       <p className="text-[11px] font-black text-muted-foreground">
         👉 Bấm vào các chấm màu trên ảnh để xem {row.kind === "material" ? "học liệu" : "câu hỏi"}.
       </p>
-
-      {note && (
-        <div
-          className="rounded-2xl border-2 bg-white/95 p-3 flex flex-col gap-2"
-          style={{ borderColor: note.color }}
-        >
-          <div className="text-sm font-black" style={{ color: note.color }}>
-            📍 {note.title || "Ghi chú"}
-          </div>
-          {row.kind === "material" ? (
-            <p className="text-sm whitespace-pre-wrap">{note.content || "(chưa có nội dung)"}</p>
-          ) : (
-            <>
-              <p className="text-sm font-bold whitespace-pre-wrap">{note.question || "(chưa có câu hỏi)"}</p>
-              {canPost ? (
-                note.expected && (
-                  <p className="text-xs font-bold text-emerald-700 whitespace-pre-wrap">
-                    ✅ Đáp án gợi ý: {note.expected}
-                  </p>
-                )
-              ) : (
-                <>
-                  <textarea
-                    value={draft[note.id] ?? ""}
-                    onChange={(e) => setDraft((d) => ({ ...d, [note.id]: e.target.value }))}
-                    rows={3}
-                    placeholder="Câu trả lời của bạn..."
-                    className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-                  />
-                  <button
-                    onClick={send}
-                    disabled={busy}
-                    className="toy-button toy-button-primary justify-center text-xs disabled:opacity-50 self-start"
-                  >
-                    {myAnswer ? "🔁 Nộp lại" : "📤 Nộp câu trả lời"}
-                  </button>
-                  {myAnswer?.grade && (
-                    <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-2 text-xs font-bold">
-                      🏅 Điểm: {myAnswer.grade}
-                      {myAnswer.feedback && <div className="mt-1">💬 {myAnswer.feedback}</div>}
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </div>
-      )}
 
       {canPost && row.kind === "exercise" && <GradingList row={row} />}
     </div>

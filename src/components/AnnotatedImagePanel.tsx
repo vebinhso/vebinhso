@@ -127,8 +127,7 @@ function PinnedImage({
   renderActive?: (note: ImageNote) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => setLoaded(false), [src]);
+  const { src: imgSrc, percent, ready } = useImageProgress(src);
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
@@ -145,21 +144,21 @@ function PinnedImage({
         onAdd(Math.max(1, Math.min(99, x)), Math.max(1, Math.min(99, y)));
       }}
     >
-      <img
-        src={src}
-        alt="Ảnh học liệu có chú thích"
-        decoding="async"
-        // @ts-expect-error thuộc tính chuẩn của trình duyệt
-        fetchpriority="high"
-        onLoad={() => setLoaded(true)}
-        onError={() => setLoaded(true)}
-        className={`w-full object-contain rounded-2xl border-2 border-orange-100 bg-white transition-opacity duration-200 ${
-          loaded ? "opacity-100" : "opacity-0 min-h-[140px]"
-        }`}
-      />
-      {!loaded && (
+      {imgSrc ? (
+        <img
+          src={imgSrc}
+          alt="Ảnh học liệu có chú thích"
+          decoding="async"
+          // @ts-expect-error thuộc tính chuẩn của trình duyệt
+          fetchpriority="high"
+          className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
+        />
+      ) : (
+        <div className="w-full min-h-[160px] rounded-2xl border-2 border-orange-100 bg-orange-50/70" />
+      )}
+      {!ready && (
         <div className="absolute inset-0 grid place-items-center rounded-2xl bg-orange-50/70">
-          <LoadingPercent light={false} />
+          <LoadingPercent percent={percent} done={percent >= 100} light={false} />
         </div>
       )}
       {notes.map((n, i) => (

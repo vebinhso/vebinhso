@@ -208,6 +208,14 @@ export async function prefetchClassUrls(paths: string[]): Promise<void> {
   persistUrlStore();
 }
 
+/** Bỏ link đã lưu đệm (khi ảnh lỗi/hết hạn) để lấy link mới. */
+export function invalidateClassUrl(path?: string | null) {
+  if (!path) return;
+  urlCache.delete(path);
+  urlPending.delete(path);
+  persistUrlStore();
+}
+
 export async function signedClassUrl(path: string): Promise<string> {
   const now = Date.now();
   const hit = urlCache.get(path);

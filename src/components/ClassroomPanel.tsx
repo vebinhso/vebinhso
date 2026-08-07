@@ -67,6 +67,16 @@ export function ClassroomPanel({
 
 function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
   const [mode, setMode] = useState<"ai" | "classic" | "pin">("classic");
+  if (!canPost) {
+    // Học sinh: gộp tất cả học liệu vào một dòng chảy duy nhất
+    return (
+      <div className="flex flex-col gap-4 min-w-0">
+        <PostsTab classId={classId} kind="material" canPost={false} compact={compact} />
+        <AiMaterialPanel classId={classId} canPost={false} />
+        <AnnotatedImagePanel classId={classId} canPost={false} kind="material" />
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-2 min-w-0">
       <div className="flex gap-1 flex-wrap">
@@ -110,6 +120,14 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
 
 function AssignmentTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
   const [mode, setMode] = useState<"classic" | "pin">("classic");
+  if (!canPost) {
+    return (
+      <div className="flex flex-col gap-4 min-w-0">
+        <PostsTab classId={classId} kind="assignment" canPost={false} compact={compact} />
+        <AnnotatedImagePanel classId={classId} canPost={false} kind="exercise" />
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-2 min-w-0">
       <div className="flex gap-1 flex-wrap">

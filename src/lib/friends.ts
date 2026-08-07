@@ -14,7 +14,16 @@ let PROFILES: Account[] = [];
 let FRIENDSHIPS: Friendship[] = [];
 let CACHE_UID: string | null = null;
 
+let inflight: Promise<void> | null = null;
+let loadedOnce = false;
+
 async function refresh(uid: string) {
+  // Chờ phiên đăng nhập sẵn sàng, nếu không RLS sẽ trả về rỗng
+  try {
+    await supabase.auth.getSession();
+  } catch {
+    /* noop */
+  }
   const [profilesRes, friendsRes] = await Promise.all([
     supabase.from("profiles").select("user_id, username, created_at"),
     supabase.from("friends").select("*"),
@@ -28,16 +37,28 @@ async function refresh(uid: string) {
   FRIENDSHIPS = (friendsRes.data || []).map((f: any) => ({
     user_id: f.user_id, friend_id: f.friend_id, status: f.status, created_at: f.created_at,
   }));
+  CACHE_UID = uid;
+  loadedOnce = PROFILES.length > 0;
   if (typeof window !== "undefined") window.dispatchEvent(new Event("friends-change"));
+}
+
+/** Đảm bảo danh sách bạn bè đã được tải xong (dùng await để hiện ngay khi vào trang). */
+export async function ensureFriendsLoaded(): Promise<void> {
+  const u = getCurrentUser();
+  if (!u) return;
+  if (CACHE_UID === u.id && loadedOnce) return;
+  if (!inflight) {
+    inflight = refresh(u.id)
+      .catch(() => { /* noop */ })
+      .finally(() => { inflight = null; });
+  }
+  await inflight;
 }
 
 function ensureCache() {
   const u = getCurrentUser();
   if (!u) return;
-  if (CACHE_UID !== u.id) {
-    CACHE_UID = u.id;
-    refresh(u.id).catch(() => { /* noop */ });
-  }
+  if (CACHE_UID !== u.id || !loadedOnce) void ensureFriendsLoaded();
 }
 
 export function findUser(query: string): Account | null {

@@ -3,7 +3,7 @@ import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
-import { listFriends } from "@/lib/friends";
+import { listFriends, ensureFriendsLoaded } from "@/lib/friends";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/chat")({ component: Chat });

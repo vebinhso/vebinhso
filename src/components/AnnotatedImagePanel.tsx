@@ -34,7 +34,7 @@ function NotePopup({
   children: ReactNode;
   onClose: () => void;
 }) {
-  const tx = note.x <= 70 ? "8px" : "calc(-100% - 8px)";
+  const tx = note.x <= 60 ? "8px" : "calc(-100% - 8px)";
   const ty = note.y <= 70 ? "-50%" : "calc(-100% - 8px)";
   return (
     <div
@@ -43,7 +43,7 @@ function NotePopup({
       style={{ left: `${note.x}%`, top: `${note.y}%`, transform: `translate(${tx}, ${ty})` }}
     >
       <div
-        className="min-w-[220px] max-w-[280px] max-h-[320px] overflow-y-auto rounded-2xl border-2 bg-white/95 p-3 shadow-xl"
+        className="w-[min(420px,calc(100vw-32px))] max-h-[420px] overflow-y-auto rounded-lg border-2 bg-white/95 p-4 shadow-xl"
         style={{ borderColor: note.color }}
       >
         <div className="flex items-center justify-between gap-2 mb-1">
@@ -170,6 +170,7 @@ function Editor({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (row?.image_url && !preview) signedClassUrl(row.image_url).then(setPreview).catch(() => {});
@@ -215,8 +216,10 @@ function Editor({
   const askAi = async () => {
     if (!note) return;
     setBusy(true);
+    setProgress(12);
     try {
       const b64 = preview.startsWith("data:") ? (preview.split(",")[1] ?? "") : undefined;
+      setProgress(28);
       const res = await suggestNote({
         data: {
           mode: kind === "material" ? "material" : "exercise",
@@ -233,20 +236,28 @@ function Editor({
           ? { content: res.content || "" }
           : { question: res.question || "", expected: res.expected || "" }),
       });
+      setProgress(100);
       toast.success("AI đã đề xuất nội dung!");
     } catch (e: any) {
       toast.error(e?.message || "Không gọi được AI");
     }
+    await new Promise((resolve) => setTimeout(resolve, 180));
     setBusy(false);
+    setProgress(0);
   };
 
   const save = async (published: boolean) => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
     if (!preview) return toast.error("Chọn một tấm ảnh");
     setBusy(true);
+    setProgress(10);
     try {
       let path: string | null | undefined = undefined;
-      if (file) path = await uploadClassFile(classId, file);
+      if (file) {
+        setProgress(25);
+        path = await uploadClassFile(classId, file);
+      }
+      setProgress(70);
       await saveAnnotatedImage({
         ...(row?.id ? { id: row.id } : {}),
         classId,
@@ -257,12 +268,15 @@ function Editor({
         notes,
         published,
       });
+      setProgress(100);
       toast.success(published ? "Đã đăng cho học sinh!" : "Đã lưu nháp");
       onDone();
     } catch (e: any) {
       toast.error(e?.message || "Lỗi khi lưu");
     }
+    await new Promise((resolve) => setTimeout(resolve, 180));
     setBusy(false);
+    setProgress(0);
   };
 
   return (
@@ -378,7 +392,7 @@ function Editor({
 
       {busy && (
         <div className="flex justify-center">
-          <LoadingPercent light={false} />
+          <LoadingPercent percent={progress} done={progress === 100} light={false} />
         </div>
       )}
 

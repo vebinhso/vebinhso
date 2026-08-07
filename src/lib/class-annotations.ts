@@ -142,8 +142,46 @@ export async function gradeNoteAnswer(id: string, grade: string, feedback: strin
 }
 
 /** Ảnh trong kho lưu trữ lớp học → link xem tạm thời */
-const urlCache = new Map<string, { url: string; exp: number }>();
+const URL_STORE_KEY = "vbs_class_url_cache_v1";
+
+function loadUrlStore(): Map<string, { url: string; exp: number }> {
+  const m = new Map<string, { url: string; exp: number }>();
+  if (typeof window === "undefined") return m;
+  try {
+    const raw = window.sessionStorage.getItem(URL_STORE_KEY);
+    if (!raw) return m;
+    const now = Date.now();
+    for (const [k, v] of Object.entries(JSON.parse(raw) as Record<string, { url: string; exp: number }>)) {
+      if (v?.url && v.exp > now) m.set(k, v);
+    }
+  } catch {
+    /* ignore */
+  }
+  return m;
+}
+
+const urlCache = loadUrlStore();
 const urlPending = new Map<string, Promise<string>>();
+
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+function persistUrlStore() {
+  if (typeof window === "undefined") return;
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    try {
+      window.sessionStorage.setItem(URL_STORE_KEY, JSON.stringify(Object.fromEntries(urlCache)));
+    } catch {
+      /* ignore */
+    }
+  }, 300);
+}
+
+/** Link đã có sẵn trong bộ nhớ đệm (dùng được ngay, không cần chờ mạng) */
+export function cachedClassUrl(path?: string | null): string | null {
+  if (!path) return null;
+  const hit = urlCache.get(path);
+  return hit && hit.exp > Date.now() ? hit.url : null;
+}
 
 /** Lấy nhiều link một lượt (nhanh hơn gọi từng cái) và nạp sẵn ảnh vào bộ nhớ đệm trình duyệt. */
 export async function prefetchClassUrls(paths: string[]): Promise<void> {
@@ -161,6 +199,7 @@ export async function prefetchClassUrls(paths: string[]): Promise<void> {
       }
     }
   }
+  persistUrlStore();
 }
 
 export async function signedClassUrl(path: string): Promise<string> {
@@ -174,7 +213,10 @@ export async function signedClassUrl(path: string): Promise<string> {
     .createSignedUrl(path, 60 * 60 * 8)
     .then(({ data }) => {
       const url = data?.signedUrl || "";
-      if (url) urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+      if (url) {
+        urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+        persistUrlStore();
+      }
       urlPending.delete(path);
       return url;
     })

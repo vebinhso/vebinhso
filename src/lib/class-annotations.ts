@@ -225,13 +225,12 @@ export async function signedClassUrl(path: string): Promise<string> {
   const p = supabase.storage
     .from("classroom")
     .createSignedUrl(path, 60 * 60 * 8)
-    .then(({ data }) => {
+    .then(({ data, error }) => {
       const url = data?.signedUrl || "";
-      if (url) {
-        urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
-        persistUrlStore();
-      }
       urlPending.delete(path);
+      if (!url) throw error || new Error("Không lấy được link ảnh");
+      urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+      persistUrlStore();
       return url;
     })
     .catch((e) => {

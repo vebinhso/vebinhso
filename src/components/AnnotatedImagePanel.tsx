@@ -12,6 +12,7 @@ import {
   submitNoteAnswer,
   gradeNoteAnswer,
   signedClassUrl,
+  cachedClassUrl,
   prefetchClassUrls,
   NOTE_COLORS,
   type AnnotatedImage,
@@ -23,7 +24,31 @@ import {
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 /** Bộ nhớ đệm danh sách để mở lại lớp là thấy ngay, không phải chờ tải lại. */
+const LIST_STORE_KEY = "vbs_class_ann_list_v1";
 const listCache = new Map<string, AnnotatedImage[]>();
+if (typeof window !== "undefined") {
+  try {
+    const raw = window.sessionStorage.getItem(LIST_STORE_KEY);
+    if (raw)
+      for (const [k, v] of Object.entries(JSON.parse(raw) as Record<string, AnnotatedImage[]>))
+        listCache.set(k, v);
+  } catch {
+    /* ignore */
+  }
+}
+let listPersistTimer: ReturnType<typeof setTimeout> | null = null;
+function rememberList(key: string, rows: AnnotatedImage[]) {
+  listCache.set(key, rows);
+  if (typeof window === "undefined") return;
+  if (listPersistTimer) clearTimeout(listPersistTimer);
+  listPersistTimer = setTimeout(() => {
+    try {
+      window.sessionStorage.setItem(LIST_STORE_KEY, JSON.stringify(Object.fromEntries(listCache)));
+    } catch {
+      /* ignore */
+    }
+  }, 300);
+}
 
 /** Thu nhỏ ảnh trước khi gửi AI để phản hồi nhanh hơn nhiều. */
 const shrinkForAi = (src: string) =>

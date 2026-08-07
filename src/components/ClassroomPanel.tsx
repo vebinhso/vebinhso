@@ -14,7 +14,9 @@ import {
   type RosterMember,
 } from "@/lib/classroom-posts";
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
+import { AnnotatedImagePanel } from "@/components/AnnotatedImagePanel";
 import { PasteDropZone } from "@/components/PasteDropZone";
+
 
 type Tab = "announcement" | "material" | "assignment" | "people";
 
@@ -54,6 +56,8 @@ export function ClassroomPanel({
         <PeopleTab classId={classId} />
       ) : tab === "material" ? (
         <MaterialTab classId={classId} canPost={canPost} compact={compact} />
+      ) : tab === "assignment" ? (
+        <AssignmentTab classId={classId} canPost={canPost} compact={compact} />
       ) : (
         <PostsTab classId={classId} kind={tab} canPost={canPost} compact={compact} />
       )}
@@ -62,10 +66,10 @@ export function ClassroomPanel({
 }
 
 function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
-  const [mode, setMode] = useState<"ai" | "classic">("classic");
+  const [mode, setMode] = useState<"ai" | "classic" | "pin">("classic");
   return (
     <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex gap-1">
+      <div className="flex gap-1 flex-wrap">
         <button
           onClick={() => setMode("classic")}
           className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
@@ -82,16 +86,60 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
         >
           🤖 HỌC LIỆU AI
         </button>
+        <button
+          onClick={() => setMode("pin")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "pin" ? "bg-sky-600 text-white shadow" : "bg-white/70 hover:bg-sky-100"
+          }`}
+        >
+          📍 ẢNH CÓ GHI CHÚ
+        </button>
       </div>
       {mode === "ai" ? (
         <AiMaterialPanel classId={classId} canPost={canPost} />
+      ) : mode === "pin" ? (
+        <AnnotatedImagePanel classId={classId} canPost={canPost} kind="material" />
       ) : (
         <PostsTab classId={classId} kind="material" canPost={canPost} compact={compact} />
       )}
 
     </div>
+
   );
 }
+
+function AssignmentTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
+  const [mode, setMode] = useState<"classic" | "pin">("classic");
+  return (
+    <div className="flex flex-col gap-2 min-w-0">
+      <div className="flex gap-1 flex-wrap">
+        <button
+          onClick={() => setMode("classic")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "classic" ? "bg-orange-500 text-white shadow" : "bg-white/70 hover:bg-orange-100"
+          }`}
+        >
+          📝 BÀI TẬP TRUYỀN THỐNG
+        </button>
+        <button
+          onClick={() => setMode("pin")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "pin" ? "bg-sky-600 text-white shadow" : "bg-white/70 hover:bg-sky-100"
+          }`}
+        >
+          📍 BÀI TẬP TRÊN ẢNH
+        </button>
+      </div>
+      {mode === "pin" ? (
+        <AnnotatedImagePanel classId={classId} canPost={canPost} kind="exercise" />
+      ) : (
+        <PostsTab classId={classId} kind="assignment" canPost={canPost} compact={compact} />
+      )}
+    </div>
+  );
+}
+
+
 
 function PeopleTab({ classId }: { classId: string }) {
   const [rows, setRows] = useState<RosterMember[]>([]);

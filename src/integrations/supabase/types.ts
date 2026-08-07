@@ -103,6 +103,56 @@ export type Database = {
           },
         ]
       }
+      class_annotated_images: {
+        Row: {
+          class_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          kind: string
+          notes: Json
+          published: boolean
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          kind?: string
+          notes?: Json
+          published?: boolean
+          teacher_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          kind?: string
+          notes?: Json
+          published?: boolean
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_annotated_images_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_join_requests: {
         Row: {
           class_id: string
@@ -134,6 +184,60 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_note_answers: {
+        Row: {
+          answer: string
+          class_id: string
+          created_at: string
+          feedback: string | null
+          grade: string | null
+          id: string
+          image_id: string
+          note_id: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: string
+          class_id: string
+          created_at?: string
+          feedback?: string | null
+          grade?: string | null
+          id?: string
+          image_id: string
+          note_id: string
+          student_id?: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          class_id?: string
+          created_at?: string
+          feedback?: string | null
+          grade?: string | null
+          id?: string
+          image_id?: string
+          note_id?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_note_answers_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_note_answers_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "class_annotated_images"
             referencedColumns: ["id"]
           },
         ]

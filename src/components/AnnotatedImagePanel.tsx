@@ -310,6 +310,59 @@ function Editor({
               setNotes((all) => [...all, n]);
               setActive(n.id);
             }}
+            renderActive={(n) => (
+              <div className="flex flex-col gap-2">
+                <ColorPicker value={n.color} onChange={(c) => patch({ color: c })} />
+                <input
+                  value={n.title}
+                  onChange={(e) => patch({ title: e.target.value })}
+                  placeholder="Tên chi tiết (VD: Van 2 lá)"
+                  className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
+                />
+                {kind === "material" ? (
+                  <textarea
+                    value={n.content ?? ""}
+                    onChange={(e) => patch({ content: e.target.value })}
+                    rows={4}
+                    placeholder="Nội dung học liệu tại điểm này (tự nhập hoặc bấm AI đề xuất)"
+                    className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                  />
+                ) : (
+                  <>
+                    <textarea
+                      value={n.question ?? ""}
+                      onChange={(e) => patch({ question: e.target.value })}
+                      rows={3}
+                      placeholder="Câu hỏi cho học sinh tại điểm này"
+                      className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                    />
+                    <textarea
+                      value={n.expected ?? ""}
+                      onChange={(e) => patch({ expected: e.target.value })}
+                      rows={2}
+                      placeholder="Đáp án gợi ý (chỉ giáo viên thấy)"
+                      className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+                    />
+                  </>
+                )}
+                <button
+                  onClick={askAi}
+                  disabled={busy}
+                  className="toy-button justify-center text-xs disabled:opacity-50 self-start"
+                >
+                  🤖 AI đề xuất nội dung cho chấm này
+                </button>
+                <button
+                  onClick={() => {
+                    setNotes((all) => all.filter((x) => x.id !== n.id));
+                    setActive(null);
+                  }}
+                  className="text-[11px] font-black text-red-500 self-start"
+                >
+                  xoá chấm
+                </button>
+              </div>
+            )}
           />
           <button
             onClick={() => {
@@ -321,65 +374,6 @@ function Editor({
             ✕ Đổi ảnh khác
           </button>
         </>
-      )}
-
-      {note && (
-        <div className="rounded-2xl border-2 border-orange-200 bg-white/90 p-3 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-black">
-              📍 Ghi chú {notes.findIndex((n) => n.id === note.id) + 1}
-            </div>
-            <button
-              onClick={() => {
-                setNotes((all) => all.filter((n) => n.id !== note.id));
-                setActive(null);
-              }}
-              className="text-[11px] font-black text-red-500"
-            >
-              xoá chấm
-            </button>
-          </div>
-          <ColorPicker value={note.color} onChange={(c) => patch({ color: c })} />
-          <input
-            value={note.title}
-            onChange={(e) => patch({ title: e.target.value })}
-            placeholder="Tên chi tiết (VD: Van 2 lá)"
-            className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
-          />
-          {kind === "material" ? (
-            <textarea
-              value={note.content ?? ""}
-              onChange={(e) => patch({ content: e.target.value })}
-              rows={4}
-              placeholder="Nội dung học liệu tại điểm này (tự nhập hoặc bấm AI đề xuất)"
-              className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-            />
-          ) : (
-            <>
-              <textarea
-                value={note.question ?? ""}
-                onChange={(e) => patch({ question: e.target.value })}
-                rows={3}
-                placeholder="Câu hỏi cho học sinh tại điểm này"
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-              />
-              <textarea
-                value={note.expected ?? ""}
-                onChange={(e) => patch({ expected: e.target.value })}
-                rows={2}
-                placeholder="Đáp án gợi ý (chỉ giáo viên thấy)"
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
-              />
-            </>
-          )}
-          <button
-            onClick={askAi}
-            disabled={busy}
-            className="toy-button justify-center text-xs disabled:opacity-50 self-start"
-          >
-            🤖 AI đề xuất nội dung cho chấm này
-          </button>
-        </div>
       )}
 
       {busy && (

@@ -531,11 +531,18 @@ function Home() {
       )}
 
       {joinOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-3 overflow-y-auto" onClick={() => { setJoinOpen(false); setDetailClass(null); }}>
-          <div className="bg-white rounded-3xl p-5 max-w-2xl w-full border-4 border-blue-300 my-6 max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 flex items-start md:items-center justify-center z-50 p-2 md:p-4 overflow-y-auto" onClick={() => { setJoinOpen(false); setDetailClass(null); }}>
+          <div className="relative bg-white rounded-3xl p-4 md:p-6 w-full md:w-[85vw] max-w-6xl border-4 border-blue-300 my-3 h-[92vh] md:h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => { setJoinOpen(false); setDetailClass(null); }}
+              aria-label="Đóng lớp học"
+              className="absolute top-3 right-3 z-20 h-9 w-9 grid place-items-center rounded-full bg-white border-2 border-blue-300 text-lg font-black shadow hover:bg-blue-50"
+            >
+              ✕
+            </button>
             {detailClass ? (
               <>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-3 pr-12">
                   <button onClick={() => setDetailClass(null)} className="toy-button !text-xs !py-1.5">← Lớp học</button>
                   <div className="min-w-0">
                     <h3 className="text-lg font-black truncate">{detailClass.name}</h3>

@@ -168,12 +168,12 @@ function PinnedImage({
       ) : (
         <div className="w-full min-h-[160px] rounded-2xl border-2 border-orange-100 bg-orange-50/70" />
       )}
-      {state === "loading" && (
+      {view === "loading" && (
         <div className="absolute inset-0 grid place-items-center rounded-2xl bg-orange-50/70">
           <LoadingPercent done={false} light={false} />
         </div>
       )}
-      {state === "error" && (
+      {view === "error" && (
         <div className="absolute inset-0 grid place-items-center gap-2 rounded-2xl bg-orange-50/90 p-3 text-center">
           <div className="text-xs font-black text-muted-foreground">Không tải được ảnh 😢</div>
           {onRetry && (

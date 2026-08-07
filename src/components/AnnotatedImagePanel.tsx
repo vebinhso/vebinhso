@@ -23,24 +23,68 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ---------- Ảnh + các chấm ghi chú ---------- */
 
+function NotePopup({
+  note,
+  index,
+  children,
+  onClose,
+}: {
+  note: ImageNote;
+  index: number;
+  children: ReactNode;
+  onClose: () => void;
+}) {
+  const tx = note.x <= 70 ? "8px" : "calc(-100% - 8px)";
+  const ty = note.y <= 70 ? "-50%" : "calc(-100% - 8px)";
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="absolute z-20"
+      style={{ left: `${note.x}%`, top: `${note.y}%`, transform: `translate(${tx}, ${ty})` }}
+    >
+      <div
+        className="min-w-[220px] max-w-[280px] max-h-[320px] overflow-y-auto rounded-2xl border-2 bg-white/95 p-3 shadow-xl"
+        style={{ borderColor: note.color }}
+      >
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="text-xs font-black" style={{ color: note.color }}>
+            📍 Ghi chú {index + 1}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[11px] font-black text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function PinnedImage({
   src,
   notes,
   activeId,
   onPick,
   onAdd,
+  renderActive,
 }: {
   src: string;
   notes: ImageNote[];
   activeId?: string | null;
-  onPick: (id: string) => void;
+  onPick: (id: string | null) => void;
   onAdd?: (x: number, y: number) => void;
+  renderActive?: (note: ImageNote) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const activeIndex = notes.findIndex((n) => n.id === activeId);
+  const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
     <div
       ref={ref}
-      className={`relative w-full overflow-hidden rounded-2xl border-2 border-orange-100 bg-white ${
+      className={`relative w-full rounded-2xl bg-white overflow-visible ${
         onAdd ? "cursor-crosshair" : ""
       }`}
       onClick={(e) => {
@@ -51,7 +95,11 @@ function PinnedImage({
         onAdd(Math.max(1, Math.min(99, x)), Math.max(1, Math.min(99, y)));
       }}
     >
-      <img src={src} alt="Ảnh học liệu có chú thích" className="w-full object-contain" />
+      <img
+        src={src}
+        alt="Ảnh học liệu có chú thích"
+        className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
+      />
       {notes.map((n, i) => (
         <button
           key={n.id}
@@ -68,6 +116,11 @@ function PinnedImage({
           {i + 1}
         </button>
       ))}
+      {activeNote && renderActive && (
+        <NotePopup note={activeNote} index={activeIndex} onClose={() => onPick(null)}>
+          {renderActive(activeNote)}
+        </NotePopup>
+      )}
     </div>
   );
 }

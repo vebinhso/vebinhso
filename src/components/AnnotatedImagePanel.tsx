@@ -430,16 +430,12 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
     if (row.kind === "exercise") reloadMine();
   }, [row.image_url, row.kind, reloadMine]);
 
-  const note = row.notes.find((n) => n.id === active) || null;
-  const myAnswer = mine.find((m) => m.note_id === active) || null;
-
-  const send = async () => {
-    if (!note) return;
-    const text = (draft[note.id] || "").trim();
+  const send = async (noteId: string) => {
+    const text = (draft[noteId] || "").trim();
     if (!text) return toast.error("Hãy điền câu trả lời");
     setBusy(true);
     try {
-      await submitNoteAnswer({ imageId: row.id, classId: row.class_id, noteId: note.id, answer: text });
+      await submitNoteAnswer({ imageId: row.id, classId: row.class_id, noteId, answer: text });
       toast.success("Đã nộp bài!");
       reloadMine();
     } catch (e: any) {

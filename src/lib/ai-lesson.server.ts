@@ -30,7 +30,7 @@ Tạo đúng 3 parts, 2 sections, 3 keyPoints và đúng 3 câu trắc nghiệm.
       messages: [{ role: "system", content: system }, { role: "user", content }],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 1200,
+      max_tokens: 700,
     }),
   });
   if (!response.ok) {

@@ -67,7 +67,7 @@ export const suggestNote = createServerFn({ method: "POST" })
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-lite",
-        max_tokens: 900,
+        max_tokens: 550,
         messages: [
           { role: "system", content: SYS[data.mode] },
           { role: "user", content },

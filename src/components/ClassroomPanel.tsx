@@ -54,6 +54,8 @@ export function ClassroomPanel({
         <PeopleTab classId={classId} />
       ) : tab === "material" ? (
         <MaterialTab classId={classId} canPost={canPost} compact={compact} />
+      ) : tab === "assignment" ? (
+        <AssignmentTab classId={classId} canPost={canPost} compact={compact} />
       ) : (
         <PostsTab classId={classId} kind={tab} canPost={canPost} compact={compact} />
       )}
@@ -62,10 +64,10 @@ export function ClassroomPanel({
 }
 
 function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
-  const [mode, setMode] = useState<"ai" | "classic">("classic");
+  const [mode, setMode] = useState<"ai" | "classic" | "pin">("classic");
   return (
     <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex gap-1">
+      <div className="flex gap-1 flex-wrap">
         <button
           onClick={() => setMode("classic")}
           className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
@@ -82,14 +84,25 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
         >
           🤖 HỌC LIỆU AI
         </button>
+        <button
+          onClick={() => setMode("pin")}
+          className={`px-3 py-1 rounded-xl text-[11px] font-black transition ${
+            mode === "pin" ? "bg-sky-600 text-white shadow" : "bg-white/70 hover:bg-sky-100"
+          }`}
+        >
+          📍 ẢNH CÓ GHI CHÚ
+        </button>
       </div>
       {mode === "ai" ? (
         <AiMaterialPanel classId={classId} canPost={canPost} />
+      ) : mode === "pin" ? (
+        <AnnotatedImagePanel classId={classId} canPost={canPost} kind="material" />
       ) : (
         <PostsTab classId={classId} kind="material" canPost={canPost} compact={compact} />
       )}
 
     </div>
+
   );
 }
 

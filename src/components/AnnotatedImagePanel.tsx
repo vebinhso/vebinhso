@@ -565,9 +565,11 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
   return (
     <div className="flex flex-col gap-2">
       {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
-      {src ? (
+      {(
         <PinnedImage
           src={src}
+          error={urlErr}
+          onRetry={() => loadSrc(true)}
           notes={row.notes}
           activeId={active}
           onPick={setActive}

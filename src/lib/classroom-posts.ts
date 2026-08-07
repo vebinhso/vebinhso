@@ -169,3 +169,98 @@ export function markAnnouncementSeen(classId: string, at?: string) {
   m[classId] = at || new Date().toISOString();
   try { localStorage.setItem(SEEN_KEY, JSON.stringify(m)); } catch {}
 }
+
+// ===== Theo dõi tiến độ bài tập của 1 học sinh (dành cho giáo viên) =====
+export type StudentAssignmentRow = {
+  post_id: string;
+  title: string;
+  due_at: string | null;
+  submitted_at: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  note: string | null;
+  grade: string | null;
+  feedback: string | null;
+};
+
+export type StudentNoteTaskRow = {
+  image_id: string;
+  image_title: string;
+  note_id: string;
+  question: string;
+  answer: string | null;
+  grade: string | null;
+  feedback: string | null;
+  submitted_at: string | null;
+};
+
+export async function getStudentAssignmentProgress(
+  classId: string,
+  studentId: string,
+): Promise<StudentAssignmentRow[]> {
+  const [{ data: posts, error: e1 }, { data: subs, error: e2 }] = await Promise.all([
+    supabase
+      .from("class_posts")
+      .select("id,title,due_at,created_at")
+      .eq("class_id", classId)
+      .eq("kind", "assignment")
+      .order("created_at", { ascending: false }),
+    supabase.from("class_submissions").select("*").eq("class_id", classId).eq("student_id", studentId),
+  ]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+  const byPost = new Map<string, any>();
+  for (const s of (subs as any[]) || []) byPost.set(s.post_id, s);
+  return ((posts as any[]) || []).map((p) => {
+    const s = byPost.get(p.id);
+    return {
+      post_id: p.id,
+      title: p.title,
+      due_at: p.due_at ?? null,
+      submitted_at: s?.created_at ?? null,
+      file_url: s?.file_url ?? null,
+      file_name: s?.file_name ?? null,
+      note: s?.note ?? null,
+      grade: s?.grade ?? null,
+      feedback: s?.feedback ?? null,
+    };
+  });
+}
+
+export async function getStudentNoteTaskProgress(
+  classId: string,
+  studentId: string,
+): Promise<StudentNoteTaskRow[]> {
+  const [{ data: imgs, error: e1 }, { data: ans, error: e2 }] = await Promise.all([
+    supabase
+      .from("class_annotated_images")
+      .select("id,title,notes,kind,created_at")
+      .eq("class_id", classId)
+      .eq("kind", "exercise")
+      .order("created_at", { ascending: false }),
+    supabase.from("class_note_answers").select("*").eq("class_id", classId).eq("student_id", studentId),
+  ]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+  const key = (i: string, n: string) => `${i}::${n}`;
+  const byNote = new Map<string, any>();
+  for (const a of (ans as any[]) || []) byNote.set(key(a.image_id, a.note_id), a);
+  const out: StudentNoteTaskRow[] = [];
+  for (const img of ((imgs as any[]) || [])) {
+    const notes = Array.isArray(img.notes) ? img.notes : [];
+    notes.forEach((n: any, idx: number) => {
+      const a = byNote.get(key(img.id, n.id));
+      out.push({
+        image_id: img.id,
+        image_title: img.title,
+        note_id: n.id,
+        question: n.question || n.title || `Ghi chú ${idx + 1}`,
+        answer: a?.answer ?? null,
+        grade: a?.grade ?? null,
+        feedback: a?.feedback ?? null,
+        submitted_at: a?.created_at ?? null,
+      });
+    });
+  }
+  return out;
+}

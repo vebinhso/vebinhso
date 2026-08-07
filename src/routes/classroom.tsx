@@ -23,6 +23,7 @@ import {
   type TaughtClass,
 } from "@/lib/teacher";
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
+import { getStudentAssignmentProgress, getStudentNoteTaskProgress, openClassFile, type StudentAssignmentRow, type StudentNoteTaskRow } from "@/lib/classroom-posts";
 import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, removeClassStudent, type JoinRequest } from "@/lib/teacher";
 
 import { ImageUploadField } from "@/components/ImageUploadField";
@@ -473,10 +474,16 @@ function StudentsPanel({ classId }: { classId: string }) {
 function StudentStatsModal({ classId, student, onClose }: { classId: string; student: ClassroomStudent; onClose: () => void }) {
   const [rows, setRows] = useState<StudentAnswerStat[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [sec, setSec] = useState<"quiz" | "assign" | "note">("quiz");
+  const [assigns, setAssigns] = useState<StudentAssignmentRow[] | null>(null);
+  const [notes, setNotes] = useState<StudentNoteTaskRow[] | null>(null);
+
   useEffect(() => {
     getStudentAnswerStats(classId, student.user_id)
       .then(setRows)
       .catch((e) => setErr(e?.message || "Lỗi tải"));
+    getStudentAssignmentProgress(classId, student.user_id).then(setAssigns).catch(() => setAssigns([]));
+    getStudentNoteTaskProgress(classId, student.user_id).then(setNotes).catch(() => setNotes([]));
   }, [classId, student.user_id]);
 
   const totals = useMemo(() => {
@@ -488,9 +495,12 @@ function StudentStatsModal({ classId, student, onClose }: { classId: string; stu
     return { attempts, correct, wrong, answered, totalQ: list.length };
   }, [rows]);
 
+  const doneAssign = (assigns || []).filter((a) => a.submitted_at).length;
+  const doneNote = (notes || []).filter((n) => n.submitted_at).length;
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3" onClick={onClose}>
-      <div className="bg-white rounded-3xl border-4 border-orange-300 max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-3xl border-4 border-orange-300 max-w-4xl w-full max-h-[88vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="p-4 border-b-2 border-orange-200 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-xl font-black truncate">📊 {student.display_name || student.username}</h3>
@@ -499,53 +509,147 @@ function StudentStatsModal({ classId, student, onClose }: { classId: string; stu
           <button onClick={onClose} className="toy-button text-sm">✕</button>
         </div>
 
-        <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-2 border-b border-orange-100">
-          <MiniStat label="Đã làm" value={`${totals.answered}/${totals.totalQ}`} tone="orange" />
-          <MiniStat label="Tổng lượt" value={totals.attempts} tone="gray" />
-          <MiniStat label="Đúng" value={totals.correct} tone="green" />
-          <MiniStat label="Sai" value={totals.wrong} tone="red" />
-          <MiniStat
-            label="Tỉ lệ đúng"
-            value={totals.attempts > 0 ? `${Math.round((totals.correct / totals.attempts) * 100)}%` : "—"}
-            tone="purple"
-          />
+        <div className="px-4 pt-3 flex gap-1 flex-wrap">
+          {([
+            { id: "quiz", label: `❓ Câu hỏi (${totals.answered}/${totals.totalQ})` },
+            { id: "assign", label: `📝 Bài tập (${doneAssign}/${(assigns || []).length})` },
+            { id: "note", label: `📍 Bài tập trên ảnh (${doneNote}/${(notes || []).length})` },
+          ] as const).map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSec(t.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                sec === t.id ? "bg-orange-500 text-white shadow" : "bg-orange-50 hover:bg-orange-100"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
+        {sec === "quiz" && (
+          <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-2 border-b border-orange-100">
+            <MiniStat label="Đã làm" value={`${totals.answered}/${totals.totalQ}`} tone="orange" />
+            <MiniStat label="Tổng lượt" value={totals.attempts} tone="gray" />
+            <MiniStat label="Đúng" value={totals.correct} tone="green" />
+            <MiniStat label="Sai" value={totals.wrong} tone="red" />
+            <MiniStat
+              label="Tỉ lệ đúng"
+              value={totals.attempts > 0 ? `${Math.round((totals.correct / totals.attempts) * 100)}%` : "—"}
+              tone="purple"
+            />
+          </div>
+        )}
+
         <div className="p-4 overflow-y-auto flex-1">
-          {err && <p className="text-red-600 font-bold">{err}</p>}
-          {!rows && !err && <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>}
-          {rows && rows.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có câu hỏi để thống kê.</p>}
-          {rows && rows.length > 0 && (
-            <table className="w-full text-sm">
-              <thead className="text-left border-b-2 border-orange-200 sticky top-0 bg-white">
-                <tr className="font-black">
-                  <th className="py-2">#</th><th>Câu hỏi</th>
-                  <th className="text-center">Lượt</th>
-                  <th className="text-center text-green-700">Đúng</th>
-                  <th className="text-center text-red-700">Sai</th>
-                  <th className="text-center">Lần cuối</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => {
-                  const done = (r.attempts || 0) > 0;
-                  return (
-                    <tr key={r.question_id} className={`border-b border-gray-100 ${!done ? "opacity-60" : ""}`}>
-                      <td className="py-2 font-bold">{i + 1}</td>
-                      <td className="max-w-[24ch] truncate" title={r.question_text}>{r.question_text}</td>
-                      <td className="text-center font-bold">{r.attempts}</td>
-                      <td className="text-center font-bold text-green-700">{r.correct_count}</td>
-                      <td className="text-center font-bold text-red-700">{r.wrong_count}</td>
-                      <td className="text-center text-xs">
-                        {!done ? <span className="text-muted-foreground">chưa làm</span> :
-                          r.last_correct ? <span className="text-green-700 font-black">✓</span> :
-                          <span className="text-red-700 font-black">✗</span>}
-                      </td>
+          {sec === "quiz" && (
+            <>
+              {err && <p className="text-red-600 font-bold">{err}</p>}
+              {!rows && !err && <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>}
+              {rows && rows.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có câu hỏi để thống kê.</p>}
+              {rows && rows.length > 0 && (
+                <table className="w-full text-sm">
+                  <thead className="text-left border-b-2 border-orange-200 sticky top-0 bg-white">
+                    <tr className="font-black">
+                      <th className="py-2">#</th><th>Câu hỏi</th>
+                      <th className="text-center">Lượt</th>
+                      <th className="text-center text-green-700">Đúng</th>
+                      <th className="text-center text-red-700">Sai</th>
+                      <th className="text-center">Lần cuối</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {rows.map((r, i) => {
+                      const done = (r.attempts || 0) > 0;
+                      return (
+                        <tr key={r.question_id} className={`border-b border-gray-100 ${!done ? "opacity-60" : ""}`}>
+                          <td className="py-2 font-bold">{i + 1}</td>
+                          <td className="max-w-[24ch] truncate" title={r.question_text}>{r.question_text}</td>
+                          <td className="text-center font-bold">{r.attempts}</td>
+                          <td className="text-center font-bold text-green-700">{r.correct_count}</td>
+                          <td className="text-center font-bold text-red-700">{r.wrong_count}</td>
+                          <td className="text-center text-xs">
+                            {!done ? <span className="text-muted-foreground">chưa làm</span> :
+                              r.last_correct ? <span className="text-green-700 font-black">✓</span> :
+                              <span className="text-red-700 font-black">✗</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </>
+          )}
+
+          {sec === "assign" && (
+            <>
+              {!assigns && <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>}
+              {assigns && assigns.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có bài tập nào.</p>}
+              <div className="flex flex-col gap-2">
+                {(assigns || []).map((a) => (
+                  <div
+                    key={a.post_id}
+                    className={`rounded-2xl border-2 p-3 ${a.submitted_at ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"}`}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-black text-sm">{a.submitted_at ? "✅" : "⏳"} {a.title}</span>
+                      {a.due_at && (
+                        <span className="text-[11px] font-bold text-muted-foreground">
+                          hạn {new Date(a.due_at).toLocaleString("vi-VN")}
+                        </span>
+                      )}
+                      {a.grade && (
+                        <span className="ml-auto text-[11px] font-black bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                          Điểm: {a.grade}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-bold mt-1">
+                      {a.submitted_at
+                        ? `Đã nộp ${new Date(a.submitted_at).toLocaleString("vi-VN")}`
+                        : "Chưa nộp"}
+                    </p>
+                    {a.note && <p className="text-xs mt-1 whitespace-pre-wrap">📄 {a.note}</p>}
+                    {a.file_url && (
+                      <button onClick={() => openClassFile(a.file_url!)} className="toy-button !text-[11px] !py-1 mt-2">
+                        📎 {a.file_name || "Xem file nộp"}
+                      </button>
+                    )}
+                    {a.feedback && <p className="text-xs mt-1 text-emerald-700 font-bold">💬 {a.feedback}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {sec === "note" && (
+            <>
+              {!notes && <div className="flex flex-col gap-1"><p className="font-bold">Đang tải...</p><LoadingPercent light={false} /></div>}
+              {notes && notes.length === 0 && <p className="font-bold text-muted-foreground">Lớp chưa có bài tập trên ảnh.</p>}
+              <div className="flex flex-col gap-2">
+                {(notes || []).map((n) => (
+                  <div
+                    key={`${n.image_id}-${n.note_id}`}
+                    className={`rounded-2xl border-2 p-3 ${n.submitted_at ? "border-sky-200 bg-sky-50" : "border-gray-200 bg-gray-50"}`}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-black text-sm">{n.submitted_at ? "✅" : "⏳"} {n.image_title}</span>
+                      {n.grade && (
+                        <span className="ml-auto text-[11px] font-black bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                          Điểm: {n.grade}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-bold mt-1">❓ {n.question}</p>
+                    <p className="text-xs mt-1 whitespace-pre-wrap">
+                      {n.answer ? `✍️ ${n.answer}` : <span className="text-muted-foreground">Chưa trả lời</span>}
+                    </p>
+                    {n.feedback && <p className="text-xs mt-1 text-emerald-700 font-bold">💬 {n.feedback}</p>}
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -98,6 +98,8 @@ function PinnedImage({
   renderActive?: (note: ImageNote) => ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => setLoaded(false), [src]);
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
   return (
@@ -117,8 +119,20 @@ function PinnedImage({
       <img
         src={src}
         alt="Ảnh học liệu có chú thích"
-        className="w-full object-contain rounded-2xl border-2 border-orange-100 bg-white"
+        decoding="async"
+        // @ts-expect-error thuộc tính chuẩn của trình duyệt
+        fetchpriority="high"
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={`w-full object-contain rounded-2xl border-2 border-orange-100 bg-white transition-opacity duration-200 ${
+          loaded ? "opacity-100" : "opacity-0 min-h-[140px]"
+        }`}
       />
+      {!loaded && (
+        <div className="absolute inset-0 grid place-items-center rounded-2xl bg-orange-50/70">
+          <LoadingPercent light={false} />
+        </div>
+      )}
       {notes.map((n, i) => (
         <button
           key={n.id}

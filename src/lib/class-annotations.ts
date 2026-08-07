@@ -142,7 +142,28 @@ export async function gradeNoteAnswer(id: string, grade: string, feedback: strin
 }
 
 /** Ảnh trong kho lưu trữ lớp học → link xem tạm thời */
+const urlCache = new Map<string, { url: string; exp: number }>();
+const urlPending = new Map<string, Promise<string>>();
+
 export async function signedClassUrl(path: string): Promise<string> {
-  const { data } = await supabase.storage.from("classroom").createSignedUrl(path, 60 * 60 * 4);
-  return data?.signedUrl || "";
+  const now = Date.now();
+  const hit = urlCache.get(path);
+  if (hit && hit.exp > now) return hit.url;
+  const inflight = urlPending.get(path);
+  if (inflight) return inflight;
+  const p = supabase.storage
+    .from("classroom")
+    .createSignedUrl(path, 60 * 60 * 8)
+    .then(({ data }) => {
+      const url = data?.signedUrl || "";
+      if (url) urlCache.set(path, { url, exp: now + 1000 * 60 * 60 * 7 });
+      urlPending.delete(path);
+      return url;
+    })
+    .catch((e) => {
+      urlPending.delete(path);
+      throw e;
+    });
+  urlPending.set(path, p);
+  return p;
 }

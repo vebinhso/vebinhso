@@ -93,26 +93,26 @@ export function DuelController({ ownerId, me, onPayout }: Props) {
     <>
       {/* Peers list — floating panel */}
       {peers.length > 0 && !activeDuelId && (
-        <div className="pointer-events-auto absolute bottom-3 right-3 z-40 max-w-[70vw]">
-          <div className="glass-card p-2 shadow-lg border-2 border-purple-300">
-            <div className="text-[11px] font-black text-purple-700 px-1 mb-1">⚔️ Người cùng nhà</div>
-            <div className="flex flex-col gap-1 max-h-[35vh] overflow-y-auto">
+        <div className="pointer-events-auto absolute bottom-3 right-3 z-40 max-w-[85vw]">
+          <div className="glass-card p-3 shadow-xl border-4 border-purple-400">
+            <div className="text-sm font-black text-purple-700 px-1 mb-2">⚔️ VÀO PHÒNG THI ĐẤU</div>
+            <div className="flex flex-col gap-2 max-h-[45vh] overflow-y-auto">
               {peers.map((p) => (
                 <button
                   key={p.userId}
                   disabled={!!inviting || !!pendingDuelId}
                   onClick={() => invite(p)}
-                  className={`toy-button !text-xs !py-1.5 !px-2 flex items-center gap-2 ${inviting === p.userId ? "opacity-70" : ""}`}
+                  className={`toy-button toy-button-primary !text-base !py-3 !px-4 flex items-center gap-3 ${inviting === p.userId ? "opacity-70" : ""}`}
                 >
                   {p.avatarUrl ? (
-                    <img src={p.avatarUrl} className="w-6 h-6 rounded-full" alt="" />
+                    <img src={p.avatarUrl} className="w-10 h-10 rounded-full" alt="" />
                   ) : (
-                    <span className="w-6 h-6 rounded-full bg-orange-400 text-white grid place-items-center text-xs font-black">
+                    <span className="w-10 h-10 rounded-full bg-orange-400 text-white grid place-items-center text-base font-black">
                       {(p.username || "?").charAt(0).toUpperCase()}
                     </span>
                   )}
-                  <span className="truncate max-w-[10rem]">@{p.username}</span>
-                  <span className="ml-1">⚔️</span>
+                  <span className="truncate max-w-[12rem]">@{p.username}</span>
+                  <span className="ml-1 text-xl">⚔️</span>
                 </button>
               ))}
             </div>

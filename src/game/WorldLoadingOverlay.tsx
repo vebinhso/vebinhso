@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useProgress } from "@react-three/drei";
+import LoadingPercent from "@/components/LoadingPercent";
 
 /**
  * Màn hình "Đang tải" phủ toàn bộ cho tới khi Canvas 3D nạp xong toàn bộ tài nguyên.

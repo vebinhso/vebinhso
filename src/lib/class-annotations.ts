@@ -148,7 +148,7 @@ const urlPending = new Map<string, Promise<string>>();
 /** Lấy nhiều link một lượt (nhanh hơn gọi từng cái) và nạp sẵn ảnh vào bộ nhớ đệm trình duyệt. */
 export async function prefetchClassUrls(paths: string[]): Promise<void> {
   const now = Date.now();
-  const need = [...new Set(paths.filter((p) => p && !(urlCache.get(p)?.exp ?? 0) })].filter(Boolean);
+  const need = [...new Set(paths.filter((p) => p && (urlCache.get(p)?.exp ?? 0) <= now))];
   if (need.length === 0) return;
   const { data } = await supabase.storage.from("classroom").createSignedUrls(need, 60 * 60 * 8);
   for (const d of data || []) {

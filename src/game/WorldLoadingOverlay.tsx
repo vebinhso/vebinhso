@@ -7,21 +7,32 @@ import LoadingPercent from "@/components/LoadingPercent";
  * Nhờ vậy người chơi vào là chơi mượt ngay, không bị khựng từng nấc khi tải dở.
  */
 export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." }: { label?: string }) {
-  const { active, progress, loaded, total } = useProgress();
+  const { active, progress, loaded, total, errors } = useProgress();
   const [hidden, setHidden] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
-  const done = !active && (total === 0 || loaded >= total);
+  // Nếu một tài nguyên lỗi hoặc mạng chậm, không được kẹt màn hình tải mãi.
+  useEffect(() => {
+    const id = window.setTimeout(() => setTimedOut(true), 8000);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  const done =
+    timedOut ||
+    (errors?.length ?? 0) > 0 ||
+    (!active && (total === 0 || loaded >= total));
 
   useEffect(() => {
     if (!done) return;
     setFinished(true);
-    const id = window.setTimeout(() => setHidden(true), 650);
+    const id = window.setTimeout(() => setHidden(true), 400);
     return () => window.clearTimeout(id);
   }, [done]);
 
   if (hidden) return null;
   const pct = finished ? 100 : total === 0 ? 90 : Math.min(99, Math.max(5, Math.floor(progress)));
+
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-sky-300 to-sky-600">

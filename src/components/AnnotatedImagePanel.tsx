@@ -22,6 +22,9 @@ import {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+/** Bộ nhớ đệm danh sách để mở lại lớp là thấy ngay, không phải chờ tải lại. */
+const listCache = new Map<string, AnnotatedImage[]>();
+
 /** Thu nhỏ ảnh trước khi gửi AI để phản hồi nhanh hơn nhiều. */
 const shrinkForAi = (src: string) =>
   new Promise<string>((resolve) => {

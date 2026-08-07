@@ -1141,6 +1141,10 @@ export type Database = {
       }
       approve_teacher: { Args: { uid: string }; Returns: string }
       can_coop_build: { Args: { owner: string }; Returns: boolean }
+      can_read_classroom_file: {
+        Args: { _owner_folder: string }
+        Returns: boolean
+      }
       can_visit_house: { Args: { owner: string }; Returns: boolean }
       create_class: {
         Args: { _name: string; _subject: string }

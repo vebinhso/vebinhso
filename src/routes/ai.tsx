@@ -860,6 +860,30 @@ function AiPage() {
           )}
 
           {tab === "link" && (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {([
+                { id: "link", label: "🔗 Kiểm tra link" },
+                { id: "email", label: "✉️ Kiểm tra email" },
+              ] as const).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setPhishMode(m.id);
+                    setError(null);
+                  }}
+                  className={`rounded-xl px-2 py-1.5 text-[11px] sm:text-sm font-black border-2 transition ${
+                    phishMode === m.id
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-800"
+                      : "bg-background/60 border-border text-foreground"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {tab === "link" && phishMode === "link" && (
             <div className="space-y-3">
               <input
                 value={url}
@@ -930,7 +954,7 @@ function AiPage() {
             </div>
           )}
 
-          {tab === "email" && (
+          {tab === "link" && phishMode === "email" && (
             <div className="space-y-3">
               <textarea
                 value={email}
@@ -1049,10 +1073,10 @@ function AiPage() {
 
             </div>
           )}
+          </>
+          )}
 
-
-
-          {tab === "risk" && (
+          {section === "social" && riskSection === "classic" && (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 {([
@@ -1244,8 +1268,6 @@ function AiPage() {
                 </div>
               )}
             </div>
-          )}
-          </>
           )}
 
 

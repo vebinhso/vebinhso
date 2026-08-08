@@ -33,11 +33,26 @@ import {
 import { classifyCompetency, classifyQuestion, DOMAIN_LABELS } from "@/lib/competency-classifier";
 import { CATALOG } from "@/game/catalog";
 import { ImageUploadField } from "@/components/ImageUploadField";
-import { generateBasePickups, loadPickupConfig, savePickupConfig, type PickupKind, type PickupConfig } from "@/lib/worldPickups";
+import {
+  generateBasePickups,
+  loadPickupConfig,
+  savePickupConfig,
+  type PickupKind,
+  type PickupConfig,
+} from "@/lib/worldPickups";
 
 import {
-  Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 export const Route = createFileRoute("/admin")({
@@ -46,8 +61,18 @@ export const Route = createFileRoute("/admin")({
 });
 
 type Tab =
-  | "dashboard" | "players" | "admins" | "teachers" | "questions" | "levels"
-  | "prices" | "rewards" | "content" | "maps" | "pickups" | "logs";
+  | "dashboard"
+  | "players"
+  | "admins"
+  | "teachers"
+  | "questions"
+  | "levels"
+  | "prices"
+  | "rewards"
+  | "content"
+  | "maps"
+  | "pickups"
+  | "logs";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "dashboard", label: "Tổng quan", icon: "📊" },
@@ -72,7 +97,10 @@ function AdminPage() {
 
   useEffect(() => {
     const u = getCurrentUser();
-    if (!u) { navigate({ to: "/login" }); return; }
+    if (!u) {
+      navigate({ to: "/login" });
+      return;
+    }
     setAuthorized(isAdmin(u.email));
   }, [navigate]);
 
@@ -108,9 +136,7 @@ function AdminPage() {
                 Đăng nhập: {getCurrentUser()?.email}
               </p>
             </div>
-            <div className="text-[10px] md:text-xs font-bold text-muted-foreground max-w-full">
-              ☁️ Câu hỏi lưu trên DB dùng chung · Một số cấu hình khác lưu cục bộ
-            </div>
+            <div className="text-[10px] md:text-xs font-bold text-muted-foreground max-w-full"></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
@@ -124,7 +150,8 @@ function AdminPage() {
                       tab === t.id ? "bg-orange-500 text-white shadow" : "hover:bg-orange-100"
                     }`}
                   >
-                    <span className="mr-2">{t.icon}</span>{t.label}
+                    <span className="mr-2">{t.icon}</span>
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -152,7 +179,17 @@ function AdminPage() {
 }
 
 /* ===================== DASHBOARD ===================== */
-function StatCard({ icon, label, value, hint }: { icon: string; label: string; value: string | number; hint?: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: string;
+  label: string;
+  value: string | number;
+  hint?: string;
+}) {
   return (
     <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4 shadow">
       <div className="text-3xl mb-1">{icon}</div>
@@ -176,10 +213,16 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
     };
     load();
     const t = setInterval(load, 15000);
-    return () => { alive = false; clearInterval(t); };
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
   }, []);
   const total = stats.length;
-  const todayMs = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); })();
+  const todayMs = (() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  })();
   const activeToday = stats.filter((s) => s.lastLoginDate >= todayMs).length;
   const totalCorrect = stats.reduce((s, p) => s + p.correctAnswers, 0);
   const totalAnswered = stats.reduce((s, p) => s + p.totalAnswered, 0);
@@ -204,7 +247,11 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
 
   const mapDist = Object.entries(cfg.mapCapacity).map(([id, cap]) => {
     const players = id === "rural" ? Math.min(total, cap) : Math.floor(total * (id === "city" ? 0.3 : 0.2));
-    return { name: id === "rural" ? "Nông thôn" : id === "city" ? "Thành phố" : "Lâu đài MT", value: players, capacity: cap };
+    return {
+      name: id === "rural" ? "Nông thôn" : id === "city" ? "Thành phố" : "Lâu đài MT",
+      value: players,
+      capacity: cap,
+    };
   });
 
   const COLORS = ["#f97316", "#3b82f6", "#a855f7", "#10b981", "#ef4444"];
@@ -216,10 +263,19 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
         <StatCard icon="👥" label="Tổng người chơi" value={total} />
         <StatCard icon="🟢" label="Online hôm nay" value={activeToday} />
         <StatCard icon="❓" label="Tổng câu đã trả lời" value={totalAnswered} hint={`${totalCorrect} câu đúng`} />
-        <StatCard icon="🎯" label="Tỉ lệ đúng trung bình" value={`${avgCorrectRate.toFixed(1)}%`} hint={`${totalCorrect} câu đúng / ${totalAnswered} câu đã trả lời`} />
-        <StatCard icon="⏱️" label="Thời gian chơi trung bình" value={formatPlay(avgPlaySec)} hint={`Tổng ${formatPlay(totalPlaySec)}`} />
+        <StatCard
+          icon="🎯"
+          label="Tỉ lệ đúng trung bình"
+          value={`${avgCorrectRate.toFixed(1)}%`}
+          hint={`${totalCorrect} câu đúng / ${totalAnswered} câu đã trả lời`}
+        />
+        <StatCard
+          icon="⏱️"
+          label="Thời gian chơi trung bình"
+          value={formatPlay(avgPlaySec)}
+          hint={`Tổng ${formatPlay(totalPlaySec)}`}
+        />
       </div>
-
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-4">
@@ -243,7 +299,9 @@ function DashboardPanel({ cfg }: { cfg: AdminConfig }) {
             <ResponsiveContainer>
               <PieChart>
                 <Pie data={mapDist} dataKey="value" nameKey="name" outerRadius={90} label>
-                  {mapDist.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {mapDist.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
                 </Pie>
                 <Legend />
                 <Tooltip />
@@ -274,7 +332,9 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
 
   useEffect(() => {
     refresh();
-    const t = setInterval(() => { refresh(); }, 15000);
+    const t = setInterval(() => {
+      refresh();
+    }, 15000);
     return () => clearInterval(t);
   }, []);
 
@@ -282,14 +342,15 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
     const fresh = await refreshPlayerStats();
     setStats(fresh);
     setAccounts(fresh.map((s) => ({ id: s.id, username: s.username, email: s.email, createdAt: "" })));
-    setSelected((s) => s ? fresh.find((p) => p.id === s.id) || null : null);
+    setSelected((s) => (s ? fresh.find((p) => p.id === s.id) || null : null));
   }
 
-  const filtered = stats.filter((s) =>
-    !query ||
-    s.username.toLowerCase().includes(query.toLowerCase()) ||
-    s.email.toLowerCase().includes(query.toLowerCase()) ||
-    String(s.id).includes(query),
+  const filtered = stats.filter(
+    (s) =>
+      !query ||
+      s.username.toLowerCase().includes(query.toLowerCase()) ||
+      s.email.toLowerCase().includes(query.toLowerCase()) ||
+      String(s.id).includes(query),
   );
 
   function toggleBan(id: string) {
@@ -327,7 +388,8 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="text-xl font-black">👥 Quản lý người chơi ({filtered.length})</h2>
         <input
-          value={query} onChange={(e) => setQuery(e.target.value)}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm theo tên / email"
           className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72"
         />
@@ -338,7 +400,6 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
           <table className="w-full text-left text-sm">
             <thead className="bg-orange-100 font-black">
               <tr>
-                
                 <th className="p-2">Tên</th>
                 <th className="p-2">Email</th>
                 <th className="p-2">Lv</th>
@@ -353,10 +414,11 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
               {filtered.map((p) => {
                 const banned = cfg.bannedAccountIds.includes(p.id);
                 return (
-                  <tr key={p.id}
+                  <tr
+                    key={p.id}
                     onClick={() => setSelected(p)}
-                    className={`border-b border-orange-50 cursor-pointer hover:bg-orange-50 font-bold ${selected?.id === p.id ? "bg-orange-100" : ""}`}>
-                    
+                    className={`border-b border-orange-50 cursor-pointer hover:bg-orange-50 font-bold ${selected?.id === p.id ? "bg-orange-100" : ""}`}
+                  >
                     <td className="p-2">{p.username}</td>
                     <td className="p-2 text-xs text-muted-foreground">{p.email}</td>
                     <td className="p-2">{p.level}</td>
@@ -365,15 +427,21 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                     <td className="p-2">{p.correctAnswers}</td>
                     <td className="p-2 text-xs">{fmtPlay(p.playSeconds || 0)}</td>
                     <td className="p-2">
-                      {banned
-                        ? <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">KHÓA</span>
-                        : <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">OK</span>}
+                      {banned ? (
+                        <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">KHÓA</span>
+                      ) : (
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">OK</span>
+                      )}
                     </td>
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">Không có tài khoản</td></tr>
+                <tr>
+                  <td colSpan={8} className="p-6 text-center font-bold text-muted-foreground">
+                    Không có tài khoản
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -390,11 +458,17 @@ function PlayersPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
                 <div className="bg-orange-50 p-2 rounded">💰 {selected.money}</div>
                 <div className="bg-orange-50 p-2 rounded">🏠 {selected.netWorth}</div>
                 <div className="bg-orange-50 p-2 rounded col-span-2">✅ Câu đúng: {selected.correctAnswers}</div>
-                <div className="bg-orange-50 p-2 rounded col-span-2">⏱️ Tổng thời gian chơi: {fmtPlay(selected.playSeconds || 0)}</div>
+                <div className="bg-orange-50 p-2 rounded col-span-2">
+                  ⏱️ Tổng thời gian chơi: {fmtPlay(selected.playSeconds || 0)}
+                </div>
               </div>
               <div className="flex flex-col gap-2">
-                <button onClick={() => grantCoin(selected.id)} className="toy-button text-sm bg-green-500">💰 Tặng/trừ xu</button>
-                <button onClick={() => doReset(selected.id)} className="toy-button text-sm bg-blue-500">🔑 Reset mật khẩu</button>
+                <button onClick={() => grantCoin(selected.id)} className="toy-button text-sm bg-green-500">
+                  💰 Tặng/trừ xu
+                </button>
+                <button onClick={() => doReset(selected.id)} className="toy-button text-sm bg-blue-500">
+                  🔑 Reset mật khẩu
+                </button>
                 <button onClick={() => toggleBan(selected.id)} className="toy-button text-sm bg-red-500">
                   {cfg.bannedAccountIds.includes(selected.id) ? "✅ Mở khóa" : "🚫 Khóa tài khoản"}
                 </button>
@@ -414,7 +488,7 @@ function AdminsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
   const [email, setEmail] = useState("");
   function add() {
     const e = email.trim().toLowerCase();
-    if (!e || cfg.admins.map(x => x.toLowerCase()).includes(e)) return;
+    if (!e || cfg.admins.map((x) => x.toLowerCase()).includes(e)) return;
     onChange({ ...cfg, admins: [...cfg.admins, e] }, `Thêm admin ${e}`);
     setEmail("");
   }
@@ -426,15 +500,26 @@ function AdminsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
     <div>
       <h2 className="text-xl font-black mb-3">🛡️ Quản lý quản trị viên ({cfg.admins.length})</h2>
       <div className="flex gap-2 mb-4">
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com"
-          className="flex-1 px-3 py-2 rounded-xl border-2 border-orange-200 font-bold" />
-        <button onClick={add} className="toy-button">+ Thêm</button>
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="email@example.com"
+          className="flex-1 px-3 py-2 rounded-xl border-2 border-orange-200 font-bold"
+        />
+        <button onClick={add} className="toy-button">
+          + Thêm
+        </button>
       </div>
       <ul className="grid gap-2">
         {cfg.admins.map((e) => (
-          <li key={e} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+          <li
+            key={e}
+            className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold"
+          >
             <span>📧 {e}</span>
-            <button onClick={() => remove(e)} className="text-red-600 font-black hover:underline">Xoá</button>
+            <button onClick={() => remove(e)} className="text-red-600 font-black hover:underline">
+              Xoá
+            </button>
           </li>
         ))}
       </ul>
@@ -472,7 +557,13 @@ function emptyQuestionDraft(): AdminQuestion {
   };
 }
 
-function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
+function QuestionsPanel({
+  cfg: _cfg,
+  onChange: _onChange,
+}: {
+  cfg: AdminConfig;
+  onChange: (c: AdminConfig, a?: string) => void;
+}) {
   const [list, setList] = useState<AdminQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -484,7 +575,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
   const [dragId, setDragId] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | "all" | "none">("all");
   const [selectedCategory, setSelectedCategory] = useState<"all" | "digital" | "history">("all");
-  const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({ digital: true, history: true });
+  const [catToggles, setCatToggles] = useState<{ digital: boolean; history: boolean }>({
+    digital: true,
+    history: true,
+  });
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState<string | null>(null);
   const [duelPayout, setDuelPayoutState] = useState<number>(30);
@@ -494,11 +588,15 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     setTimeout(() => setSavedFlash(null), 1800);
   };
 
-
   async function reload() {
     setLoading(true);
     try {
-      const [data, mode, toggles, dp] = await Promise.all([fetchQuestions(), getPriorityMode(), getCategoryToggles(), getDuelPayout()]);
+      const [data, mode, toggles, dp] = await Promise.all([
+        fetchQuestions(),
+        getPriorityMode(),
+        getCategoryToggles(),
+        getDuelPayout(),
+      ]);
       setList(data);
       setPriorityModeOn(mode);
       setCatToggles(toggles);
@@ -510,7 +608,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       setLoading(false);
     }
   }
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+  }, []);
 
   async function saveDuelPayout() {
     const n = Math.max(1, Math.floor(Number(duelPayoutDraft) || 0));
@@ -520,64 +620,108 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       setDuelPayoutDraft(String(n));
       pushAdminLog(`Phần thưởng đấu 1vs1 → ${n}đ/câu`);
       flashSaved(`✅ Đã lưu ${n}đ/câu`);
-    } catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+    }
   }
-
 
   async function toggleCategory(key: "digital" | "history") {
     const next = { ...catToggles, [key]: !catToggles[key] };
     setCatToggles(next);
-    try { await setCategoryToggles(next); pushAdminLog(`Mục ${key === "digital" ? "Năng lực số" : "Lịch sử-Văn hoá"}: ${next[key] ? "BẬT" : "TẮT"}`); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setCatToggles(catToggles); }
+    try {
+      await setCategoryToggles(next);
+      pushAdminLog(`Mục ${key === "digital" ? "Năng lực số" : "Lịch sử-Văn hoá"}: ${next[key] ? "BẬT" : "TẮT"}`);
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      setCatToggles(catToggles);
+    }
   }
 
   async function togglePriorityMode() {
     const next = !priorityModeOn;
     setPriorityModeOn(next);
-    try { await setPriorityMode(next); pushAdminLog(`Chế độ ưu tiên: ${next ? "BẬT" : "TẮT"}`); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); setPriorityModeOn(!next); }
+    try {
+      await setPriorityMode(next);
+      pushAdminLog(`Chế độ ưu tiên: ${next ? "BẬT" : "TẮT"}`);
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      setPriorityModeOn(!next);
+    }
   }
 
   async function toggleEnabled(q: AdminQuestion) {
     const next = !q.enabled;
-    setList((cur) => cur.map((x) => x.id === q.id ? { ...x, enabled: next } : x));
-    try { await toggleQuestionEnabled(q.id, next); flashSaved(next ? "✅ Đã bật câu hỏi" : "✅ Đã ẩn câu hỏi"); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+    setList((cur) => cur.map((x) => (x.id === q.id ? { ...x, enabled: next } : x)));
+    try {
+      await toggleQuestionEnabled(q.id, next);
+      flashSaved(next ? "✅ Đã bật câu hỏi" : "✅ Đã ẩn câu hỏi");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      reload();
+    }
   }
 
   async function setQuestionCategory(q: AdminQuestion, cat: "digital" | "history") {
     if (q.category === cat) return;
     // Khi chuyển sang lịch sử-VH → xoá bậc & miền (không thuộc khung năng lực số)
-    const patch: AdminQuestion = cat === "history"
-      ? { ...q, category: "history", competencyLevel: null, competencyDomain: null }
-      : { ...q, category: "digital" };
-    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`); flashSaved("✅ Đã lưu mục"); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+    const patch: AdminQuestion =
+      cat === "history"
+        ? { ...q, category: "history", competencyLevel: null, competencyDomain: null }
+        : { ...q, category: "digital" };
+    setList((cur) => cur.map((x) => (x.id === q.id ? patch : x)));
+    try {
+      await updateQuestion(q.id, patch);
+      pushAdminLog(`Đổi mục câu "${q.q.slice(0, 30)}…" → ${cat === "digital" ? "Năng lực số" : "Lịch sử-VH"}`);
+      flashSaved("✅ Đã lưu mục");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      reload();
+    }
   }
 
   async function applySuggestionOne(q: AdminQuestion) {
-    const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+    const r = classifyQuestion(
+      q.q,
+      q.options.map((o) => o.text),
+    );
     const patch: AdminQuestion = { ...q, category: r.category, competencyLevel: r.level, competencyDomain: r.domain };
-    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`); flashSaved("✅ Đã áp dụng đề xuất"); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+    setList((cur) => cur.map((x) => (x.id === q.id ? patch : x)));
+    try {
+      await updateQuestion(q.id, patch);
+      pushAdminLog(`Áp dụng đề xuất bậc/miền cho "${q.q.slice(0, 30)}…"`);
+      flashSaved("✅ Đã áp dụng đề xuất");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      reload();
+    }
   }
 
   async function setQuestionDomain(q: AdminQuestion, domain: number | null) {
     if ((q.competencyDomain ?? null) === domain) return;
     const patch: AdminQuestion = { ...q, competencyDomain: domain };
-    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi miền câu "${q.q.slice(0, 30)}…" → ${domain ? `M${domain} ${DOMAIN_LABELS[domain]}` : "—"}`); flashSaved("✅ Đã lưu miền"); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+    setList((cur) => cur.map((x) => (x.id === q.id ? patch : x)));
+    try {
+      await updateQuestion(q.id, patch);
+      pushAdminLog(`Đổi miền câu "${q.q.slice(0, 30)}…" → ${domain ? `M${domain} ${DOMAIN_LABELS[domain]}` : "—"}`);
+      flashSaved("✅ Đã lưu miền");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      reload();
+    }
   }
 
   async function setQuestionLevel(q: AdminQuestion, level: number | null) {
     if ((q.competencyLevel ?? null) === level) return;
     const patch: AdminQuestion = { ...q, competencyLevel: level };
-    setList((cur) => cur.map((x) => x.id === q.id ? patch : x));
-    try { await updateQuestion(q.id, patch); pushAdminLog(`Đổi bậc câu "${q.q.slice(0, 30)}…" → ${level ? `Bậc ${level}` : "—"}`); flashSaved("✅ Đã lưu bậc"); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); reload(); }
+    setList((cur) => cur.map((x) => (x.id === q.id ? patch : x)));
+    try {
+      await updateQuestion(q.id, patch);
+      pushAdminLog(`Đổi bậc câu "${q.q.slice(0, 30)}…" → ${level ? `Bậc ${level}` : "—"}`);
+      flashSaved("✅ Đã lưu bậc");
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+      reload();
+    }
   }
 
   async function addToPriority(q: AdminQuestion) {
@@ -586,41 +730,67 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (priorityCount >= 30) {
       if (!confirm(`Zone ưu tiên đã có ${priorityCount} câu (khuyến nghị ≤30). Vẫn thêm?`)) return;
     }
-    try { await setQuestionPriority(q.id, maxP + 1); await reload(); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+    try {
+      await setQuestionPriority(q.id, maxP + 1);
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+    }
   }
 
   async function removeFromPriority(q: AdminQuestion) {
-    try { await setQuestionPriority(q.id, 0); await reload(); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+    try {
+      await setQuestionPriority(q.id, 0);
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+    }
   }
 
   async function handleDrop(targetId: string) {
-    if (!dragId || dragId === targetId) { setDragId(null); return; }
+    if (!dragId || dragId === targetId) {
+      setDragId(null);
+      return;
+    }
     const priorityList = list.filter((x) => (x.priority || 0) > 0);
     const fromIdx = priorityList.findIndex((x) => x.id === dragId);
     const toIdx = priorityList.findIndex((x) => x.id === targetId);
-    if (fromIdx < 0 || toIdx < 0) { setDragId(null); return; }
+    if (fromIdx < 0 || toIdx < 0) {
+      setDragId(null);
+      return;
+    }
     const reordered = [...priorityList];
     const [moved] = reordered.splice(fromIdx, 1);
     reordered.splice(toIdx, 0, moved);
     setDragId(null);
-    try { await reorderPriority(reordered.map((x) => x.id)); await reload(); }
-    catch (e: any) { alert("Lỗi: " + (e?.message || e)); }
+    try {
+      await reorderPriority(reordered.map((x) => x.id));
+      await reload();
+    } catch (e: any) {
+      alert("Lỗi: " + (e?.message || e));
+    }
   }
 
-
-
   function validateDraft(): boolean {
-    if (!draft.q.trim()) { alert("Nhập nội dung câu hỏi"); return false; }
+    if (!draft.q.trim()) {
+      alert("Nhập nội dung câu hỏi");
+      return false;
+    }
     const filled = draft.options.filter((o) => (o.text || "").trim());
-    if (filled.length < 2) { alert("Cần ít nhất 2 đáp án có nội dung"); return false; }
+    if (filled.length < 2) {
+      alert("Cần ít nhất 2 đáp án có nội dung");
+      return false;
+    }
     if (!draft.correctIndexes || draft.correctIndexes.length === 0) {
-      alert("Tick ít nhất 1 đáp án đúng"); return false;
+      alert("Tick ít nhất 1 đáp án đúng");
+      return false;
     }
     // Loại các index nằm ngoài
     const valid = draft.correctIndexes.filter((i) => i >= 0 && i < draft.options.length);
-    if (valid.length === 0) { alert("Tick ít nhất 1 đáp án đúng"); return false; }
+    if (valid.length === 0) {
+      alert("Tick ít nhất 1 đáp án đúng");
+      return false;
+    }
     return true;
   }
 
@@ -642,9 +812,7 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (draft.options.length <= 2) return;
     const opts = draft.options.filter((_, idx) => idx !== i);
     // remap correctIndexes
-    const ci = draft.correctIndexes
-      .filter((idx) => idx !== i)
-      .map((idx) => (idx > i ? idx - 1 : idx));
+    const ci = draft.correctIndexes.filter((idx) => idx !== i).map((idx) => (idx > i ? idx - 1 : idx));
     setDraft({ ...draft, options: opts, correctIndexes: ci.length ? ci : [0] });
   }
   function toggleCorrect(i: number) {
@@ -653,7 +821,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     setDraft({ ...draft, correctIndexes: ci });
   }
   function toggleMap(id: string) {
-    if (id === "all") { setDraft({ ...draft, maps: ["all"] }); return; }
+    if (id === "all") {
+      setDraft({ ...draft, maps: ["all"] });
+      return;
+    }
     let next = draft.maps.filter((m) => m !== "all");
     if (next.includes(id)) next = next.filter((m) => m !== id);
     else next = [...next, id];
@@ -665,14 +836,24 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
-      await createQuestion({ ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
+      const auto = classifyQuestion(
+        draft.q,
+        draft.options.map((o) => o.text),
+      );
+      await createQuestion({
+        ...draft,
+        category: auto.category,
+        competencyLevel: auto.level,
+        competencyDomain: auto.domain,
+      });
       pushAdminLog(`Thêm câu hỏi: ${draft.q.slice(0, 30)}`);
       setDraft(emptyQuestionDraft());
       await reload();
     } catch (e: any) {
       alert("Lỗi thêm câu hỏi: " + (e?.message || e));
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   function startEdit(q: AdminQuestion) {
@@ -694,8 +875,16 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
     if (!validateDraft()) return;
     setBusy(true);
     try {
-      const auto = classifyQuestion(draft.q, draft.options.map((o) => o.text));
-      await updateQuestion(editingId, { ...draft, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
+      const auto = classifyQuestion(
+        draft.q,
+        draft.options.map((o) => o.text),
+      );
+      await updateQuestion(editingId, {
+        ...draft,
+        category: auto.category,
+        competencyLevel: auto.level,
+        competencyDomain: auto.domain,
+      });
       pushAdminLog(`Sửa câu hỏi: ${draft.q.slice(0, 30)}`);
       setEditingId(null);
       setDraft(emptyQuestionDraft());
@@ -703,7 +892,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       flashSaved("✅ Đã lưu thay đổi câu hỏi");
     } catch (e: any) {
       alert("Lỗi cập nhật: " + (e?.message || e));
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function remove(id: string) {
@@ -716,14 +907,18 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       await reload();
     } catch (e: any) {
       alert("Lỗi xoá: " + (e?.message || e));
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   function exportJson() {
     const blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "questions.json"; a.click();
+    a.href = url;
+    a.download = "questions.json";
+    a.click();
     URL.revokeObjectURL(url);
   }
 
@@ -742,43 +937,65 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       const res = await fetch(csvUrl);
       if (!res.ok) throw new Error("Không tải được sheet (sheet cần Public).");
       const text = await res.text();
-      const rows = text.split(/\r?\n/).filter(Boolean).map((row) => {
-        const cells: string[] = []; let cur = ""; let q = false;
-        for (let i = 0; i < row.length; i++) {
-          const ch = row[i];
-          if (ch === '"') q = !q;
-          else if (ch === "," && !q) { cells.push(cur); cur = ""; }
-          else cur += ch;
-        }
-        cells.push(cur);
-        return cells.map((c) => c.trim());
-      });
+      const rows = text
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .map((row) => {
+          const cells: string[] = [];
+          let cur = "";
+          let q = false;
+          for (let i = 0; i < row.length; i++) {
+            const ch = row[i];
+            if (ch === '"') q = !q;
+            else if (ch === "," && !q) {
+              cells.push(cur);
+              cur = "";
+            } else cur += ch;
+          }
+          cells.push(cur);
+          return cells.map((c) => c.trim());
+        });
       const header = rows.shift();
       if (!header) throw new Error("Sheet rỗng");
-      const parsed: AdminQuestion[] = rows.map((r) => {
-        const ans = Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1));
-        return {
-          id: "",
-          q: r[0] || "",
-          options: [
-            { text: r[1] || "", imageUrl: "" },
-            { text: r[2] || "", imageUrl: "" },
-            { text: r[3] || "", imageUrl: "" },
-            { text: r[4] || "", imageUrl: "" },
-          ],
-          correctIndexes: [ans],
-          maps: ["all"],
-          reward: parseInt(r[6] || "10", 10) || 10,
-          imageUrl: r[7] || "",
-          enabled: true,
-          priority: 0,
-        };
-      }).filter((q) => q.q && q.options.every((o) => o.text));
+      const parsed: AdminQuestion[] = rows
+        .map((r) => {
+          const ans = Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1));
+          return {
+            id: "",
+            q: r[0] || "",
+            options: [
+              { text: r[1] || "", imageUrl: "" },
+              { text: r[2] || "", imageUrl: "" },
+              { text: r[3] || "", imageUrl: "" },
+              { text: r[4] || "", imageUrl: "" },
+            ],
+            correctIndexes: [ans],
+            maps: ["all"],
+            reward: parseInt(r[6] || "10", 10) || 10,
+            imageUrl: r[7] || "",
+            enabled: true,
+            priority: 0,
+          };
+        })
+        .filter((q) => q.q && q.options.every((o) => o.text));
       if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
       let ok = 0;
       for (const q of parsed) {
-        const auto = classifyQuestion(q.q, q.options.map((o) => o.text));
-        try { await createQuestion({ ...q, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain }); ok++; } catch { /* skip */ }
+        const auto = classifyQuestion(
+          q.q,
+          q.options.map((o) => o.text),
+        );
+        try {
+          await createQuestion({
+            ...q,
+            category: auto.category,
+            competencyLevel: auto.level,
+            competencyDomain: auto.domain,
+          });
+          ok++;
+        } catch {
+          /* skip */
+        }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
       alert(`Đã import ${ok}/${parsed.length} câu hỏi`);
@@ -786,7 +1003,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       await reload();
     } catch (e: any) {
       alert("Lỗi: " + (e?.message || e));
-    } finally { setImporting(false); }
+    } finally {
+      setImporting(false);
+    }
   }
 
   function mapLabel(id: string) {
@@ -803,15 +1022,20 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
       )}
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h2 className="text-xl font-black">❓ Thư viện câu hỏi ({list.length}){loading && " — đang tải..."}</h2>
+        <h2 className="text-xl font-black">
+          ❓ Thư viện câu hỏi ({list.length}){loading && " — đang tải..."}
+        </h2>
         <div className="flex gap-2">
-          <button onClick={exportJson} className="toy-button text-sm bg-blue-500">⬇️ Xuất JSON</button>
+          <button onClick={exportJson} className="toy-button text-sm bg-blue-500">
+            ⬇️ Xuất JSON
+          </button>
         </div>
       </div>
 
-
       {/* Priority mode master toggle */}
-      <div className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}>
+      <div
+        className={`rounded-2xl p-4 mb-4 border-2 transition ${priorityModeOn ? "bg-amber-100 border-amber-400" : "bg-gray-50 border-gray-300"}`}
+      >
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <div className="font-black text-lg">🎯 Chế độ ưu tiên</div>
@@ -821,8 +1045,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 : "⚪ ĐANG TẮT — game random toàn bộ câu hỏi"}
             </div>
           </div>
-          <button onClick={togglePriorityMode}
-            className={`toy-button text-sm ${priorityModeOn ? "bg-amber-500" : "bg-gray-500"}`}>
+          <button
+            onClick={togglePriorityMode}
+            className={`toy-button text-sm ${priorityModeOn ? "bg-amber-500" : "bg-gray-500"}`}
+          >
             {priorityModeOn ? "Tắt chế độ" : "Bật chế độ"}
           </button>
         </div>
@@ -832,20 +1058,39 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
       <div className="rounded-2xl p-4 mb-4 border-2 border-indigo-300 bg-indigo-50">
         <div className="font-black text-lg mb-2">📚 Mục câu hỏi áp dụng vào 2 bản đồ</div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {([
-            { key: "digital", label: "🌐 Mục 1: Năng lực số", note: "Xuất hiện theo thứ tự bậc 1 → 8 (khung năng lực số)" },
-            { key: "history", label: "🏛️ Mục 2: Năng lực Lịch sử - Văn hoá", note: "Xuất hiện ngẫu nhiên (random)" },
-          ] as const).map((c) => {
+          {(
+            [
+              {
+                key: "digital",
+                label: "🌐 Mục 1: Năng lực số",
+                note: "Xuất hiện theo thứ tự bậc 1 → 8 (khung năng lực số)",
+              },
+              { key: "history", label: "🏛️ Mục 2: Năng lực Lịch sử - Văn hoá", note: "Xuất hiện ngẫu nhiên (random)" },
+            ] as const
+          ).map((c) => {
             const on = catToggles[c.key];
-            const count = list.filter((q) => (c.key === "digital" ? q.category === "digital" : q.category !== "digital")).length;
+            const count = list.filter((q) =>
+              c.key === "digital" ? q.category === "digital" : q.category !== "digital",
+            ).length;
             return (
-              <div key={c.key} className={`rounded-xl p-3 border-2 flex items-center justify-between gap-3 ${on ? "bg-white border-indigo-400" : "bg-gray-100 border-gray-300 opacity-70"}`}>
+              <div
+                key={c.key}
+                className={`rounded-xl p-3 border-2 flex items-center justify-between gap-3 ${on ? "bg-white border-indigo-400" : "bg-gray-100 border-gray-300 opacity-70"}`}
+              >
                 <div className="min-w-0">
-                  <div className="font-black text-sm">{c.label} <span className="text-xs text-muted-foreground">({count})</span></div>
+                  <div className="font-black text-sm">
+                    {c.label} <span className="text-xs text-muted-foreground">({count})</span>
+                  </div>
                   <div className="text-[11px] font-bold text-muted-foreground">{c.note}</div>
                 </div>
-                <button onClick={() => toggleCategory(c.key)} className={`shrink-0 relative w-14 h-8 rounded-full transition ${on ? "bg-emerald-500" : "bg-gray-400"}`} title="Bật/tắt áp dụng">
-                  <span className={`absolute top-1 ${on ? "left-7" : "left-1"} w-6 h-6 rounded-full bg-white shadow transition-all`} />
+                <button
+                  onClick={() => toggleCategory(c.key)}
+                  className={`shrink-0 relative w-14 h-8 rounded-full transition ${on ? "bg-emerald-500" : "bg-gray-400"}`}
+                  title="Bật/tắt áp dụng"
+                >
+                  <span
+                    className={`absolute top-1 ${on ? "left-7" : "left-1"} w-6 h-6 rounded-full bg-white shadow transition-all`}
+                  />
                 </button>
               </div>
             );
@@ -859,7 +1104,8 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           <div>
             <div className="font-black text-lg">⚔️ Phần thưởng phòng đấu 1vs1</div>
             <div className="text-xs font-bold text-amber-800/80">
-              Người trả lời đúng đầu tiên mỗi câu được +N đ, đối thủ mất −N đ (không xuống dưới 0). Hiện tại: <b>{duelPayout}đ</b>/câu.
+              Người trả lời đúng đầu tiên mỗi câu được +N đ, đối thủ mất −N đ (không xuống dưới 0). Hiện tại:{" "}
+              <b>{duelPayout}đ</b>/câu.
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -871,102 +1117,134 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
               className="w-24 px-2 py-1.5 border-2 border-amber-300 rounded-lg font-black text-right"
             />
             <span className="font-black">đ</span>
-            <button onClick={saveDuelPayout} className="toy-button text-sm bg-amber-500">💾 Lưu</button>
+            <button onClick={saveDuelPayout} className="toy-button text-sm bg-amber-500">
+              💾 Lưu
+            </button>
           </div>
         </div>
       </div>
-
-
 
       {/* Auto-classification suggestion */}
       <div className="rounded-2xl p-4 mb-4 border-2 border-purple-300 bg-purple-50">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
             <div className="font-black text-lg">🧠 Đề xuất phân loại tự động theo Khung năng lực số</div>
-            <div className="text-xs font-bold text-purple-800/80">Hệ thống quét toàn bộ câu hỏi, đề xuất mục / bậc / miền. Bạn xem trước rồi bấm "Đồng ý áp dụng".</div>
+            <div className="text-xs font-bold text-purple-800/80">
+              Hệ thống quét toàn bộ câu hỏi, đề xuất mục / bậc / miền. Bạn xem trước rồi bấm "Đồng ý áp dụng".
+            </div>
           </div>
           <button onClick={() => setSuggestOpen((v) => !v)} className="toy-button text-sm bg-purple-500">
             {suggestOpen ? "Ẩn đề xuất" : "🔍 Xem đề xuất"}
           </button>
         </div>
-        {suggestOpen && (() => {
-          const suggestions = list.map((q) => {
-            const r = classifyQuestion(q.q, q.options.map((o) => o.text));
-            const changed = r.category !== (q.category === "digital" ? "digital" : "history")
-              || r.level !== (q.competencyLevel ?? null)
-              || r.domain !== (q.competencyDomain ?? null);
-            return { q, r, changed };
-          });
-          const changedList = suggestions.filter((s) => s.changed);
-          const catDigital = suggestions.filter((s) => s.r.category === "digital").length;
-          const catHistory = suggestions.length - catDigital;
-          const byLevel = [1, 2, 3, 4, 5, 6, 7, 8].map((lv) => ({ lv, n: suggestions.filter((s) => s.r.level === lv).length }));
-          const byDomain = [1, 2, 3, 4, 5, 6].map((dm) => ({ dm, n: suggestions.filter((s) => s.r.domain === dm).length }));
-          return (
-            <div className="mt-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs font-black">
-                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🌐 Năng lực số: <span className="text-indigo-700">{catDigital}</span></div>
-                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🏛️ Lịch sử-VH: <span className="text-amber-700">{catHistory}</span></div>
-                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">🔄 Sẽ thay đổi: <span className="text-red-600">{changedList.length}</span></div>
-                <div className="bg-white rounded-xl p-2 border-2 border-purple-200">Tổng câu: {suggestions.length}</div>
-              </div>
-              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-2">
-                <div className="text-[11px] font-black mb-1">Theo bậc (Digital)</div>
-                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
-                  {byLevel.map(({ lv, n }) => (
-                    <span key={lv} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Bậc {lv}: {n}</span>
-                  ))}
+        {suggestOpen &&
+          (() => {
+            const suggestions = list.map((q) => {
+              const r = classifyQuestion(
+                q.q,
+                q.options.map((o) => o.text),
+              );
+              const changed =
+                r.category !== (q.category === "digital" ? "digital" : "history") ||
+                r.level !== (q.competencyLevel ?? null) ||
+                r.domain !== (q.competencyDomain ?? null);
+              return { q, r, changed };
+            });
+            const changedList = suggestions.filter((s) => s.changed);
+            const catDigital = suggestions.filter((s) => s.r.category === "digital").length;
+            const catHistory = suggestions.length - catDigital;
+            const byLevel = [1, 2, 3, 4, 5, 6, 7, 8].map((lv) => ({
+              lv,
+              n: suggestions.filter((s) => s.r.level === lv).length,
+            }));
+            const byDomain = [1, 2, 3, 4, 5, 6].map((dm) => ({
+              dm,
+              n: suggestions.filter((s) => s.r.domain === dm).length,
+            }));
+            return (
+              <div className="mt-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs font-black">
+                  <div className="bg-white rounded-xl p-2 border-2 border-purple-200">
+                    🌐 Năng lực số: <span className="text-indigo-700">{catDigital}</span>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 border-2 border-purple-200">
+                    🏛️ Lịch sử-VH: <span className="text-amber-700">{catHistory}</span>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 border-2 border-purple-200">
+                    🔄 Sẽ thay đổi: <span className="text-red-600">{changedList.length}</span>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 border-2 border-purple-200">
+                    Tổng câu: {suggestions.length}
+                  </div>
                 </div>
-              </div>
-              <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-3">
-                <div className="text-[11px] font-black mb-1">Theo miền năng lực</div>
-                <div className="flex flex-wrap gap-1 text-[11px] font-bold">
-                  {byDomain.map(({ dm, n }) => (
-                    <span key={dm} className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full">M{dm} {DOMAIN_LABELS[dm]}: {n}</span>
-                  ))}
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-2">
+                  <div className="text-[11px] font-black mb-1">Theo bậc (Digital)</div>
+                  <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                    {byLevel.map(({ lv, n }) => (
+                      <span key={lv} className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">
+                        Bậc {lv}: {n}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <div className="bg-white rounded-xl p-2 border-2 border-purple-200 mb-3">
+                  <div className="text-[11px] font-black mb-1">Theo miền năng lực</div>
+                  <div className="flex flex-wrap gap-1 text-[11px] font-bold">
+                    {byDomain.map(({ dm, n }) => (
+                      <span key={dm} className="px-2 py-0.5 bg-pink-100 text-pink-800 rounded-full">
+                        M{dm} {DOMAIN_LABELS[dm]}: {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (changedList.length === 0) {
+                      alert("Không có câu nào cần cập nhật — đề xuất đã khớp dữ liệu hiện tại.");
+                      return;
+                    }
+                    if (!confirm(`Áp dụng đề xuất cho ${changedList.length} câu hỏi?`)) return;
+                    setBusy(true);
+                    try {
+                      const updates = changedList.map(({ q, r }) => ({
+                        id: q.id,
+                        category: r.category,
+                        competencyLevel: r.level,
+                        competencyDomain: r.domain,
+                      }));
+                      const ok = await bulkApplyClassification(updates);
+                      pushAdminLog(`Áp dụng đề xuất phân loại: ${ok}/${changedList.length} câu`);
+                      alert(`Đã áp dụng ${ok}/${changedList.length} câu.`);
+                      await reload();
+                    } catch (e: any) {
+                      alert("Lỗi: " + (e?.message || e));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  disabled={busy}
+                  className="toy-button text-sm bg-emerald-500"
+                >
+                  ✅ Đồng ý áp dụng đề xuất ({changedList.length} câu)
+                </button>
               </div>
-              <button
-                onClick={async () => {
-                  if (changedList.length === 0) { alert("Không có câu nào cần cập nhật — đề xuất đã khớp dữ liệu hiện tại."); return; }
-                  if (!confirm(`Áp dụng đề xuất cho ${changedList.length} câu hỏi?`)) return;
-                  setBusy(true);
-                  try {
-                    const updates = changedList.map(({ q, r }) => ({
-                      id: q.id,
-                      category: r.category,
-                      competencyLevel: r.level,
-                      competencyDomain: r.domain,
-                    }));
-                    const ok = await bulkApplyClassification(updates);
-                    pushAdminLog(`Áp dụng đề xuất phân loại: ${ok}/${changedList.length} câu`);
-                    alert(`Đã áp dụng ${ok}/${changedList.length} câu.`);
-                    await reload();
-                  } catch (e: any) {
-                    alert("Lỗi: " + (e?.message || e));
-                  } finally { setBusy(false); }
-                }}
-                disabled={busy}
-                className="toy-button text-sm bg-emerald-500"
-              >
-                ✅ Đồng ý áp dụng đề xuất ({changedList.length} câu)
-              </button>
-            </div>
-          );
-        })()}
+            );
+          })()}
       </div>
-
-
-
-
 
       {/* Google Sheet import */}
       <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 mb-4">
-        <div className="font-black mb-2 text-sm">📊 Nhập từ Google Sheet (Public, cột: câu hỏi, A, B, C, D, đáp án đúng 1-4, điểm, link ảnh) — sẽ gán map "Tất cả"</div>
+        <div className="font-black mb-2 text-sm">
+          📊 Nhập từ Google Sheet (Public, cột: câu hỏi, A, B, C, D, đáp án đúng 1-4, điểm, link ảnh) — sẽ gán map "Tất
+          cả"
+        </div>
         <div className="flex gap-2">
-          <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)}
+          <input
+            value={sheetUrl}
+            onChange={(e) => setSheetUrl(e.target.value)}
             placeholder="https://docs.google.com/spreadsheets/d/..."
-            className="flex-1 px-3 py-2 rounded-xl border-2 border-emerald-300 font-bold text-sm" />
+            className="flex-1 px-3 py-2 rounded-xl border-2 border-emerald-300 font-bold text-sm"
+          />
           <button onClick={importFromSheet} disabled={importing} className="toy-button bg-emerald-500 text-sm">
             {importing ? "Đang nhập..." : "↻ Import"}
           </button>
@@ -975,37 +1253,68 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
 
       {/* New / edit question form */}
       <div className="bg-white/80 border-2 border-orange-200 rounded-2xl p-3 mb-4">
-        <div className="font-black mb-2">
-          {editingId ? "✏️ Đang sửa câu hỏi" : "➕ Thêm câu hỏi mới"}
-        </div>
-        <input value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })}
-          placeholder="Nội dung câu hỏi (text)" className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-3 font-bold" />
+        <div className="font-black mb-2">{editingId ? "✏️ Đang sửa câu hỏi" : "➕ Thêm câu hỏi mới"}</div>
+        <input
+          value={draft.q}
+          onChange={(e) => setDraft({ ...draft, q: e.target.value })}
+          placeholder="Nội dung câu hỏi (text)"
+          className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-3 font-bold"
+        />
 
         {/* Options list (2-6) */}
         <div className="space-y-2 mb-3">
           {draft.options.map((o, i) => {
             const isCorrect = draft.correctIndexes.includes(i);
             return (
-              <div key={i} className={`rounded-xl p-2 border-2 transition ${isCorrect ? "bg-green-50 border-green-500" : "bg-white border-orange-100"}`}>
+              <div
+                key={i}
+                className={`rounded-xl p-2 border-2 transition ${isCorrect ? "bg-green-50 border-green-500" : "bg-white border-orange-100"}`}
+              >
                 <div className="flex items-center gap-2">
-                  <label className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded-lg font-black text-sm ${isCorrect ? "bg-green-500 text-white" : "bg-gray-100"}`}>
-                    <input type="checkbox" className="w-5 h-5 accent-green-600" checked={isCorrect} onChange={() => toggleCorrect(i)} />
+                  <label
+                    className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded-lg font-black text-sm ${isCorrect ? "bg-green-500 text-white" : "bg-gray-100"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 accent-green-600"
+                      checked={isCorrect}
+                      onChange={() => toggleCorrect(i)}
+                    />
                     {isCorrect ? "✓ Đúng" : "Đúng?"}
                   </label>
-                  <input value={o.text} onChange={(e) => setOptionText(i, e.target.value)}
-                    placeholder={`Đáp án ${i + 1}`} className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm font-bold" />
-                  <button onClick={() => removeOption(i)} disabled={draft.options.length <= 2}
-                    className="text-red-600 font-black text-lg px-1 disabled:opacity-30" title="Xoá đáp án">🗑</button>
+                  <input
+                    value={o.text}
+                    onChange={(e) => setOptionText(i, e.target.value)}
+                    placeholder={`Đáp án ${i + 1}`}
+                    className="flex-1 px-2 py-1 rounded border-2 border-orange-100 text-sm font-bold"
+                  />
+                  <button
+                    onClick={() => removeOption(i)}
+                    disabled={draft.options.length <= 2}
+                    className="text-red-600 font-black text-lg px-1 disabled:opacity-30"
+                    title="Xoá đáp án"
+                  >
+                    🗑
+                  </button>
                 </div>
                 <div className="mt-1">
-                  <ImageUploadField value={o.imageUrl || ""} onChange={(url) => setOptionImage(i, url)} label="ảnh đáp án" />
+                  <ImageUploadField
+                    value={o.imageUrl || ""}
+                    onChange={(url) => setOptionImage(i, url)}
+                    label="ảnh đáp án"
+                  />
                 </div>
               </div>
             );
           })}
         </div>
-        <button onClick={addOption} disabled={draft.options.length >= 6}
-          className="toy-button text-xs bg-orange-400 mb-3 disabled:opacity-40">➕ Thêm đáp án ({draft.options.length}/6)</button>
+        <button
+          onClick={addOption}
+          disabled={draft.options.length >= 6}
+          className="toy-button text-xs bg-orange-400 mb-3 disabled:opacity-40"
+        >
+          ➕ Thêm đáp án ({draft.options.length}/6)
+        </button>
 
         {/* Maps */}
         <div className="mb-3">
@@ -1014,7 +1323,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             {MAP_OPTIONS.map((m) => {
               const active = draft.maps.includes(m.id);
               return (
-                <label key={m.id} className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 cursor-pointer text-sm font-bold ${active ? "bg-blue-500 text-white border-blue-600" : "bg-white border-blue-200"}`}>
+                <label
+                  key={m.id}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 cursor-pointer text-sm font-bold ${active ? "bg-blue-500 text-white border-blue-600" : "bg-white border-blue-200"}`}
+                >
                   <input type="checkbox" className="w-4 h-4" checked={active} onChange={() => toggleMap(m.id)} />
                   {m.label}
                 </label>
@@ -1026,29 +1338,45 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         <div className="mb-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-2">
           <div className="text-sm font-black text-indigo-800 mb-1">🌐 Khung năng lực số — Tự động phân loại</div>
           <div className="text-xs font-bold text-indigo-700">
-            Hệ thống tự phân loại câu hỏi vào 1 trong 8 bậc khung năng lực số dựa trên nội dung. Câu không thuộc môi trường số sẽ để trống bậc.
+            Hệ thống tự phân loại câu hỏi vào 1 trong 8 bậc khung năng lực số dựa trên nội dung. Câu không thuộc môi
+            trường số sẽ để trống bậc.
           </div>
         </div>
         <div className="flex gap-2 items-center mb-2 flex-wrap">
           <label className="text-sm font-bold">Điểm:</label>
-          <input type="number" value={draft.reward} onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}
-            className="w-20 px-2 py-1 rounded border-2 border-orange-100" />
+          <input
+            type="number"
+            value={draft.reward}
+            onChange={(e) => setDraft({ ...draft, reward: parseInt(e.target.value) || 10 })}
+            className="w-20 px-2 py-1 rounded border-2 border-orange-100"
+          />
         </div>
         <div className="mb-3">
           <div className="text-sm font-bold mb-1">🖼️ Ảnh câu hỏi (tùy chọn):</div>
-          <ImageUploadField value={draft.imageUrl || ""} onChange={(url) => setDraft({ ...draft, imageUrl: url })} label="ảnh câu hỏi" />
+          <ImageUploadField
+            value={draft.imageUrl || ""}
+            onChange={(url) => setDraft({ ...draft, imageUrl: url })}
+            label="ảnh câu hỏi"
+          />
         </div>
         {editingId ? (
           <div className="flex gap-2 items-center flex-wrap sticky bottom-0 bg-white/95 backdrop-blur -mx-3 px-3 py-2 rounded-b-2xl border-t-2 border-green-200">
-            <button onClick={saveEdit} disabled={busy}
-              className="toy-button bg-green-600 hover:bg-green-700 text-white font-black !text-base !px-6 !py-2 shadow-lg border-2 border-green-800">
+            <button
+              onClick={saveEdit}
+              disabled={busy}
+              className="toy-button bg-green-600 hover:bg-green-700 text-white font-black !text-base !px-6 !py-2 shadow-lg border-2 border-green-800"
+            >
               💾 LƯU THAY ĐỔI
             </button>
-            <button onClick={cancelEdit} disabled={busy} className="toy-button text-sm bg-gray-500">✕ Hủy</button>
+            <button onClick={cancelEdit} disabled={busy} className="toy-button text-sm bg-gray-500">
+              ✕ Hủy
+            </button>
             <span className="text-xs font-bold text-emerald-700">Bấm LƯU để xác nhận các chỉnh sửa</span>
           </div>
         ) : (
-          <button onClick={add} disabled={busy} className="toy-button text-sm bg-emerald-600 !py-2 !px-4 font-black">💾 + Thêm & Lưu câu hỏi</button>
+          <button onClick={add} disabled={busy} className="toy-button text-sm bg-emerald-600 !py-2 !px-4 font-black">
+            💾 + Thêm & Lưu câu hỏi
+          </button>
         )}
       </div>
 
@@ -1082,16 +1410,34 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
           </button>
           <button
             onClick={async () => {
-              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số (mục + bậc + miền)?`)) return;
+              if (!confirm(`Phân loại lại tất cả ${list.length} câu hỏi theo khung năng lực số (mục + bậc + miền)?`))
+                return;
               setBusy(true);
               let changed = 0;
               try {
-                const updates: { id: string; category: string; competencyLevel: number | null; competencyDomain: number | null }[] = [];
+                const updates: {
+                  id: string;
+                  category: string;
+                  competencyLevel: number | null;
+                  competencyDomain: number | null;
+                }[] = [];
                 for (const q of list) {
-                  const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+                  const r = classifyQuestion(
+                    q.q,
+                    q.options.map((o) => o.text),
+                  );
                   const curCat = q.category === "digital" ? "digital" : "history";
-                  if (r.category !== curCat || r.level !== (q.competencyLevel ?? null) || r.domain !== (q.competencyDomain ?? null)) {
-                    updates.push({ id: q.id, category: r.category, competencyLevel: r.level, competencyDomain: r.domain });
+                  if (
+                    r.category !== curCat ||
+                    r.level !== (q.competencyLevel ?? null) ||
+                    r.domain !== (q.competencyDomain ?? null)
+                  ) {
+                    updates.push({
+                      id: q.id,
+                      category: r.category,
+                      competencyLevel: r.level,
+                      competencyDomain: r.domain,
+                    });
                   }
                 }
                 changed = await bulkApplyClassification(updates);
@@ -1100,7 +1446,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 await reload();
               } catch (e: any) {
                 alert("Lỗi: " + (e?.message || e));
-              } finally { setBusy(false); }
+              } finally {
+                setBusy(false);
+              }
             }}
             disabled={busy || list.length === 0}
             className="text-xs px-3 py-1.5 rounded-xl font-black border-2 bg-emerald-500 text-white border-emerald-700 hover:bg-emerald-600 disabled:opacity-50"
@@ -1110,20 +1458,27 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         </div>
         {/* Category filter */}
         <div className="mt-3 flex flex-wrap gap-2">
-          {([
+          {[
             { key: "all" as const, label: `Tất cả mục (${list.length})` },
-            { key: "digital" as const, label: `🌐 Năng lực số (${list.filter((q) => q.category === "digital").length})` },
-            { key: "history" as const, label: `🏛️ Lịch sử-VH (${list.filter((q) => q.category !== "digital").length})` },
-          ]).map((c) => (
-            <button key={c.key} onClick={() => setSelectedCategory(c.key)}
-              className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedCategory === c.key ? "bg-purple-600 text-white border-purple-700" : "bg-white border-purple-200"}`}>
+            {
+              key: "digital" as const,
+              label: `🌐 Năng lực số (${list.filter((q) => q.category === "digital").length})`,
+            },
+            {
+              key: "history" as const,
+              label: `🏛️ Lịch sử-VH (${list.filter((q) => q.category !== "digital").length})`,
+            },
+          ].map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setSelectedCategory(c.key)}
+              className={`text-xs px-3 py-1.5 rounded-xl font-black border-2 ${selectedCategory === c.key ? "bg-purple-600 text-white border-purple-700" : "bg-white border-purple-200"}`}
+            >
               {c.label}
             </button>
           ))}
         </div>
       </div>
-
-
 
       {(() => {
         const matchesLevel = (q: AdminQuestion) => {
@@ -1139,7 +1494,6 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
         const priorityList = list.filter((x) => (x.priority || 0) > 0 && matchesLevel(x) && matchesCat(x));
         const normalList = list.filter((x) => (x.priority || 0) === 0 && matchesLevel(x) && matchesCat(x));
 
-
         const renderRow = (q: AdminQuestion, opts: { inPriority: boolean }) => (
           <li
             key={q.id}
@@ -1149,7 +1503,11 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             onDrop={opts.inPriority ? () => handleDrop(q.id) : undefined}
             className={`bg-white/80 border-2 rounded-xl p-3 flex items-start gap-3 ${q.enabled ? "border-orange-100" : "border-gray-200 opacity-50"} ${opts.inPriority ? "cursor-grab" : ""} ${dragId === q.id ? "ring-2 ring-amber-400" : ""}`}
           >
-            {opts.inPriority && <span className="text-gray-400 font-black select-none" title="Kéo để sắp xếp">⋮⋮</span>}
+            {opts.inPriority && (
+              <span className="text-gray-400 font-black select-none" title="Kéo để sắp xếp">
+                ⋮⋮
+              </span>
+            )}
             {q.imageUrl && <img src={q.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />}
             <div className="flex-1 min-w-0">
               <div className="font-black text-sm">
@@ -1160,9 +1518,14 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 {q.options.map((o, i) => {
                   const correct = (q.correctIndexes || []).includes(i);
                   return (
-                    <span key={i} className={`inline-flex items-center gap-1 ${correct ? "text-green-700 font-black" : "text-muted-foreground"}`}>
+                    <span
+                      key={i}
+                      className={`inline-flex items-center gap-1 ${correct ? "text-green-700 font-black" : "text-muted-foreground"}`}
+                    >
                       {correct && "✓"} {i + 1}. {o.text}
-                      {o.imageUrl && <img src={o.imageUrl} alt="" className="w-6 h-6 object-cover rounded inline-block" />}
+                      {o.imageUrl && (
+                        <img src={o.imageUrl} alt="" className="w-6 h-6 object-cover rounded inline-block" />
+                      )}
                     </span>
                   );
                 })}
@@ -1200,8 +1563,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                         title="Bậc năng lực (1 cơ bản → 8 nâng cao). Bấm để đổi."
                       >
                         <option value="">{curCat === "digital" ? "🌐 Chưa gắn bậc" : "🏛️ Chưa gắn bậc"}</option>
-                        {[1,2,3,4,5,6,7,8].map((lv) => (
-                          <option key={lv} value={lv}>{curCat === "digital" ? "🌐" : "🏛️"} Bậc {lv}</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((lv) => (
+                          <option key={lv} value={lv}>
+                            {curCat === "digital" ? "🌐" : "🏛️"} Bậc {lv}
+                          </option>
                         ))}
                       </select>
                       {/* Mục (miền) — chỉ với Digital, hiện & chỉnh gộp làm một */}
@@ -1213,8 +1578,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                           title="Mục (miền) năng lực số phù hợp cho câu này. Bấm để đổi."
                         >
                           <option value="">📚 Chưa gắn mục</option>
-                          {[1,2,3,4,5,6].map((dm) => (
-                            <option key={dm} value={dm}>📚 M{dm} · {DOMAIN_LABELS[dm]}</option>
+                          {[1, 2, 3, 4, 5, 6].map((dm) => (
+                            <option key={dm} value={dm}>
+                              📚 M{dm} · {DOMAIN_LABELS[dm]}
+                            </option>
                           ))}
                         </select>
                       )}
@@ -1222,7 +1589,10 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                   );
                 })()}
                 {(() => {
-                  const r = classifyQuestion(q.q, q.options.map((o) => o.text));
+                  const r = classifyQuestion(
+                    q.q,
+                    q.options.map((o) => o.text),
+                  );
                   const curCat = q.category === "digital" ? "digital" : "history";
                   const curLvl = q.competencyLevel ?? null;
                   const curDm = q.competencyDomain ?? null;
@@ -1245,7 +1615,9 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                   );
                 })()}
                 {(q.maps || ["all"]).map((m) => (
-                  <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">{mapLabel(m)}</span>
+                  <span key={m} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                    {mapLabel(m)}
+                  </span>
                 ))}
               </div>
             </div>
@@ -1258,12 +1630,23 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
                 {q.enabled ? "● Đang dùng" : "○ Đã ẩn"}
               </button>
               {opts.inPriority ? (
-                <button onClick={() => removeFromPriority(q)} className="text-amber-700 font-black hover:underline text-xs">➖ Bỏ ưu tiên</button>
+                <button
+                  onClick={() => removeFromPriority(q)}
+                  className="text-amber-700 font-black hover:underline text-xs"
+                >
+                  ➖ Bỏ ưu tiên
+                </button>
               ) : (
-                <button onClick={() => addToPriority(q)} className="text-amber-600 font-black hover:underline text-xs">⭐ Vào ưu tiên</button>
+                <button onClick={() => addToPriority(q)} className="text-amber-600 font-black hover:underline text-xs">
+                  ⭐ Vào ưu tiên
+                </button>
               )}
-              <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">✏️ Sửa</button>
-              <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline text-sm">Xoá</button>
+              <button onClick={() => startEdit(q)} className="text-blue-600 font-black hover:underline text-sm">
+                ✏️ Sửa
+              </button>
+              <button onClick={() => remove(q.id)} className="text-red-600 font-black hover:underline text-sm">
+                Xoá
+              </button>
             </div>
           </li>
         );
@@ -1273,24 +1656,22 @@ function QuestionsPanel({ cfg: _cfg, onChange: _onChange }: { cfg: AdminConfig; 
             <section>
               <div className="font-black mb-2 text-amber-700">
                 ⭐ Zone ưu tiên ({priorityList.length} câu)
-                {priorityList.length > 30 && <span className="ml-2 text-red-600 text-xs">⚠️ Đã vượt 30 câu khuyến nghị</span>}
+                {priorityList.length > 30 && (
+                  <span className="ml-2 text-red-600 text-xs">⚠️ Đã vượt 30 câu khuyến nghị</span>
+                )}
               </div>
               {priorityList.length === 0 ? (
                 <div className="text-sm font-bold text-muted-foreground italic bg-amber-50 border-2 border-dashed border-amber-200 rounded-xl p-3">
                   Chưa có câu nào. Nhấn "⭐ Vào ưu tiên" ở danh sách dưới để thêm.
                 </div>
               ) : (
-                <ul className="grid gap-2">
-                  {priorityList.map((q) => renderRow(q, { inPriority: true }))}
-                </ul>
+                <ul className="grid gap-2">{priorityList.map((q) => renderRow(q, { inPriority: true }))}</ul>
               )}
             </section>
 
             <section>
               <div className="font-black mb-2">📋 Tất cả câu hỏi ({normalList.length})</div>
-              <ul className="grid gap-2">
-                {normalList.map((q) => renderRow(q, { inPriority: false }))}
-              </ul>
+              <ul className="grid gap-2">{normalList.map((q) => renderRow(q, { inPriority: false }))}</ul>
             </section>
           </div>
         );
@@ -1312,19 +1693,31 @@ function LevelsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-orange-100 font-black">
-            <tr><th className="p-2">Cấp</th><th className="p-2">🏠 Tài sản ròng tối thiểu</th><th className="p-2">✅ Câu đúng tối thiểu</th></tr>
+            <tr>
+              <th className="p-2">Cấp</th>
+              <th className="p-2">🏠 Tài sản ròng tối thiểu</th>
+              <th className="p-2">✅ Câu đúng tối thiểu</th>
+            </tr>
           </thead>
           <tbody>
             {cfg.levelNetWorth.map((v, i) => (
               <tr key={i} className="border-b border-orange-50 font-bold">
                 <td className="p-2 text-orange-600">Lv {i}</td>
                 <td className="p-2">
-                  <input type="number" value={v} onChange={(e) => setVal(i, "n", parseInt(e.target.value) || 0)}
-                    className="w-28 px-2 py-1 rounded border-2 border-orange-100" />
+                  <input
+                    type="number"
+                    value={v}
+                    onChange={(e) => setVal(i, "n", parseInt(e.target.value) || 0)}
+                    className="w-28 px-2 py-1 rounded border-2 border-orange-100"
+                  />
                 </td>
                 <td className="p-2">
-                  <input type="number" value={cfg.levelQuestions[i] || 0} onChange={(e) => setVal(i, "q", parseInt(e.target.value) || 0)}
-                    className="w-28 px-2 py-1 rounded border-2 border-orange-100" />
+                  <input
+                    type="number"
+                    value={cfg.levelQuestions[i] || 0}
+                    onChange={(e) => setVal(i, "q", parseInt(e.target.value) || 0)}
+                    className="w-28 px-2 py-1 rounded border-2 border-orange-100"
+                  />
                 </td>
               </tr>
             ))}
@@ -1338,7 +1731,12 @@ function LevelsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
 /* ===================== PRICES ===================== */
 function PricesPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminConfig, a?: string) => void }) {
   const [filter, setFilter] = useState("");
-  const items = CATALOG.filter((c) => !filter || c.name.toLowerCase().includes(filter.toLowerCase()) || c.category.toLowerCase().includes(filter.toLowerCase()));
+  const items = CATALOG.filter(
+    (c) =>
+      !filter ||
+      c.name.toLowerCase().includes(filter.toLowerCase()) ||
+      c.category.toLowerCase().includes(filter.toLowerCase()),
+  );
 
   function setPrice(id: string, v: number) {
     onChange({ ...cfg, priceOverrides: { ...cfg.priceOverrides, [id]: v } }, `Sửa giá ${id} = ${v}`);
@@ -1356,13 +1754,24 @@ function PricesPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
     <div>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 className="text-xl font-black">💰 Quản lý giá cả ({items.length})</h2>
-        <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Tìm theo tên / nhóm"
-          className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72" />
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Tìm theo tên / nhóm"
+          className="px-3 py-2 rounded-xl border-2 border-orange-200 font-bold text-sm w-72"
+        />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-orange-100 font-black sticky top-0">
-            <tr><th className="p-2">Vật phẩm</th><th className="p-2">Nhóm</th><th className="p-2">Giá gốc</th><th className="p-2">Giá hiệu lực</th><th className="p-2">Hiển thị</th><th></th></tr>
+            <tr>
+              <th className="p-2">Vật phẩm</th>
+              <th className="p-2">Nhóm</th>
+              <th className="p-2">Giá gốc</th>
+              <th className="p-2">Giá hiệu lực</th>
+              <th className="p-2">Hiển thị</th>
+              <th></th>
+            </tr>
           </thead>
           <tbody>
             {items.map((it) => {
@@ -1371,20 +1780,33 @@ function PricesPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminC
               const eff = override ?? it.price;
               return (
                 <tr key={it.id} className="border-b border-orange-50 font-bold">
-                  <td className="p-2">{it.icon} {it.name}</td>
+                  <td className="p-2">
+                    {it.icon} {it.name}
+                  </td>
                   <td className="p-2 text-xs text-muted-foreground">{it.category}</td>
                   <td className="p-2 text-muted-foreground">{it.price}</td>
                   <td className="p-2">
-                    <input type="number" value={eff} onChange={(e) => setPrice(it.id, parseInt(e.target.value) || 0)}
-                      className={`w-20 px-2 py-1 rounded border-2 ${override !== undefined ? "border-orange-400 bg-orange-50" : "border-orange-100"}`} />
+                    <input
+                      type="number"
+                      value={eff}
+                      onChange={(e) => setPrice(it.id, parseInt(e.target.value) || 0)}
+                      className={`w-20 px-2 py-1 rounded border-2 ${override !== undefined ? "border-orange-400 bg-orange-50" : "border-orange-100"}`}
+                    />
                   </td>
                   <td className="p-2">
-                    <button onClick={() => toggleHide(it.id)} className={`px-2 py-1 rounded font-black text-xs ${hidden ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"}`}>
+                    <button
+                      onClick={() => toggleHide(it.id)}
+                      className={`px-2 py-1 rounded font-black text-xs ${hidden ? "bg-red-200 text-red-800" : "bg-green-200 text-green-800"}`}
+                    >
                       {hidden ? "ẨN" : "HIỆN"}
                     </button>
                   </td>
                   <td className="p-2">
-                    {override !== undefined && <button onClick={() => resetPrice(it.id)} className="text-blue-600 text-xs hover:underline">reset</button>}
+                    {override !== undefined && (
+                      <button onClick={() => resetPrice(it.id)} className="text-blue-600 text-xs hover:underline">
+                        reset
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -1404,7 +1826,7 @@ function RewardsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
     onChange({ ...cfg, dailyRewards: arr }, `Sửa thưởng ngày ${arr[idx].day}`);
   }
   function toggleEvent(id: string) {
-    const arr = cfg.events.map((e) => e.id === id ? { ...e, enabled: !e.enabled } : e);
+    const arr = cfg.events.map((e) => (e.id === id ? { ...e, enabled: !e.enabled } : e));
     onChange({ ...cfg, events: arr }, `Toggle sự kiện ${id}`);
   }
   return (
@@ -1416,10 +1838,17 @@ function RewardsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
         {cfg.dailyRewards.map((d, i) => (
           <div key={d.day} className="bg-white/80 border-2 border-orange-200 rounded-xl p-2 text-center">
             <div className="font-black text-orange-600">Ngày {d.day}</div>
-            <input value={d.label} onChange={(e) => setReward(i, "label", e.target.value)}
-              className="w-full text-xs px-2 py-1 rounded border my-1 font-bold" />
-            <input type="number" value={d.coin} onChange={(e) => setReward(i, "coin", parseInt(e.target.value) || 0)}
-              className="w-full text-center font-black text-lg px-2 py-1 rounded border" />
+            <input
+              value={d.label}
+              onChange={(e) => setReward(i, "label", e.target.value)}
+              className="w-full text-xs px-2 py-1 rounded border my-1 font-bold"
+            />
+            <input
+              type="number"
+              value={d.coin}
+              onChange={(e) => setReward(i, "coin", parseInt(e.target.value) || 0)}
+              className="w-full text-center font-black text-lg px-2 py-1 rounded border"
+            />
             <div className="text-xs font-bold text-muted-foreground">xu</div>
           </div>
         ))}
@@ -1428,9 +1857,15 @@ function RewardsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: Admin
       <h3 className="font-black mb-2">Sự kiện trong game</h3>
       <ul className="grid gap-2">
         {cfg.events.map((ev) => (
-          <li key={ev.id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+          <li
+            key={ev.id}
+            className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold"
+          >
             <span>{ev.name}</span>
-            <button onClick={() => toggleEvent(ev.id)} className={`px-3 py-1 rounded font-black text-xs ${ev.enabled ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-700"}`}>
+            <button
+              onClick={() => toggleEvent(ev.id)}
+              className={`px-3 py-1 rounded font-black text-xs ${ev.enabled ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-700"}`}
+            >
               {ev.enabled ? "BẬT" : "TẮT"}
             </button>
           </li>
@@ -1446,8 +1881,8 @@ function ContentPanel() {
     <div>
       <h2 className="text-xl font-black mb-3">📝 Nội dung người dùng</h2>
       <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 font-bold text-sm">
-        Khu vực này sẽ duyệt tên nhà, ảnh nhà và xử lý báo cáo vi phạm khi người chơi gửi.
-        Hiện chưa có nội dung cần duyệt.
+        Khu vực này sẽ duyệt tên nhà, ảnh nhà và xử lý báo cáo vi phạm khi người chơi gửi. Hiện chưa có nội dung cần
+        duyệt.
       </div>
     </div>
   );
@@ -1464,11 +1899,18 @@ function MapsPanel({ cfg, onChange }: { cfg: AdminConfig; onChange: (c: AdminCon
       <h2 className="text-xl font-black mb-3">🗺️ Sức chứa từng khu vực</h2>
       <div className="grid gap-2">
         {Object.entries(cfg.mapCapacity).map(([id, cap]) => (
-          <div key={id} className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold">
+          <div
+            key={id}
+            className="bg-white/80 border-2 border-orange-100 rounded-xl p-3 flex items-center justify-between font-bold"
+          >
             <span>{names[id] || id}</span>
             <div className="flex items-center gap-2">
-              <input type="number" value={cap} onChange={(e) => setCap(id, parseInt(e.target.value) || 0)}
-                className="w-24 px-2 py-1 rounded border-2 border-orange-100" />
+              <input
+                type="number"
+                value={cap}
+                onChange={(e) => setCap(id, parseInt(e.target.value) || 0)}
+                className="w-24 px-2 py-1 rounded border-2 border-orange-100"
+              />
               <span className="text-sm text-muted-foreground">người</span>
             </div>
           </div>
@@ -1489,7 +1931,9 @@ function PickupsPanel() {
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPickupConfig().then(setCfg).catch(() => setCfg({ override: false, items: [] }));
+    loadPickupConfig()
+      .then(setCfg)
+      .catch(() => setCfg({ override: false, items: [] }));
   }, []);
 
   const persist = async (next: PickupConfig) => {
@@ -1509,17 +1953,24 @@ function PickupsPanel() {
   if (!cfg) return <div className="font-bold">Đang tải...</div>;
 
   const add = () => {
-    const nx = parseFloat(x), nz = parseFloat(z);
-    if (!isFinite(nx) || !isFinite(nz)) { setMsg("❌ Tọa độ không hợp lệ"); return; }
+    const nx = parseFloat(x),
+      nz = parseFloat(z);
+    if (!isFinite(nx) || !isFinite(nz)) {
+      setMsg("❌ Tọa độ không hợp lệ");
+      return;
+    }
     const id = `m-${kind[0]}-${Date.now().toString(36)}-${Math.floor(Math.random() * 999)}`;
     persist({ ...cfg, items: [...cfg.items, { id, kind, x: +nx.toFixed(2), z: +nz.toFixed(2) }] });
   };
   const remove = (id: string) => persist({ ...cfg, items: cfg.items.filter((p) => p.id !== id) });
   const updateCoord = (id: string, axis: "x" | "z", v: string) => {
-    const nv = parseFloat(v); if (!isFinite(nv)) return;
-    persist({ ...cfg, items: cfg.items.map((p) => p.id === id ? { ...p, [axis]: +nv.toFixed(2) } : p) });
+    const nv = parseFloat(v);
+    if (!isFinite(nv)) return;
+    persist({ ...cfg, items: cfg.items.map((p) => (p.id === id ? { ...p, [axis]: +nv.toFixed(2) } : p)) });
   };
-  const clearAll = () => { if (confirm("Xoá toàn bộ vật phẩm trong danh sách?")) persist({ ...cfg, items: [] }); };
+  const clearAll = () => {
+    if (confirm("Xoá toàn bộ vật phẩm trong danh sách?")) persist({ ...cfg, items: [] });
+  };
   const loadBaseIntoEditor = () => {
     if (!confirm("Tải 100 xu + 200 boom layout mặc định vào danh sách (sẽ bật chế độ ghi đè)?")) return;
     persist({ override: true, items: generateBasePickups() });
@@ -1528,51 +1979,89 @@ function PickupsPanel() {
 
   const coinCount = cfg.items.filter((p) => p.kind === "coin").length;
   const bombCount = cfg.items.filter((p) => p.kind === "bomb").length;
-  const filtered = cfg.items.filter((p) => filter === "all" ? true : p.kind === filter);
+  const filtered = cfg.items.filter((p) => (filter === "all" ? true : p.kind === filter));
 
   return (
     <div>
       <h2 className="text-xl font-black mb-2">🪙 Vật phẩm rải trên map nhà</h2>
       <p className="text-sm text-muted-foreground font-bold mb-3">
-        Hệ tọa độ: x/z trong khoảng <code>±100</code>, mảnh đất ở giữa <code>±10</code>. Xu = +10đ, Boom = 2 câu hỏi (✅+10/❌−5).
+        Hệ tọa độ: x/z trong khoảng <code>±100</code>, mảnh đất ở giữa <code>±10</code>. Xu = +10đ, Boom = 2 câu hỏi
+        (✅+10/❌−5).
       </p>
 
       <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-3 mb-3 flex flex-wrap gap-3 items-center">
         <label className="flex items-center gap-2 font-black text-sm">
-          <input type="checkbox" checked={cfg.override} onChange={(e) => toggleOverride(e.target.checked)} className="w-4 h-4" />
+          <input
+            type="checkbox"
+            checked={cfg.override}
+            onChange={(e) => toggleOverride(e.target.checked)}
+            className="w-4 h-4"
+          />
           Ghi đè toàn bộ (quản lý 100% vị trí)
         </label>
-        <button onClick={loadBaseIntoEditor} disabled={saving} className="toy-button !text-xs !py-2 !px-3">📥 Nạp layout base vào danh sách</button>
+        <button onClick={loadBaseIntoEditor} disabled={saving} className="toy-button !text-xs !py-2 !px-3">
+          📥 Nạp layout base vào danh sách
+        </button>
         <span className="text-xs font-bold text-muted-foreground">
-          {cfg.override ? "→ Map chỉ dùng danh sách dưới đây." : "→ Map = 100 xu + 200 boom ngẫu nhiên + các mục dưới đây."}
+          {cfg.override
+            ? "→ Map chỉ dùng danh sách dưới đây."
+            : "→ Map = 100 xu + 200 boom ngẫu nhiên + các mục dưới đây."}
         </span>
       </div>
 
       <div className="grid sm:grid-cols-[auto_auto_auto_auto_auto] gap-2 items-end bg-amber-50/60 border border-amber-200 rounded-xl p-3 mb-4">
         <label className="text-xs font-black flex flex-col gap-1">
           Loại
-          <select value={kind} onChange={(e) => setKind(e.target.value as PickupKind)} className="border-2 border-amber-300 rounded px-2 py-1 font-bold">
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as PickupKind)}
+            className="border-2 border-amber-300 rounded px-2 py-1 font-bold"
+          >
             <option value="coin">🪙 Xu (+10đ)</option>
             <option value="bomb">💣 Boom</option>
           </select>
         </label>
         <label className="text-xs font-black flex flex-col gap-1">
-          x <input value={x} onChange={(e) => setX(e.target.value)} className="border-2 border-amber-300 rounded px-2 py-1 w-24 font-bold" />
+          x{" "}
+          <input
+            value={x}
+            onChange={(e) => setX(e.target.value)}
+            className="border-2 border-amber-300 rounded px-2 py-1 w-24 font-bold"
+          />
         </label>
         <label className="text-xs font-black flex flex-col gap-1">
-          z <input value={z} onChange={(e) => setZ(e.target.value)} className="border-2 border-amber-300 rounded px-2 py-1 w-24 font-bold" />
+          z{" "}
+          <input
+            value={z}
+            onChange={(e) => setZ(e.target.value)}
+            className="border-2 border-amber-300 rounded px-2 py-1 w-24 font-bold"
+          />
         </label>
-        <button onClick={add} disabled={saving} className="toy-button toy-button-primary !text-xs !py-2 !px-3">➕ Thêm</button>
-        <button onClick={clearAll} disabled={saving || cfg.items.length === 0} className="toy-button !text-xs !py-2 !px-3">🗑️ Xoá hết</button>
+        <button onClick={add} disabled={saving} className="toy-button toy-button-primary !text-xs !py-2 !px-3">
+          ➕ Thêm
+        </button>
+        <button
+          onClick={clearAll}
+          disabled={saving || cfg.items.length === 0}
+          className="toy-button !text-xs !py-2 !px-3"
+        >
+          🗑️ Xoá hết
+        </button>
       </div>
 
       {msg && <div className="mb-2 text-sm font-black">{msg}</div>}
 
       <div className="flex flex-wrap gap-2 items-center mb-2 text-sm font-bold">
-        <span>Tổng trong danh sách: 🪙 {coinCount} · 💣 {bombCount} ({cfg.items.length})</span>
+        <span>
+          Tổng trong danh sách: 🪙 {coinCount} · 💣 {bombCount} ({cfg.items.length})
+        </span>
         <span className="ml-auto flex gap-1">
           {(["all", "coin", "bomb"] as const).map((k) => (
-            <button key={k} onClick={() => setFilter(k)} className={`px-2 py-1 rounded border-2 text-xs ${filter === k ? "bg-amber-300 border-amber-500" : "bg-white border-amber-200"}`}>
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`px-2 py-1 rounded border-2 text-xs ${filter === k ? "bg-amber-300 border-amber-500" : "bg-white border-amber-200"}`}
+            >
               {k === "all" ? "Tất cả" : k === "coin" ? "🪙 Xu" : "💣 Boom"}
             </button>
           ))}
@@ -1584,14 +2073,29 @@ function PickupsPanel() {
       ) : (
         <ul className="grid gap-1 max-h-[55vh] overflow-y-auto">
           {filtered.map((p) => (
-            <li key={p.id} className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex flex-wrap justify-between items-center gap-2">
+            <li
+              key={p.id}
+              className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex flex-wrap justify-between items-center gap-2"
+            >
               <span className="flex items-center gap-2">
                 {p.kind === "coin" ? "🪙" : "💣"} <code className="text-xs">{p.id}</code>
               </span>
               <span className="flex items-center gap-1 text-xs">
-                x <input defaultValue={p.x} onBlur={(e) => updateCoord(p.id, "x", e.target.value)} className="border rounded px-1 py-0.5 w-16" />
-                z <input defaultValue={p.z} onBlur={(e) => updateCoord(p.id, "z", e.target.value)} className="border rounded px-1 py-0.5 w-16" />
-                <button onClick={() => remove(p.id)} disabled={saving} className="toy-button !text-xs !py-1 !px-2">Xoá</button>
+                x{" "}
+                <input
+                  defaultValue={p.x}
+                  onBlur={(e) => updateCoord(p.id, "x", e.target.value)}
+                  className="border rounded px-1 py-0.5 w-16"
+                />
+                z{" "}
+                <input
+                  defaultValue={p.z}
+                  onBlur={(e) => updateCoord(p.id, "z", e.target.value)}
+                  className="border rounded px-1 py-0.5 w-16"
+                />
+                <button onClick={() => remove(p.id)} disabled={saving} className="toy-button !text-xs !py-1 !px-2">
+                  Xoá
+                </button>
               </span>
             </li>
           ))}
@@ -1612,7 +2116,10 @@ function LogsPanel() {
       ) : (
         <ul className="grid gap-1 max-h-[65vh] overflow-y-auto">
           {logs.map((l, i) => (
-            <li key={i} className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex justify-between gap-2">
+            <li
+              key={i}
+              className="bg-white/70 border border-orange-100 rounded p-2 text-sm font-bold flex justify-between gap-2"
+            >
               <span>{l.action}</span>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {l.actor} · {new Date(l.at).toLocaleString("vi-VN")}
@@ -1635,35 +2142,53 @@ function TeachersPanel() {
 
   const reload = async () => {
     setBusy(true);
-    try { setRows(await listPendingTeachers()); } catch (e) { console.error(e); }
+    try {
+      setRows(await listPendingTeachers());
+    } catch (e) {
+      console.error(e);
+    }
     setBusy(false);
   };
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+  }, []);
 
-  const filtered = rows.filter((r) => filter === "all" ? true : r.teacher_status === filter);
+  const filtered = rows.filter((r) => (filter === "all" ? true : r.teacher_status === filter));
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2 className="text-xl font-black">🧑‍🏫 Duyệt giáo viên</h2>
         <div className="flex gap-1">
-          {(["pending","approved","all"] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-lg text-xs font-black ${filter === f ? "bg-orange-500 text-white" : "bg-orange-100"}`}>
+          {(["pending", "approved", "all"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1 rounded-lg text-xs font-black ${filter === f ? "bg-orange-500 text-white" : "bg-orange-100"}`}
+            >
               {f === "pending" ? "Chờ duyệt" : f === "approved" ? "Đã duyệt" : "Tất cả"}
             </button>
           ))}
-          <button onClick={reload} className="toy-button text-xs">🔄</button>
+          <button onClick={reload} className="toy-button text-xs">
+            🔄
+          </button>
         </div>
       </div>
-      {busy ? <p className="font-bold">Đang tải...</p> : filtered.length === 0 ? (
+      {busy ? (
+        <p className="font-bold">Đang tải...</p>
+      ) : filtered.length === 0 ? (
         <p className="font-bold text-muted-foreground">Không có mục nào.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left border-b-2 border-orange-200">
               <tr className="font-black">
-                <th className="py-2">Giáo viên</th><th>Trường</th><th>Môn</th><th>Trạng thái</th><th>Mã lớp</th><th>Hành động</th>
+                <th className="py-2">Giáo viên</th>
+                <th>Trường</th>
+                <th>Môn</th>
+                <th>Trạng thái</th>
+                <th>Mã lớp</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -1676,11 +2201,17 @@ function TeachersPanel() {
                   <td>{r.teacher_school || "—"}</td>
                   <td>{r.teacher_subject || "—"}</td>
                   <td>
-                    <span className={`px-2 py-0.5 rounded text-xs font-black ${
-                      r.teacher_status === "pending" ? "bg-yellow-100 text-yellow-800"
-                      : r.teacher_status === "approved" ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                    }`}>{r.teacher_status}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-black ${
+                        r.teacher_status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : r.teacher_status === "approved"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {r.teacher_status}
+                    </span>
                   </td>
                   <td className="font-mono font-black text-orange-600">{r.class_code || "—"}</td>
                   <td>
@@ -1692,9 +2223,14 @@ function TeachersPanel() {
                               const code = await approveTeacher(r.user_id);
                               pushAdminLog(`Duyệt giáo viên ${r.email} (mã ${code})`);
                               reload();
-                            } catch (e: any) { alert(e?.message || "Lỗi"); }
+                            } catch (e: any) {
+                              alert(e?.message || "Lỗi");
+                            }
                           }}
-                          className="toy-button text-xs bg-green-500 text-white">✅ Duyệt</button>
+                          className="toy-button text-xs bg-green-500 text-white"
+                        >
+                          ✅ Duyệt
+                        </button>
                       )}
                       {r.teacher_status !== "rejected" && (
                         <button
@@ -1704,9 +2240,14 @@ function TeachersPanel() {
                               await rejectTeacher(r.user_id);
                               pushAdminLog(`Từ chối giáo viên ${r.email}`);
                               reload();
-                            } catch (e: any) { alert(e?.message || "Lỗi"); }
+                            } catch (e: any) {
+                              alert(e?.message || "Lỗi");
+                            }
                           }}
-                          className="toy-button text-xs bg-red-100">❌ Từ chối</button>
+                          className="toy-button text-xs bg-red-100"
+                        >
+                          ❌ Từ chối
+                        </button>
                       )}
                     </div>
                   </td>
@@ -1719,4 +2260,3 @@ function TeachersPanel() {
     </div>
   );
 }
-

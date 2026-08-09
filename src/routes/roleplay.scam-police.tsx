@@ -98,7 +98,15 @@ function FilmPage() {
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(n.id)) return;
-    const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+    if (n.audio) {
+      const pre = new Audio();
+      pre.preload = "auto";
+      pre.src = n.audio;
+      pre.load();
+    }
+    const p = n.audio
+      ? Promise.resolve("")
+      : tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(n.id, a);
@@ -224,6 +232,23 @@ function FilmPage() {
 
     const play = async () => {
       try {
+        // Giọng đọc thu sẵn cho cảnh này → dùng nguyên bản, không qua AI
+        if (node.audio) {
+          window.clearTimeout(lateStart);
+          const rec = new Audio(node.audio);
+          rec.preload = "auto";
+          rec.onended = () => {
+            if (cancelled) return;
+            cap.complete();
+            setSpeechDone(true);
+          };
+          audioRef.current = rec;
+          cap.followAudio(rec);
+          await rec.play().catch(() => {
+            cap.startTimer(() => setSpeechDone(true));
+          });
+          return;
+        }
         let b64 = cacheRef.current.get(node.id) ?? "";
         if (!b64) {
           const pending = pendingRef.current.get(node.id);

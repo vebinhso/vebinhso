@@ -1,4 +1,5 @@
 import s01 from "@/assets/film2/clean3/poster-user.png";
+import a02 from "@/assets/film2/audio/s02-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -64,6 +65,8 @@ export type FilmNode = {
   id: string;
   image: string;
   video?: string;
+  /** Giọng đọc thu sẵn (ưu tiên hơn TTS) */
+  audio?: string;
   speaker: Speaker;
   action?: string;
   text: string;
@@ -133,6 +136,7 @@ export const FILM: Record<string, FilmNode> = {
     id: "s02",
     image: s02,
     video: v02.url,
+    audio: a02.url,
     speaker: "narrator",
     action: "18:40 — Căn hộ nhỏ, nắng chiều",
     text: "Mười tám giờ bốn mươi. Một buổi chiều bình thường như mọi ngày. Anh N tưới cây bên cửa sổ, ly trà còn ấm trên bàn.",

@@ -255,6 +255,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Hai bàn tay run rẩy giữ điện thoại",
     text: "Sáu trăm triệu. Ô xác nhận đã sáng lên. Ngón tay N run bần bật, mồ hôi vã ra.",
+    audio: a11.url,
     motion: "shake",
     mood: "danger",
     next: "s12",

@@ -14,6 +14,7 @@ import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
 import a18 from "@/assets/film2/audio/s19-k.mp3.asset.json";
 import a16 from "@/assets/film2/audio/s16-k.mp3.asset.json";
+import a05 from "@/assets/film2/audio/s05-k.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
@@ -188,9 +189,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s05",
     image: s05,
     video: v05.url,
+    audio: a05.url,
     speaker: "K",
     action: "Đầu dây bên kia — phòng tối, tai nghe, hai màn hình xanh lơ",
-    text: "Xin chào anh N, tôi là K, cán bộ điều tra. Anh có liên quan đến một đường dây tội phạm mà chúng tôi đang theo dõi.",
+    text: "Xin chào anh em, tôi là Kà, cán bộ điều tra, anh có liên quan đến một đường dây tội phạm mà chúng tôi đang theo dõi.",
     motion: "push",
     mood: "danger",
     next: "s06",

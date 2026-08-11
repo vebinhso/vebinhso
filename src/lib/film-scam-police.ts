@@ -13,6 +13,7 @@ import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
+import a13 from "@/assets/film2/audio/s13-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -293,9 +294,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s13",
     image: s13,
     video: v13.url,
+    audio: a13.url,
     speaker: "N",
     action: "Ngồi thẳng lại, nở nụ cười ranh mãnh",
-    text: "Tôi cần thêm thời gian suy nghĩ... Mà giờ tôi không có tiền, cán bộ có cho trả góp không ạ?",
+    text: "Tôi cần thêm thời gian suy nghĩ, mà giờ tôi không có tiền, cán bộ có cho trả góp không à?",
     motion: "kenburns",
     next: "s14",
   },

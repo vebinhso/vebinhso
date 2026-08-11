@@ -320,6 +320,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Màn hình báo chuyển khoản thành công",
     text: "Tôi chuyển đủ ba trăm triệu rồi ạ, cán bộ kiểm tra giúp tôi với!",
+    audio: a15.url,
     motion: "push",
     mood: "danger",
     next: "s16",

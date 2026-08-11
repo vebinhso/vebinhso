@@ -7,6 +7,7 @@ import a11 from "@/assets/film2/audio/s11-narrator.mp3.asset.json";
 import a21 from "@/assets/film2/audio/s21-narrator.mp3.asset.json";
 import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
 import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
+import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -376,6 +377,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Hộp thoại xin quyền hiện lên",
     text: "Ứng dụng đòi quyền đọc tin nhắn, đọc danh bạ, truy cập bộ nhớ và quản trị thiết bị. N bấm Cho phép tất cả. Quyền trợ năng nghĩa là cho người lạ nhìn và bấm thay bạn. Quyền SMS nghĩa là chúng đọc được mã OTP.",
+    audio: a20.url,
     motion: "push",
     mood: "danger",
     next: "s21",

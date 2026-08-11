@@ -8,6 +8,7 @@ import a21 from "@/assets/film2/audio/s21-narrator.mp3.asset.json";
 import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
 import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
 import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
+import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -169,7 +170,8 @@ export const FILM: Record<string, FilmNode> = {
     video: v04.url,
     speaker: "N",
     action: "Đưa máy lên tai, giọng lịch sự",
-    text: "A lô, ai vậy ạ?",
+    text: "Alo, ai vậy dạ?",
+    audio: a04.url,
     motion: "kenburns",
     next: "s05",
   },

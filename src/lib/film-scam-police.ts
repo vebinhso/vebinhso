@@ -9,6 +9,7 @@ import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
 import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
 import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
 import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
+import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -320,6 +321,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Màn hình báo chuyển khoản thành công",
     text: "Tôi chuyển đủ ba trăm triệu rồi ạ, cán bộ kiểm tra giúp tôi với!",
+    audio: a15.url,
     motion: "push",
     mood: "danger",
     next: "s16",

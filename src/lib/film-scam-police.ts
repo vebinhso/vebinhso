@@ -5,6 +5,7 @@ import a03 from "@/assets/film2/audio/s03-narrator.mp3.asset.json";
 import a22 from "@/assets/film2/audio/s24-narrator.mp3.asset.json";
 import a11 from "@/assets/film2/audio/s11-narrator.mp3.asset.json";
 import a21 from "@/assets/film2/audio/s21-narrator.mp3.asset.json";
+import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -295,6 +296,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Cuộc gọi đã kết thúc",
     text: "N quyết định cúp máy và không tiếp tục cuộc gọi nữa. Đèn bật sáng, căn phòng ấm trở lại. Không một đồng nào rời khỏi tài khoản.",
+    audio: a14.url,
     motion: "kenburns",
     mood: "safe",
     ending: {

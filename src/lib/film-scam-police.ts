@@ -295,6 +295,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Cuộc gọi đã kết thúc",
     text: "N quyết định cúp máy và không tiếp tục cuộc gọi nữa. Đèn bật sáng, căn phòng ấm trở lại. Không một đồng nào rời khỏi tài khoản.",
+    audio: a14.url,
     motion: "kenburns",
     mood: "safe",
     ending: {

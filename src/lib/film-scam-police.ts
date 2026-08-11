@@ -260,9 +260,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s12",
     image: s12,
     video: v12.url,
+    audio: a12.url,
     speaker: "narrator",
     action: "NÚT QUYẾT ĐỊNH 2",
-    text: "Chỉ một lựa chọn đúng để bảo vệ mình. Bạn sẽ làm gì?",
+    text: "Chỉ một lựa chọn đúng để bảo vệ mình, bạn sẽ làm gì?",
     motion: "freeze",
     choices: [
       { label: "A. Viện lý do, kéo dài thời gian, không chuyển tiền", next: "s13", tone: "safe" },

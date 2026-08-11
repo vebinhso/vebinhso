@@ -3,6 +3,7 @@ import a02 from "@/assets/film2/audio/s02-narrator.mp3.asset.json";
 import a12 from "@/assets/film2/audio/s12-narrator.mp3.asset.json";
 import a03 from "@/assets/film2/audio/s03-narrator.mp3.asset.json";
 import a22 from "@/assets/film2/audio/s24-narrator.mp3.asset.json";
+import a11 from "@/assets/film2/audio/s11-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -255,6 +256,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Hai bàn tay run rẩy giữ điện thoại",
     text: "Sáu trăm triệu. Ô xác nhận đã sáng lên. Ngón tay N run bần bật, mồ hôi vã ra.",
+    audio: a11.url,
     motion: "shake",
     mood: "danger",
     next: "s12",

@@ -10,6 +10,7 @@ import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
 import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
 import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
 import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
+import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -205,9 +206,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s07",
     image: s07,
     video: v07.url,
+    audio: a07.url,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng run",
-    text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi! Cả đời tôi chưa từng bước chân vào đồn công an...",
+    text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi. Cả đời tôi chưa từng bước chân vào đồn công an.",
     motion: "shake",
     mood: "danger",
     next: "s07b",

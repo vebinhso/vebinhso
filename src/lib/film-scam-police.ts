@@ -1,6 +1,7 @@
 import s01 from "@/assets/film2/clean3/poster-user.png";
 import a02 from "@/assets/film2/audio/s02-narrator.mp3.asset.json";
 import a12 from "@/assets/film2/audio/s12-narrator.mp3.asset.json";
+import a03 from "@/assets/film2/audio/s03-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -152,6 +153,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Điện thoại rung trên mặt bàn gỗ",
     text: "Điện thoại reo. Màn hình hiện: Số lạ.",
+    audio: a03.url,
     motion: "push",
     next: "s04",
   },

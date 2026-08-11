@@ -13,6 +13,7 @@ import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
 import a18 from "@/assets/film2/audio/s19-k.mp3.asset.json";
+import a16 from "@/assets/film2/audio/s16-k.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
@@ -342,9 +343,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s16",
     image: s16,
     video: v16.url,
+    audio: a16.url,
     speaker: "K",
     action: "Cười lớn, bắt đầu vắt chanh",
-    text: "Anh làm cái gì thế này! Sai cú pháp một ký tự nên hệ thống treo mất rồi! Phải chuyển thêm ba trăm triệu nữa mới giải phóng được cả hai khoản!",
+    text: "Anh làm cái gì thế này? Sai cú pháp một ký tự nên hệ thống treo mất rồi. Phải chuyển thêm 300 triệu nữa mới giải phóng được cả hai khoản.",
     motion: "shake",
     mood: "danger",
     next: "s17",

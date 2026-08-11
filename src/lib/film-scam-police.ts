@@ -376,6 +376,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Hộp thoại xin quyền hiện lên",
     text: "Ứng dụng đòi quyền đọc tin nhắn, đọc danh bạ, truy cập bộ nhớ và quản trị thiết bị. N bấm Cho phép tất cả. Quyền trợ năng nghĩa là cho người lạ nhìn và bấm thay bạn. Quyền SMS nghĩa là chúng đọc được mã OTP.",
+    audio: a20.url,
     motion: "push",
     mood: "danger",
     next: "s21",

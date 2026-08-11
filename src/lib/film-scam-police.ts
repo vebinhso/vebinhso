@@ -1,5 +1,6 @@
 import s01 from "@/assets/film2/clean3/poster-user.png";
 import a02 from "@/assets/film2/audio/s02-narrator.mp3.asset.json";
+import a12 from "@/assets/film2/audio/s12-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";

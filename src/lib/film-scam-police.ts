@@ -11,6 +11,7 @@ import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
 import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
 import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
+import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
@@ -222,9 +223,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s07b",
     image: s07,
     video: v07.url,
+    audio: a07b.url,
     speaker: "K",
     action: "Ép sát, hạ giọng đe doạ",
-    text: "Nếu anh không hợp tác, chúng tôi sẽ bắt giữ ngay và phong toả toàn bộ tài khoản của anh!",
+    text: "Nếu anh không hợp tác, chúng tôi sẽ bắt giữ ngay và phong toả toàn bộ tài khoản của anh.",
     motion: "shake",
     mood: "danger",
     next: "s08",

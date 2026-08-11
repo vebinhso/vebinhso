@@ -153,6 +153,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Điện thoại rung trên mặt bàn gỗ",
     text: "Điện thoại reo. Màn hình hiện: Số lạ.",
+    audio: a03.url,
     motion: "push",
     next: "s04",
   },

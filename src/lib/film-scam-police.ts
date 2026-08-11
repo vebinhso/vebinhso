@@ -6,6 +6,7 @@ import a22 from "@/assets/film2/audio/s24-narrator.mp3.asset.json";
 import a11 from "@/assets/film2/audio/s11-narrator.mp3.asset.json";
 import a21 from "@/assets/film2/audio/s21-narrator.mp3.asset.json";
 import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
+import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -337,7 +338,8 @@ export const FILM: Record<string, FilmNode> = {
     video: v17.url,
     speaker: "narrator",
     action: "Hai giờ mười bốn phút sáng — quầy vay tín chấp",
-    text: "N hoang mang, đi vay thêm tiền để 'phục vụ điều tra'. Đây là bẫy chi phí chìm: đã mất ba trăm triệu nên càng cố cứu bằng ba trăm triệu nữa.",
+    text: "N hoang mang, đi vay thêm tiền để phục vụ điều tra. Đây là bẫy chi phí chìm: đã mất ba trăm triệu nên càng cố cứu bằng ba trăm triệu nữa.",
+    audio: a17.url,
     motion: "kenburns",
     mood: "danger",
     next: "s18",

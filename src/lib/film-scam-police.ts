@@ -13,6 +13,7 @@ import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
+import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
 import a13 from "@/assets/film2/audio/s13-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
@@ -244,9 +245,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s09",
     image: s09,
     video: v09.url,
+    audio: a09.url,
     speaker: "K",
     action: "Ra giá",
-    text: "Để chứng minh sự trong sạch, anh phải chuyển sáu trăm triệu đồng vào tài khoản tạm giữ của cơ quan điều tra.",
+    text: "Để chứng minh sự trong sạch, anh phải chuyển 600 triệu đồng vào tài khoản tạm giữ của cơ quan điều tra.",
     motion: "push",
     mood: "danger",
     next: "s10",

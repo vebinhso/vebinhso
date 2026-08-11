@@ -390,6 +390,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Số dư: 0 đồng",
     text: "Toàn bộ tiền trong tài khoản đã bị rút sạch. Số điện thoại kia giờ không còn tồn tại.",
+    audio: a22.url,
     motion: "shake",
     mood: "danger",
     ending: {

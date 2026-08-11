@@ -12,6 +12,7 @@ import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
 import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
+import a18 from "@/assets/film2/audio/s19-k.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
@@ -364,6 +365,7 @@ export const FILM: Record<string, FilmNode> = {
     id: "s18",
     image: s18,
     video: v18.url,
+    audio: a18.url,
     speaker: "K",
     action: "Gửi một đường link lạ",
     text: "Tải ứng dụng này để bộ Công an giám sát điện thoại của anh. Cài xong thì báo lại tôi ngay.",

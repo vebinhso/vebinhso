@@ -382,6 +382,7 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "narrator",
     action: "Bên kia màn hình: 'Đã kết nối'",
     text: "K chiếm quyền điều khiển điện thoại của N từ xa. Hắn tự mở app ngân hàng, tự đọc mã OTP, tự bấm xác nhận.",
+    audio: a21.url,
     motion: "kenburns",
     mood: "danger",
     next: "s22",

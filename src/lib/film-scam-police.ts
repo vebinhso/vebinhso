@@ -12,6 +12,7 @@ import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
 import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
 import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
+import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -230,9 +231,10 @@ export const FILM: Record<string, FilmNode> = {
     id: "s08",
     image: s08,
     video: v08.url,
+    audio: a08.url,
     speaker: "K",
     action: "Đòn cô lập",
-    text: "Anh vào phòng, khoá cửa lại. Không được cho ai nghe thấy cuộc gọi này.",
+    text: "Khóa anh vào phòng, khóa cửa lại, không được cho ai nghe thấy cuộc gọi này.",
     motion: "push",
     mood: "danger",
     next: "s09",

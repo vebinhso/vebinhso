@@ -206,6 +206,9 @@ function PostsTab({
   const [linkUrl, setLinkUrl] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
 
   const reload = () => listClassPosts(classId, kind).then(setPosts).catch(() => setPosts([]));
   useEffect(() => {
@@ -213,20 +216,46 @@ function PostsTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId, kind]);
 
+  const pickFile = async (f: File | null) => {
+    setFile(f);
+    setUploadedUrl(null);
+    setPreviewReady(false);
+    setUpPct(0);
+    if (!f) return;
+    setUploading(true);
+    try {
+      const url = await uploadClassFile(classId, f, setUpPct);
+      setUpPct(100);
+      const isImg = /^image\//.test(f.type);
+      if (isImg) {
+        await new Promise<void>((res) => {
+          const img = new Image();
+          img.onload = () => res();
+          img.onerror = () => res();
+          img.src = url;
+        });
+      }
+      setUploadedUrl(url);
+      setPreviewReady(true);
+    } catch (e: any) {
+      toast.error(e?.message || "Tải tài liệu thất bại");
+      setFile(null);
+    }
+    setUploading(false);
+  };
+
   const save = async () => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
+    if (file && !uploadedUrl) return toast.error("Tài liệu chưa tải xong");
     setBusy(true);
-    setUpPct(0);
     try {
-      let fileUrl: string | undefined;
-      if (file) fileUrl = await uploadClassFile(classId, file, setUpPct);
       await createClassPost({
         classId,
         kind,
         title: title.trim(),
         content,
         linkUrl,
-        fileUrl,
+        fileUrl: uploadedUrl ?? undefined,
         dueAt: kind === "assignment" && dueAt ? new Date(dueAt).toISOString() : null,
       });
       setTitle("");
@@ -234,6 +263,9 @@ function PostsTab({
       setLinkUrl("");
       setDueAt("");
       setFile(null);
+      setUploadedUrl(null);
+      setPreviewReady(false);
+      setUpPct(0);
       setOpenForm(false);
       reload();
       toast.success("Đã đăng!");
@@ -242,6 +274,7 @@ function PostsTab({
     }
     setBusy(false);
   };
+
 
   return (
     <div className="flex flex-col gap-2 min-w-0">

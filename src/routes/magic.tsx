@@ -1048,6 +1048,23 @@ function MagicPage() {
 
 
   const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
+
+  // Khi màn hình chọn khu vực đang mở: nhả khoá chuột để bấm chọn bằng chuột ngay,
+  // không cần nhấn Esc. Giữ nhả liên tục phòng khi con trỏ bị khoá lại.
+  useEffect(() => {
+    if (selectedArea !== null) return;
+    const release = () => {
+      if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
+    };
+    release();
+    const t = setInterval(release, 300);
+    document.addEventListener("pointerlockchange", release);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("pointerlockchange", release);
+    };
+  }, [selectedArea]);
+
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
     if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI

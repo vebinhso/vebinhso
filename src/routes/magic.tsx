@@ -1582,8 +1582,9 @@ function MagicPage() {
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
                 spawnRef={corridorSpawnRef}
               />
-              {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
-              {!modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
+              {selectedArea !== null && !modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
+              {selectedArea !== null && !modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
+
             </>
           ) : stage === "transition" ? (
             <>

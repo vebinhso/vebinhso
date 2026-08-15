@@ -1074,18 +1074,8 @@ function MagicPage() {
       setS2Inv(saved.s2Inv || { shield: false, potion: 0 });
       setCoins(saved.coins || 0);
       setStage2Unlocked(!!saved.stage2Unlocked || saved.stage === 2);
-      // Khôi phục khu vực đã chọn lần trước (nếu có) — và reset trạng thái phòng để có thể chơi lại
-      if (saved.selectedArea === 1 || saved.selectedArea === 2) {
-        if (saved.selectedArea === 1) {
-          setDoors(Array(10).fill("closed"));
-          setStage(1);
-        } else {
-          setS2Doors(Array(5).fill("closed"));
-          setS2Inv({ shield: false, potion: 0 });
-          setStage(2);
-        }
-        setSelectedArea(saved.selectedArea);
-      }
+      // Luôn mở màn hình chọn khu vực khi mới vào (không tự vào map đã chơi).
+
     }
     setHydrated(true);
   }, [navigate]);

@@ -146,7 +146,7 @@ function CharacterPage() {
 
           <div className="mb-4 flex flex-col items-center gap-2">
             <div className="w-24 h-24 rounded-full bg-white/70 border-2 border-black/20 overflow-hidden flex items-center justify-center text-4xl">
-              {avatarUrl ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🏠"}
+              {avatarUrl ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <img src={houseAvatar.url} alt="Vệ Binh Số" className="w-full h-full object-contain" />}
             </div>
             <PasteDropZone onFile={uploadAvatarFile} className="p-2" hint="Ctrl+V để dán ảnh · hoặc kéo thả ảnh vào đây">
               <label className="toy-button !text-sm py-2 px-4 cursor-pointer">

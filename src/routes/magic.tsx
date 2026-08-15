@@ -1618,8 +1618,9 @@ function MagicPage() {
                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5 && !animalQuiz) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
                spawnRef={s2SpawnRef}
              />
-             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
-             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
+             {selectedArea !== null && !s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
+             {selectedArea !== null && !s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
+
             </>
           )}
         </Suspense>

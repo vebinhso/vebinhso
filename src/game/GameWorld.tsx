@@ -1034,7 +1034,8 @@ export default function GameWorld(props: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Máy yếu / điện thoại: giảm độ phân giải render, tắt bóng đổ và khử răng cưa.
+  // Điện thoại / máy yếu: vẫn render nét (dpr cao) nhưng tắt bóng đổ + khử răng cưa
+  // để bù chi phí; AdaptiveDpr sẽ tự hạ độ phân giải khi khung hình tụt.
   const isLowEnd = useMemo(
     () =>
       typeof navigator !== "undefined" &&
@@ -1044,14 +1045,22 @@ export default function GameWorld(props: Props) {
     []
   );
 
+  const maxDpr = useMemo(() => {
+    const device = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    return isLowEnd ? Math.min(device, 2) : Math.min(device, 2);
+  }, [isLowEnd]);
+
   return (
     <Canvas
       shadows={isLowEnd ? false : "soft"}
       camera={{ position: [0, 18, 28], fov: 55 }}
-      dpr={isLowEnd ? 1 : [1, 1.25]}
-      performance={{ min: 0.3 }}
+      dpr={[1, maxDpr]}
+      performance={{ min: 0.5 }}
       gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.28 }}
     >
+      <AdaptiveDpr pixelated={false} />
+      <AdaptiveEvents />
+
       {/* Solid sky-blue background so the canvas never flashes white before Sky finishes loading */}
       <color attach="background" args={["#a7d8f5"]} />
 

@@ -1048,6 +1048,23 @@ function MagicPage() {
 
 
   const [intro, setIntro] = useState<0 | 1 | 2 | 3>(0);
+
+  // Khi màn hình chọn khu vực đang mở: nhả khoá chuột để bấm chọn bằng chuột ngay,
+  // không cần nhấn Esc. Giữ nhả liên tục phòng khi con trỏ bị khoá lại.
+  useEffect(() => {
+    if (selectedArea !== null) return;
+    const release = () => {
+      if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
+    };
+    release();
+    const t = setInterval(release, 300);
+    document.addEventListener("pointerlockchange", release);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("pointerlockchange", release);
+    };
+  }, [selectedArea]);
+
   useEffect(() => {
     if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
     if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
@@ -1074,18 +1091,8 @@ function MagicPage() {
       setS2Inv(saved.s2Inv || { shield: false, potion: 0 });
       setCoins(saved.coins || 0);
       setStage2Unlocked(!!saved.stage2Unlocked || saved.stage === 2);
-      // Khôi phục khu vực đã chọn lần trước (nếu có) — và reset trạng thái phòng để có thể chơi lại
-      if (saved.selectedArea === 1 || saved.selectedArea === 2) {
-        if (saved.selectedArea === 1) {
-          setDoors(Array(10).fill("closed"));
-          setStage(1);
-        } else {
-          setS2Doors(Array(5).fill("closed"));
-          setS2Inv({ shield: false, potion: 0 });
-          setStage(2);
-        }
-        setSelectedArea(saved.selectedArea);
-      }
+      // Luôn mở màn hình chọn khu vực khi mới vào (không tự vào map đã chơi).
+
     }
     setHydrated(true);
   }, [navigate]);
@@ -1592,8 +1599,9 @@ function MagicPage() {
                 onExitCross={() => { setStage2Unlocked(true); setStage("transition"); setTransStart(Date.now()); }}
                 spawnRef={corridorSpawnRef}
               />
-              {!modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
-              {!modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
+              {selectedArea !== null && !modal && !won && !animalQuiz && intro === 3 && <PointerLockControls />}
+              {selectedArea !== null && !modal && !won && !animalQuiz && intro === 3 && <TouchLookControls />}
+
             </>
           ) : stage === "transition" ? (
             <>
@@ -1627,8 +1635,9 @@ function MagicPage() {
                onGhostHit={() => { if (!ghostQuiz && !s2Modal && !room5Open && !witch && !quiz5 && !animalQuiz) { if (document.exitPointerLock) document.exitPointerLock(); setGhostQuiz(randomQuestion()); } }}
                spawnRef={s2SpawnRef}
              />
-             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
-             {!s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
+             {selectedArea !== null && !s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <PointerLockControls />}
+             {selectedArea !== null && !s2Modal && !room5Open && !witch && !quiz5 && !ghostQuiz && !animalQuiz && <TouchLookControls />}
+
             </>
           )}
         </Suspense>

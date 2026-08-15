@@ -16,6 +16,7 @@ import {
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
 import { AnnotatedImagePanel } from "@/components/AnnotatedImagePanel";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import LoadingPercent from "@/components/LoadingPercent";
 
 
 type Tab = "announcement" | "material" | "assignment" | "people";
@@ -198,6 +199,7 @@ function PostsTab({
 }) {
   const [posts, setPosts] = useState<ClassPost[]>([]);
   const [busy, setBusy] = useState(false);
+  const [upPct, setUpPct] = useState(0);
   const [openForm, setOpenForm] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -214,9 +216,10 @@ function PostsTab({
   const save = async () => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
     setBusy(true);
+    setUpPct(0);
     try {
       let fileUrl: string | undefined;
-      if (file) fileUrl = await uploadClassFile(classId, file);
+      if (file) fileUrl = await uploadClassFile(classId, file, setUpPct);
       await createClassPost({
         classId,
         kind,
@@ -282,6 +285,7 @@ function PostsTab({
               <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
                 <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
               </PasteDropZone>
+              {busy && <LoadingPercent percent={upPct} done={upPct >= 100} light={false} />}
               <button
                 onClick={save}
                 disabled={busy}
@@ -289,6 +293,7 @@ function PostsTab({
               >
                 {busy ? "Đang đăng..." : "📤 Đăng"}
               </button>
+
             </div>
           )}
         </div>
@@ -322,6 +327,7 @@ function PostCard({
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [upPct, setUpPct] = useState(0);
 
   const loadSubs = () => listSubmissions(post.id).then(setSubs).catch(() => setSubs([]));
   useEffect(() => {
@@ -331,11 +337,12 @@ function PostCard({
 
   const doSubmit = async () => {
     setBusy(true);
+    setUpPct(0);
     try {
       let fileUrl: string | undefined;
       let fileName: string | undefined;
       if (file) {
-        fileUrl = await uploadClassFile(post.class_id, file);
+        fileUrl = await uploadClassFile(post.class_id, file, setUpPct);
         fileName = file.name;
       }
       await submitAssignment({ postId: post.id, classId: post.class_id, fileUrl, fileName, note });
@@ -436,6 +443,7 @@ function PostCard({
                     placeholder="Ghi chú (tuỳ chọn)"
                     className="px-2 py-1 rounded-lg border-2 border-gray-200 text-xs"
                   />
+                  {busy && <LoadingPercent percent={upPct} done={upPct >= 100} light={false} />}
                   <button
                     onClick={doSubmit}
                     disabled={busy}

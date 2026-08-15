@@ -251,7 +251,7 @@ function Home() {
       <header className="flex items-start justify-between p-4 md:p-6 gap-3">
         <div className="glass-card px-5 py-3 flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-4 border-white flex items-center justify-center text-2xl overflow-hidden">
-            {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🐕"}
+            {user.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : "🏠"}
           </div>
           <div>
             <h1 className="text-lg font-black leading-tight flex items-center gap-2">
@@ -400,7 +400,7 @@ function Home() {
               <div className="mt-3 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl p-3 border-2 border-orange-300">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-lg border-2 border-white">
-                    🐕
+                    🏠
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-sm truncate">{found.username}</div>
@@ -421,7 +421,7 @@ function Home() {
 
         <div className="flex-1 flex flex-col items-center justify-end gap-4">
           <div className="text-9xl drop-shadow-lg animate-bounce" style={{ animationDuration: "3s" }}>
-            🐕
+            🏠
           </div>
           <Link to="/experience" className="toy-button toy-button-primary">
             TRẢI NGHIỆM

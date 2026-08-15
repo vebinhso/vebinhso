@@ -216,6 +216,7 @@ function PostsTab({
   const save = async () => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
     setBusy(true);
+    setUpPct(0);
     try {
       let fileUrl: string | undefined;
       if (file) fileUrl = await uploadClassFile(classId, file, setUpPct);
@@ -336,6 +337,7 @@ function PostCard({
 
   const doSubmit = async () => {
     setBusy(true);
+    setUpPct(0);
     try {
       let fileUrl: string | undefined;
       let fileName: string | undefined;

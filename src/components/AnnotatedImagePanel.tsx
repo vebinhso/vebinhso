@@ -339,10 +339,11 @@ function Editor({
     try {
       let path: string | null | undefined = undefined;
       if (file) {
-        setProgress(25);
-        path = await uploadClassFile(classId, file);
+        setProgress(15);
+        // % thật khi tải ảnh lên (chiếm 15% → 85%)
+        path = await uploadClassFile(classId, file, (p) => setProgress(15 + Math.round(p * 0.7)));
       }
-      setProgress(70);
+      setProgress(85);
       await saveAnnotatedImage({
         ...(row?.id ? { id: row.id } : {}),
         classId,

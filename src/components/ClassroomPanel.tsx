@@ -282,6 +282,7 @@ function PostsTab({
               <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
                 <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
               </PasteDropZone>
+              {busy && <LoadingPercent percent={upPct} done={upPct >= 100} light={false} />}
               <button
                 onClick={save}
                 disabled={busy}
@@ -289,6 +290,7 @@ function PostsTab({
               >
                 {busy ? "Đang đăng..." : "📤 Đăng"}
               </button>
+
             </div>
           )}
         </div>

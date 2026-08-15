@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";

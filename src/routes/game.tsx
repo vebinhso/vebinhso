@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentUser, recordLoginDay, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";

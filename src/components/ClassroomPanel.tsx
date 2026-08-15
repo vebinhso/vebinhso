@@ -206,6 +206,9 @@ function PostsTab({
   const [linkUrl, setLinkUrl] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
 
   const reload = () => listClassPosts(classId, kind).then(setPosts).catch(() => setPosts([]));
   useEffect(() => {
@@ -213,20 +216,46 @@ function PostsTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId, kind]);
 
+  const pickFile = async (f: File | null) => {
+    setFile(f);
+    setUploadedUrl(null);
+    setPreviewReady(false);
+    setUpPct(0);
+    if (!f) return;
+    setUploading(true);
+    try {
+      const url = await uploadClassFile(classId, f, setUpPct);
+      setUpPct(100);
+      const isImg = /^image\//.test(f.type);
+      if (isImg) {
+        await new Promise<void>((res) => {
+          const img = new Image();
+          img.onload = () => res();
+          img.onerror = () => res();
+          img.src = url;
+        });
+      }
+      setUploadedUrl(url);
+      setPreviewReady(true);
+    } catch (e: any) {
+      toast.error(e?.message || "Tải tài liệu thất bại");
+      setFile(null);
+    }
+    setUploading(false);
+  };
+
   const save = async () => {
     if (!title.trim()) return toast.error("Nhập tiêu đề");
+    if (file && !uploadedUrl) return toast.error("Tài liệu chưa tải xong");
     setBusy(true);
-    setUpPct(0);
     try {
-      let fileUrl: string | undefined;
-      if (file) fileUrl = await uploadClassFile(classId, file, setUpPct);
       await createClassPost({
         classId,
         kind,
         title: title.trim(),
         content,
         linkUrl,
-        fileUrl,
+        fileUrl: uploadedUrl ?? undefined,
         dueAt: kind === "assignment" && dueAt ? new Date(dueAt).toISOString() : null,
       });
       setTitle("");
@@ -234,6 +263,9 @@ function PostsTab({
       setLinkUrl("");
       setDueAt("");
       setFile(null);
+      setUploadedUrl(null);
+      setPreviewReady(false);
+      setUpPct(0);
       setOpenForm(false);
       reload();
       toast.success("Đã đăng!");
@@ -242,6 +274,7 @@ function PostsTab({
     }
     setBusy(false);
   };
+
 
   return (
     <div className="flex flex-col gap-2 min-w-0">
@@ -282,17 +315,34 @@ function PostsTab({
                   />
                 </label>
               )}
-              <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
-                <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+              <PasteDropZone onFile={(f) => void pickFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
+                <input type="file" onChange={(e) => void pickFile(e.target.files?.[0] ?? null)} className="text-xs" />
               </PasteDropZone>
-              {busy && <LoadingPercent percent={upPct} done={upPct >= 100} light={false} />}
-              <button
-                onClick={save}
-                disabled={busy}
-                className="toy-button toy-button-primary text-sm justify-center disabled:opacity-50"
-              >
-                {busy ? "Đang đăng..." : "📤 Đăng"}
-              </button>
+              {(uploading || (file && !previewReady)) && (
+                <LoadingPercent percent={upPct} done={upPct >= 100 && previewReady} light={false} />
+              )}
+              {uploadedUrl && previewReady && (
+                <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-2">
+                  <div className="text-[11px] font-black text-emerald-700 mb-1">✅ Đã tải xong 100% — tài liệu sẵn sàng</div>
+                  {/^image\//.test(file?.type || "") ? (
+                    <img src={uploadedUrl} alt={file?.name || "tài liệu"} className="max-h-52 w-auto rounded-lg" />
+                  ) : (
+                    <a href={uploadedUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 underline break-all">
+                      📄 {file?.name}
+                    </a>
+                  )}
+                </div>
+              )}
+              {(!file || (uploadedUrl && previewReady)) && (
+                <button
+                  onClick={save}
+                  disabled={busy}
+                  className="toy-button toy-button-primary text-sm justify-center disabled:opacity-50"
+                >
+                  {busy ? "Đang đăng..." : "📤 Đăng"}
+                </button>
+              )}
+
 
             </div>
           )}

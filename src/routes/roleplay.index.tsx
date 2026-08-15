@@ -99,15 +99,8 @@ const LESSONS: Lesson[] = [
     to: "/roleplay/ba-ve-lien-ke",
     poster: FILM5_POSTER,
   },
-  {
-    id: "history",
-    emoji: "🏯",
-    title: "Bài 6 · Sứ giả thời gian",
-    desc: "Quay về một mốc lịch sử và đưa ra lựa chọn của người trong cuộc.",
-    tag: "Lịch sử – Văn hoá",
-    gradient: "from-fuchsia-500 to-purple-700",
-    ready: false,
-  },
+
+
 
   {
     id: "ai",

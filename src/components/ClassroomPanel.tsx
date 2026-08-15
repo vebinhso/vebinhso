@@ -315,17 +315,34 @@ function PostsTab({
                   />
                 </label>
               )}
-              <PasteDropZone onFile={(f) => setFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
-                <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-xs" />
+              <PasteDropZone onFile={(f) => void pickFile(f)} accept={() => true} className="p-2 border-2 border-dashed border-gray-200">
+                <input type="file" onChange={(e) => void pickFile(e.target.files?.[0] ?? null)} className="text-xs" />
               </PasteDropZone>
-              {busy && <LoadingPercent percent={upPct} done={upPct >= 100} light={false} />}
-              <button
-                onClick={save}
-                disabled={busy}
-                className="toy-button toy-button-primary text-sm justify-center disabled:opacity-50"
-              >
-                {busy ? "Đang đăng..." : "📤 Đăng"}
-              </button>
+              {(uploading || (file && !previewReady)) && (
+                <LoadingPercent percent={upPct} done={upPct >= 100 && previewReady} light={false} />
+              )}
+              {uploadedUrl && previewReady && (
+                <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-2">
+                  <div className="text-[11px] font-black text-emerald-700 mb-1">✅ Đã tải xong 100% — tài liệu sẵn sàng</div>
+                  {/^image\//.test(file?.type || "") ? (
+                    <img src={uploadedUrl} alt={file?.name || "tài liệu"} className="max-h-52 w-auto rounded-lg" />
+                  ) : (
+                    <a href={uploadedUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 underline break-all">
+                      📄 {file?.name}
+                    </a>
+                  )}
+                </div>
+              )}
+              {(!file || (uploadedUrl && previewReady)) && (
+                <button
+                  onClick={save}
+                  disabled={busy}
+                  className="toy-button toy-button-primary text-sm justify-center disabled:opacity-50"
+                >
+                  {busy ? "Đang đăng..." : "📤 Đăng"}
+                </button>
+              )}
+
 
             </div>
           )}

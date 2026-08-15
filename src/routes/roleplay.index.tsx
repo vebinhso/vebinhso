@@ -237,7 +237,9 @@ function RoleplayPage() {
                         <img
                           src={l.poster}
                           alt={l.title}
-                          loading="lazy"
+                          loading="eager"
+                          decoding="async"
+
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />

@@ -109,14 +109,74 @@ export async function submitAssignment(p: {
   if (error) throw error;
 }
 
-/** Tải tệp lên kho "classroom", trả về đường dẫn nội bộ. */
-export async function uploadClassFile(classId: string, file: File): Promise<string> {
-  const safe = file.name.replace(/[^\w.\-]+/g, "_");
+/** Nén ảnh phía trình duyệt trước khi tải lên (nhanh hơn nhiều, vẫn nét). */
+export async function compressImage(file: File, maxDim = 1800, quality = 0.85): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  if (file.size < 400 * 1024) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/jpeg", quality));
+    if (!blob || blob.size >= file.size) return file;
+    const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+    return new File([blob], name, { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
+function putWithProgress(url: string, file: File, onProgress?: (p: number) => void) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url, true);
+    xhr.setRequestHeader("content-type", file.type || "application/octet-stream");
+    xhr.timeout = 120_000;
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300
+        ? resolve()
+        : reject(new Error(`Tải tệp thất bại (${xhr.status})`));
+    xhr.onerror = () => reject(new Error("Mất kết nối khi tải tệp"));
+    xhr.ontimeout = () => reject(new Error("Tải tệp quá lâu, thử lại nhé"));
+    xhr.send(file);
+  });
+}
+
+/** Tải tệp lên kho "classroom", trả về đường dẫn nội bộ. Có % tiến trình thật. */
+export async function uploadClassFile(
+  classId: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<string> {
+  const prepared = await compressImage(file);
+  const safe = prepared.name.replace(/[^\w.\-]+/g, "_");
   const path = `${classId}/${Date.now()}_${safe}`;
-  const { error } = await supabase.storage.from("classroom").upload(path, file, { upsert: false });
+
+  // Ưu tiên tải qua URL ký sẵn để đọc được % tiến trình thật.
+  const signed = await supabase.storage.from("classroom").createSignedUploadUrl(path);
+  if (!signed.error && signed.data?.signedUrl) {
+    await putWithProgress(signed.data.signedUrl, prepared, onProgress);
+    onProgress?.(100);
+    return path;
+  }
+
+  const { error } = await supabase.storage.from("classroom").upload(path, prepared, { upsert: false });
   if (error) throw error;
+  onProgress?.(100);
   return path;
 }
+
 
 /** Link tải tạm thời (kho riêng tư). */
 export async function signedUrl(path: string): Promise<string | null> {

@@ -15,6 +15,8 @@ export type Question = {
   category?: string; // "digital" | "history"
   competencyLevel?: number | null; // 1..8
   competencyDomain?: number | null; // 1..6
+  /** Câu này đang xuất hiện lại do lần trước trả lời sai. */
+  isRetry?: boolean;
   /** Mapping displayIndex -> originalIndex (in DB `choices` order). Present when answers were shuffled. */
   optionOrder?: number[];
 };
@@ -28,6 +30,9 @@ let CLASS_QUEUE: number[] = []; // hàng đợi index trong QUESTION_CACHE
 let PRIORITY_MODE = false;
 let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
+/** Lớp học: id đã trả lời đúng (không hiện lại) và id đang chờ làm lại. */
+let CLASS_DONE = new Set<string>();
+let CLASS_RETRY = new Set<string>();
 const MAX_RECENT = 20;
 
 export async function loadCategoryToggles(): Promise<{ digital: boolean; history: boolean }> {
@@ -121,6 +126,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     QUESTION_CACHE = enabledOnly;
     CLASS_MODE = !!activeClassId;
     CLASS_QUEUE = [];
+    CLASS_DONE = new Set();
+    CLASS_RETRY = new Set();
     RECENT_IDS = [];
     return enabledOnly;
   } catch (e) {
@@ -236,8 +243,30 @@ export function randomQuestion(): Question {
       }
       CLASS_QUEUE = idx;
     }
-    const next = CLASS_QUEUE.shift()!;
-    return withShuffledChoices(arr[next] ?? arr[0]);
+    let picked: Question | null = null;
+    let guard = 0;
+    while (guard++ < arr.length * 2 + 5) {
+      if (CLASS_QUEUE.length === 0) {
+        const idx = arr.map((_, i) => i);
+        for (let i = idx.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [idx[i], idx[j]] = [idx[j], idx[i]];
+        }
+        CLASS_QUEUE = idx;
+        // Hết vòng: các câu sai sẽ được làm lại ở vòng mới
+        if (CLASS_DONE.size >= arr.length) CLASS_DONE = new Set();
+      }
+      const next = CLASS_QUEUE.shift()!;
+      const cand = arr[next];
+      if (!cand) continue;
+      if (cand.id && CLASS_DONE.has(cand.id)) continue;
+      picked = cand;
+      break;
+    }
+    const chosen = picked ?? arr[0];
+    const out = withShuffledChoices(chosen);
+    out.isRetry = !!(chosen.id && CLASS_RETRY.has(chosen.id));
+    return out;
   }
 
   const digitalOn = CAT_TOGGLES.digital;
@@ -397,7 +426,7 @@ function nextFrameworkQuestion(pool: Question[], cat: string): Question | null {
     const q = pool.find((x) => x.id === id);
     if (!q) { st.pos++; continue; }
     saveQueueState(cat, st);
-    return q;
+    return { ...q, isRetry: (st.retry[id] ?? 0) > 0 };
   }
   return null;
 }
@@ -407,7 +436,20 @@ function nextFrameworkQuestion(pool: Question[], cat: string): Question | null {
  * Gọi ngay sau gradeAnswer với câu hỏi đã dùng.
  */
 export function reportAnswerResult(question: Question | null | undefined, correct: boolean) {
-  if (!question?.id || typeof question.competencyLevel !== "number") return;
+  if (!question?.id) return;
+  if (CLASS_MODE) {
+    if (correct) {
+      CLASS_DONE.add(question.id);
+      CLASS_RETRY.delete(question.id);
+    } else {
+      CLASS_RETRY.add(question.id);
+      // đưa lại vào hàng đợi để xuất hiện lại
+      const i = getQuestions().findIndex((x) => x.id === question.id);
+      if (i >= 0) CLASS_QUEUE.splice(Math.min(CLASS_QUEUE.length, 3), 0, i);
+    }
+    return;
+  }
+  if (typeof question.competencyLevel !== "number") return;
   const cat = question.category === "digital" ? "digital" : "history";
   const st = loadQueueState(cat);
   if (!st) return;

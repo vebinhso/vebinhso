@@ -44,6 +44,13 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
 
   return (
     <div className="w-full">
+      {question.isRetry && (
+        <div className="flex justify-center mb-2">
+          <span className="px-3 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-800 text-xs md:text-sm font-black">
+            🔁 Câu hỏi thử lại
+          </span>
+        </div>
+      )}
       <h3 className={`${qSize} font-black mb-3 text-center leading-snug whitespace-normal break-words`}>
         {question.q}
       </h3>

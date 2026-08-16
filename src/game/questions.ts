@@ -17,6 +17,10 @@ export type Question = {
   competencyDomain?: number | null; // 1..6
   /** Câu này đang xuất hiện lại do lần trước trả lời sai. */
   isRetry?: boolean;
+  /** Số lần câu này đã xuất hiện lại (1 = lần thử lại đầu tiên). */
+  retryCount?: number;
+  /** Số đáp án đúng (không lộ đáp án nào). >1 => cho chọn nhiều. */
+  correctCount?: number;
   /** Mapping displayIndex -> originalIndex (in DB `choices` order). Present when answers were shuffled. */
   optionOrder?: number[];
 };
@@ -32,7 +36,7 @@ let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, histo
 let RECENT_IDS: string[] = [];
 /** Lớp học: id đã trả lời đúng (không hiện lại) và id đang chờ làm lại. */
 let CLASS_DONE = new Set<string>();
-let CLASS_RETRY = new Set<string>();
+let CLASS_RETRY = new Map<string, number>();
 const MAX_RECENT = 20;
 
 export async function loadCategoryToggles(): Promise<{ digital: boolean; history: boolean }> {
@@ -81,7 +85,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }, , , activeClassId] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,created_at,updated_at")
+        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,correct_count,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -119,6 +123,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         category: cat,
         competencyLevel: cl,
         competencyDomain: cd,
+        correctCount: typeof row.correct_count === "number" ? row.correct_count : 1,
       };
     });
     void map;
@@ -127,7 +132,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     CLASS_MODE = !!activeClassId;
     CLASS_QUEUE = [];
     CLASS_DONE = new Set();
-    CLASS_RETRY = new Set();
+    CLASS_RETRY = new Map();
     RECENT_IDS = [];
     return enabledOnly;
   } catch (e) {
@@ -265,7 +270,9 @@ export function randomQuestion(): Question {
     }
     const chosen = picked ?? arr[0];
     const out = withShuffledChoices(chosen);
-    out.isRetry = !!(chosen.id && CLASS_RETRY.has(chosen.id));
+    const rc = chosen.id ? (CLASS_RETRY.get(chosen.id) ?? 0) : 0;
+    out.isRetry = rc > 0;
+    out.retryCount = rc;
     return out;
   }
 
@@ -426,7 +433,7 @@ function nextFrameworkQuestion(pool: Question[], cat: string): Question | null {
     const q = pool.find((x) => x.id === id);
     if (!q) { st.pos++; continue; }
     saveQueueState(cat, st);
-    return { ...q, isRetry: (st.retry[id] ?? 0) > 0 };
+    return { ...q, isRetry: (st.retry[id] ?? 0) > 0, retryCount: st.retry[id] ?? 0 };
   }
   return null;
 }
@@ -442,7 +449,7 @@ export function reportAnswerResult(question: Question | null | undefined, correc
       CLASS_DONE.add(question.id);
       CLASS_RETRY.delete(question.id);
     } else {
-      CLASS_RETRY.add(question.id);
+      CLASS_RETRY.set(question.id, (CLASS_RETRY.get(question.id) ?? 0) + 1);
       // đưa lại vào hàng đợi để xuất hiện lại
       const i = getQuestions().findIndex((x) => x.id === question.id);
       if (i >= 0) CLASS_QUEUE.splice(Math.min(CLASS_QUEUE.length, 3), 0, i);
@@ -459,7 +466,7 @@ export function reportAnswerResult(question: Question | null | undefined, correc
     st.pos++;
   } else {
     const times = st.retry[id] ?? 0;
-    if (times < 1) {
+    if (times < 5) {
       // Re-insert 3 vị trí phía sau để xuất hiện lại một lần trong CÙNG vòng
       st.retry[id] = times + 1;
       const insertAt = Math.min(st.order.length, st.pos + 3);

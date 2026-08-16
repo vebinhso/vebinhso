@@ -770,9 +770,15 @@ function GamePage() {
       };
       resultText = `✅ Chính xác! +${graded.reward}đ (🔥 streak ${state.answerStreak + 1})`;
     } else {
-      next = { ...state, answerStreak: 0, totalAnswered: state.totalAnswered + 1 };
+      const penalty = (question.retryCount ?? 0) > 0 ? 10 : 5;
+      next = {
+        ...state,
+        money: Math.max(0, state.money - penalty),
+        answerStreak: 0,
+        totalAnswered: state.totalAnswered + 1,
+      };
       const correctLabels = correctSet.map((i: number) => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join(" | ");
-      resultText = `❌ Sai rồi! Đáp án đúng: ${correctLabels}`;
+      resultText = `❌ Sai rồi! -${penalty}đ — Đáp án đúng: ${correctLabels}`;
     }
     setState(next);
     playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
@@ -830,7 +836,7 @@ function GamePage() {
     const ok = graded.isCorrect && picked.length === correctSet.length &&
       [...correctSet].sort().join(",") === [...picked].sort().join(",");
     reportAnswerResult(q, ok);
-    const delta = ok ? 10 : -5;
+    const delta = ok ? 10 : ((q.retryCount ?? 0) > 0 ? -10 : -5);
     const gained = boom.gained + delta;
     setState((s) => (s ? {
       ...s,

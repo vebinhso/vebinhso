@@ -12,7 +12,7 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
   const correctSet = question.correctIndexes && question.correctIndexes.length > 0
     ? question.correctIndexes
     : [question.answer];
-  const isMulti = correctSet.length > 1;
+  const isMulti = (question.correctCount ?? correctSet.length) > 1;
   const optImages = question.optionImages || [];
   const hasOptionImages = optImages.some((u) => u && u.length > 0);
 
@@ -47,7 +47,7 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
       {question.isRetry && (
         <div className="flex justify-center mb-2">
           <span className="px-3 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-800 text-xs md:text-sm font-black">
-            🔁 Câu hỏi thử lại
+            🔁 Câu hỏi thử lại{(question.retryCount ?? 0) > 1 ? ` (${question.retryCount})` : ""}
           </span>
         </div>
       )}

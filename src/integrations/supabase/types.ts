@@ -918,6 +918,7 @@ export type Database = {
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
+          correct_count: number | null
           correct_indexes: Json
           created_at: string
           enabled: boolean
@@ -937,6 +938,7 @@ export type Database = {
           class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
+          correct_count?: number | null
           correct_indexes?: Json
           created_at?: string
           enabled?: boolean
@@ -956,6 +958,7 @@ export type Database = {
           class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
+          correct_count?: number | null
           correct_indexes?: Json
           created_at?: string
           enabled?: boolean
@@ -1092,6 +1095,7 @@ export type Database = {
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
+          correct_count: number | null
           correct_indexes: Json
           created_at: string
           enabled: boolean
@@ -1120,6 +1124,7 @@ export type Database = {
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
+          correct_count: number | null
           correct_indexes: Json
           created_at: string
           enabled: boolean

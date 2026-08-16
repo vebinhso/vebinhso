@@ -1113,6 +1113,15 @@ function MagicPage() {
     saveGame({ ...g, money: g.money + n });
   };
 
+  /** Trả lời sai: -5đ, nếu là câu hỏi thử lại thì -10đ. */
+  const penalizeWrong = (q: Question | null | undefined) => {
+    const penalty = ((q?.retryCount ?? 0) > 0) ? 10 : 5;
+    setCoins((c) => Math.max(0, c - penalty));
+    const g = loadGame();
+    saveGame({ ...g, money: Math.max(0, g.money - penalty) });
+    return penalty;
+  };
+
   // Cộng / reset số câu hỏi trả lời đúng (DÙNG CHUNG với map nhà)
   const bumpQuestion = (isCorrect: boolean) => {
     const g = loadGame();
@@ -1248,6 +1257,7 @@ function MagicPage() {
     const graded = await gradeAnswer(animalQuiz.q, picked[0] ?? -1);
     const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     reportAnswerResult(animalQuiz.q, isCorrect);
+    if (!isCorrect) penalizeWrong(animalQuiz.q);
     const reward = isCorrect ? graded.reward : 0;
     if (reward) addCoins(reward);
     bumpQuestion(isCorrect);
@@ -1380,6 +1390,7 @@ function MagicPage() {
     const correctSet = graded.correctIndexes;
     const correct = graded.isCorrect && arraysEqualSet(picked, correctSet);
     reportAnswerResult(boss.question, correct);
+    if (!correct) penalizeWrong(boss.question);
     const g = loadGame();
     const correctLetters = correctSet.map((i: number) => String.fromCharCode(65 + i)).join(", ");
     const NEED = 5;
@@ -1452,6 +1463,7 @@ function MagicPage() {
     const graded = await gradeAnswer(ghostQuiz, picked[0] ?? -1);
     const correct = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     reportAnswerResult(ghostQuiz, correct);
+    if (!correct) penalizeWrong(ghostQuiz);
     if (correct) addCoins(20);
     bumpQuestion(correct);
     setGhostResult(correct ? "✅ Đúng!" : "❌ Sai rồi!");
@@ -1482,6 +1494,7 @@ function MagicPage() {
     const graded = await gradeAnswer(quiz5.q, picked[0] ?? -1);
     const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     reportAnswerResult(quiz5.q, isCorrect);
+    if (!isCorrect) penalizeWrong(quiz5.q);
     bumpQuestion(isCorrect);
     const nextCorrect = quiz5.correct + (isCorrect ? 1 : 0);
     const nextIdx = quiz5.idx + 1;
@@ -1517,6 +1530,7 @@ function MagicPage() {
     const graded = await gradeAnswer(q, picked[0] ?? -1);
     const isCorrect = graded.isCorrect && arraysEqualSet(picked, graded.correctIndexes);
     reportAnswerResult(q, isCorrect);
+    if (!isCorrect) penalizeWrong(q);
     bumpQuestion(isCorrect);
     const newHp = isCorrect ? Math.max(0, witch.hp - 20) : witch.hp;
     const newCorrect = witch.correct + (isCorrect ? 1 : 0);

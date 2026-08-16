@@ -983,7 +983,7 @@ function GamePage() {
 
       <DuelController
         ownerId={user.id}
-        me={{ userId: user.id, username: user.username, displayName: user.username, avatarUrl: null }}
+        me={{ userId: user.id, username: user.username, displayName: user.username, avatarUrl: user.avatarUrl ?? null }}
         onPayout={(delta) => {
           setState((s) => s ? {
             ...s,

@@ -48,7 +48,7 @@ type Props = {
   sparkles?: { id: string; x: number; z: number; at: number }[];
   onPlayerPos?: (x: number, z: number) => void;
   /** Click vào item đã đặt (khi không ở build/place mode) để mở panel chỉnh xoay/di chuyển. */
-  onItemClick?: (id: string) => void;
+  onItemClick?: (id: string, opts?: { localY?: number }) => void;
   /** id item đang được chỉnh — sẽ vẽ vòng highlight quanh nó. */
   editingId?: string | null;
   /** Map placedItemId → label cho biển tên nhà */

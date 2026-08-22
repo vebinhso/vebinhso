@@ -2,23 +2,17 @@ import s01 from "@/assets/film2/clean3/poster-user.png";
 import a02 from "@/assets/film2/audio/s02-narrator.mp3.asset.json";
 import a12 from "@/assets/film2/audio/s12-narrator.mp3.asset.json";
 import a03 from "@/assets/film2/audio/s03-narrator.mp3.asset.json";
-import a22 from "@/assets/film2/audio/s24-narrator.mp3.asset.json";
 import a11 from "@/assets/film2/audio/s11-narrator.mp3.asset.json";
 import a21 from "@/assets/film2/audio/s21-narrator.mp3.asset.json";
 import a14 from "@/assets/film2/audio/s14-narrator.mp3.asset.json";
 import a17 from "@/assets/film2/audio/s17-narrator.mp3.asset.json";
 import a20 from "@/assets/film2/audio/s20-narrator.mp3.asset.json";
-import a04 from "@/assets/film2/audio/s04-n.mp3.asset.json";
-import a15 from "@/assets/film2/audio/s16-n.mp3.asset.json";
-import a07 from "@/assets/film2/audio/s07-n.mp3.asset.json";
 import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
 import a18 from "@/assets/film2/audio/s19-k.mp3.asset.json";
 import a16 from "@/assets/film2/audio/s16-k.mp3.asset.json";
 import a05 from "@/assets/film2/audio/s05-k.mp3.asset.json";
-import a26 from "@/assets/film2/audio/s26-n.mp3.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
-import a13 from "@/assets/film2/audio/s13-n.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
 import s03 from "@/assets/film2/clean/s03.jpg";
 import s04 from "@/assets/film2/clean/s04.jpg";
@@ -181,7 +175,6 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Đưa máy lên tai, giọng lịch sự",
     text: "Alo, ai vậy dạ?",
-    audio: a04.url,
     motion: "kenburns",
     next: "s05",
   },
@@ -215,7 +208,6 @@ export const FILM: Record<string, FilmNode> = {
     id: "s07",
     image: s07,
     video: v07.url,
-    audio: a07.url,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng run",
     text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi. Cả đời tôi chưa từng bước chân vào đồn công an.",
@@ -302,7 +294,6 @@ export const FILM: Record<string, FilmNode> = {
     id: "s13",
     image: s13,
     video: v13.url,
-    audio: a13.url,
     speaker: "N",
     action: "Ngồi thẳng lại, nở nụ cười ranh mãnh",
     text: "Tôi cần thêm thời gian suy nghĩ, mà giờ tôi không có tiền, cán bộ có cho trả góp không à?",
@@ -336,7 +327,6 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Màn hình báo chuyển khoản thành công",
     text: "Tôi chuyển đủ ba trăm triệu rồi ạ, cán bộ kiểm tra giúp tôi với!",
-    audio: a15.url,
     motion: "push",
     mood: "danger",
     next: "s16",
@@ -422,7 +412,6 @@ export const FILM: Record<string, FilmNode> = {
     speaker: "N",
     action: "Số dư: 0 đồng",
     text: "Toàn bộ tiền trong tài khoản đã bị rút sạch. Số điện thoại kia giờ không còn tồn tại.",
-    audio: a22.url,
     motion: "shake",
     mood: "danger",
     ending: {
@@ -488,7 +477,6 @@ export const FILM: Record<string, FilmNode> = {
     id: "s26",
     image: s26,
     video: v26.url,
-    audio: a26.url,
     speaker: "N",
     action: "Giọng bình tĩnh, không sợ hãi",
     text: "Công an làm việc thì mời giấy về địa phương, chứ không làm việc qua điện thoại. Tôi cúp máy đây.",

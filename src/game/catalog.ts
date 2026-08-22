@@ -191,6 +191,19 @@ export function canStackOn(topperId: string, surfaceId: string): boolean {
   return STACK_TOPPERS.has(topperId) && STACK_SURFACES.has(surfaceId);
 }
 
+// Thảm / bãi cỏ / gạch lát — vật phẳng sát đất. Cho phép đặt vật khác
+// lên trên cùng vị trí (không tính là va chạm).
+export const FLAT_MATS = new Set<string>([
+  "grass", "rug", "tile_plain", "tile_waterproof", "tile_pattern", "tile_pattern_wp",
+]);
+
+export function isFlatMat(id: string): boolean {
+  if (FLAT_MATS.has(id)) return true;
+  const it = getItem(id);
+  return !!it && it.h <= 0.12;
+}
+
+
 // Chiều cao thực của mặt NÓC (đỉnh) của surface, đo từ đáy model.
 // Nếu không khai báo → dùng catalog.h.
 const SURFACE_TOP_Y: Record<string, number> = {

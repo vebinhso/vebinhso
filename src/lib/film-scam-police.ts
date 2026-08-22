@@ -11,6 +11,7 @@ import a07b from "@/assets/film2/audio/s07b-k.mp3.asset.json";
 import a18 from "@/assets/film2/audio/s19-k.mp3.asset.json";
 import a16 from "@/assets/film2/audio/s16-k.mp3.asset.json";
 import a05 from "@/assets/film2/audio/s05-k.mp3.asset.json";
+import a07n from "@/assets/film2/audio/s07-n.wav.asset.json";
 import a08 from "@/assets/film2/audio/s08-k.mp3.asset.json";
 import a09 from "@/assets/film2/audio/s09-k.mp3.asset.json";
 import s02 from "@/assets/film2/clean/s02.jpg";
@@ -80,6 +81,8 @@ export type FilmNode = {
   video?: string;
   /** Giọng đọc thu sẵn (ưu tiên hơn TTS) */
   audio?: string;
+  /** Ghi chú diễn xuất riêng cho cảnh này (nối thêm vào hướng dẫn giọng) */
+  voiceNote?: string;
   speaker: Speaker;
   action?: string;
   text: string;
@@ -115,17 +118,17 @@ export const SPEAKER_META: Record<
     color: "text-sky-300",
     voice: "nova",
     instructions:
-      "Nam trẻ 18–25 tuổi, giọng thân thiện, lễ phép, ngây thơ, tò mò và hơi rụt rè. Nói với tốc độ vừa, hơi chậm; hay đặt câu hỏi, ngập ngừng trước khi trả lời, có những khoảng ngắt ngắn. Khi sợ thì giọng run nhẹ và hụt hơi. Diễn biến cảm xúc: thoải mái → bối rối → lo lắng → hoảng sợ → nhẹ nhõm. Tuyệt đối không hung hăng.",
-    speed: 0.95,
-    pitch: 1.18,
-    rate: 0.96,
+      "Nam thanh niên Việt Nam 18–25 tuổi, giọng tự nhiên, nhẹ, hơi cao, lễ phép và chân thật như đang nói chuyện đời thường — KHÔNG đọc như phát thanh viên. Tốc độ vừa phải, có ngập ngừng ngắn, hơi thở nghe được, cuối câu hơi xuống giọng. Luôn giữ ĐÚNG MỘT tone giọng này cho mọi câu thoại của N; chỉ thay đổi sắc thái cảm xúc, không đổi chất giọng.",
+    speed: 0.98,
+    pitch: 1.12,
+    rate: 0.98,
   },
   narrator: {
     name: "Người dẫn chuyện",
     color: "text-amber-300",
     voice: "sage",
     instructions:
-      "Giọng trung tính 25–35 tuổi, điềm tĩnh, ấm, chuyên nghiệp, phát âm rõ ràng, đáng tin cậy theo phong cách phim tài liệu (National Geographic). Tốc độ vừa phải, chuyển ý mượt mà, nhấn nhá đúng chi tiết quan trọng. Khách quan, không diễn quá, không hoảng loạn, không la hét.",
+      "Người dẫn chuyện Việt Nam, giọng trung tính ấm, điềm tĩnh, chuyên nghiệp kiểu phim tài liệu; phát âm rõ, nhịp đều, ngắt nghỉ tự nhiên giữa các ý, nhấn nhẹ vào chi tiết quan trọng. Giữ NGUYÊN MỘT tone giọng thống nhất cho toàn bộ phim, không kịch tính hoá, không hoảng hốt, không lên giọng cuối câu.",
     speed: 1,
     pitch: 1,
     rate: 1,
@@ -173,6 +176,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s04,
     video: v04.url,
     speaker: "N",
+    voiceNote: "Giọng thoải mái, lịch sự, đời thường.",
     action: "Đưa máy lên tai, giọng lịch sự",
     text: "Alo, ai vậy dạ?",
     motion: "kenburns",
@@ -208,6 +212,7 @@ export const FILM: Record<string, FilmNode> = {
     id: "s07",
     image: s07,
     video: v07.url,
+    audio: a07n.url,
     speaker: "N",
     action: "Mồ hôi vã ra, giọng run",
     text: "Cán bộ ơi, chắc có nhầm lẫn gì rồi. Cả đời tôi chưa từng bước chân vào đồn công an.",
@@ -295,6 +300,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s13,
     video: v13.url,
     speaker: "N",
+    voiceNote: "Giọng bình tĩnh trở lại, hơi tinh nghịch, vẫn cùng chất giọng nam trẻ.",
     action: "Ngồi thẳng lại, nở nụ cười ranh mãnh",
     text: "Tôi cần thêm thời gian suy nghĩ, mà giờ tôi không có tiền, cán bộ có cho trả góp không à?",
     motion: "kenburns",
@@ -325,6 +331,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s15,
     video: v15.url,
     speaker: "N",
+    voiceNote: "Giọng run rẩy, hụt hơi, hoảng sợ nhưng vẫn giữ đúng chất giọng nam trẻ tự nhiên.",
     action: "Màn hình báo chuyển khoản thành công",
     text: "Tôi chuyển đủ ba trăm triệu rồi ạ, cán bộ kiểm tra giúp tôi với!",
     motion: "push",
@@ -410,6 +417,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s22,
     video: v22.url,
     speaker: "N",
+    voiceNote: "Giọng run mạnh, nghẹn lại, gần như khóc, vẫn giữ đúng chất giọng nam trẻ tự nhiên.",
     action: "Số dư: 0 đồng",
     text: "Toàn bộ tiền trong tài khoản đã bị rút sạch. Số điện thoại kia giờ không còn tồn tại.",
     motion: "shake",
@@ -439,6 +447,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s23,
     video: v23.url,
     speaker: "N",
+    voiceNote: "Giọng hơi run, ngập ngừng, cố tỏ ra bình tĩnh.",
     text: "Ủa cán bộ, máy tôi đang báo ứng dụng lạ, cần quét vi-rút ạ. Tôi chưa cài đâu.",
     motion: "kenburns",
     next: "s24",
@@ -459,6 +468,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s25,
     video: v25.url,
     speaker: "N",
+    voiceNote: "Giọng chắc, bình tĩnh, dứt khoát, vẫn cùng chất giọng nam trẻ.",
     action: "Bình tĩnh phản đòn",
     text: "Tôi đã ghi âm cuộc gọi này và sẽ trình báo cơ quan chức năng ngay bây giờ.",
     motion: "kenburns",
@@ -478,6 +488,7 @@ export const FILM: Record<string, FilmNode> = {
     image: s26,
     video: v26.url,
     speaker: "N",
+    voiceNote: "Giọng bình tĩnh, tự tin, không sợ hãi, vẫn cùng chất giọng nam trẻ.",
     action: "Giọng bình tĩnh, không sợ hãi",
     text: "Công an làm việc thì mời giấy về địa phương, chứ không làm việc qua điện thoại. Tôi cúp máy đây.",
     motion: "kenburns",
@@ -504,3 +515,13 @@ export const FILM: Record<string, FilmNode> = {
 };
 
 export const FILM_START = "s02";
+
+/** Tham số giọng đọc cho một cảnh (gộp hướng dẫn chung + ghi chú riêng của cảnh). */
+export function voiceArgs(node: FilmNode) {
+  const meta = SPEAKER_META[node.speaker];
+  return {
+    voice: meta.voice,
+    instructions: node.voiceNote ? `${meta.instructions} ${node.voiceNote}` : meta.instructions,
+    speed: meta.speed,
+  };
+}

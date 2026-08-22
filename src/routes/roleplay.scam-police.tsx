@@ -13,6 +13,7 @@ import {
   FILM_SUMMARY_IMAGE,
   FILM_TITLE,
   SPEAKER_META,
+  voiceArgs,
   type FilmNode,
 } from "@/lib/film-scam-police";
 
@@ -106,7 +107,7 @@ function FilmPage() {
     }
     const p = n.audio
       ? Promise.resolve("")
-      : tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+      : tts({ data: { text: n.text, ...voiceArgs(n) } })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(n.id, a);
@@ -254,7 +255,7 @@ function FilmPage() {
           const pending = pendingRef.current.get(node.id);
           b64 = pending
             ? await pending
-            : ((await tts({ data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed } })) as { audio: string }).audio;
+            : ((await tts({ data: { text, ...voiceArgs(node) } })) as { audio: string }).audio;
           if (b64) cacheRef.current.set(node.id, b64);
         }
 
@@ -306,7 +307,7 @@ function FilmPage() {
 
     upcoming.forEach((n) => {
       if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
-        const p = tts({ data: { text: n.text, voice: SPEAKER_META[n.speaker].voice, instructions: SPEAKER_META[n.speaker].instructions, speed: SPEAKER_META[n.speaker].speed } })
+        const p = tts({ data: { text: n.text, ...voiceArgs(n) } })
           .then((r) => {
             const a = (r as { audio: string }).audio;
             cacheRef.current.set(n.id, a);

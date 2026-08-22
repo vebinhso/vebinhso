@@ -19,7 +19,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem, canStackOn, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, canStackOn, isFlatMat, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -485,6 +485,8 @@ function GamePage() {
       if (!pi) return false;
       if (isRoof(pi.id) || isRoof(it.id)) return false;
       if (pi.id === "window" || it.id === "window") return false;
+      // Thảm / bãi cỏ / gạch lát: cho phép đặt vật khác lên trên cùng vị trí
+      if (isFlatMat(pi.id) || isFlatMat(it.id)) return false;
       const ps = p.rotation % 2 === 1;
       const pw = ps ? pi.d : pi.w;
       const pd = ps ? pi.w : pi.d;
@@ -943,13 +945,21 @@ function GamePage() {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
             setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || "nhà bạn" });
           }}
-          onItemClick={(id) => {
+          onItemClick={(id, opts) => {
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;
             if (p.itemId === "sign") {
-              setSignEditId(id);
-              setSignDraft(signLabels[id] ?? "");
+              // Bấm đúng vào mặt bảng (phần chữ) → đổi tên.
+              // Bấm chỗ khác (cột, chân) → mở panel di chuyển / xoay.
+              const ly = opts?.localY;
+              if (ly == null || (ly >= 0.85 && ly <= 1.6)) {
+                setSignEditId(id);
+                setSignDraft(signLabels[id] ?? "");
+                return;
+              }
+              setEditingId(id);
+              setMoveMode(false);
               return;
             }
             setEditingId(id);

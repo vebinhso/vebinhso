@@ -973,7 +973,7 @@ function PlotAndPlacement({
               // Không ở build/place mode → mở panel chỉnh xoay/di chuyển
               if (!buildMode && !selected && onItemClick) {
                 e.stopPropagation();
-                onItemClick(p.id);
+                onItemClick(p.id, { localY: e.point.y - (yOffset + floorOffset) });
               }
             }}
           >

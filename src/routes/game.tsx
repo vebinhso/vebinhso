@@ -1091,7 +1091,7 @@ function GamePage() {
                   key={f}
                   onClick={() => tryGoFloor(f)}
                   className={`toy-button !text-[11px] !py-1 !px-2 shrink-0 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
-                  title={accessible ? `Lên tầng ${floorLabel(f)}` : `Cần lợp sàn tầng ${f - 1} trước`}
+                  title={accessible ? `Lên tầng ${floorLabel(f)}` : level < floorLevelReq(f) ? `Cần CẤP ${floorLevelReq(f)} để mở tầng ${f}` : `Cần lợp sàn tầng ${f - 1} trước`}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
                 </button>

@@ -1124,6 +1124,10 @@ function GamePage() {
           </button>
           <button
             onClick={() => {
+              if (!meetsFloorLevel) {
+                flash(`🔒 Cần đạt CẤP ${floorLevelReq(activeFloor)} để xây sàn ở tầng ${floorLabel(activeFloor)}.`, 2400);
+                return;
+              }
               if (!canEnterFloorMode) {
                 flash("Đặt ít nhất 4 cột bê tông trước khi xây sàn.");
                 return;
@@ -1136,10 +1140,12 @@ function GamePage() {
               setRoofPicks([]);
               setSelected(null);
             }}
-            className={`toy-button !text-sm !py-2 !px-4 ${floorMode ? "toy-button-green" : ""}`}
+            className={`toy-button !text-sm !py-2 !px-4 ${floorMode ? "toy-button-green" : ""} ${!meetsFloorLevel ? "opacity-70" : ""}`}
+            title={!meetsFloorLevel ? `Cần CẤP ${floorLevelReq(activeFloor)} để xây sàn tầng ${floorLabel(activeFloor)}` : ""}
           >
-            {floorMode ? `✅ Đang xây sàn (${floorPicks.length}/4)` : "🟫 XÂY SÀN"}
+            {!meetsFloorLevel ? `🔒 XÂY SÀN (CẤP ${floorLevelReq(activeFloor)})` : floorMode ? `✅ Đang xây sàn (${floorPicks.length}/4)` : "🟫 XÂY SÀN"}
           </button>
+
           <button
             onClick={() => {
               if (!floorOnThisFloor) {

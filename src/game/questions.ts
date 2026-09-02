@@ -129,14 +129,20 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     });
     void map;
     const enabledOnly = mapped.filter((q) => q.enabled !== false);
-    QUESTION_CACHE = enabledOnly;
+    // Chốt nguồn ngay lúc nạp: ngoài chế độ lớp học, khi ưu tiên được bật thì
+    // toàn bộ cache chỉ chứa câu trong zone ưu tiên. Vì vậy mọi nơi dùng cache
+    // đều không thể vô tình lấy hoặc fallback sang câu thường.
+    const activePool = !activeClassId && PRIORITY_MODE
+      ? enabledOnly.filter((q) => (q.priority ?? 0) > 0)
+      : enabledOnly;
+    QUESTION_CACHE = activePool;
     CLASS_MODE = !!activeClassId;
     CLASS_QUEUE = [];
     PRIORITY_CURSOR = 0;
     CLASS_DONE = new Set();
     CLASS_RETRY = new Map();
     RECENT_IDS = [];
-    return enabledOnly;
+    return activePool;
   } catch (e) {
     console.error("[questions] loadQuestionsFromDB failed", e);
     return QUESTION_CACHE;

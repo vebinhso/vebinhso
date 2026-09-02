@@ -278,48 +278,26 @@ export function randomQuestion(): Question {
 
   const digitalOn = CAT_TOGGLES.digital;
   const historyOn = CAT_TOGGLES.history;
+  const catOk = (q: Question) =>
+    q.category === "digital" ? digitalOn : historyOn;
 
-
-  // ƯU TIÊN là trên hết: khi bật, CHỈ dùng câu có priority > 0.
-  const scope = PRIORITY_MODE ? arr.filter((q) => (q.priority ?? 0) > 0) : arr;
-
-  // Mỗi chủ đề (nếu bật) chỉ dùng câu ĐÃ GẮN BẬC (1..8).
-  // Câu không bậc trong chủ đề đó sẽ KHÔNG hiện.
-  const hasLevel = (q: Question) =>
-    typeof q.competencyLevel === "number" && q.competencyLevel! >= 1 && q.competencyLevel! <= 8;
-  let digitalPool = digitalOn
-    ? scope.filter((q) => q.category === "digital" && hasLevel(q))
-    : [];
-  let historyPool = historyOn
-    ? scope.filter((q) => q.category !== "digital" && hasLevel(q))
-    : [];
-  // Fallback: nếu chủ đề không có câu nào gắn bậc (ví dụ câu hỏi giáo
-  // viên nhập vào lớp học chưa được phân loại bậc), dùng toàn bộ câu
-  // của chủ đề đó để học sinh vẫn có bài để làm.
-  if (digitalOn && digitalPool.length === 0) {
-    digitalPool = scope.filter((q) => q.category === "digital");
-  }
-  if (historyOn && historyPool.length === 0) {
-    historyPool = scope.filter((q) => q.category !== "digital");
+  // TRƯỜNG HỢP 1a — bật ưu tiên: CHỈ dùng câu ưu tiên, chạy vòng tròn tuần hoàn
+  // theo thứ tự ưu tiên, hết thì quay lại từ đầu.
+  if (PRIORITY_MODE) {
+    const pool = arr
+      .filter((q) => (q.priority ?? 0) > 0)
+      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+    if (pool.length === 0) return { q: "", options: [], answer: -1, reward: 0 };
+    if (PRIORITY_CURSOR >= pool.length) PRIORITY_CURSOR = 0;
+    const chosen = pool[PRIORITY_CURSOR];
+    PRIORITY_CURSOR = (PRIORITY_CURSOR + 1) % pool.length;
+    return withShuffledChoices(chosen);
   }
 
-  const tryDigital = () =>
-    digitalPool.length > 0 ? nextFrameworkQuestion(digitalPool, "digital") : null;
-  const tryHistory = () =>
-    historyPool.length > 0 ? nextFrameworkQuestion(historyPool, "history") : null;
-
-  // Nếu chỉ 1 chủ đề còn câu, chủ đề còn lại tự bị bỏ qua.
-  const bothHave = digitalPool.length > 0 && historyPool.length > 0;
-  const order: Array<() => Question | null> = bothHave
-    ? (Math.random() < 0.5 ? [tryDigital, tryHistory] : [tryHistory, tryDigital])
-    : [tryDigital, tryHistory];
-
-  for (const fn of order) {
-    const q = fn();
-    if (q) return withShuffledChoices(q);
-  }
-
-  // Không có câu hợp lệ (thiếu bậc / thiếu ưu tiên) — placeholder rỗng.
+  // TRƯỜNG HỢP 1b — không bật ưu tiên: đưa ngẫu nhiên bình thường.
+  const pool = arr.filter(catOk);
+  const chosen = pickAvoidingRecent(pool.length > 0 ? pool : arr);
+  if (chosen) return withShuffledChoices(chosen);
   return { q: "", options: [], answer: -1, reward: 0 };
 }
 

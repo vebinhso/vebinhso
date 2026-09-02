@@ -16,6 +16,7 @@ import {
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
 import { AnnotatedImagePanel } from "@/components/AnnotatedImagePanel";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import { RichTextEditor, RichText } from "@/components/RichTextEditor";
 import LoadingPercent from "@/components/LoadingPercent";
 
 

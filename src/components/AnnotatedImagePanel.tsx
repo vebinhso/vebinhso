@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import { RichTextEditor, RichText } from "@/components/RichTextEditor";
 import { uploadClassFile, getClassRoster, type RosterMember } from "@/lib/classroom-posts";
 import { suggestNote } from "@/lib/ai-note.functions";
 import {
@@ -375,12 +376,11 @@ function Editor({
         placeholder={kind === "material" ? "Tiêu đề học liệu (VD: Cấu tạo trái tim)" : "Tiêu đề bài tập"}
         className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
       />
-      <textarea
+      <RichTextEditor
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={2}
+        onChange={setDescription}
+        minHeight={64}
         placeholder="Mô tả chung (tuỳ chọn) — AI cũng dựa vào đây để đề xuất"
-        className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
       />
 
       {!preview ? (

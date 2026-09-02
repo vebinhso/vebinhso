@@ -175,7 +175,9 @@ function PinnedImage({
       {src ? (
         <img
           key={src}
+          ref={imgRef}
           src={src}
+
           alt="Ảnh học liệu có chú thích"
           decoding="async"
           // @ts-expect-error thuộc tính chuẩn của trình duyệt

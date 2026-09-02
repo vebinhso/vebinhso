@@ -726,10 +726,6 @@ function QuestionsPanel({
 
   async function addToPriority(q: AdminQuestion) {
     const maxP = list.reduce((m, x) => Math.max(m, x.priority || 0), 0);
-    const priorityCount = list.filter((x) => (x.priority || 0) > 0).length;
-    if (priorityCount >= 30) {
-      if (!confirm(`Zone ưu tiên đã có ${priorityCount} câu (khuyến nghị ≤30). Vẫn thêm?`)) return;
-    }
     try {
       await setQuestionPriority(q.id, maxP + 1);
       await reload();
@@ -1656,9 +1652,6 @@ function QuestionsPanel({
             <section>
               <div className="font-black mb-2 text-amber-700">
                 ⭐ Zone ưu tiên ({priorityList.length} câu)
-                {priorityList.length > 30 && (
-                  <span className="ml-2 text-red-600 text-xs">⚠️ Đã vượt 30 câu khuyến nghị</span>
-                )}
               </div>
               {priorityList.length === 0 ? (
                 <div className="text-sm font-bold text-muted-foreground italic bg-amber-50 border-2 border-dashed border-amber-200 rounded-xl p-3">

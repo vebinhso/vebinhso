@@ -32,6 +32,7 @@ let QUESTION_CACHE: Question[] = [];
 let CLASS_MODE = false;      // đang nhận câu hỏi của lớp
 let CLASS_QUEUE: number[] = []; // hàng đợi index trong QUESTION_CACHE
 let PRIORITY_MODE = false;
+let PRIORITY_CURSOR = 0;   // con trỏ vòng tròn cho chế độ ưu tiên
 let CAT_TOGGLES: { digital: boolean; history: boolean } = { digital: true, history: true };
 let RECENT_IDS: string[] = [];
 /** Lớp học: id đã trả lời đúng (không hiện lại) và id đang chờ làm lại. */
@@ -131,6 +132,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     QUESTION_CACHE = enabledOnly;
     CLASS_MODE = !!activeClassId;
     CLASS_QUEUE = [];
+    PRIORITY_CURSOR = 0;
     CLASS_DONE = new Set();
     CLASS_RETRY = new Map();
     RECENT_IDS = [];

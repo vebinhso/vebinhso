@@ -433,7 +433,7 @@ function PostCard({
 
       {open && (
         <div className="mt-2 flex flex-col gap-2 text-sm">
-          {post.content && <p className="whitespace-pre-wrap break-words">{post.content}</p>}
+          {post.content && <RichText value={post.content} />}
           {post.link_url && (
             <a
               href={post.link_url}

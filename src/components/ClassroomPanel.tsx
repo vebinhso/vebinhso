@@ -16,6 +16,7 @@ import {
 import { AiMaterialPanel } from "@/components/AiMaterialPanel";
 import { AnnotatedImagePanel } from "@/components/AnnotatedImagePanel";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import { RichTextEditor, RichText } from "@/components/RichTextEditor";
 import LoadingPercent from "@/components/LoadingPercent";
 
 
@@ -291,12 +292,10 @@ function PostsTab({
                 placeholder="Tiêu đề"
                 className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
               />
-              <textarea
+              <RichTextEditor
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={setContent}
                 placeholder="Mô tả / hướng dẫn"
-                rows={3}
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
               />
               <input
                 value={linkUrl}
@@ -435,7 +434,7 @@ function PostCard({
 
       {open && (
         <div className="mt-2 flex flex-col gap-2 text-sm">
-          {post.content && <p className="whitespace-pre-wrap break-words">{post.content}</p>}
+          {post.content && <RichText value={post.content} />}
           {post.link_url && (
             <a
               href={post.link_url}

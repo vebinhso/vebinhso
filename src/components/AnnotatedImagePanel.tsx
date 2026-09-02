@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import { RichTextEditor, RichText } from "@/components/RichTextEditor";
 import { uploadClassFile, getClassRoster, type RosterMember } from "@/lib/classroom-posts";
 import { suggestNote } from "@/lib/ai-note.functions";
 import {
@@ -322,11 +323,12 @@ function Editor({
           : { question: res.question || "", expected: res.expected || "" }),
       });
       setProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 550));
       toast.success("AI đã đề xuất nội dung!");
     } catch (e: any) {
       toast.error(e?.message || "Không gọi được AI");
     }
-    await new Promise((resolve) => setTimeout(resolve, 180));
+    await new Promise((resolve) => setTimeout(resolve, 120));
     setBusy(false);
     setProgress(0);
   };
@@ -355,12 +357,13 @@ function Editor({
         published,
       });
       setProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 550));
       toast.success(published ? "Đã đăng cho học sinh!" : "Đã lưu nháp");
       onDone();
     } catch (e: any) {
       toast.error(e?.message || "Lỗi khi lưu");
     }
-    await new Promise((resolve) => setTimeout(resolve, 180));
+    await new Promise((resolve) => setTimeout(resolve, 120));
     setBusy(false);
     setProgress(0);
   };
@@ -373,12 +376,11 @@ function Editor({
         placeholder={kind === "material" ? "Tiêu đề học liệu (VD: Cấu tạo trái tim)" : "Tiêu đề bài tập"}
         className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
       />
-      <textarea
+      <RichTextEditor
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={2}
+        onChange={setDescription}
+        minHeight={64}
         placeholder="Mô tả chung (tuỳ chọn) — AI cũng dựa vào đây để đề xuất"
-        className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
       />
 
       {!preview ? (
@@ -565,7 +567,7 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {row.description && <p className="text-sm whitespace-pre-wrap">{row.description}</p>}
+      {row.description && <RichText value={row.description} className="text-sm" />}
       {(
         <PinnedImage
           src={src}

@@ -75,11 +75,15 @@ export function LoadingPercent({
       last = now;
 
       const goal = autoRef.current ? (doneRef.current ? 100 : 99) : target.current;
-      const remaining = goal - value;
-      // tiến nhanh lúc đầu, bò chậm dần ở cuối để không đứng yên một chỗ
-      const ease = doneRef.current ? 140 : value < 70 ? 240 : value < 90 ? 900 : 3200;
-      value += remaining * Math.min(1, dt / ease);
-      if (doneRef.current && remaining < 0.3) value = 100;
+      if (doneRef.current) {
+        // Khi tác vụ đã hoàn tất phải hiện đúng 100% ngay, tránh bị tháo khỏi DOM ở 98–99%.
+        value = 100;
+      } else {
+        const remaining = goal - value;
+        // tiến nhanh lúc đầu, bò chậm dần ở cuối để không đứng yên một chỗ
+        const ease = value < 70 ? 240 : value < 90 ? 900 : 3200;
+        value += remaining * Math.min(1, dt / ease);
+      }
       if (value < 0) value = 0;
       if (value > 100) value = 100;
 

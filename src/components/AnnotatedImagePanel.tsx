@@ -133,10 +133,28 @@ function PinnedImage({
   error?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [state, setState] = useState<"loading" | "ok" | "error">(src ? "loading" : "ok");
   useEffect(() => {
-    setState(src ? "loading" : "ok");
+    if (!src) {
+      setState("ok");
+      return;
+    }
+    // Ảnh có sẵn trong cache có thể đã tải xong trước khi effect chạy => onLoad không bắn nữa.
+    const el = imgRef.current;
+    if (el?.complete && el.naturalWidth > 0) {
+      setState("ok");
+      return;
+    }
+    setState("loading");
+    // Chốt an toàn: không để thanh tải treo mãi.
+    const id = window.setTimeout(() => {
+      const cur = imgRef.current;
+      setState(cur?.complete && cur.naturalWidth > 0 ? "ok" : "ok");
+    }, 6000);
+    return () => window.clearTimeout(id);
   }, [src]);
+
   const view = error ? "error" : state;
   const activeIndex = notes.findIndex((n) => n.id === activeId);
   const activeNote = activeIndex >= 0 ? notes[activeIndex] : null;
@@ -157,7 +175,9 @@ function PinnedImage({
       {src ? (
         <img
           key={src}
+          ref={imgRef}
           src={src}
+
           alt="Ảnh học liệu có chú thích"
           decoding="async"
           // @ts-expect-error thuộc tính chuẩn của trình duyệt

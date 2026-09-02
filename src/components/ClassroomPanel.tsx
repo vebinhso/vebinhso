@@ -291,12 +291,10 @@ function PostsTab({
                 placeholder="Tiêu đề"
                 className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
               />
-              <textarea
+              <RichTextEditor
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={setContent}
                 placeholder="Mô tả / hướng dẫn"
-                rows={3}
-                className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
               />
               <input
                 value={linkUrl}

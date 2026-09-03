@@ -3,7 +3,10 @@ import { toast } from "sonner";
 import {
   listClassPosts,
   createClassPost,
+  updateClassPost,
   deleteClassPost,
+  markPostSeen,
+  isPostEditedSinceSeen,
   getClassRoster,
   listSubmissions,
   submitAssignment,
@@ -27,11 +30,13 @@ export function ClassroomPanel({
   canPost,
   compact,
   defaultTab,
+  classLabel,
 }: {
   classId: string;
   canPost: boolean;
   compact?: boolean;
   defaultTab?: Tab;
+  classLabel?: string;
 }) {
   const [tab, setTab] = useState<Tab>(defaultTab ?? "material");
   return (
@@ -57,23 +62,23 @@ export function ClassroomPanel({
       {tab === "people" ? (
         <PeopleTab classId={classId} />
       ) : tab === "material" ? (
-        <MaterialTab classId={classId} canPost={canPost} compact={compact} />
+        <MaterialTab classId={classId} canPost={canPost} compact={compact} classLabel={classLabel} />
       ) : tab === "assignment" ? (
-        <AssignmentTab classId={classId} canPost={canPost} compact={compact} />
+        <AssignmentTab classId={classId} canPost={canPost} compact={compact} classLabel={classLabel} />
       ) : (
-        <PostsTab classId={classId} kind={tab} canPost={canPost} compact={compact} />
+        <PostsTab classId={classId} kind={tab} canPost={canPost} compact={compact} classLabel={classLabel} />
       )}
     </div>
   );
 }
 
-function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
+function MaterialTab({ classId, canPost, compact, classLabel }: { classId: string; canPost: boolean; compact?: boolean; classLabel?: string }) {
   const [mode, setMode] = useState<"ai" | "classic" | "pin">("classic");
   if (!canPost) {
     // Học sinh: gộp tất cả học liệu vào một dòng chảy duy nhất
     return (
       <div className="flex flex-col gap-4 min-w-0">
-        <PostsTab classId={classId} kind="material" canPost={false} compact={compact} />
+        <PostsTab classId={classId} kind="material" canPost={false} compact={compact} classLabel={classLabel} />
         <AiMaterialPanel classId={classId} canPost={false} />
         <AnnotatedImagePanel classId={classId} canPost={false} kind="material" />
       </div>
@@ -112,7 +117,7 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
       ) : mode === "pin" ? (
         <AnnotatedImagePanel classId={classId} canPost={canPost} kind="material" />
       ) : (
-        <PostsTab classId={classId} kind="material" canPost={canPost} compact={compact} />
+        <PostsTab classId={classId} kind="material" canPost={canPost} compact={compact} classLabel={classLabel} />
       )}
 
     </div>
@@ -120,12 +125,12 @@ function MaterialTab({ classId, canPost, compact }: { classId: string; canPost: 
   );
 }
 
-function AssignmentTab({ classId, canPost, compact }: { classId: string; canPost: boolean; compact?: boolean }) {
+function AssignmentTab({ classId, canPost, compact, classLabel }: { classId: string; canPost: boolean; compact?: boolean; classLabel?: string }) {
   const [mode, setMode] = useState<"classic" | "pin">("classic");
   if (!canPost) {
     return (
       <div className="flex flex-col gap-4 min-w-0">
-        <PostsTab classId={classId} kind="assignment" canPost={false} compact={compact} />
+        <PostsTab classId={classId} kind="assignment" canPost={false} compact={compact} classLabel={classLabel} />
         <AnnotatedImagePanel classId={classId} canPost={false} kind="exercise" />
       </div>
     );
@@ -153,7 +158,7 @@ function AssignmentTab({ classId, canPost, compact }: { classId: string; canPost
       {mode === "pin" ? (
         <AnnotatedImagePanel classId={classId} canPost={canPost} kind="exercise" />
       ) : (
-        <PostsTab classId={classId} kind="assignment" canPost={canPost} compact={compact} />
+        <PostsTab classId={classId} kind="assignment" canPost={canPost} compact={compact} classLabel={classLabel} />
       )}
     </div>
   );
@@ -192,11 +197,13 @@ function PostsTab({
   kind,
   canPost,
   compact,
+  classLabel,
 }: {
   classId: string;
   kind: "material" | "assignment" | "announcement";
   canPost: boolean;
   compact?: boolean;
+  classLabel?: string;
 }) {
   const [posts, setPosts] = useState<ClassPost[]>([]);
   const [busy, setBusy] = useState(false);
@@ -211,7 +218,18 @@ function PostsTab({
   const [uploading, setUploading] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
 
-  const reload = () => listClassPosts(classId, kind).then(setPosts).catch(() => setPosts([]));
+  const reload = () =>
+    listClassPosts(classId, kind)
+      .then((rows) => {
+        setPosts(rows);
+        if (!canPost) {
+          const edited = rows.filter((p) => isPostEditedSinceSeen(p));
+          for (const p of edited) {
+            toast.info(`(${classLabel || "Lớp học"}) Giáo viên đã chỉnh sửa: ${p.title}`, { duration: 6000 });
+          }
+        }
+      })
+      .catch(() => setPosts([]));
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -354,7 +372,7 @@ function PostsTab({
         </p>
       )}
       {posts.map((p) => (
-        <PostCard key={p.id} post={p} canPost={canPost} onChanged={reload} compact={compact} />
+        <PostCard key={p.id} post={p} canPost={canPost} onChanged={reload} compact={compact} classLabel={classLabel} />
       ))}
     </div>
   );
@@ -365,13 +383,42 @@ function PostCard({
   canPost,
   onChanged,
   compact,
+  classLabel,
 }: {
   post: ClassPost;
   canPost: boolean;
   onChanged: () => void;
   compact?: boolean;
+  classLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [edited] = useState(() => (canPost ? false : isPostEditedSinceSeen(post)));
+  const [editing, setEditing] = useState(false);
+  const [eTitle, setETitle] = useState(post.title);
+  const [eContent, setEContent] = useState(post.content || "");
+  const [eLink, setELink] = useState(post.link_url || "");
+  const [eDue, setEDue] = useState(post.due_at ? new Date(post.due_at).toISOString().slice(0, 16) : "");
+  const [saving, setSaving] = useState(false);
+
+  const saveEdit = async () => {
+    if (!eTitle.trim()) return toast.error("Nhập tiêu đề");
+    setSaving(true);
+    try {
+      await updateClassPost({
+        id: post.id,
+        title: eTitle.trim(),
+        content: eContent,
+        linkUrl: eLink,
+        dueAt: post.kind === "assignment" && eDue ? new Date(eDue).toISOString() : null,
+      });
+      setEditing(false);
+      onChanged();
+      toast.success("Đã lưu chỉnh sửa!");
+    } catch (e: any) {
+      toast.error(e?.message || "Không lưu được");
+    }
+    setSaving(false);
+  };
   const [subs, setSubs] = useState<ClassSubmission[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
@@ -410,14 +457,40 @@ function PostCard({
       <div className="flex items-start gap-2">
         <span className="text-lg">{post.kind === "material" ? "📚" : post.kind === "announcement" ? "📢" : "📝"}</span>
         <div className="flex-1 min-w-0">
-          <button onClick={() => setOpen((v) => !v)} className="text-left w-full">
-            <div className="font-black text-sm truncate">{post.title}</div>
+          <button
+            onClick={() =>
+              setOpen((v) => {
+                if (!v && !canPost) markPostSeen(post.id, post.updated_at || post.created_at);
+                return !v;
+              })
+            }
+            className="text-left w-full"
+          >
+            <div className="font-black text-sm truncate">
+              {post.title}
+              {edited && (
+                <span className="ml-2 align-middle text-[9px] font-black bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                  ĐÃ CHỈNH SỬA
+                </span>
+              )}
+            </div>
             <div className="text-[10px] font-bold text-muted-foreground">
               {new Date(post.created_at).toLocaleString("vi-VN")}
               {post.due_at && ` · Hạn: ${new Date(post.due_at).toLocaleString("vi-VN")}`}
             </div>
           </button>
         </div>
+        {canPost && (
+          <button
+            onClick={() => {
+              setEditing((v) => !v);
+              setOpen(true);
+            }}
+            className="text-blue-600 text-xs font-bold"
+          >
+            {editing ? "huỷ" : "sửa"}
+          </button>
+        )}
         {canPost && (
           <button
             onClick={async () => {
@@ -432,8 +505,49 @@ function PostCard({
         )}
       </div>
 
+      {editing && canPost && (
+        <div className="mt-2 flex flex-col gap-2 rounded-xl border-2 border-blue-200 bg-blue-50/60 p-2">
+          <input
+            value={eTitle}
+            onChange={(e) => setETitle(e.target.value)}
+            placeholder="Tiêu đề"
+            className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-bold"
+          />
+          <RichTextEditor value={eContent} onChange={setEContent} placeholder="Mô tả / hướng dẫn" />
+          <input
+            value={eLink}
+            onChange={(e) => setELink(e.target.value)}
+            placeholder="Link video / tài liệu"
+            className="px-3 py-2 rounded-xl border-2 border-gray-200 text-sm"
+          />
+          {post.kind === "assignment" && (
+            <label className="text-xs font-bold flex items-center gap-2">
+              Hạn nộp:
+              <input
+                type="datetime-local"
+                value={eDue}
+                onChange={(e) => setEDue(e.target.value)}
+                className="px-2 py-1 rounded-lg border-2 border-gray-200"
+              />
+            </label>
+          )}
+          <button
+            onClick={saveEdit}
+            disabled={saving}
+            className="toy-button toy-button-primary text-sm justify-center disabled:opacity-50"
+          >
+            {saving ? "Đang lưu..." : "💾 Lưu chỉnh sửa"}
+          </button>
+        </div>
+      )}
+
       {open && (
         <div className="mt-2 flex flex-col gap-2 text-sm">
+          {edited && (
+            <div className="rounded-xl bg-amber-50 border-2 border-amber-200 px-3 py-2 text-[11px] font-black text-amber-700">
+              ({classLabel || "Lớp học"}) Giáo viên đã chỉnh sửa bài đăng này — hãy xem lại nội dung/tệp mới nhé.
+            </div>
+          )}
           {post.content && <RichText value={post.content} />}
           {post.link_url && (
             <a

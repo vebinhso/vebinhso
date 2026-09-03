@@ -219,7 +219,7 @@ function ClassroomPage() {
             </nav>
             <main className="glass-card p-4 md:p-6 min-h-[60vh]">
               {tab === "overview" && <OverviewPanel classId={selectedClass.id} refreshKey={qVersion} />}
-              {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost />}
+              {tab === "stream" && <ClassroomPanel classId={selectedClass.id} canPost classLabel={selectedClass.name} />}
               {tab === "students" && (
                 <div className="flex flex-col gap-4">
                   <JoinRequestsPanel classId={selectedClass.id} onChanged={() => pendingRequestCounts().then(setPending).catch(() => {})} />

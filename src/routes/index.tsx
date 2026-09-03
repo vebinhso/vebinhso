@@ -552,7 +552,7 @@ function Home() {
                     </p>
                   </div>
                 </div>
-                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact defaultTab="announcement" />
+                <ClassroomPanel classId={detailClass.class_id} canPost={false} compact defaultTab="announcement" classLabel={detailClass.name} />
               </>
             ) : (
               <>

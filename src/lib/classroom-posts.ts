@@ -80,7 +80,7 @@ export async function updateClassPost(p: {
     due_at: p.dueAt || null,
   };
   if (p.fileUrl !== undefined) patch.file_url = p.fileUrl;
-  const { error } = await supabase.from("class_posts").update(patch).eq("id", p.id);
+  const { error } = await supabase.from("class_posts").update(patch as any).eq("id", p.id);
   if (error) throw error;
 }
 

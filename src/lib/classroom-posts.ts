@@ -13,6 +13,7 @@ export type ClassPost = {
   file_url: string | null;
   due_at: string | null;
   created_at: string;
+  updated_at: string | null;
 };
 
 export type ClassSubmission = {
@@ -62,6 +63,46 @@ export async function createClassPost(p: {
     due_at: p.dueAt || null,
   } as any);
   if (error) throw error;
+}
+
+export async function updateClassPost(p: {
+  id: string;
+  title: string;
+  content?: string;
+  linkUrl?: string;
+  fileUrl?: string | null;
+  dueAt?: string | null;
+}) {
+  const patch: Record<string, any> = {
+    title: p.title,
+    content: p.content || null,
+    link_url: p.linkUrl || null,
+    due_at: p.dueAt || null,
+  };
+  if (p.fileUrl !== undefined) patch.file_url = p.fileUrl;
+  const { error } = await supabase.from("class_posts").update(patch).eq("id", p.id);
+  if (error) throw error;
+}
+
+/** Ghi nhớ mốc thời gian học sinh đã mở từng bài đăng (để báo khi giáo viên sửa). */
+const POST_SEEN_KEY = "class_post_seen";
+function postSeenMap(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(POST_SEEN_KEY) || "{}"); } catch { return {}; }
+}
+export function getPostSeenAt(postId: string): string | null {
+  return postSeenMap()[postId] ?? null;
+}
+export function markPostSeen(postId: string, at?: string) {
+  const m = postSeenMap();
+  m[postId] = at || new Date().toISOString();
+  try { localStorage.setItem(POST_SEEN_KEY, JSON.stringify(m)); } catch {}
+}
+/** Bài đăng đã được giáo viên chỉnh sửa sau lần học sinh mở gần nhất? */
+export function isPostEditedSinceSeen(post: { id: string; updated_at?: string | null; created_at: string }): boolean {
+  const seen = getPostSeenAt(post.id);
+  if (!seen) return false;
+  const upd = post.updated_at || post.created_at;
+  return new Date(upd).getTime() > new Date(seen).getTime() + 1000;
 }
 
 export async function deleteClassPost(id: string) {

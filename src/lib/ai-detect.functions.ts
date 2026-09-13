@@ -590,3 +590,56 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
       safeVersion: str(parsed.safeVersion, ""),
     };
   });
+
+/** Kiểm tra số điện thoại: nhà mạng, vùng gọi đến, nguy cơ lừa đảo */
+export const analyzePhone = createServerFn({ method: "POST" })
+  .inputValidator((data: { phone: string; context?: string }) => {
+    const p = data?.phone;
+    if (!p || typeof p !== "string" || p.replace(/\D/g, "").length < 6) {
+      throw new Error("Hãy nhập số điện thoại cần kiểm tra");
+    }
+    return {
+      phone: p.trim().slice(0, 30),
+      context: typeof data?.context === "string" ? data.context.trim().slice(0, 1500) : "",
+    };
+  })
+  .handler(async ({ data }) => {
+    const { lookupPhone } = await import("./phone-vn");
+    const info = lookupPhone(data.phone);
+    const sys = `Bạn là hệ thống cảnh báo số điện thoại lừa đảo cho học sinh Việt Nam.
+Dữ liệu tra cứu đầu số (đã xác định chính xác bằng bảng đầu số chính thức) sẽ được cung cấp; TUYỆT ĐỐI không mâu thuẫn với dữ liệu đó.
+Hãy đánh giá: số có đúng định dạng/đầu số thật của Việt Nam không (số giả thường sai độ dài, đầu số không tồn tại, hoặc hiện dưới dạng +số lạ nước ngoài), có dấu hiệu là số lừa đảo/spam không (giả danh công an, toà án, nhân viên ngân hàng, giao hàng, trúng thưởng, cuộc gọi nhỡ quốc tế "bẫy" gọi lại, đầu số 1900 tính phí cao, gọi qua internet hiển thị số ảo/spoofing).
+Về VỊ TRÍ: số di động Việt Nam KHÔNG gắn với tỉnh/thành, chỉ nói được nhà mạng; số cố định thì nói tỉnh/thành theo mã vùng, và chỉ nêu quận/huyện khi thực sự chắc chắn, nếu không thì ghi "không xác định quận".
+Trả về CHÍNH XÁC một JSON (không markdown):
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","fakeScore":0-100,"type":"scam|spam|telesales|service|personal|unknown|legit","locationGuess":"quận + thành phố hoặc chỉ thành phố, hoặc 'Không xác định'","carrierNote":"1 câu về nhà mạng/loại số","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu đáng ngờ"],"goodSigns":["dấu hiệu bình thường"],"advice":["nên làm gì khi nhận cuộc gọi này"]}
+riskScore = nguy cơ lừa đảo. fakeScore = khả năng số giả/ảo/không có thật. Viết tiếng Việt dễ hiểu cho học sinh.`;
+    const parsed = await callGatewayVerified(
+      {
+        messages: [
+          { role: "system", content: sys },
+          {
+            role: "user",
+            content: `Số cần kiểm tra: ${data.phone}
+Dữ liệu tra cứu đầu số: ${JSON.stringify(info)}
+${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.context}` : "Người dùng không mô tả thêm."}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      },
+      ["riskScore", "fakeScore"],
+    );
+    return {
+      accuracy: parsed.accuracy,
+      lookup: info,
+      riskScore: clampScore(parsed.riskScore),
+      fakeScore: clampScore(parsed.fakeScore),
+      level: str(parsed.level, "unknown"),
+      type: str(parsed.type, "unknown"),
+      locationGuess: str(parsed.locationGuess, info.province),
+      carrierNote: str(parsed.carrierNote, info.note),
+      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      redFlags: strArr(parsed.redFlags),
+      goodSigns: strArr(parsed.goodSigns),
+      advice: strArr(parsed.advice),
+    };
+  });

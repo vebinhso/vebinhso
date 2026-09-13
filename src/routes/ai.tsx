@@ -14,6 +14,7 @@ import {
   analyzeVideo,
   analyzePrivacyMedia,
   analyzePrivacyText,
+  analyzePhone,
 } from "@/lib/ai-detect.functions";
 
 
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/ai")({
   }),
 });
 
-type Tab = "news" | "media" | "link" | "email" | "text" | "risk";
+type Tab = "news" | "media" | "link" | "email" | "text" | "risk" | "phone";
 
 const MAX_IMG = 5 * 1024 * 1024;
 const MAX_VID = 60 * 1024 * 1024;
@@ -196,6 +197,25 @@ const VERDICT_VI: Record<string, string> = {
   likely_ai: "Nhiều khả năng do AI",
   ai: "Do AI tạo",
 };
+function InfoCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border-2 border-border bg-background/60 px-3 py-2">
+      <p className="text-[10px] font-black text-muted-foreground">{label}</p>
+      <p className="text-xs sm:text-sm font-black break-words">{value}</p>
+    </div>
+  );
+}
+
+const PHONE_TYPE_VI: Record<string, string> = {
+  scam: "Có dấu hiệu lừa đảo",
+  spam: "Làm phiền / spam",
+  telesales: "Bán hàng qua điện thoại",
+  service: "Tổng đài dịch vụ",
+  personal: "Số cá nhân",
+  legit: "Số hợp lệ, bình thường",
+  unknown: "Chưa rõ",
+};
+
 const LEVEL_VI: Record<string, string> = {
   safe: "An toàn",
   low: "Rủi ro thấp",
@@ -287,6 +307,7 @@ function AiPage() {
   const runVideo = useServerFn(analyzeVideo);
   const runPrivacyMedia = useServerFn(analyzePrivacyMedia);
   const runPrivacyText = useServerFn(analyzePrivacyText);
+  const runPhone = useServerFn(analyzePhone);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -360,6 +381,10 @@ function AiPage() {
   const [riskText, setRiskText] = useState("");
   const [riskMediaResult, setRiskMediaResult] = useState<Awaited<ReturnType<typeof analyzePrivacyMedia>> | null>(null);
   const [riskTextResult, setRiskTextResult] = useState<Awaited<ReturnType<typeof analyzePrivacyText>> | null>(null);
+
+  const [phone, setPhone] = useState("");
+  const [phoneCtx, setPhoneCtx] = useState("");
+  const [phoneResult, setPhoneResult] = useState<Awaited<ReturnType<typeof analyzePhone>> | null>(null);
 
   const [news, setNews] = useState("");
   const [newsResult, setNewsResult] = useState<Awaited<ReturnType<typeof analyzeNews>> | null>(null);
@@ -483,6 +508,14 @@ function AiPage() {
     );
     if (r) setEmailResult(r);
   }
+  async function doPhone() {
+    setPhoneResult(null);
+    const r = await withProgress(
+      ["Đang chuẩn hoá số...", "Đang tra cứu nhà mạng...", "Đang xác định vùng gọi...", "Đang chấm điểm rủi ro..."],
+      () => runPhone({ data: { phone, context: phoneCtx } }),
+    );
+    if (r) setPhoneResult(r);
+  }
   async function doNews() {
     setNewsResult(null);
     const r = await withProgress(
@@ -575,6 +608,7 @@ function AiPage() {
     { id: "media", icon: "🖼️", label: "Ảnh/Video có phải AI?" },
     { id: "link", icon: "🔗", label: "Link / Email có giả mạo?" },
     { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
+    { id: "phone", icon: "📞", label: "Số điện thoại" },
   ];
 
   return (
@@ -699,7 +733,9 @@ function AiPage() {
                     ? phishMode === "link"
                       ? linkResult?.accuracy
                       : emailResult?.accuracy
-                    : textResult?.accuracy;
+                    : tab === "phone"
+                      ? phoneResult?.accuracy
+                      : textResult?.accuracy;
             return acc ? (
               <div className="mb-3">
                 <AccuracyNote accuracy={acc} />
@@ -939,6 +975,55 @@ function AiPage() {
                   <p className="text-[10px] font-bold text-foreground">
                     * Kết quả mang tính tham khảo — tuyệt đối không nhập mật khẩu/OTP vào link lạ.
                   </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "phone" && (
+            <div className="space-y-3">
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Nhập số điện thoại, ví dụ 0912345678 hoặc +84 24 3825 xxxx"
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm font-bold"
+              />
+              <textarea
+                value={phoneCtx}
+                onChange={(e) => setPhoneCtx(e.target.value)}
+                rows={3}
+                placeholder="(Không bắt buộc) Họ nói gì với bạn? Ví dụ: tự xưng công an, báo bạn liên quan vụ án..."
+                className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
+              />
+              <button
+                onClick={doPhone}
+                disabled={loading || phone.replace(/\D/g, "").length < 6}
+                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {loading ? `⏳ Đang kiểm tra ${Math.round(progress)}%` : "📞 Kiểm tra số điện thoại"}
+              </button>
+
+              {phoneResult && (
+                <div className="space-y-3 rounded-2xl border-2 border-border p-3">
+                  <p className={`text-center font-black text-sm sm:text-lg ${scoreText(phoneResult.riskScore)}`}>
+                    {LEVEL_VI[phoneResult.level] ?? "Chưa xác định"} · {PHONE_TYPE_VI[phoneResult.type] ?? phoneResult.type}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <InfoCell label="📱 Nhà mạng / loại số" value={phoneResult.lookup.carrier} />
+                    <InfoCell label="📍 Gọi đến từ" value={phoneResult.locationGuess || phoneResult.lookup.province} />
+                    <InfoCell label="🔢 Dạng quốc tế" value={phoneResult.lookup.e164} />
+                    <InfoCell
+                      label="✅ Định dạng số"
+                      value={phoneResult.lookup.valid ? "Hợp lệ tại Việt Nam" : "Không khớp đầu số hợp lệ"}
+                    />
+                  </div>
+                  <Gauge value={phoneResult.riskScore} label="Nguy cơ lừa đảo" />
+                  <Gauge value={phoneResult.fakeScore} label="Khả năng là số giả / số ảo" />
+                  <p className="text-xs sm:text-sm font-bold">{phoneResult.summary}</p>
+                  <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{phoneResult.lookup.note}</p>
+                  <SignList title="Dấu hiệu đáng ngờ" items={phoneResult.redFlags} tone="bad" />
+                  <SignList title="Dấu hiệu bình thường" items={phoneResult.goodSigns} tone="good" />
+                  <SignList title="Nên làm gì" items={phoneResult.advice} tone="info" />
                 </div>
               )}
             </div>

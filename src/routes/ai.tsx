@@ -1068,9 +1068,25 @@ function AiPage() {
                     {VERDICT_VI[textResult.verdict] ?? "Chưa chắc chắn"}
                   </p>
                   <Gauge value={textResult.aiScore} label="Mức độ do AI viết" />
-                  <Gauge value={textResult.misinfoRisk} label="Nguy cơ thông tin sai lệch" />
+                  <Gauge value={textResult.misinfoRisk} label="Nguy cơ lừa đảo / thông tin sai lệch" />
                   <Gauge value={textResult.confidence} label="Độ tin cậy của kết luận" />
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
+                      🧩 Độ khó nhận biết: {textResult.difficulty}
+                    </span>
+                    {textResult.scamCategoryLabel && (
+                      <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
+                        🎣 Kịch bản lừa đảo: {textResult.scamCategoryLabel}
+                      </span>
+                    )}
+                    {textResult.platform && (
+                      <span className="rounded-full bg-sky-100 text-sky-800 px-2 py-1 text-[11px] font-black">
+                        📱 Thường gặp trên: {textResult.platform}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs sm:text-sm font-bold">{textResult.summary}</p>
+                  <SignList title="Dấu hiệu lừa đảo" items={textResult.scamSigns} tone="bad" />
                   <SignList title="Dấu hiệu của AI" items={textResult.aiSigns} tone="bad" />
                   <SignList title="Dấu hiệu do người viết" items={textResult.humanSigns} tone="good" />
                   <SignList title="Cách kiểm chứng" items={textResult.tips} tone="info" />

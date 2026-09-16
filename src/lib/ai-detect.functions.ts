@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { AI_CATEGORY_LABELS, FORENSIC_PROMPT_BLOCK } from "@/lib/image-forensics";
 import { PHISHING_CATEGORY_LABELS, PHISHING_PROMPT_BLOCK } from "@/lib/phishing-dataset";
+import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -199,10 +200,16 @@ export const analyzeText = createServerFn({ method: "POST" })
     return { text: t.trim().slice(0, 6000) };
   })
   .handler(async ({ data }) => {
-    const sys = `Bạn là chuyên gia phát hiện văn bản do AI viết. Dựa trên: độ đều của câu (perplexity/burstiness thấp), cụm từ sáo rỗng, cấu trúc liệt kê máy móc, thiếu chi tiết cá nhân, giọng văn trung tính quá mức, lặp cấu trúc.
+    const sys = `Bạn là chuyên gia phát hiện văn bản do AI viết VÀ phát hiện tin nhắn lừa đảo trên mạng xã hội Việt Nam (Threads, Facebook/Messenger, Zalo, Instagram, TikTok, Telegram, SMS).
+Chấm ĐỘC LẬP hai việc:
+1) Văn bản do AI viết hay người viết: độ đều của câu, cụm từ sáo rỗng, liệt kê máy móc, thiếu chi tiết cá nhân, giọng trung tính quá mức.
+2) Nguy cơ lừa đảo: dựa trên ý đồ của tin nhắn, dù văn phong rất giống người thật.
+
+${SCAM_MESSAGE_PROMPT_BLOCK}
+
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"tips":["cách kiểm chứng thông tin"]}
-misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt.`;
+{"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"scamCategory":"id nhóm lừa đảo hoặc khong_ro","platform":"nền tảng có khả năng nhất hoặc rỗng","difficulty":"Dễ|Trung bình|Khó","scamSigns":["dấu hiệu lừa đảo"],"tips":["cách kiểm chứng và nên làm gì"]}
+misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. Viết tiếng Việt.`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
@@ -210,6 +217,8 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt
       ],
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "misinfoRisk"]);
+    const rawCat = str(parsed.scamCategory, "khong_ro").trim();
+    const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
       accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
@@ -219,6 +228,13 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo. Viết tiếng Việt
       aiSigns: strArr(parsed.aiSigns),
       humanSigns: strArr(parsed.humanSigns),
       misinfoRisk: clampScore(parsed.misinfoRisk),
+      scamCategory,
+      scamCategoryLabel: scamCategory === "khong_ro" ? "" : (SCAM_CATEGORY_LABELS[scamCategory] ?? ""),
+      platform: str(parsed.platform, ""),
+      difficulty: ["Dễ", "Trung bình", "Khó"].includes(str(parsed.difficulty, ""))
+        ? str(parsed.difficulty, "")
+        : "Trung bình",
+      scamSigns: strArr(parsed.scamSigns, 8),
       tips: strArr(parsed.tips),
     };
   });

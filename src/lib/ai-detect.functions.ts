@@ -234,9 +234,12 @@ export const analyzeEmail = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const sys = `Bạn là hệ thống phát hiện email giả mạo (phishing / spoofing / BEC) cho học sinh Việt Nam. Người dùng có thể chỉ dán ĐỊA CHỈ EMAIL, hoặc dán cả NỘI DUNG email (tiêu đề, người gửi, thân thư, link đính kèm).
 Hãy phân tích: tên miền người gửi có giống thương hiệu thật không (typosquatting: g00gle, faceb0ok-support, shopee-vn.info), dùng gmail/outlook miễn phí nhưng tự xưng là ngân hàng/công ty, tên hiển thị khác địa chỉ thật, tên miền mới lạ, ký tự lạ/Unicode giả, giọng văn hối thúc – doạ khoá tài khoản, yêu cầu OTP/mật khẩu/số thẻ, link không khớp thương hiệu, tệp đính kèm nguy hiểm (.exe .zip .html), lỗi chính tả, lời chào chung chung ("Kính gửi quý khách").
+
+${PHISHING_PROMPT_BLOCK}
+
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","type":"phishing|spoofing|scam|spam|marketing|legit|unknown","impersonating":"tên thương hiệu bị giả mạo hoặc rỗng","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu giả mạo"],"goodSigns":["dấu hiệu đáng tin"],"advice":["nên làm gì"]}
-riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việt dễ hiểu.`;
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","type":"phishing|spoofing|scam|spam|marketing|legit|unknown","scamCategory":"id nhóm kịch bản hoặc khong_ro","difficulty":"Dễ|Trung bình|Khó","impersonating":"tên thương hiệu bị giả mạo hoặc rỗng","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu giả mạo"],"goodSigns":["dấu hiệu đáng tin"],"advice":["nên làm gì"]}
+riskScore = mức độ email là giả mạo/lừa đảo. difficulty = mức độ khó nhận ra với học sinh. Viết tiếng Việt dễ hiểu.`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
@@ -244,14 +247,21 @@ riskScore = mức độ email là giả mạo/lừa đảo. Viết tiếng Việ
       ],
       response_format: { type: "json_object" },
     }, ["riskScore"]);
+    const rawCat = str(parsed.scamCategory, "khong_ro").trim();
+    const scamCategory = PHISHING_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
       accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       type: str(parsed.type, "unknown"),
+      scamCategory,
+      scamCategoryLabel: scamCategory === "khong_ro" ? "" : (PHISHING_CATEGORY_LABELS[scamCategory] ?? ""),
+      difficulty: ["Dễ", "Trung bình", "Khó"].includes(str(parsed.difficulty, ""))
+        ? str(parsed.difficulty, "")
+        : "Trung bình",
       impersonating: str(parsed.impersonating, ""),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
-      redFlags: strArr(parsed.redFlags),
+      redFlags: strArr(parsed.redFlags, 8),
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
     };

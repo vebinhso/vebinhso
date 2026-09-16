@@ -1026,17 +1026,29 @@ function AiPage() {
                   </p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <InfoCell label="📱 Nhà mạng / loại số" value={phoneResult.lookup.carrier} />
+                    <InfoCell label="🌐 Nguồn gốc số" value={phoneResult.origin || phoneResult.lookup.note} />
                     <InfoCell label="📍 Gọi đến từ" value={phoneResult.locationGuess || phoneResult.lookup.province} />
                     <InfoCell label="🔢 Dạng quốc tế" value={phoneResult.lookup.e164} />
                     <InfoCell
                       label="✅ Định dạng số"
                       value={phoneResult.lookup.valid ? "Hợp lệ tại Việt Nam" : "Không khớp đầu số hợp lệ"}
                     />
+                    {phoneResult.strangerNote && (
+                      <InfoCell label="❓ Số lạ?" value={phoneResult.strangerNote} />
+                    )}
                   </div>
+                  {phoneResult.scamCategoryLabel && (
+                    <p className="text-[11px] sm:text-xs font-black text-destructive">
+                      🎣 Kịch bản thường gặp: {phoneResult.scamCategoryLabel}
+                    </p>
+                  )}
                   <Gauge value={phoneResult.riskScore} label="Nguy cơ lừa đảo" />
                   <Gauge value={phoneResult.fakeScore} label="Khả năng là số giả / số ảo" />
                   <p className="text-xs sm:text-sm font-bold">{phoneResult.summary}</p>
                   <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{phoneResult.lookup.note}</p>
+                  <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">
+                    🚨 Đã có ai bị lừa từ số này chưa? {phoneResult.reportNote}
+                  </p>
                   <SignList title="Dấu hiệu đáng ngờ" items={phoneResult.redFlags} tone="bad" />
                   <SignList title="Dấu hiệu bình thường" items={phoneResult.goodSigns} tone="good" />
                   <SignList title="Nên làm gì" items={phoneResult.advice} tone="info" />

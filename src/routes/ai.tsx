@@ -908,10 +908,26 @@ function AiPage() {
                     {VERDICT_VI[imgResult.verdict] ?? "Chưa chắc chắn"}
                   </p>
                   <Gauge value={imgResult.aiScore} label="Mức độ do AI tạo" />
-                  <Gauge value={imgResult.editedScore} label="Mức độ đã chỉnh sửa / ghép" />
+                  <Gauge value={imgResult.editedScore} label="Mức độ đã chỉnh sửa / ghép (Photoshop)" />
                   <Gauge value={imgResult.confidence} label="Độ tin cậy của kết luận" />
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
+                      🧩 Độ khó nhận biết: {imgResult.difficulty}
+                    </span>
+                    {imgResult.aiCategoryLabel && (
+                      <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
+                        🤖 Nhóm ảnh AI: {imgResult.aiCategoryLabel}
+                      </span>
+                    )}
+                    {imgResult.editCategoryLabel && (
+                      <span className="rounded-full bg-amber-100 text-amber-900 px-2 py-1 text-[11px] font-black">
+                        ✂️ Nhóm chỉnh sửa: {imgResult.editCategoryLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs sm:text-sm font-bold">{imgResult.summary}</p>
                   <SignList title="Dấu hiệu của AI" items={imgResult.aiSigns} tone="bad" />
+                  <SignList title="Dấu hiệu chỉnh sửa Photoshop" items={imgResult.editSigns} tone="bad" />
                   <SignList title="Dấu hiệu ảnh thật" items={imgResult.realSigns} tone="good" />
                   <SignList title="Nên làm gì tiếp" items={imgResult.tips} tone="info" />
                 </div>

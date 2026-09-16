@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { AI_CATEGORY_LABELS, FORENSIC_PROMPT_BLOCK } from "@/lib/image-forensics";
 import { PHISHING_CATEGORY_LABELS, PHISHING_PROMPT_BLOCK } from "@/lib/phishing-dataset";
+import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 

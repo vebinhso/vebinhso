@@ -655,11 +655,13 @@ export const analyzePhone = createServerFn({ method: "POST" })
     const info = lookupPhone(data.phone);
     const sys = `Bạn là hệ thống cảnh báo số điện thoại lừa đảo cho học sinh Việt Nam.
 Dữ liệu tra cứu đầu số (đã xác định chính xác bằng bảng đầu số chính thức) sẽ được cung cấp; TUYỆT ĐỐI không mâu thuẫn với dữ liệu đó.
-Hãy đánh giá: số có đúng định dạng/đầu số thật của Việt Nam không (số giả thường sai độ dài, đầu số không tồn tại, hoặc hiện dưới dạng +số lạ nước ngoài), có dấu hiệu là số lừa đảo/spam không (giả danh công an, toà án, nhân viên ngân hàng, giao hàng, trúng thưởng, cuộc gọi nhỡ quốc tế "bẫy" gọi lại, đầu số 1900 tính phí cao, gọi qua internet hiển thị số ảo/spoofing).
-Về VỊ TRÍ: số di động Việt Nam KHÔNG gắn với tỉnh/thành, chỉ nói được nhà mạng; số cố định thì nói tỉnh/thành theo mã vùng, và chỉ nêu quận/huyện khi thực sự chắc chắn, nếu không thì ghi "không xác định quận".
+Hãy đánh giá: số có đúng định dạng/đầu số thật của Việt Nam không, nguồn gốc số (di động nhà mạng nào, cố định tỉnh nào, quốc tế nước nào, đầu số dịch vụ, số gọi qua Internet), và nguy cơ lừa đảo/spam.
+
+${SCAM_PHONE_PROMPT_BLOCK}
+
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","fakeScore":0-100,"type":"scam|spam|telesales|service|personal|unknown|legit","locationGuess":"quận + thành phố hoặc chỉ thành phố, hoặc 'Không xác định'","carrierNote":"1 câu về nhà mạng/loại số","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu đáng ngờ"],"goodSigns":["dấu hiệu bình thường"],"advice":["nên làm gì khi nhận cuộc gọi này"]}
-riskScore = nguy cơ lừa đảo. fakeScore = khả năng số giả/ảo/không có thật. Viết tiếng Việt dễ hiểu cho học sinh.`;
+{"riskScore":0-100,"level":"safe|low|medium|high|dangerous","fakeScore":0-100,"type":"scam|spam|telesales|service|personal|unknown|legit","scamCategory":"id nhóm kịch bản hoặc khong_ro","origin":"nguồn gốc số: di động VN / cố định tỉnh nào / quốc tế nước nào / đầu số dịch vụ / không xác định","locationGuess":"quận + thành phố hoặc chỉ thành phố, hoặc 'Không xác định'","strangerNote":"1 câu: đây có phải dạng số lạ không quen thuộc với người Việt không","reportNote":"1 câu nói rõ không có dữ liệu tố cáo công khai cho số này và hướng dẫn tra/phản ánh qua 156 hoặc 5656","carrierNote":"1 câu về nhà mạng/loại số","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu đáng ngờ"],"goodSigns":["dấu hiệu bình thường"],"advice":["nên làm gì khi nhận cuộc gọi này"]}
+riskScore = nguy cơ lừa đảo. fakeScore = khả năng số giả/ảo/bị giả mạo caller ID. Viết tiếng Việt dễ hiểu cho học sinh.`;
     const parsed = await callGatewayVerified(
       {
         messages: [
@@ -675,6 +677,8 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
       },
       ["riskScore", "fakeScore"],
     );
+    const rawCat = str(parsed.scamCategory, "khong_ro").trim();
+    const scamCategory = SCAM_PHONE_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
       accuracy: parsed.accuracy,
       lookup: info,
@@ -682,10 +686,19 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
       fakeScore: clampScore(parsed.fakeScore),
       level: str(parsed.level, "unknown"),
       type: str(parsed.type, "unknown"),
+      scamCategory,
+      scamCategoryLabel:
+        scamCategory === "khong_ro" ? "" : (SCAM_PHONE_CATEGORY_LABELS[scamCategory] ?? ""),
+      origin: str(parsed.origin, info.note),
       locationGuess: str(parsed.locationGuess, info.province),
+      strangerNote: str(parsed.strangerNote, ""),
+      reportNote: str(
+        parsed.reportNote,
+        "Không có dữ liệu tố cáo công khai cho số này. Bạn có thể phản ánh số nghi lừa đảo qua tổng đài 156 hoặc 5656.",
+      ),
       carrierNote: str(parsed.carrierNote, info.note),
       summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
-      redFlags: strArr(parsed.redFlags),
+      redFlags: strArr(parsed.redFlags, 8),
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
     };

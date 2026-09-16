@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { AI_CATEGORY_LABELS, FORENSIC_PROMPT_BLOCK } from "@/lib/image-forensics";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 

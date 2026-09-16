@@ -107,23 +107,34 @@ export const analyzeImage = createServerFn({ method: "POST" })
     return { imageUrl: url };
   })
   .handler(async ({ data }) => {
-    const sys = `Bạn là chuyên gia pháp y ảnh số, phát hiện ảnh do AI tạo/chỉnh sửa. Hãy phân tích kỹ: bàn tay/ngón tay, răng, mắt, chữ viết trong ảnh, hoa văn lặp, ánh sáng & bóng đổ không nhất quán, kết cấu da quá mượt, nền méo, artefact nén, logo watermark AI.
+    const sys = `Bạn là chuyên gia pháp y ảnh số. Bạn phải trả lời HAI câu hỏi tách biệt:
+(1) Ảnh có phải do AI sinh ra không? (2) Ảnh thật có bị chỉnh sửa thủ công kiểu Photoshop (ghép/xoá/thêm vật thể, sửa chữ số) không?
+Phân tích kỹ: bàn tay/ngón tay, răng, mắt, chữ viết trong ảnh, hoa văn lặp, ánh sáng & bóng đổ, kết cấu da, nền méo, viền cắt ghép, khác biệt độ nét/tông màu giữa các vùng, artefact nén, watermark.
+
+${FORENSIC_PROMPT_BLOCK}
+
 Trả về CHÍNH XÁC một JSON (không markdown):
-{"aiScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"realSigns":["dấu hiệu ảnh thật"],"editedScore":0-100,"tips":["lời khuyên kiểm chứng"]}
-aiScore = mức độ ảnh do AI tạo (100 = chắc chắn AI). editedScore = mức độ đã qua chỉnh sửa/ghép. Viết tiếng Việt, dễ hiểu với học sinh.`;
+{"aiScore":0-100,"editedScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"difficulty":"Dễ|Trung bình|Khó","aiCategory":"id nhóm A hoặc khong_ro","editCategory":"id nhóm B hoặc khong_ro","summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu ảnh do AI tạo"],"editSigns":["dấu hiệu bị chỉnh sửa thủ công"],"realSigns":["dấu hiệu ảnh thật"],"tips":["cách tự kiểm chứng, bám theo phần Kiểm chứng của nhóm đã chọn"]}
+aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ công. Viết tiếng Việt dễ hiểu với học sinh.`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: sys },
         {
           role: "user",
           content: [
-            { type: "text", text: "Ảnh này có phải do AI tạo không? Mức độ bao nhiêu?" },
+            { type: "text", text: "Ảnh này do AI tạo hay ảnh thật đã qua chỉnh sửa Photoshop? Xếp vào nhóm nào trong bộ tiêu chí?" },
             { type: "image_url", image_url: { url: data.imageUrl } },
           ],
         },
       ],
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "editedScore"]);
+    const catId = (v: unknown) => {
+      const s = str(v, "khong_ro").trim();
+      return AI_CATEGORY_LABELS[s] ? s : "khong_ro";
+    };
+    const aiCategory = catId(parsed.aiCategory);
+    const editCategory = catId(parsed.editCategory);
     return {
       accuracy: parsed.accuracy,
       aiScore: clampScore(parsed.aiScore),
@@ -131,8 +142,16 @@ aiScore = mức độ ảnh do AI tạo (100 = chắc chắn AI). editedScore = 
       confidence: clampScore(parsed.confidence),
       summary: str(parsed.summary, "Không đủ dữ liệu để kết luận chắc chắn."),
       aiSigns: strArr(parsed.aiSigns),
+      editSigns: strArr(parsed.editSigns),
       realSigns: strArr(parsed.realSigns),
       editedScore: clampScore(parsed.editedScore),
+      difficulty: ["Dễ", "Trung bình", "Khó"].includes(str(parsed.difficulty, ""))
+        ? str(parsed.difficulty, "")
+        : "Trung bình",
+      aiCategory,
+      aiCategoryLabel: aiCategory === "khong_ro" ? "" : (AI_CATEGORY_LABELS[aiCategory] ?? ""),
+      editCategory,
+      editCategoryLabel: editCategory === "khong_ro" ? "" : (AI_CATEGORY_LABELS[editCategory] ?? ""),
       tips: strArr(parsed.tips),
     };
   });

@@ -1110,6 +1110,16 @@ function AiPage() {
                     </p>
                   )}
                   <Gauge value={emailResult.riskScore} label="Mức độ giả mạo / lừa đảo" />
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
+                      🧩 Độ khó nhận biết: {emailResult.difficulty}
+                    </span>
+                    {emailResult.scamCategoryLabel && (
+                      <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
+                        🎣 Kịch bản: {emailResult.scamCategoryLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs sm:text-sm font-bold">{emailResult.summary}</p>
                   <SignList title="Dấu hiệu giả mạo" items={emailResult.redFlags} tone="bad" />
                   <SignList title="Dấu hiệu đáng tin" items={emailResult.goodSigns} tone="good" />

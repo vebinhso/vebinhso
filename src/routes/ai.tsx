@@ -347,7 +347,9 @@ function AiPage() {
         if (label) setPhase(label);
       });
       setProgress(100);
-      setPhase("Hoàn tất!");
+      setPhase(en ? "Complete!" : "Hoàn tất!");
+      // Giữ thanh ở 100% đủ lâu để người dùng nhìn thấy trước khi hiện kết quả.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 350));
       return res;
     } catch (e: any) {
       setError(e?.message || "Phân tích thất bại");

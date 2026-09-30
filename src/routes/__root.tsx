@@ -129,14 +129,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Trên bản đồ nhà (/game) nút 🏡 Về trang chủ chiếm góc phải trên,
+  // nên dịch ⚙️ Cài đặt + VI/EN sang trái để nằm cạnh nút home.
+  const onHomeMap = pathname === "/game";
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
       <AudioBridge />
       <StrictEnglishGuard />
-      <SettingsPanel />
-      <div className="fixed top-3 right-16 z-50"><LanguageToggle compact /></div>
+      <SettingsPanel offset={onHomeMap} />
+      <div className={`fixed top-3 z-50 ${onHomeMap ? "right-[12.75rem]" : "right-16"}`}><LanguageToggle compact /></div>
       <SavedToast />
       <Toaster position="top-center" richColors closeButton />
       <Outlet />

@@ -1033,6 +1033,11 @@ function GamePage() {
         </div>
       )}
 
+      {/* Nút về trang chủ — tách khỏi nhóm ACTIONS, luôn hiển thị góc phải trên */}
+      <Link to="/" className="fixed top-3 right-3 z-[55] toy-button !text-xs !py-2 !px-3 shadow-lg">
+        🏡 {en ? "Home" : "Về trang chủ"}
+      </Link>
+
       {/* Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">
         <div className="glass-card px-3 py-2 pointer-events-auto flex items-center gap-2 max-w-[60vw] sm:max-w-none">
@@ -1068,7 +1073,6 @@ function GamePage() {
           </button>
           {thaoTacOpen && (
             <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
-              <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 {en ? "Home" : "Về trang chủ"}</Link>
               <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
                 ↩️ {en ? "UNDO" : "HOÀN TÁC"} (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
               </button>

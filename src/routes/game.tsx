@@ -1033,14 +1033,12 @@ function GamePage() {
         </div>
       )}
 
-      {/* Nút về trang chủ — tách khỏi nhóm ACTIONS, luôn hiển thị góc phải trên */}
-      <Link to="/" className="fixed top-3 right-3 z-[55] toy-button !text-xs !py-2 !px-3 shadow-lg">
-        🏡 {en ? "Home" : "Về trang chủ"}
-      </Link>
+      {/* Nút 🏡 về trang chủ + ⚙️ Cài đặt + VI/EN nằm trong hàng nút cố định ở __root */}
+
 
       {/* Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">
-        <div className="glass-card px-3 py-2 pointer-events-auto flex items-center gap-2 max-w-[60vw] sm:max-w-none">
+        <div className="glass-card px-3 py-2 pointer-events-auto flex items-center gap-2 max-w-[60vw] sm:max-w-none mt-12 sm:mt-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 border-2 border-white flex items-center justify-center text-lg sm:text-xl shrink-0 overflow-hidden">
             {user.avatarUrl
               ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />

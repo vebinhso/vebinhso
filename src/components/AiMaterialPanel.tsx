@@ -309,7 +309,6 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     } catch (e: any) {
       toast.error(e?.message || "Không tạo được học liệu");
     }
-    await new Promise((resolve) => setTimeout(resolve, 200));
     setPhase("");
     setBusy(false);
     setProgress(0);
@@ -343,7 +342,6 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     } catch (e: any) {
       toast.error(e?.message || "Lỗi khi lưu");
     }
-    await new Promise((resolve) => setTimeout(resolve, 200));
     setPhase("");
     setBusy(false);
     setProgress(0);

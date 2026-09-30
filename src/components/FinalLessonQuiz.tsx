@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/locale";
 
 type Opt = { key: "A" | "B" | "C" | "D"; text: string; feedback: string };
 
@@ -29,7 +30,15 @@ const OPTIONS: Opt[] = [
 
 const CORRECT = "D";
 
+const OPTIONS_EN: Opt[] = [
+  { key: "A", text: "Open the link to inspect the website, then close it only if it asks for a password or OTP.", feedback: "Not quite. Even opening an unknown link can expose your device to malware—do not test it." },
+  { key: "B", text: "Enter personal details to claim the prize; it is safe as long as you do not enter bank-card information.", feedback: "Not quite. Your name, address, and phone number are also valuable data that scammers can exploit." },
+  { key: "C", text: "Reply to that address and ask the sender for documents proving the prize before opening the link.", feedback: "Not quite. Replying confirms that your email address is active and may attract more attacks." },
+  { key: "D", text: "Inspect the sender's address, never open unknown links, ignore or report the email as spam, and warn others.", feedback: "Correct! Verify the sender → do not open the link → report spam → warn your friends." },
+];
+
 export function FinalLessonQuiz({ lessonId = "default" }: { lessonId?: string }) {
+  const en = useLocale() === "en";
   const [picked, setPicked] = useState<string | null>(null);
   const [earned, setEarned] = useState(0);
   const [already, setAlready] = useState(() => hasClaimed("summary", lessonId));
@@ -41,16 +50,17 @@ export function FinalLessonQuiz({ lessonId = "default" }: { lessonId?: string })
       if (got > 0) {
         setEarned(got);
         setAlready(true);
-        toast.success(`🪙 +${got} đồng cho câu trả lời đúng!`);
+         toast.success(en ? `🪙 +${got} coins for the correct answer!` : `🪙 +${got} đồng cho câu trả lời đúng!`);
       }
     }
   }
-  const chosen = OPTIONS.find((o) => o.key === picked);
+  const options = en ? OPTIONS_EN : OPTIONS;
+  const chosen = options.find((o) => o.key === picked);
 
   return (
     <div className="rounded-2xl border-2 border-primary/50 bg-background/70 p-3 sm:p-4 mb-3">
       <div className="flex items-center justify-between gap-2 mb-2">
-        <h3 className="text-sm sm:text-base font-black text-primary">🎯 BÀI HỌC CUỐI CÙNG</h3>
+        <h3 className="text-sm sm:text-base font-black text-primary">🎯 {en ? "FINAL CHECK" : "BÀI HỌC CUỐI CÙNG"}</h3>
         <span
           className={`text-[11px] font-black px-2.5 py-1 rounded-full border-2 shrink-0 ${
             already && earned === 0
@@ -58,14 +68,14 @@ export function FinalLessonQuiz({ lessonId = "default" }: { lessonId?: string })
               : "border-amber-400/70 bg-amber-400/20 text-amber-700 dark:text-amber-300"
           }`}
         >
-          {earned > 0 ? `🪙 +${earned}đ` : already ? "✔ Đã nhận +20đ" : "🪙 Trả lời đúng +20đ"}
+          {earned > 0 ? `🪙 +${earned}` : already ? (en ? "✔ +20 claimed" : "✔ Đã nhận +20đ") : (en ? "🪙 Correct answer +20" : "🪙 Trả lời đúng +20đ")}
         </span>
       </div>
       <p className="text-xs font-bold opacity-80 mb-2">
-        Khi nhận được một email báo trúng thưởng, em nên làm gì?
+         {en ? "What should you do when an email says you have won a prize?" : "Khi nhận được một email báo trúng thưởng, em nên làm gì?"}
       </p>
       <div className="grid gap-2 max-h-[34vh] overflow-y-auto pr-1">
-        {OPTIONS.map((o) => {
+        {options.map((o) => {
           const isPicked = picked === o.key;
           const isCorrect = o.key === CORRECT;
           const state =
@@ -101,15 +111,14 @@ export function FinalLessonQuiz({ lessonId = "default" }: { lessonId?: string })
           {picked !== CORRECT && (
             <>
               {" "}
-              Đáp án đúng là <b>D</b>.
+               {en ? "The correct answer is" : "Đáp án đúng là"} <b>D</b>.
             </>
           )}
         </p>
       )}
 
       <p className="mt-2 text-[11px] sm:text-xs font-black rounded-xl p-2.5 border-2 border-amber-400/60 bg-amber-400/15">
-        🛡️ GHI NHỚ QUAN TRỌNG! Hãy luôn tỉnh táo – Kiểm tra kỹ – Không bấm link lạ – Bảo vệ bản thân và giúp đỡ mọi
-        người!
+         🛡️ {en ? "REMEMBER! Stay alert – Verify carefully – Never open unknown links – Protect yourself and help others!" : "GHI NHỚ QUAN TRỌNG! Hãy luôn tỉnh táo – Kiểm tra kỹ – Không bấm link lạ – Bảo vệ bản thân và giúp đỡ mọi người!"}
       </p>
     </div>
   );

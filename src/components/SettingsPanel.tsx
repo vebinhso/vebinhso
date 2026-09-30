@@ -4,7 +4,7 @@ import { useWorldToggles, setToggles } from "@/lib/world-toggles";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLocale } from "@/lib/locale";
 
-export function SettingsPanel({ offset = false }: { offset?: boolean }) {
+export function SettingsPanel({ inline = false }: { inline?: boolean }) {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState(() => getAudioSettings());
   const wt = useWorldToggles();
@@ -22,7 +22,7 @@ export function SettingsPanel({ offset = false }: { offset?: boolean }) {
       <button
         onClick={() => setOpen(true)}
         title={en ? "Settings" : "Cài đặt"}
-        className={`fixed top-3 z-50 w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl ${offset ? "right-[9.5rem]" : "right-3"}`}
+        className={`w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl ${inline ? "" : "fixed top-3 right-3 z-50"}`}
       >
         ⚙️
       </button>

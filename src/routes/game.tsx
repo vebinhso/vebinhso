@@ -1033,10 +1033,8 @@ function GamePage() {
         </div>
       )}
 
-      {/* Nút về trang chủ — tách khỏi nhóm ACTIONS, luôn hiển thị góc phải trên */}
-      <Link to="/" className="fixed top-3 right-3 z-[55] toy-button !text-xs !py-2 !px-3 shadow-lg">
-        🏡 {en ? "Home" : "Về trang chủ"}
-      </Link>
+      {/* Nút 🏡 về trang chủ + ⚙️ Cài đặt + VI/EN nằm trong hàng nút cố định ở __root */}
+
 
       {/* Top HUD */}
       <div className="absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">

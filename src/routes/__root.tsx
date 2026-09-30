@@ -130,8 +130,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // Trên bản đồ nhà (/game) nút 🏡 Về trang chủ chiếm góc phải trên,
-  // nên dịch ⚙️ Cài đặt + VI/EN sang trái để nằm cạnh nút home.
+  const locale = useLocale();
+  const en = locale === "en";
+  // Trên bản đồ nhà (/game) có thêm nút 🏡 về trang chủ, nên hàng nút góc phải
+  // trên gồm: VI/EN — 🏡 — ⚙️ (phải cùng là Cài đặt), đứng sát nhau.
   const onHomeMap = pathname === "/game";
 
   return (
@@ -139,8 +141,20 @@ function RootComponent() {
       <AuthSyncBridge />
       <AudioBridge />
       <StrictEnglishGuard />
-      <SettingsPanel offset={onHomeMap} />
-      <div className={`fixed top-3 z-50 ${onHomeMap ? "right-[12.75rem]" : "right-16"}`}><LanguageToggle compact /></div>
+      <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+        <div className="h-11 flex items-center"><LanguageToggle compact /></div>
+        {onHomeMap && (
+          <Link
+            to="/"
+            title={en ? "Home" : "Về trang chủ"}
+            aria-label={en ? "Home" : "Về trang chủ"}
+            className="w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl"
+          >
+            🏡
+          </Link>
+        )}
+        <SettingsPanel inline />
+      </div>
       <SavedToast />
       <Toaster position="top-center" richColors closeButton />
       <Outlet />

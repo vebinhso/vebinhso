@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { GameLayout } from "@/components/GameLayout";
+import RouteLoading from "@/components/RouteLoading";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {

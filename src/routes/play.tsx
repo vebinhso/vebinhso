@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
+import RouteLoading from "@/components/RouteLoading";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { loadOutfit } from "@/lib/character";

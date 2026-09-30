@@ -153,7 +153,7 @@ function FilmPage() {
     }
     await Promise.race([
       Promise.all(waits),
-      new Promise((res) => window.setTimeout(res, 4000)),
+      new Promise((res) => window.setTimeout(res, 1500)),
     ]);
     setPreparing(false);
     setStarted(true);

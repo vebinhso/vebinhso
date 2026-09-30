@@ -347,7 +347,7 @@ function AiPage() {
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = null;
-      setTimeout(() => setLoading(false), 200);
+      setLoading(false);
     }
   }
 

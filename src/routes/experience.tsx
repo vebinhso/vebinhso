@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/experience")({
   component: ExperiencePage,
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/experience")({
 function ExperiencePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
+  const en = useLocale() === "en";
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -40,9 +42,9 @@ function ExperiencePage() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="glass-card max-w-xl w-full p-4 sm:p-8 text-center">
           <div className="text-4xl sm:text-6xl mb-3">✨</div>
-          <h1 className="text-xl sm:text-3xl font-black mb-2">TRẢI NGHIỆM</h1>
+          <h1 className="text-xl sm:text-3xl font-black mb-2">{en ? "EXPLORE" : "TRẢI NGHIỆM"}</h1>
           <p className="font-bold text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-            Xin chào <span className="text-orange-600">{user.username}</span>
+            {en ? "Hello" : "Xin chào"} <span className="text-orange-600">{user.username}</span>
           </p>
           <div className="grid gap-3 sm:gap-4">
             <Link
@@ -50,16 +52,16 @@ function ExperiencePage() {
               className="toy-button toy-button-primary w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 whitespace-normal !leading-tight"
             >
               <span className="text-2xl sm:text-3xl">🎮</span>
-              <span>TRÒ CHƠI</span>
-              <span className="text-[10px] sm:text-xs font-bold opacity-80">Chọn bản đồ và bắt đầu chơi</span>
+              <span>{en ? "GAME" : "TRÒ CHƠI"}</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-80">{en ? "Choose a map and start playing" : "Chọn bản đồ và bắt đầu chơi"}</span>
             </Link>
             <Link
               to="/ai"
               className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-cyan-500 to-blue-700 text-white whitespace-normal !leading-tight"
             >
               <span className="text-2xl sm:text-3xl">🤖</span>
-              <span>THAM GIA AI</span>
-              <span className="text-[10px] sm:text-xs font-bold opacity-90">Khu vực AI</span>
+              <span>{en ? "AI CENTER" : "THAM GIA AI"}</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-90">{en ? "AI safety tools" : "Khu vực AI"}</span>
             </Link>
           </div>
         </div>

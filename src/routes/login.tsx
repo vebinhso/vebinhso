@@ -6,12 +6,21 @@ import { signInWithPassword, signUpWithPassword } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PasswordChecklist } from "@/components/PasswordChecklist";
 import { isPasswordValid } from "@/lib/password";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>): { next?: string } => ({
     next: typeof s.next === "string" && s.next.startsWith("/") ? s.next : undefined,
   }),
   component: LoginPage,
+  head: () => ({ meta: [
+    { title: "Đăng nhập | VỆ BINH SỐ" },
+    { name: "description", content: "Đăng nhập hoặc tạo tài khoản VỆ BINH SỐ." },
+    { property: "og:title", content: "Đăng nhập | VỆ BINH SỐ" },
+    { property: "og:description", content: "Đăng nhập hoặc tạo tài khoản VỆ BINH SỐ." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 function useNextTarget(): string {
@@ -74,6 +83,7 @@ function Field({ label, type = "text", placeholder, value, onChange }: {
 }
 
 function GoogleButton() {
+  const en = useLocale() === "en";
   const [busy, setBusy] = useState(false);
   const next = useNextTarget();
   const handle = async () => {
@@ -98,12 +108,13 @@ function GoogleButton() {
         <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.2-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
         <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C41 35.3 44 30 44 24c0-1.3-.1-2.3-.4-3.5z" />
       </svg>
-      {busy ? "Đang chuyển hướng..." : "Đăng nhập với Google"}
+      {busy ? (en ? "Redirecting..." : "Đang chuyển hướng...") : (en ? "Continue with Google" : "Đăng nhập với Google")}
     </button>
   );
 }
 
 function Login({ setView }: { setView: (v: View) => void }) {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const next = useNextTarget();
   const [email, setEmail] = useState("");
@@ -113,14 +124,14 @@ function Login({ setView }: { setView: (v: View) => void }) {
 
   const handleLogin = async () => {
     setError("");
-    if (!email.trim() || !password) { setError("Vui lòng nhập đầy đủ thông tin!"); return; }
+    if (!email.trim() || !password) { setError(en ? "Enter your email and password." : "Vui lòng nhập đầy đủ thông tin!"); return; }
     setBusy(true);
     try {
       await signInWithPassword(email.trim(), password);
       if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
-      setError(e?.message || "Đăng nhập thất bại");
+      setError(e?.message || (en ? "Sign-in failed" : "Đăng nhập thất bại"));
     } finally { setBusy(false); }
   };
 
@@ -130,19 +141,19 @@ function Login({ setView }: { setView: (v: View) => void }) {
       <div className="text-center mb-6">
         <div className="text-6xl mb-2">🏠</div>
         <h1 className="text-3xl font-black">VỆ BINH SỐ</h1>
-        <p className="text-muted-foreground font-bold">Đăng nhập để tiếp tục</p>
+        <p className="text-muted-foreground font-bold">{en ? "Sign in to continue" : "Đăng nhập để tiếp tục"}</p>
       </div>
       <div className="flex flex-col gap-3">
         <GoogleButton />
         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-          <div className="flex-1 h-px bg-gray-200" /> HOẶC <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200" /> {en ? "OR" : "HOẶC"} <div className="flex-1 h-px bg-gray-200" />
         </div>
         <Field label="Email" type="email" value={email} onChange={setEmail} />
-        <Field label="Mật khẩu" type="password" value={password} onChange={setPassword} />
+        <Field label={en ? "Password" : "Mật khẩu"} type="password" value={password} onChange={setPassword} />
         <button
           onClick={() => setView("forgot")}
           className="text-right text-sm font-bold text-orange-600"
-        >Quên mật khẩu?</button>
+        >{en ? "Forgot password?" : "Quên mật khẩu?"}</button>
         {error && (
           <div className="text-red-600 font-bold text-sm text-center bg-red-50 rounded-xl p-2">{error}</div>
         )}
@@ -150,10 +161,10 @@ function Login({ setView }: { setView: (v: View) => void }) {
           onClick={handleLogin}
           disabled={busy}
           className="toy-button toy-button-primary w-full !text-base sm:!text-lg !py-3 disabled:opacity-60 truncate"
-        >🔑 {busy ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}</button>
+        >🔑 {busy ? (en ? "SIGNING IN..." : "ĐANG ĐĂNG NHẬP...") : (en ? "SIGN IN" : "ĐĂNG NHẬP")}</button>
         <div className="text-center text-sm">
-          Chưa có tài khoản?{" "}
-          <button onClick={() => setView("register")} className="font-black text-orange-600">Đăng ký ngay</button>
+          {en ? "New here?" : "Chưa có tài khoản?"}{" "}
+          <button onClick={() => setView("register")} className="font-black text-orange-600">{en ? "Create an account" : "Đăng ký ngay"}</button>
         </div>
       </div>
     </>
@@ -161,6 +172,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
 }
 
 function Register({ setView }: { setView: (v: View) => void }) {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const next = useNextTarget();
   const [username, setUsername] = useState("");
@@ -208,23 +220,23 @@ function Register({ setView }: { setView: (v: View) => void }) {
 
   return (
     <>
-      <h2 className="text-2xl font-black text-center mb-4">Đăng ký mới</h2>
+      <h2 className="text-2xl font-black text-center mb-4">{en ? "Create an account" : "Đăng ký mới"}</h2>
       <div className="flex flex-col gap-3">
         <GoogleButton />
         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-          <div className="flex-1 h-px bg-gray-200" /> HOẶC <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-gray-200" /> {en ? "OR" : "HOẶC"} <div className="flex-1 h-px bg-gray-200" />
         </div>
-        <Field label="Tên hiển thị (*)" value={username} onChange={setUsername} />
+        <Field label={en ? "Display name (*)" : "Tên hiển thị (*)"} value={username} onChange={setUsername} />
         <Field label="Email (*)" type="email" placeholder="ten@vi-du.com" value={email} onChange={setEmail} />
-        <Field label="Mật khẩu (*)" type="password" value={password} onChange={setPassword} />
+        <Field label={en ? "Password (*)" : "Mật khẩu (*)"} type="password" value={password} onChange={setPassword} />
         <PasswordChecklist password={password} />
-        <Field label="Xác nhận mật khẩu (*)" type="password" value={confirm} onChange={setConfirm} />
+        <Field label={en ? "Confirm password (*)" : "Xác nhận mật khẩu (*)"} type="password" value={confirm} onChange={setConfirm} />
 
         <label className="flex items-start gap-2 mt-1 p-3 rounded-2xl bg-orange-50 border-2 border-orange-200 cursor-pointer">
           <input type="checkbox" checked={isTeacher} onChange={(e) => setIsTeacher(e.target.checked)} className="mt-1 w-5 h-5 accent-orange-500" />
           <div className="flex-1">
-            <div className="font-black text-sm">🧑‍🏫 Đăng ký giáo viên</div>
-            <div className="text-xs text-muted-foreground">Yêu cầu quản trị viên duyệt trước khi được nhận mã lớp.</div>
+            <div className="font-black text-sm">🧑‍🏫 {en ? "Register as a teacher" : "Đăng ký giáo viên"}</div>
+            <div className="text-xs text-muted-foreground">{en ? "An administrator must approve your account before you receive a class code." : "Yêu cầu quản trị viên duyệt trước khi được nhận mã lớp."}</div>
           </div>
         </label>
         {isTeacher && (
@@ -241,15 +253,16 @@ function Register({ setView }: { setView: (v: View) => void }) {
           <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-3">{success}</div>
         )}
         <button onClick={handleRegister} disabled={busy} className="toy-button toy-button-green w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
-          {busy ? "Đang tạo..." : "Tạo tài khoản ✨"}
+          {busy ? (en ? "Creating..." : "Đang tạo...") : (en ? "Create account ✨" : "Tạo tài khoản ✨")}
         </button>
-        <button onClick={() => setView("login")} className="toy-button w-full">Quay lại Đăng nhập</button>
+        <button onClick={() => setView("login")} className="toy-button w-full">{en ? "Back to sign in" : "Quay lại Đăng nhập"}</button>
       </div>
     </>
   );
 }
 
 function Forgot({ setView }: { setView: (v: View) => void }) {
+  const en = useLocale() === "en";
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -267,15 +280,15 @@ function Forgot({ setView }: { setView: (v: View) => void }) {
   };
   return (
     <>
-      <h2 className="text-2xl font-black text-center mb-4">Lấy lại mật khẩu</h2>
+      <h2 className="text-2xl font-black text-center mb-4">{en ? "Reset your password" : "Lấy lại mật khẩu"}</h2>
       <div className="flex flex-col gap-3">
-        <Field label="Email đã đăng ký" type="email" value={email} onChange={setEmail} />
+        <Field label={en ? "Registered email" : "Email đã đăng ký"} type="email" value={email} onChange={setEmail} />
         {err && <div className="text-red-600 font-bold text-sm bg-red-50 rounded-xl p-2">{err}</div>}
         {msg && <div className="text-green-700 font-bold text-sm bg-green-50 rounded-xl p-2">{msg}</div>}
         <button onClick={send} disabled={busy} className="toy-button toy-button-accent w-full !text-base sm:!text-lg disabled:opacity-60 truncate">
-          {busy ? "Đang gửi..." : "Gửi email khôi phục 📧"}
+          {busy ? (en ? "Sending..." : "Đang gửi...") : (en ? "Send reset email 📧" : "Gửi email khôi phục 📧")}
         </button>
-        <button onClick={() => setView("login")} className="toy-button w-full">Hủy bỏ</button>
+        <button onClick={() => setView("login")} className="toy-button w-full">{en ? "Cancel" : "Hủy bỏ"}</button>
       </div>
     </>
   );

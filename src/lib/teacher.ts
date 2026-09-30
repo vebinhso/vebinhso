@@ -169,7 +169,8 @@ export async function rejectTeacher(uid: string) {
 export type TeacherQuestion = {
   id?: string;
   text: string;
-  choices: { text: string; imageUrl?: string }[];
+  textEn?: string;
+  choices: { text: string; textEn?: string; imageUrl?: string }[];
   correctIndexes: number[];
   reward: number;
   category?: string;           // "digital" | "history"
@@ -186,7 +187,7 @@ export async function listMyQuestions(classId?: string): Promise<TeacherQuestion
   if (!uid) return [];
   let q = supabase
     .from("questions_bank")
-    .select("id,text,choices,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,class_id,created_at")
+    .select("id,text,text_en,choices,choices_en,correct_indexes,answer_index,reward,category,image_url,enabled,competency_level,competency_domain,class_id,created_at")
     .eq("teacher_id", uid)
     .order("created_at", { ascending: false });
   if (classId) q = q.eq("class_id", classId);
@@ -195,8 +196,9 @@ export async function listMyQuestions(classId?: string): Promise<TeacherQuestion
   return ((data as any[]) || []).map((r) => ({
     id: r.id,
     text: r.text,
-    choices: (Array.isArray(r.choices) ? r.choices : []).map((c: any) =>
-      typeof c === "string" ? { text: c } : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
+    textEn: r.text_en ?? "",
+    choices: (Array.isArray(r.choices) ? r.choices : []).map((c: any, index: number) =>
+      typeof c === "string" ? { text: c, textEn: r.choices_en?.[index]?.text ?? "" } : { text: c?.text ?? "", textEn: r.choices_en?.[index]?.text ?? "", imageUrl: c?.imageUrl ?? "" }
     ),
     correctIndexes: Array.isArray(r.correct_indexes) && r.correct_indexes.length > 0
       ? r.correct_indexes.map((n: any) => Number(n))
@@ -214,7 +216,11 @@ export async function listMyQuestions(classId?: string): Promise<TeacherQuestion
 function toRow(q: TeacherQuestion, teacherId: string) {
   return {
     text: q.text,
+    text_en: q.textEn?.trim() || null,
     choices: q.choices as any,
+    choices_en: q.choices.some((c) => c.textEn?.trim())
+      ? q.choices.map((c) => ({ text: c.textEn?.trim() || c.text, imageUrl: c.imageUrl || "" })) as any
+      : null,
     answer_index: q.correctIndexes?.[0] ?? 0,
     correct_indexes: (q.correctIndexes && q.correctIndexes.length > 0 ? q.correctIndexes : [0]) as any,
     maps: ["all"] as any,

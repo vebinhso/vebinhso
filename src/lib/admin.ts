@@ -17,10 +17,11 @@ export const DEFAULT_ADMIN_EMAILS = [
   "student250729@ptnk.edu.vn",
 ];
 
-export type AdminQuestionOption = { text: string; imageUrl?: string };
+export type AdminQuestionOption = { text: string; textEn?: string; imageUrl?: string };
 export type AdminQuestion = {
   id: string;
   q: string;
+  qEn?: string;
   options: AdminQuestionOption[];
   correctIndexes: number[];
   maps: string[];
@@ -197,10 +198,11 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
   if (error) throw error;
   const rows = ((data as any[]) || []).map((row: any) => {
     const rawChoices = Array.isArray(row.choices) ? row.choices : [];
-    const options: AdminQuestionOption[] = rawChoices.map((c: any) =>
+    const rawChoicesEn = Array.isArray(row.choices_en) ? row.choices_en : [];
+    const options: AdminQuestionOption[] = rawChoices.map((c: any, index: number) =>
       typeof c === "string"
-        ? { text: c, imageUrl: "" }
-        : { text: c?.text ?? "", imageUrl: c?.imageUrl ?? "" }
+        ? { text: c, textEn: rawChoicesEn[index]?.text ?? "", imageUrl: "" }
+        : { text: c?.text ?? "", textEn: rawChoicesEn[index]?.text ?? "", imageUrl: c?.imageUrl ?? "" }
     );
     const correctIndexes: number[] = Array.isArray(row.correct_indexes) && row.correct_indexes.length > 0
       ? (row.correct_indexes as number[])
@@ -211,6 +213,7 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
     return {
       id: row.id,
       q: row.text,
+      qEn: row.text_en ?? "",
       options,
       correctIndexes,
       maps,
@@ -242,7 +245,11 @@ export async function fetchQuestions(): Promise<AdminQuestion[]> {
 function toDbRow(q: AdminQuestion) {
   return {
     text: q.q,
+    text_en: q.qEn?.trim() || null,
     choices: q.options as any,
+    choices_en: q.options.some((o) => o.textEn?.trim())
+      ? q.options.map((o) => ({ text: o.textEn?.trim() || o.text, imageUrl: o.imageUrl || "" })) as any
+      : null,
     answer_index: q.correctIndexes?.[0] ?? 0,
     correct_indexes: q.correctIndexes as any,
     maps: (q.maps && q.maps.length > 0 ? q.maps : ["all"]) as any,

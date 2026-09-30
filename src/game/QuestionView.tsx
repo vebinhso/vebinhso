@@ -45,7 +45,7 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
   const optPadY = compact ? "py-2" : "py-3";
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-no-auto-translate>
       {question.isRetry && (
         <div className="flex justify-center mb-2">
           <span className="px-3 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-800 text-xs md:text-sm font-black">

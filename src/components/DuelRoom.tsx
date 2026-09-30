@@ -378,7 +378,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
         </div>
 
         {/* Question box */}
-        <div className="p-4 bg-white/95 m-3 rounded-2xl shadow-inner">
+        <div className="p-4 bg-white/95 m-3 rounded-2xl shadow-inner" data-no-auto-translate>
           <h3 className="text-base sm:text-lg font-black mb-2 whitespace-pre-wrap">{currentText}</h3>
           {currentQ.imageUrl && (
             <img src={currentQ.imageUrl} alt="" className="w-full max-h-40 object-contain rounded-lg mb-2" />

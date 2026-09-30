@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { setInputKey } from "@/lib/player-input";
+import { useLocale } from "@/lib/locale";
 
 type Props = {
   /** Show an action button (e.g. open door). Dispatches keydown/keyup for `actionKey` (default "e"). */
@@ -14,10 +15,12 @@ type Props = {
 export function TouchControls({
   showActionButton = false,
   actionKey = "e",
-  actionLabel = "🚪 MỞ",
+  actionLabel,
   onAction,
   showJumpButton = true,
 }: Props) {
+  const en = useLocale() === "en";
+  const resolvedActionLabel = actionLabel ?? (en ? "🚪 OPEN" : "🚪 MỞ");
   const [isTouch, setIsTouch] = useState(false);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
   const joyRef = useRef<HTMLDivElement>(null);
@@ -150,7 +153,7 @@ export function TouchControls({
           className="fixed right-4 z-40 pointer-events-auto rounded-2xl border-4 border-white/70 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white font-black text-xs shadow-xl active:scale-95 px-3 py-2"
           style={{ bottom: showJumpButton ? 80 : 24, touchAction: "none" }}
         >
-          {actionLabel}
+          {resolvedActionLabel}
         </button>
       )}
     </>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useLocale } from "@/lib/locale";
 
 /**
  * Small "✓ Đã lưu" toast that appears at top-center whenever any part of the
@@ -6,6 +7,7 @@ import { useEffect, useState, useRef } from "react";
  * Listens for the global "game-saved" window event.
  */
 export function SavedToast() {
+  const en = useLocale() === "en";
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,7 +39,7 @@ export function SavedToast() {
     >
       <div className="px-3 py-1.5 rounded-full bg-emerald-600/95 text-white text-xs font-black shadow-lg border-2 border-white/70 flex items-center gap-1.5">
         <span>✓</span>
-        <span>Đã lưu</span>
+        <span>{en ? "Saved" : "Đã lưu"}</span>
       </div>
     </div>
   );

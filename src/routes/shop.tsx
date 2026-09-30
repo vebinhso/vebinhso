@@ -2,19 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useState } from "react";
 import { CATALOG, CATEGORIES } from "@/game/catalog";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/shop")({ component: ShopPage });
 
 function ShopPage() {
+  const en = useLocale() === "en";
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("Vật liệu");
   return (
     <GameLayout showBack>
       <div className="p-4 md:p-8 max-w-6xl w-full mx-auto">
         <div className="glass-card p-4 md:p-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h1 className="text-2xl md:text-3xl font-black">🛒 CỬA HÀNG</h1>
+            <h1 className="text-2xl md:text-3xl font-black">🛒 {en ? "SHOP" : "CỬA HÀNG"}</h1>
             <Link to="/game" className="toy-button toy-button-primary !text-sm">
-              🏗️ Vào bản đồ nhà để mua & đặt
+              🏗️ {en ? "Open the home map to buy and place items" : "Vào bản đồ nhà để mua & đặt"}
             </Link>
           </div>
 
@@ -56,10 +58,10 @@ function ShopPage() {
                 </div>
                 <div className="font-black text-sm leading-tight">{it.name}</div>
                 <div className="text-[10px] text-amber-900/70 font-bold">
-                  {it.w}×{it.d}×{it.h} ô
+                  {it.w}×{it.d}×{it.h} {en ? "cells" : "ô"}
                 </div>
                 <div className="mt-1 inline-block px-2 py-0.5 rounded-full bg-amber-900 text-amber-100 text-xs font-black">
-                  💰 {it.price}đ
+                  💰 {it.price} {en ? "coins" : "đ"}
                 </div>
               </div>
             ))}

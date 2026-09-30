@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { getAudioSettings, setMasterVolume, setMuted } from "@/lib/audio";
 import { useWorldToggles, setToggles } from "@/lib/world-toggles";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLocale } from "@/lib/locale";
 
 export function SettingsPanel() {
   const [open, setOpen] = useState(false);
   const [s, setS] = useState(() => getAudioSettings());
   const wt = useWorldToggles();
+  const locale = useLocale();
+  const en = locale === "en";
 
   useEffect(() => {
     const sync = () => setS(getAudioSettings());
@@ -17,7 +21,7 @@ export function SettingsPanel() {
     <>
       <button
         onClick={() => setOpen(true)}
-        title="Cài đặt"
+        title={en ? "Settings" : "Cài đặt"}
         className="fixed top-3 right-3 z-50 w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl"
       >
         ⚙️
@@ -31,10 +35,15 @@ export function SettingsPanel() {
             className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-black mb-4 text-center">⚙️ CÀI ĐẶT ÂM THANH</h3>
+            <h3 className="text-xl font-black mb-4 text-center">⚙️ {en ? "SETTINGS" : "CÀI ĐẶT"}</h3>
 
             <div className="flex items-center justify-between mb-4">
-              <span className="font-bold">🔊 Bật âm thanh</span>
+              <span className="font-bold">🌐 {en ? "Language" : "Ngôn ngữ"}</span>
+              <LanguageToggle />
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-bold">🔊 {en ? "Sound" : "Bật âm thanh"}</span>
               <button
                 onClick={() => setMuted(!s.muted)}
                 className={`px-4 py-2 rounded-full font-black text-sm border-2 ${
@@ -43,12 +52,12 @@ export function SettingsPanel() {
                     : "bg-emerald-500 border-emerald-700 text-white"
                 }`}
               >
-                {s.muted ? "TẮT" : "BẬT"}
+                {s.muted ? (en ? "OFF" : "TẮT") : (en ? "ON" : "BẬT")}
               </button>
             </div>
 
             <div className="mb-2 flex justify-between font-bold text-sm">
-              <span>Âm lượng</span>
+              <span>{en ? "Volume" : "Âm lượng"}</span>
               <span>{Math.round(s.master * 100)}%</span>
             </div>
             <input
@@ -62,10 +71,10 @@ export function SettingsPanel() {
             />
 
             <div className="border-t-2 border-dashed border-orange-200 pt-4 mb-4">
-              <div className="text-sm font-black mb-2 text-center">🎮 NHÂN VẬT</div>
+              <div className="text-sm font-black mb-2 text-center">🎮 {en ? "CHARACTER" : "NHÂN VẬT"}</div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm">
-                  {wt.collision === "block" ? "🧱 Bị cản bởi vật" : "👻 Đi xuyên thấu"}
+                  {wt.collision === "block" ? (en ? "🧱 Solid objects" : "🧱 Bị cản bởi vật") : (en ? "👻 Walk through" : "👻 Đi xuyên thấu")}
                 </span>
                 <button
                   onClick={() => setToggles({ collision: wt.collision === "block" ? "phase" : "block" })}
@@ -75,11 +84,11 @@ export function SettingsPanel() {
                       : "bg-sky-500 border-sky-700 text-white"
                   }`}
                 >
-                  {wt.collision === "block" ? "ĐANG CẢN" : "XUYÊN THẤU"}
+                  {wt.collision === "block" ? (en ? "SOLID" : "ĐANG CẢN") : (en ? "PHASE" : "XUYÊN THẤU")}
                 </button>
               </div>
               <p className="text-[11px] text-muted-foreground font-bold mt-1">
-                Bật "Cản" để nhân vật va chạm tường + đồ nội thất.
+                {en ? "Solid mode makes the character collide with walls and furniture." : "Bật \"Cản\" để nhân vật va chạm tường + đồ nội thất."}
               </p>
             </div>
 
@@ -87,7 +96,7 @@ export function SettingsPanel() {
               onClick={() => setOpen(false)}
               className="toy-button toy-button-primary w-full"
             >
-              ĐÓNG
+              {en ? "CLOSE" : "ĐÓNG"}
             </button>
           </div>
         </div>

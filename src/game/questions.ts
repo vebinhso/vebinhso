@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getLocale } from "@/lib/locale";
 
 export type Question = {
   id?: string;
@@ -86,7 +87,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }, , , activeClassId] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,choices,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,correct_count,created_at,updated_at")
+        .select("id,text,text_en,choices,choices_en,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,correct_count,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -100,7 +101,8 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       activeClassId ? r.class_id === activeClassId : !r.class_id,
     );
     const mapped: Question[] = rows.map((row: any) => {
-      const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
+      const englishChoices = Array.isArray(row.choices_en) && row.choices_en.length === row.choices?.length ? row.choices_en : null;
+      const rawChoices: any[] = getLocale() === "en" && englishChoices ? englishChoices : (Array.isArray(row.choices) ? row.choices : []);
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
@@ -111,7 +113,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const cat = (row.category === "digital" || row.category === "history") ? row.category : "history";
       return {
         id: row.id ? String(row.id) : undefined,
-        q: row.text ?? "",
+        q: getLocale() === "en" && row.text_en ? row.text_en : (row.text ?? ""),
         options,
         answer: -1,
         reward: row.reward ?? 10,

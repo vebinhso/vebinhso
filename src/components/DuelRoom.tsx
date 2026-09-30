@@ -11,6 +11,7 @@ import {
   type DuelTopic,
   type DuelPlayerInfo,
 } from "@/lib/duels.functions";
+import { useLocale } from "@/lib/locale";
 
 type Props = {
   duelId: string;
@@ -26,6 +27,7 @@ type RoundState =
   | { phase: "revealed"; correctIndexes: number[]; winnerUserId: string | null; myPick: number | null };
 
 export function DuelRoom({ duelId, meId, onClose }: Props) {
+  const en = useLocale() === "en";
   const listTopicsFn = useServerFn(listDuelTopics);
   const getDuelFn = useServerFn(getDuel);
   const startFn = useServerFn(startDuel);
@@ -51,6 +53,8 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const hostInfo: DuelPlayerInfo | null = snap?.host ?? null;
   const guestInfo: DuelPlayerInfo | null = snap?.guest ?? null;
   const currentQ = snap?.questions?.[qIndex];
+  const currentText = en && currentQ?.textEn ? currentQ.textEn : currentQ?.text;
+  const currentOptions = en && currentQ?.optionsEn?.length === currentQ?.options.length ? currentQ.optionsEn : currentQ?.options;
   const payout = snap?.payout ?? 30;
   // Scores derived from shared roundResults so both clients render identically.
   const hostScore = roundResults.filter((w) => w && w === snap?.hostId).length;

@@ -16,7 +16,9 @@ export type DuelTopic = {
 export type DuelQuestion = {
   id: string;
   text: string;
+  textEn?: string | null;
   options: string[];
+  optionsEn?: string[];
   imageUrl?: string | null;
   optionImages?: (string | null)[];
 };
@@ -184,7 +186,7 @@ export const startDuel = createServerFn({ method: "POST" })
     }
 
     let q = (supabase.from("questions_bank") as any)
-      .select("id, text, choices, image_url, category, competency_domain, enabled")
+      .select("id, text, text_en, choices, choices_en, image_url, category, competency_domain, enabled")
       .eq("enabled", true)
       .eq("category", data.category);
     if (data.category === "digital" && data.domain != null) {
@@ -368,10 +370,13 @@ export const finishDuel = createServerFn({ method: "POST" })
 
 function mapQuestion(row: any): DuelQuestion {
   const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
+  const rawChoicesEn: any[] = Array.isArray(row.choices_en) ? row.choices_en : [];
   return {
     id: String(row.id),
     text: String(row.text ?? ""),
+    textEn: row.text_en ? String(row.text_en) : null,
     options: rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? ""))),
+    optionsEn: rawChoicesEn.map((c) => String(typeof c === "string" ? c : (c?.text ?? ""))),
     imageUrl: row.image_url ?? null,
     optionImages: rawChoices.map((c) => (typeof c === "string" ? null : (c?.imageUrl ?? null))),
   };
@@ -381,7 +386,7 @@ async function loadQuestions(supabase: any, ids: string[]): Promise<DuelQuestion
   if (!ids || ids.length === 0) return [];
   const { data, error } = await supabase
     .from("questions_bank")
-    .select("id, text, choices, image_url")
+    .select("id, text, text_en, choices, choices_en, image_url")
     .in("id", ids);
   if (error) throw new Error(error.message);
   const map = new Map<string, DuelQuestion>();

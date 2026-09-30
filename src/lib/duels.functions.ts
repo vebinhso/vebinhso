@@ -1,6 +1,7 @@
 // Server functions for 1vs1 Duel Rooms inside houses.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import systemQuestionEnglish from "@/game/system-question-en.json";
 
 const DEFAULT_PAYOUT = 30;
 const N_QUESTIONS = 10;
@@ -368,13 +369,22 @@ export const finishDuel = createServerFn({ method: "POST" })
 
 /* ------------------------- helpers ------------------------- */
 
+type SystemEnglishQuestion = { id: string; text_en: string; choices_en: unknown[] };
+const SYSTEM_ENGLISH_BY_ID = new Map(
+  (systemQuestionEnglish as SystemEnglishQuestion[]).map((question) => [question.id, question]),
+);
+
 function mapQuestion(row: any): DuelQuestion {
   const rawChoices: any[] = Array.isArray(row.choices) ? row.choices : [];
-  const rawChoicesEn: any[] = Array.isArray(row.choices_en) ? row.choices_en : [];
+  const bundled = SYSTEM_ENGLISH_BY_ID.get(String(row.id));
+  const candidateChoices = bundled?.choices_en ?? row.choices_en;
+  const rawChoicesEn: any[] = Array.isArray(candidateChoices) && candidateChoices.length === rawChoices.length
+    ? candidateChoices
+    : [];
   return {
     id: String(row.id),
     text: String(row.text ?? ""),
-    textEn: row.text_en ? String(row.text_en) : null,
+    textEn: bundled?.text_en ?? (row.text_en ? String(row.text_en) : null),
     options: rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? ""))),
     optionsEn: rawChoicesEn.map((c) => String(typeof c === "string" ? c : (c?.text ?? ""))),
     imageUrl: row.image_url ?? null,

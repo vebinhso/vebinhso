@@ -140,7 +140,7 @@ function RootComponent() {
       <AudioBridge />
       <StrictEnglishGuard />
       <SettingsPanel offset={onHomeMap} />
-      <div className={`fixed top-3 z-50 ${onHomeMap ? "right-[11rem]" : "right-16"}`}><LanguageToggle compact /></div>
+      <div className={`fixed top-3 z-50 ${onHomeMap ? "right-[12.75rem]" : "right-16"}`}><LanguageToggle compact /></div>
       <SavedToast />
       <Toaster position="top-center" richColors closeButton />
       <Outlet />

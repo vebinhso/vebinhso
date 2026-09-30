@@ -22,7 +22,7 @@ export function SettingsPanel({ offset = false }: { offset?: boolean }) {
       <button
         onClick={() => setOpen(true)}
         title={en ? "Settings" : "Cài đặt"}
-        className={`fixed top-3 z-50 w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl ${offset ? "right-[8rem]" : "right-3"}`}
+        className={`fixed top-3 z-50 w-11 h-11 rounded-full bg-white/90 border-2 border-white shadow-lg hover:scale-105 transition flex items-center justify-center text-xl ${offset ? "right-[9.5rem]" : "right-3"}`}
       >
         ⚙️
       </button>

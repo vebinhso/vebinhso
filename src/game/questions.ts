@@ -97,12 +97,18 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     if (error) throw error;
     // Khi học sinh đang tham gia một lớp: chỉ dùng câu hỏi của lớp đó.
     // Khi không tham gia lớp nào: dùng ngân hàng câu hỏi mặc định.
-    const rows = (data ?? []).filter((r: any) =>
-      activeClassId ? r.class_id === activeClassId : !r.class_id,
-    );
+    const englishMode = getLocale() === "en";
+    const rows = (data ?? []).filter((r: any) => {
+      const belongsToPool = activeClassId ? r.class_id === activeClassId : !r.class_id;
+      if (!belongsToPool) return false;
+      if (!englishMode) return true;
+      return typeof r.text_en === "string" && r.text_en.trim().length > 0
+        && Array.isArray(r.choices_en)
+        && r.choices_en.length === r.choices?.length;
+    });
     const mapped: Question[] = rows.map((row: any) => {
       const englishChoices = Array.isArray(row.choices_en) && row.choices_en.length === row.choices?.length ? row.choices_en : null;
-      const rawChoices: any[] = getLocale() === "en" && englishChoices ? englishChoices : (Array.isArray(row.choices) ? row.choices : []);
+      const rawChoices: any[] = englishMode ? (englishChoices ?? []) : (Array.isArray(row.choices) ? row.choices : []);
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));
       const maps: string[] = Array.isArray(row.maps) && row.maps.length > 0 ? row.maps : ["all"];
@@ -113,7 +119,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       const cat = (row.category === "digital" || row.category === "history") ? row.category : "history";
       return {
         id: row.id ? String(row.id) : undefined,
-        q: getLocale() === "en" && row.text_en ? row.text_en : (row.text ?? ""),
+        q: englishMode ? row.text_en : (row.text ?? ""),
         options,
         answer: -1,
         reward: row.reward ?? 10,

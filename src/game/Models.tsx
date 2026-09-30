@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Text } from "@react-three/drei";
 import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";
+import { getLocale } from "@/lib/locale";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -429,7 +430,7 @@ export function Sign({ w = 2, label = "" }: { w?: number; label?: string }) {
   // Khung biển: cao 0.6m, rộng w mét. Chữ chỉ gói gọn trong khung (~92% bề rộng).
   const innerW = w * 0.92;
   const innerH = 0.6 * 0.78;
-  const text = (label || "Bảng tên nhà").slice(0, 50);
+  const text = (label || (getLocale() === "en" ? "House name" : "Bảng tên nhà")).slice(0, 50);
   // Auto-size: vừa khung theo cả chiều rộng và chiều cao.
   const byHeight = innerH * 0.85;
   const byWidth = (innerW / Math.max(text.length, 4)) * 1.6;

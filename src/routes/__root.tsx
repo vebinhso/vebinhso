@@ -16,6 +16,7 @@ import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { SavedToast } from "@/components/SavedToast";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { StrictEnglishGuard } from "@/components/StrictEnglishGuard";
 import { useLocale } from "@/lib/locale";
 
 import appCss from "../styles.css?url";
@@ -85,16 +86,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vệ binh số - vui học kỹ năng số" },
-      { name: "description", content: "Trải nghiệm game học tập và xây nhà siêu thú vị." },
+      { title: "VỆ BINH SỐ — Digital Safety Learning Game" },
+      { name: "description", content: "Learn digital safety through games, interactive stories, and creative building." },
       { name: "author", content: "VỆ BINH SỐ" },
-      { property: "og:title", content: "Vệ binh số - vui học kỹ năng số" },
-      { property: "og:description", content: "Trải nghiệm game học tập và xây nhà siêu thú vị." },
+      { property: "og:title", content: "VỆ BINH SỐ — Digital Safety Learning Game" },
+      { property: "og:description", content: "Learn digital safety through games, interactive stories, and creative building." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Vệ binh số - vui học kỹ năng số" },
-      { name: "twitter:description", content: "Trải nghiệm game học tập và xây nhà siêu thú vị." },
+      { name: "twitter:title", content: "VỆ BINH SỐ — Digital Safety Learning Game" },
+      { name: "twitter:description", content: "Learn digital safety through games, interactive stories, and creative building." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d77c20-77d8-460e-95f1-65190a93a354/id-preview-050a7e93--f35aafa9-00d3-41f4-91f4-ed8fec6bb8f1.lovable.app-1779725233383.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/17d77c20-77d8-460e-95f1-65190a93a354/id-preview-050a7e93--f35aafa9-00d3-41f4-91f4-ed8fec6bb8f1.lovable.app-1779725233383.png" },
     ],
@@ -112,8 +113,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -132,6 +134,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthSyncBridge />
       <AudioBridge />
+      <StrictEnglishGuard />
       <SettingsPanel />
       <div className="fixed top-3 right-16 z-50"><LanguageToggle compact /></div>
       <SavedToast />

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useProgress } from "@react-three/drei";
 import LoadingPercent from "@/components/LoadingPercent";
+import { useLocale } from "@/lib/locale";
 
 /**
  * Màn hình "Đang tải" phủ toàn bộ cho tới khi Canvas 3D nạp xong toàn bộ tài nguyên.
  * Nhờ vậy người chơi vào là chơi mượt ngay, không bị khựng từng nấc khi tải dở.
  */
-export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." }: { label?: string }) {
+export function WorldLoadingOverlay({ label }: { label?: string }) {
+  const en = useLocale() === "en";
   const { active, progress, loaded, total, errors } = useProgress();
   const [hidden, setHidden] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -37,7 +39,7 @@ export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." 
   return (
     <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-sky-300 to-sky-600">
       <div className="h-14 w-14 animate-spin rounded-full border-4 border-white/50 border-t-white" />
-      <div className="text-white font-black text-lg sm:text-xl drop-shadow">{label}</div>
+      <div className="text-white font-black text-lg sm:text-xl drop-shadow">{label ?? (en ? "Loading home map…" : "Đang tải bản đồ nhà...")}</div>
       <LoadingPercent percent={pct} done={finished} />
     </div>
   );

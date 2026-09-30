@@ -98,7 +98,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
     const [{ data, error }, , , activeClassId] = await Promise.all([
       supabase
         .from("questions_bank")
-        .select("id,text,text_en,choices,choices_en,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,correct_count,created_at,updated_at")
+        .select("id,text,text_en,choices,choices_en,category,image_url,priority,enabled,maps,reward,competency_level,competency_domain,class_id,teacher_id,correct_count,created_at,updated_at")
         .order("created_at", { ascending: true })
         .range(0, 4999),
       loadPriorityMode(),
@@ -114,7 +114,7 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
       if (!belongsToPool) return false;
       // Teacher/class content is displayed exactly as supplied. Only built-in
       // system questions receive the curated English translation.
-      if (!englishMode || r.class_id) return true;
+      if (!englishMode || r.class_id || r.teacher_id) return true;
       const bundled = SYSTEM_ENGLISH_BY_ID.get(String(r.id));
       const textEn = bundled?.text_en ?? r.text_en;
       const choicesEn = bundled?.choices_en ?? r.choices_en;
@@ -123,10 +123,10 @@ export async function loadQuestionsFromDB(map?: string): Promise<Question[]> {
         && choicesEn.length === r.choices?.length;
     });
     const mapped: Question[] = rows.map((row: any) => {
-      const bundled = !row.class_id ? SYSTEM_ENGLISH_BY_ID.get(String(row.id)) : undefined;
+      const bundled = !row.class_id && !row.teacher_id ? SYSTEM_ENGLISH_BY_ID.get(String(row.id)) : undefined;
       const candidateChoices = bundled?.choices_en ?? row.choices_en;
       const englishChoices = Array.isArray(candidateChoices) && candidateChoices.length === row.choices?.length ? candidateChoices : null;
-      const shouldTranslate = englishMode && !row.class_id;
+      const shouldTranslate = englishMode && !row.class_id && !row.teacher_id;
       const rawChoices: any[] = shouldTranslate ? (englishChoices ?? []) : (Array.isArray(row.choices) ? row.choices : []);
       const options = rawChoices.map((c) => (typeof c === "string" ? c : (c?.text ?? "")));
       const optionImages = rawChoices.map((c) => (typeof c === "string" ? "" : (c?.imageUrl ?? "")));

@@ -15,6 +15,7 @@ import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, Corridor
 import { setBgm, playSfx } from "@/lib/audio";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { TouchControls } from "@/game/TouchControls";
+import { useLocale } from "@/lib/locale";
 
 
 export const Route = createFileRoute("/magic")({
@@ -981,6 +982,7 @@ function saveMagic(s: MagicSave) {
 }
 
 function MagicPage() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
   const [near, setNear] = useState<number | null>(null);
@@ -2031,9 +2033,9 @@ function MagicPage() {
                 animation: "creepyFade 4.2s ease-in-out forwards",
               }}
             >
-              Chào mừng đến lâu đài ma thuật,
+              {en ? "Welcome to the magic castle," : "Chào mừng đến lâu đài ma thuật,"}
               <br />
-              nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
+              {en ? "your mission is to find a way out…" : "nhiệm vụ của bạn chính là tìm đường thoát khỏi đây..."}
             </p>
           ) : intro === 1 ? (
             <div className="relative flex flex-col items-center gap-4">
@@ -2048,7 +2050,7 @@ function MagicPage() {
                   letterSpacing: "0.08em",
                 }}
               >
-                CHẠY ĐI !
+                {en ? "RUN!" : "CHẠY ĐI !"}
               </h1>
             </div>
           ) : (
@@ -2063,7 +2065,7 @@ function MagicPage() {
                   animation: "creepyFade 2.4s ease-out both, creepyShake 0.22s infinite",
                 }}
               >
-                KHU VỰC 1
+                {en ? "AREA 1" : "KHU VỰC 1"}
               </h2>
             </div>
           )}
@@ -2108,9 +2110,9 @@ function MagicPage() {
         <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
-              BẢN ĐỒ MA THUẬT
+              {en ? "MAGIC MAP" : "BẢN ĐỒ MA THUẬT"}
             </h1>
-            <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>
+            <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">{en ? "Choose an area to play" : "Chọn khu vực bạn muốn chơi"}</p>
           </div>
           <div className="flex flex-wrap gap-6 justify-center px-4">
             {/* Khu vực 1 */}
@@ -2124,9 +2126,9 @@ function MagicPage() {
             >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
                 <div className="text-7xl">🏚️</div>
-                <div className="text-2xl font-black text-amber-200">Khu vực 1</div>
-                <div className="text-xs font-bold text-amber-100/80 text-center">Hành lang ma quái · 10 cửa<br/>Dành cho người mới bắt đầu</div>
-                <div className="mt-2 px-4 py-1 rounded-full bg-amber-500 text-black text-xs font-black uppercase tracking-wider">Bắt buộc</div>
+                <div className="text-2xl font-black text-amber-200">{en ? "Area 1" : "Khu vực 1"}</div>
+                <div className="text-xs font-bold text-amber-100/80 text-center">{en ? <>Haunted corridor · 10 doors<br/>For beginners</> : <>Hành lang ma quái · 10 cửa<br/>Dành cho người mới bắt đầu</>}</div>
+                <div className="mt-2 px-4 py-1 rounded-full bg-amber-500 text-black text-xs font-black uppercase tracking-wider">{en ? "Required" : "Bắt buộc"}</div>
               </div>
             </button>
             {/* Khu vực 2 */}
@@ -2145,19 +2147,19 @@ function MagicPage() {
             >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
                 <div className="text-7xl">{stage2Unlocked ? "🏰" : "🔒"}</div>
-                <div className="text-2xl font-black" style={{ color: stage2Unlocked ? "#d8b0ff" : "#888" }}>Khu vực 2</div>
+                <div className="text-2xl font-black" style={{ color: stage2Unlocked ? "#d8b0ff" : "#888" }}>{en ? "Area 2" : "Khu vực 2"}</div>
                 <div className="text-xs font-bold text-center" style={{ color: stage2Unlocked ? "rgba(216,176,255,0.8)" : "#666" }}>
-                  Lâu đài phù thủy · 5 phòng<br/>
-                  {stage2Unlocked ? "Phòng cướp biển, hồ thần, phù thủy..." : "Hoàn thành Khu vực 1 để mở khóa"}
+                  {en ? "Witch's castle · 5 rooms" : "Lâu đài phù thủy · 5 phòng"}<br/>
+                  {stage2Unlocked ? (en ? "Pirate room, sacred lake, witch…" : "Phòng cướp biển, hồ thần, phù thủy...") : (en ? "Complete Area 1 to unlock" : "Hoàn thành Khu vực 1 để mở khóa")}
                 </div>
                 {stage2Unlocked && (
-                  <div className="mt-2 px-4 py-1 rounded-full bg-purple-500 text-white text-xs font-black uppercase tracking-wider">Đã mở khóa</div>
+                  <div className="mt-2 px-4 py-1 rounded-full bg-purple-500 text-white text-xs font-black uppercase tracking-wider">{en ? "Unlocked" : "Đã mở khóa"}</div>
                 )}
               </div>
             </button>
           </div>
-          <Link to="/play" className="toy-button !text-sm">← Về chọn map</Link>
-          <div className="text-xs text-amber-100/60 italic">💡 Bạn có thể chơi lại bất cứ khu vực nào đã mở khóa</div>
+          <Link to="/play" className="toy-button !text-sm">← {en ? "Back to map selection" : "Về chọn map"}</Link>
+          <div className="text-xs text-amber-100/60 italic">💡 {en ? "You can replay any unlocked area" : "Bạn có thể chơi lại bất cứ khu vực nào đã mở khóa"}</div>
         </div>
       )}
 
@@ -2167,7 +2169,7 @@ function MagicPage() {
           onClick={() => setSelectedArea(null)}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-30 toy-button !text-xs"
         >
-          🗺️ Đổi khu vực
+          🗺️ {en ? "Change area" : "Đổi khu vực"}
         </button>
       )}
     </div>

@@ -20,7 +20,7 @@ import {
   type RoofSegment,
   type FloorSegment,
 } from "@/lib/game";
-import { CATALOG, CATEGORIES, getItem, canStackOn, isFlatMat, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
+import { CATALOG, CATEGORIES, getItem, catalogLabel, canStackOn, isFlatMat, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -383,7 +383,7 @@ function GamePage() {
     if (it.id === "door") setDoorHint(true);
     setSelected(itemId);
     setPlaceQueue(times > 1 ? times : 0);
-    if (times > 1) flash(`🛒 Đã mua ${times} × ${it.name} — bấm vào đất để đặt lần lượt.`);
+    if (times > 1) flash(en ? `🛒 Purchased ${times} × ${catalogLabel(it.name, true)} — tap the ground to place each item.` : `🛒 Đã mua ${times} × ${it.name} — bấm vào đất để đặt lần lượt.`);
     setShopOpen(false);
   };
 
@@ -1265,8 +1265,8 @@ function GamePage() {
       {selected && (
         <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-44 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
           <span className="text-2xl">{getItem(selected)?.icon}</span>
-          <div className="text-sm font-black">Đang đặt: {getItem(selected)?.name}</div>
-          <button onClick={() => setSelected(null)} className="toy-button !text-xs !py-1 !px-3">Hủy</button>
+          <div className="text-sm font-black">{en ? "Placing" : "Đang đặt"}: {catalogLabel(getItem(selected)?.name ?? "", en)}</div>
+          <button onClick={() => setSelected(null)} className="toy-button !text-xs !py-1 !px-3">{en ? "Cancel" : "Hủy"}</button>
         </div>
       )}
 
@@ -1345,13 +1345,13 @@ function GamePage() {
             ...state,
             placed: state.placed.map((p) => (p.id === editingId ? { ...p, stackY: newStackY } : p)),
           });
-          flash(`✅ Đã đặt lên ${surfaceItem.name}`);
+          flash(en ? `✅ Placed on ${catalogLabel(surfaceItem.name, true)}` : `✅ Đã đặt lên ${surfaceItem.name}`);
         };
         return (
           <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-48 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-2xl">{it.icon}</span>
-              <div className="text-sm font-black flex-1 min-w-0 truncate">Chỉnh: {it.name}</div>
+              <div className="text-sm font-black flex-1 min-w-0 truncate">{en ? "Edit" : "Chỉnh"}: {catalogLabel(it.name, en)}</div>
               <button
                 onClick={() => { handleRemove(editingId); setEditingId(null); setMoveMode(false); flash("🗑 Đã xoá vật"); }}
                 className="toy-button !text-xs !py-1 !px-3 bg-rose-500 text-white"
@@ -1435,7 +1435,7 @@ function GamePage() {
                   onClick={() => setActiveCat(c)}
                   className={`toy-button !text-[10px] md:!text-xs !py-1 md:!py-2 !px-2 md:!px-3 ${activeCat === c ? "toy-button-primary !text-[10px] md:!text-xs !py-1 md:!py-2 !px-2 md:!px-3" : ""}`}
                 >
-                  {c}
+                  {catalogLabel(c, en)}
                 </button>
               ))}
             </div>
@@ -1471,7 +1471,7 @@ function GamePage() {
                       background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
                       boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
                     }}>{it.icon}</div>
-                    <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{it.name}</div>
+                    <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{catalogLabel(it.name, en)}</div>
                     <div className="text-[9px] md:text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d}</div>
                     <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">
                       💰 {totalPrice}đ{showQty && effQty > 1 ? ` (${it.price}×${effQty})` : ""}

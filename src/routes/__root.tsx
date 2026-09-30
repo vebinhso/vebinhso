@@ -113,8 +113,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

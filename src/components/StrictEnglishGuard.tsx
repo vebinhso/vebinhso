@@ -3,9 +3,12 @@ import { useLocale } from "@/lib/locale";
 import { STRICT_ENGLISH_UI } from "@/lib/strict-english.generated";
 
 const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
-const originals = new WeakMap<Node, string>();
-const attributeOriginals = new WeakMap<Element, Map<string, string>>();
+const textState = new WeakMap<Node, { source: string; rendered: string }>();
+const attributeState = new WeakMap<Element, Map<string, { source: string; rendered: string }>>();
 const hasVietnamese = /[ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯẠ-ỹđ]/;
+const dynamicPhrases = Object.entries(STRICT_ENGLISH_UI)
+  .filter(([vi, en]) => vi.length >= 4 && vi !== en && !vi.includes("${"))
+  .sort(([a], [b]) => b.length - a.length);
 
 function normalized(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -22,10 +25,9 @@ function translateValue(value: string): string {
 
   // Dynamic UI often combines a translated label with a runtime number/name.
   let result = value;
-  const phrases = Object.entries(STRICT_ENGLISH_UI)
-    .filter(([vi]) => vi.length >= 4 && !vi.includes("${") && result.includes(vi))
-    .sort(([a], [b]) => b.length - a.length);
-  for (const [vi, en] of phrases) result = result.split(vi).join(en);
+  for (const [vi, en] of dynamicPhrases) {
+    if (result.includes(vi)) result = result.split(vi).join(en);
+  }
   return result;
 }
 
@@ -38,9 +40,10 @@ function translateText(node: Text) {
   if (shouldSkip(node)) return;
   const value = node.nodeValue ?? "";
   if (!value.trim()) return;
-  if (!originals.has(node)) originals.set(node, value);
-  const source = originals.get(node) ?? value;
+  const previous = textState.get(node);
+  const source = previous && value === previous.rendered ? previous.source : value;
   const next = translateValue(source);
+  textState.set(node, { source, rendered: next });
   if (next !== node.nodeValue) node.nodeValue = next;
 }
 
@@ -49,13 +52,15 @@ function translateElement(element: Element) {
   for (const attr of ATTRS) {
     const value = element.getAttribute(attr);
     if (!value) continue;
-    let saved = attributeOriginals.get(element);
+    let saved = attributeState.get(element);
     if (!saved) {
       saved = new Map();
-      attributeOriginals.set(element, saved);
+      attributeState.set(element, saved);
     }
-    if (!saved.has(attr)) saved.set(attr, value);
-    const next = translateValue(saved.get(attr) ?? value);
+    const previous = saved.get(attr);
+    const source = previous && value === previous.rendered ? previous.source : value;
+    const next = translateValue(source);
+    saved.set(attr, { source, rendered: next });
     if (next !== value) element.setAttribute(attr, next);
   }
 }
@@ -86,11 +91,11 @@ function restore(root: Node) {
   }
   for (const node of nodes) {
     if (node.nodeType === Node.TEXT_NODE) {
-      const value = originals.get(node);
+      const value = textState.get(node)?.source;
       if (value !== undefined) node.nodeValue = value;
     } else if (node instanceof Element) {
-      const saved = attributeOriginals.get(node);
-      saved?.forEach((value, attr) => node.setAttribute(attr, value));
+      const saved = attributeState.get(node);
+      saved?.forEach((value, attr) => node.setAttribute(attr, value.source));
     }
   }
 }

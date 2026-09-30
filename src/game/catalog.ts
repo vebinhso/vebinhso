@@ -1,4 +1,5 @@
 // Shop catalog đầy đủ theo file CSV "BẢNG QUY ĐỔI" + "CHI TIẾT XÂY DỰNG"
+import { STRICT_ENGLISH_UI } from "@/lib/strict-english.generated";
 // Đơn vị: 1 grid cell = 1m. w x d (mặt phẳng), h (chiều cao)
 export type CatalogItem = {
   id: string;
@@ -168,6 +169,11 @@ export const CATEGORIES = [
 
 export function getItem(id: string) {
   return CATALOG.find((c) => c.id === id);
+}
+
+/** English labels for every catalog item/category, sourced from the audited UI dictionary. */
+export function catalogLabel(value: string, english: boolean) {
+  return english ? (STRICT_ENGLISH_UI[value] ?? value) : value;
 }
 
 // ===== Stack-on-Y system =====

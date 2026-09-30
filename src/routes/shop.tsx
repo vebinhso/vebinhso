@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useState } from "react";
-import { CATALOG, CATEGORIES } from "@/game/catalog";
+import { CATALOG, CATEGORIES, catalogLabel } from "@/game/catalog";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/shop")({ component: ShopPage });
@@ -29,7 +29,7 @@ function ShopPage() {
                   cat === c ? "toy-button-primary !text-xs !py-2 !px-3" : ""
                 }`}
               >
-                {c}
+                {catalogLabel(c, en)}
               </button>
             ))}
           </div>
@@ -56,7 +56,7 @@ function ShopPage() {
                 >
                   {it.icon}
                 </div>
-                <div className="font-black text-sm leading-tight">{it.name}</div>
+                <div className="font-black text-sm leading-tight">{catalogLabel(it.name, en)}</div>
                 <div className="text-[10px] text-amber-900/70 font-bold">
                   {it.w}×{it.d}×{it.h} {en ? "cells" : "ô"}
                 </div>

@@ -180,7 +180,7 @@ function FilmPage() {
     // Nếu giọng đọc tải lâu (>2.2s) mới cho chữ chạy trước, còn lại chữ khớp giọng
     const lateStart = window.setTimeout(() => {
       if (!cancelled && !cap.isRunning()) cap.startTimer();
-    }, 2200);
+    }, 1200);
 
     const speakBrowser = () => {
       if (typeof window === "undefined" || !window.speechSynthesis) {

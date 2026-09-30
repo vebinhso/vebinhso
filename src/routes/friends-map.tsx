@@ -14,6 +14,7 @@ import {
   type MyHouseSettings as MyHouseData,
 } from "@/lib/friend-houses.functions";
 import { getCurrentUser } from "@/lib/auth";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/friends-map")({
   component: FriendsMapPage,
@@ -52,6 +53,7 @@ function initial(name: string) {
 }
 
 function FriendsMapPage() {
+  const en = useLocale() === "en";
   const me = getCurrentUser();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -141,8 +143,8 @@ function FriendsMapPage() {
     return (
       <main className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card p-8 text-center">
-          <p className="font-black mb-3">Bạn cần đăng nhập để xem bản đồ bạn bè.</p>
-          <Link to="/login" className="toy-button toy-button-primary">Đăng nhập</Link>
+          <p className="font-black mb-3">{en ? "Please sign in to view the friends map." : "Bạn cần đăng nhập để xem bản đồ bạn bè."}</p>
+          <Link to="/login" className="toy-button toy-button-primary">{en ? "Sign in" : "Đăng nhập"}</Link>
         </div>
       </main>
     );
@@ -152,24 +154,24 @@ function FriendsMapPage() {
     <main className="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-sky-100">
       <header className="p-3 sm:p-4 flex items-center gap-2 flex-wrap">
         <Link to="/game" className="toy-button toy-button-primary !text-sm">
-          🏠 Nhà của tôi
+          🏠 {en ? "My Home" : "Nhà của tôi"}
         </Link>
 
-        <h1 className="text-xl sm:text-2xl font-black flex-1 text-center">🗺️ Bản đồ bạn bè</h1>
-        <Link to="/" className="toy-button toy-button-ghost !text-sm">Trang chủ →</Link>
+        <h1 className="text-xl sm:text-2xl font-black flex-1 text-center">🗺️ {en ? "Friends Map" : "Bản đồ bạn bè"}</h1>
+        <Link to="/" className="toy-button toy-button-ghost !text-sm">{en ? "Home" : "Trang chủ"} →</Link>
       </header>
 
       <div className="px-3 sm:px-4 pb-3 flex flex-wrap items-center gap-2">
         <span className="text-sm font-bold text-emerald-700">
           {housesQ.isLoading
-            ? "Đang tải bạn bè..."
+            ? (en ? "Loading friends..." : "Đang tải bạn bè...")
             : houses.length === 0
-            ? "Chưa có bạn bè nào để hiển thị. Kết bạn ở trang chủ trước nhé!"
-            : `Đang hiển thị ${houses.length} căn nhà bạn bè.`}
+            ? (en ? "No friends to display yet. Add friends from the home page first!" : "Chưa có bạn bè nào để hiển thị. Kết bạn ở trang chủ trước nhé!")
+            : (en ? `Displaying ${houses.length} friend ${houses.length === 1 ? "home" : "homes"}.` : `Đang hiển thị ${houses.length} căn nhà bạn bè.`)}
         </span>
-        <span className="text-xs font-bold text-muted-foreground">· Nhà của tôi:</span>
+        <span className="text-xs font-bold text-muted-foreground">· {en ? "My Home" : "Nhà của tôi"}:</span>
         <div className="flex items-center gap-1">
-          {PRIVACY_OPTIONS.map((o) => {
+          {privacyOptions(en).map((o) => {
             const cur = (mineQ.data as any)?.house_privacy === "private" ? "closed" : (mineQ.data as any)?.house_privacy;
             const active = cur === o.id;
             return (
@@ -195,7 +197,7 @@ function FriendsMapPage() {
             onClick={() => setSettingsOpen(true)}
             className="px-2.5 py-1 rounded-full text-xs font-black border-2 bg-white/80 border-orange-300 hover:bg-white"
           >
-            ⚙️ Chi tiết
+            ⚙️ {en ? "Details" : "Chi tiết"}
           </button>
         </div>
       </div>
@@ -270,6 +272,7 @@ function HouseMarker({
   onHover?: () => void;
   onSettings?: () => void;
 }) {
+  const en = useLocale() === "en";
   const online = house.is_online;
   const privacyIcon =
     house.house_privacy === "public" ? "🌐" :
@@ -277,10 +280,10 @@ function HouseMarker({
     house.house_privacy === "custom" ? "✅" :
     house.house_privacy === "closed" || house.house_privacy === "private" ? "🚪" : "🔒";
   const privacyLabel =
-    house.house_privacy === "public" ? "Công khai" :
-    house.house_privacy === "friends" ? "Bạn bè" :
-    house.house_privacy === "custom" ? "Tuỳ chỉnh" :
-    house.house_privacy === "closed" || house.house_privacy === "private" ? "Đóng cửa" : "Riêng tư";
+    house.house_privacy === "public" ? (en ? "Public" : "Công khai") :
+    house.house_privacy === "friends" ? (en ? "Friends" : "Bạn bè") :
+    house.house_privacy === "custom" ? (en ? "Customize" : "Tuỳ chỉnh") :
+    house.house_privacy === "closed" || house.house_privacy === "private" ? (en ? "Closed" : "Đóng cửa") : (en ? "Private" : "Riêng tư");
 
   return (
     <button
@@ -289,7 +292,7 @@ function HouseMarker({
       onTouchStart={onHover}
       className="absolute -translate-x-1/2 -translate-y-1/2 group animate-in fade-in slide-in-from-bottom-2 duration-300 z-10"
       style={{ left: house.map_x, top: house.map_y }}
-      aria-label={`Nhà của ${house.username}`}
+      aria-label={en ? `${house.username}'s home` : `Nhà của ${house.username}`}
     >
       <div className="flex flex-col items-center">
         <div className="relative transition-transform group-hover:-translate-y-2">
@@ -317,7 +320,7 @@ function HouseMarker({
                 e.stopPropagation();
                 onSettings?.();
               }}
-              title={`Chế độ nhà: ${privacyLabel} — bấm để điều chỉnh`}
+              title={en ? `Home access: ${privacyLabel} — click to change` : `Chế độ nhà: ${privacyLabel} — bấm để điều chỉnh`}
               className="ml-1 shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 grid place-items-center text-sm sm:text-base active:scale-90 transition-transform"
             >
               {privacyIcon}
@@ -439,7 +442,8 @@ function MapDecorations() {
 
 function HousePopup({
   house, myId, onClose, onVisit,
-}: { house: FriendHouse; myId: string; onClose: () => void; onVisit: () => void }) {
+ }: { house: FriendHouse; myId: string; onClose: () => void; onVisit: () => void }) {
+  const en = useLocale() === "en";
   const canVisit =
     house.user_id === myId ||
     house.house_privacy === "public" ||
@@ -461,20 +465,20 @@ function HousePopup({
             </div>
           )}
         </div>
-        <h2 className="text-xl font-black">🏠 {house.house_name || `Nhà của ${house.username}`}</h2>
+        <h2 className="text-xl font-black">🏠 {house.house_name || (en ? `${house.username}'s Home` : `Nhà của ${house.username}`)}</h2>
         <p className="text-sm text-muted-foreground">@{house.username}</p>
         <div className="mt-2 inline-flex items-center gap-2 text-sm font-bold">
           {house.is_online ? <><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Online</> : <><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" /> Offline</>}
         </div>
         {house.in_house_owner && (
-          <p className="mt-1 text-xs text-emerald-700">Đang ở trong một căn nhà.</p>
+          <p className="mt-1 text-xs text-emerald-700">{en ? "Currently inside a home." : "Đang ở trong một căn nhà."}</p>
         )}
         <div className="mt-4 flex gap-2">
-          <button onClick={onClose} className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2">Đóng</button>
+          <button onClick={onClose} className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2">{en ? "Close" : "Đóng"}</button>
           {canVisit ? (
-            <button onClick={onVisit} className="toy-button toy-button-primary flex-1 !text-sm !px-3 !py-2 !animate-none !rounded-2xl">🏠 Vào nhà</button>
+            <button onClick={onVisit} className="toy-button toy-button-primary flex-1 !text-sm !px-3 !py-2 !animate-none !rounded-2xl">🏠 {en ? "Enter" : "Vào nhà"}</button>
           ) : (
-            <button disabled className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2 opacity-60 cursor-not-allowed">🔒 Riêng tư</button>
+            <button disabled className="toy-button toy-button-ghost flex-1 !text-sm !px-3 !py-2 opacity-60 cursor-not-allowed">🔒 {en ? "Private" : "Riêng tư"}</button>
           )}
         </div>
       </div>
@@ -484,16 +488,17 @@ function HousePopup({
 
 type MyHouse = MyHouseData;
 
-const PRIVACY_OPTIONS: { id: HousePrivacy; label: string; hint: string }[] = [
-  { id: "public",  label: "🌐 Công khai", hint: "Mọi người chơi đã đăng nhập đều có thể vào thăm." },
-  { id: "friends", label: "👥 Bạn bè",    hint: "Chỉ bạn bè đã chấp nhận mới vào được." },
-  { id: "custom",  label: "✅ Tuỳ chỉnh", hint: "Chỉ những người bạn bạn tick chọn mới vào được." },
-  { id: "closed",  label: "🚪 Đóng cửa", hint: "Không ai vào thăm được, kể cả bạn bè." },
+const privacyOptions = (en: boolean): { id: HousePrivacy; label: string; hint: string }[] => [
+  { id: "public", label: en ? "🌐 Public" : "🌐 Công khai", hint: en ? "Any signed-in player can visit." : "Mọi người chơi đã đăng nhập đều có thể vào thăm." },
+  { id: "friends", label: en ? "👥 Friends" : "👥 Bạn bè", hint: en ? "Only accepted friends can visit." : "Chỉ bạn bè đã chấp nhận mới vào được." },
+  { id: "custom", label: en ? "✅ Customize" : "✅ Tuỳ chỉnh", hint: en ? "Only the friends you select can visit." : "Chỉ những người bạn bạn tick chọn mới vào được." },
+  { id: "closed", label: en ? "🚪 Close Door" : "🚪 Đóng cửa", hint: en ? "Nobody can visit, including friends." : "Không ai vào thăm được, kể cả bạn bè." },
 ];
 
 function MyHouseSettings({
   initial: init, onClose, onSave,
 }: { initial: MyHouse; onClose: () => void; onSave: (p: any) => Promise<void> }) {
+  const en = useLocale() === "en";
   const [privacy, setPrivacy] = useState<HousePrivacy>(
     (init.house_privacy === "private" ? "closed" : init.house_privacy) as HousePrivacy,
   );
@@ -538,9 +543,9 @@ function MyHouseSettings({
   return (
     <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose}>
       <div className="glass-card w-full max-w-md p-5 max-h-[92vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-black mb-3">⚙️ Cài đặt nhà của tôi</h2>
+        <h2 className="text-xl font-black mb-3">⚙️ {en ? "My Home Settings" : "Cài đặt nhà của tôi"}</h2>
 
-        <label className="block text-sm font-bold mb-1">Tên căn nhà</label>
+        <label className="block text-sm font-bold mb-1">{en ? "Home name" : "Tên căn nhà"}</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 40))}
@@ -548,9 +553,9 @@ function MyHouseSettings({
           className="w-full mb-3 px-3 py-2 rounded-xl border-2 border-orange-200 focus:border-orange-400 outline-none"
         />
 
-        <label className="block text-sm font-bold mb-1">Quyền tham quan</label>
+        <label className="block text-sm font-bold mb-1">{en ? "Visitor access" : "Quyền tham quan"}</label>
         <div className="grid grid-cols-2 gap-2 mb-2">
-          {PRIVACY_OPTIONS.map((p) => (
+          {privacyOptions(en).map((p) => (
             <button
               key={p.id}
               onClick={() => setPrivacy(p.id)}
@@ -563,16 +568,16 @@ function MyHouseSettings({
           ))}
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {PRIVACY_OPTIONS.find((p) => p.id === privacy)?.hint}
+          {privacyOptions(en).find((p) => p.id === privacy)?.hint}
         </p>
 
         {privacy === "custom" && (
           <div className="mb-3">
-            <div className="text-sm font-bold mb-1">Chọn bạn bè được phép vào</div>
+            <div className="text-sm font-bold mb-1">{en ? "Choose friends who can enter" : "Chọn bạn bè được phép vào"}</div>
             <div className="rounded-xl border-2 border-orange-200 max-h-48 overflow-y-auto divide-y">
-              {friendsQ.isLoading && <div className="p-2 text-xs">Đang tải danh sách bạn bè…</div>}
+              {friendsQ.isLoading && <div className="p-2 text-xs">{en ? "Loading friends…" : "Đang tải danh sách bạn bè…"}</div>}
               {friendsQ.data && friendsQ.data.length === 0 && (
-                <div className="p-2 text-xs text-muted-foreground">Chưa có bạn bè để chọn.</div>
+                <div className="p-2 text-xs text-muted-foreground">{en ? "No friends to choose yet." : "Chưa có bạn bè để chọn."}</div>
               )}
               {(friendsQ.data ?? []).map((f) => (
                 <label key={f.user_id} className="flex items-center gap-2 p-2 cursor-pointer hover:bg-orange-50">
@@ -592,19 +597,19 @@ function MyHouseSettings({
                 </label>
               ))}
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">Đã chọn: {allowSet.size} bạn</div>
+            <div className="text-[11px] text-muted-foreground mt-1">{en ? `Selected: ${allowSet.size} ${allowSet.size === 1 ? "friend" : "friends"}` : `Đã chọn: ${allowSet.size} bạn`}</div>
           </div>
         )}
 
         <label className="flex items-center gap-2 mb-3 cursor-pointer">
           <input type="checkbox" checked={coop} onChange={(e) => setCoop(e.target.checked)} />
-          <span className="text-sm font-bold">🔨 Cho phép bạn bè cùng xây khi vào thăm</span>
+          <span className="text-sm font-bold">🔨 {en ? "Allow friends to build while visiting" : "Cho phép bạn bè cùng xây khi vào thăm"}</span>
         </label>
         <p className="text-xs text-muted-foreground -mt-2 mb-3">
-          Khi bật, khách được phép đặt/xoá đồ trong nhà bạn — tiền và vật liệu sẽ trừ vào tài khoản của khách.
+          {en ? "When enabled, visitors can place or remove items in your home; costs are charged to their accounts." : "Khi bật, khách được phép đặt/xoá đồ trong nhà bạn — tiền và vật liệu sẽ trừ vào tài khoản của khách."}
         </p>
 
-        <label className="block text-sm font-bold mb-1">Vị trí trên bản đồ</label>
+        <label className="block text-sm font-bold mb-1">{en ? "Map position" : "Vị trí trên bản đồ"}</label>
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div>
             <div className="text-xs text-muted-foreground">X: {Math.round(x)}</div>
@@ -617,9 +622,9 @@ function MyHouseSettings({
         </div>
 
         <div className="flex gap-2">
-          <button onClick={onClose} className="toy-button toy-button-ghost flex-1">Huỷ</button>
+          <button onClick={onClose} className="toy-button toy-button-ghost flex-1">{en ? "Cancel" : "Huỷ"}</button>
           <button onClick={save} disabled={busy} className="toy-button toy-button-primary flex-1 disabled:opacity-60">
-            {busy ? "Đang lưu..." : "💾 Lưu"}
+            {busy ? (en ? "Saving..." : "Đang lưu...") : (en ? "💾 Save" : "💾 Lưu")}
           </button>
         </div>
       </div>

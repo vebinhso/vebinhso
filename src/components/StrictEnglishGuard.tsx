@@ -14,7 +14,17 @@ function normalized(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+const cache = new Map<string, string>();
 function translateValue(value: string): string {
+  const hit = cache.get(value);
+  if (hit !== undefined) return hit;
+  const out = translateUncached(value);
+  if (cache.size > 5000) cache.clear();
+  cache.set(value, out);
+  return out;
+}
+
+function translateUncached(value: string): string {
   const direct = STRICT_ENGLISH_UI[value] ?? STRICT_ENGLISH_UI[normalized(value)];
   if (direct) {
     const lead = value.match(/^\s*/)?.[0] ?? "";
@@ -117,22 +127,31 @@ export function StrictEnglishGuard() {
     window.alert = (message) => nativeAlert(translateValue(String(message ?? "")));
     window.confirm = (message) => nativeConfirm(translateValue(String(message ?? "")));
     window.prompt = (message, defaultValue) => nativePrompt(translateValue(String(message ?? "")), defaultValue);
-    let translating = false;
+    const pending = new Set<Node>();
+    let frame = 0;
+    const flush = () => {
+      frame = 0;
+      observer.disconnect();
+      pending.forEach((n) => {
+        if (!n.isConnected) return;
+        if (n.nodeType === Node.TEXT_NODE) translateText(n as Text);
+        else if (n instanceof Element && n.childNodes.length === 0) translateElement(n);
+        else walk(n);
+      });
+      pending.clear();
+      observer.observe(root, OPTS);
+    };
     const observer = new MutationObserver((mutations) => {
-      if (translating) return;
-      translating = true;
-      try {
-        for (const mutation of mutations) {
-          if (mutation.type === "characterData") translateText(mutation.target as Text);
-          mutation.addedNodes.forEach(walk);
-          if (mutation.type === "attributes" && mutation.target instanceof Element) translateElement(mutation.target);
-        }
-      } finally {
-        translating = false;
+      for (const m of mutations) {
+        if (m.type === "childList") m.addedNodes.forEach((n) => pending.add(n));
+        else pending.add(m.target);
       }
+      if (!frame) frame = requestAnimationFrame(flush);
     });
-    observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
+    const OPTS: MutationObserverInit = { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] };
+    observer.observe(root, OPTS);
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       observer.disconnect();
       window.alert = nativeAlert;
       window.confirm = nativeConfirm;

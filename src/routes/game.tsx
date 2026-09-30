@@ -1061,7 +1061,7 @@ function GamePage() {
           {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
             onClick={() => setThaoTacOpen((v) => !v)}
-            className={`toy-button !text-xs !py-2 !px-3 ${thaoTacOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            className={`toy-button !animate-none !min-w-36 !border-b-4 !px-4 !py-2.5 !text-sm shadow-lg ring-2 ring-background/90 ${thaoTacOpen ? "toy-button-primary !animate-none !border-b-4 !px-4 !py-2.5 !text-sm" : "bg-background/95"}`}
             title={en ? "Open/close actions" : "Mở/đóng nhóm Thao tác"}
           >
             {thaoTacOpen ? `✖ ⚙️ ${en ? "ACTIONS" : "THAO TÁC"}` : `⚙️ ${en ? "ACTIONS" : "THAO TÁC"}`}
@@ -1080,7 +1080,7 @@ function GamePage() {
           {/* THỰC HIỆN */}
           <button
             onClick={() => setThucHienOpen((v) => !v)}
-            className={`toy-button !text-xs !py-2 !px-3 mt-1 ${thucHienOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
+            className={`toy-button !animate-none !min-w-36 !border-b-4 !px-4 !py-2.5 !text-sm shadow-lg ring-2 ring-background/90 mt-1 ${thucHienOpen ? "toy-button-primary !animate-none !border-b-4 !px-4 !py-2.5 !text-sm" : "bg-background/95"}`}
             title={en ? "Open/close building tools" : "Mở/đóng nhóm Thực hiện"}
           >
             {thucHienOpen ? `✖ 🏗️ ${en ? "BUILD" : "THỰC HIỆN"}` : `🏗️ ${en ? "BUILD" : "THỰC HIỆN"}`}

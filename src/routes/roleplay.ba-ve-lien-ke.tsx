@@ -569,7 +569,7 @@ function FilmPage() {
                     📌 {en ? "View takeaways" : "Xem ghi nhớ"}
                   </button>
                   <button onClick={restart} className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black">
-                    🔄 {en ? "Replay" : "Chơi lại"} từ đầu
+                    🔄 {en ? "Replay from start" : "Chơi lại từ đầu"}
                   </button>
                   <button
                     onClick={back}

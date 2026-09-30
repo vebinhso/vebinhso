@@ -52,6 +52,7 @@ function LoginPage() {
 function Field({ label, type = "text", placeholder, value, onChange }: {
   label: string; type?: string; placeholder?: string; value?: string; onChange?: (v: string) => void;
 }) {
+  const en = useLocale() === "en";
   const isPassword = type === "password";
   const [show, setShow] = useState(false);
   const inputType = isPassword ? (show ? "text" : "password") : type;
@@ -70,7 +71,7 @@ function Field({ label, type = "text", placeholder, value, onChange }: {
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            aria-label={show ? (en ? "Hide password" : "Ẩn mật khẩu") : (en ? "Show password" : "Hiện mật khẩu")}
             className="absolute right-3 top-1/2 -translate-y-1/2 mt-[2px] text-gray-500 hover:text-orange-500 text-xl leading-none select-none"
             tabIndex={-1}
           >
@@ -92,7 +93,7 @@ function GoogleButton() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: cb });
     if (r.error) {
       setBusy(false);
-      alert("Lỗi đăng nhập Google: " + (r.error.message || "không rõ"));
+      alert((en ? "Google sign-in error: " : "Lỗi đăng nhập Google: ") + (r.error.message || (en ? "unknown" : "không rõ")));
     }
   };
 
@@ -193,7 +194,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
     if (!isPasswordValid(password)) { setError(en ? "Your password does not meet all five requirements below." : "Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
     if (password !== confirm) { setError(en ? "The passwords do not match." : "Mật khẩu xác nhận không khớp!"); return; }
     if (isTeacher && (!teacherSchool.trim() || !teacherSubject.trim())) {
-      setError("Đăng ký giáo viên: vui lòng nhập Trường và Môn giảng dạy."); return;
+      setError(en ? "Teacher registration requires your school and teaching subject." : "Đăng ký giáo viên: vui lòng nhập Trường và Môn giảng dạy."); return;
     }
     setBusy(true);
     try {
@@ -203,7 +204,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
       });
       await signInWithPassword(email.trim(), password);
       if (isTeacher) {
-        setSuccess("Đã đăng ký giáo viên. Chờ quản trị viên duyệt để nhận mã lớp.");
+        setSuccess(en ? "Teacher registration submitted. An administrator will review it before issuing a class code." : "Đã đăng ký giáo viên. Chờ quản trị viên duyệt để nhận mã lớp.");
         setTimeout(() => {
           if (next !== "/") { window.location.href = next; return; }
           navigate({ to: "/" });
@@ -241,8 +242,8 @@ function Register({ setView }: { setView: (v: View) => void }) {
         </label>
         {isTeacher && (
           <>
-            <Field label="Trường giảng dạy (*)" value={teacherSchool} onChange={setTeacherSchool} placeholder="VD: THPT Chuyên KHTN" />
-            <Field label="Môn giảng dạy (*)" value={teacherSubject} onChange={setTeacherSubject} placeholder="VD: Tin học" />
+            <Field label={en ? "School (*)" : "Trường giảng dạy (*)"} value={teacherSchool} onChange={setTeacherSchool} placeholder={en ? "Example: Central High School" : "VD: THPT Chuyên KHTN"} />
+            <Field label={en ? "Teaching subject (*)" : "Môn giảng dạy (*)"} value={teacherSubject} onChange={setTeacherSubject} placeholder={en ? "Example: Computer Science" : "VD: Tin học"} />
           </>
         )}
 
@@ -269,14 +270,14 @@ function Forgot({ setView }: { setView: (v: View) => void }) {
   const [busy, setBusy] = useState(false);
   const send = async () => {
     setMsg(""); setErr("");
-    if (!email.trim()) { setErr("Nhập email."); return; }
+    if (!email.trim()) { setErr(en ? "Enter your email." : "Nhập email."); return; }
     setBusy(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: window.location.origin + "/reset-password",
     });
     setBusy(false);
     if (error) setErr(error.message);
-    else setMsg("Đã gửi email khôi phục. Hãy kiểm tra hộp thư.");
+    else setMsg(en ? "Reset email sent. Check your inbox." : "Đã gửi email khôi phục. Hãy kiểm tra hộp thư.");
   };
   return (
     <>

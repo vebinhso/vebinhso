@@ -54,7 +54,7 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
   const guestInfo: DuelPlayerInfo | null = snap?.guest ?? null;
   const currentQ = snap?.questions?.[qIndex];
   const currentText = en && currentQ?.textEn ? currentQ.textEn : currentQ?.text;
-  const currentOptions = en && currentQ?.optionsEn?.length === currentQ?.options.length ? currentQ.optionsEn : currentQ?.options;
+  const currentOptions = en && currentQ && currentQ.optionsEn?.length === currentQ.options.length ? currentQ.optionsEn : currentQ?.options;
   const payout = snap?.payout ?? 30;
   // Scores derived from shared roundResults so both clients render identically.
   const hostScore = roundResults.filter((w) => w && w === snap?.hostId).length;
@@ -379,12 +379,12 @@ export function DuelRoom({ duelId, meId, onClose }: Props) {
 
         {/* Question box */}
         <div className="p-4 bg-white/95 m-3 rounded-2xl shadow-inner">
-          <h3 className="text-base sm:text-lg font-black mb-2 whitespace-pre-wrap">{currentQ.text}</h3>
+          <h3 className="text-base sm:text-lg font-black mb-2 whitespace-pre-wrap">{currentText}</h3>
           {currentQ.imageUrl && (
             <img src={currentQ.imageUrl} alt="" className="w-full max-h-40 object-contain rounded-lg mb-2" />
           )}
           <div className="grid gap-2 w-full">
-            {currentQ.options.map((opt, i) => {
+            {(currentOptions ?? []).map((opt, i) => {
               const isCorrect = revealed && round.correctIndexes.includes(i);
               const isMyPick = myPick === i;
               const wrongPick = revealed && isMyPick && !isCorrect;

@@ -28,13 +28,23 @@ import {
   getFriendship,
 } from "@/lib/friends";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocale } from "@/lib/locale";
+import LoadingPercent from "@/components/LoadingPercent";
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: () => ({ meta: [{ title: "Vệ binh số - vui học kỹ năng số" }] }),
+  head: () => ({ meta: [
+    { title: "VỆ BINH SỐ — Học kỹ năng số qua trò chơi" },
+    { name: "description", content: "Học an toàn và năng lực số qua trò chơi, tình huống tương tác và lớp học." },
+    { property: "og:title", content: "VỆ BINH SỐ — Học kỹ năng số qua trò chơi" },
+    { property: "og:description", content: "Học an toàn và năng lực số qua trò chơi, tình huống tương tác và lớp học." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 function Home() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [streak, setStreak] = useState<LoginStreak | null>(null);
@@ -92,7 +102,7 @@ function Home() {
     try {
       const md = (navigator as any).mediaDevices;
       if (!md?.getDisplayMedia) {
-        toast.error("Trình duyệt không hỗ trợ chụp màn hình.");
+        toast.error(en ? "Your browser does not support screenshots." : "Trình duyệt không hỗ trợ chụp màn hình.");
         return;
       }
       const stream: MediaStream = await md.getDisplayMedia({ video: true, audio: false });
@@ -116,10 +126,10 @@ function Home() {
         a.download = `vebinhso-${Date.now()}.png`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        toast.success("Đã lưu ảnh chụp màn hình!");
+        toast.success(en ? "Screenshot saved!" : "Đã lưu ảnh chụp màn hình!");
       }, "image/png");
     } catch (e: any) {
-      if (e?.name !== "NotAllowedError") toast.error("Không thể chụp màn hình.");
+      if (e?.name !== "NotAllowedError") toast.error(en ? "Unable to capture the screen." : "Không thể chụp màn hình.");
     }
   };
 
@@ -209,7 +219,17 @@ function Home() {
     };
   }, [navigate]);
 
-  if (!ready || !user) return null;
+  if (!ready || !user) return (
+    <GameLayout>
+      <div className="flex-1 grid place-items-center p-6">
+        <div className="flex flex-col items-center gap-3" role="status" aria-live="polite">
+          <img src={houseAvatar.url} alt="" className="h-20 w-20 object-contain animate-pulse" />
+          <p className="font-black">{en ? "Loading your home…" : "Đang tải trang chính…"}</p>
+          <LoadingPercent light={false} />
+        </div>
+      </div>
+    </GameLayout>
+  );
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -221,11 +241,11 @@ function Home() {
     setSearchErr("");
     const acc = findUserByName(searchName);
     if (!acc) {
-      setSearchErr("Không tìm thấy người dùng với tên này!");
+      setSearchErr(en ? "No player was found with that name." : "Không tìm thấy người dùng với tên này!");
       return;
     }
     if (acc.id === user.id) {
-      setSearchErr("Không thể tự kết bạn với chính mình.");
+      setSearchErr(en ? "You cannot add yourself as a friend." : "Không thể tự kết bạn với chính mình.");
       return;
     }
     setFound(acc);
@@ -242,9 +262,9 @@ function Home() {
   const friendBtnLabel = (() => {
     if (!found) return "";
     const f = getFriendship(user.id, found.id);
-    if (!f) return "📨 GỬI YÊU CẦU";
-    if (f.status === "accepted") return "✅ ĐÃ LÀ BẠN";
-    return "⏳ ĐANG CHỜ";
+    if (!f) return en ? "📨 SEND REQUEST" : "📨 GỬI YÊU CẦU";
+    if (f.status === "accepted") return en ? "✅ FRIENDS" : "✅ ĐÃ LÀ BẠN";
+    return en ? "⏳ PENDING" : "⏳ ĐANG CHỜ";
   })();
 
   return (
@@ -263,29 +283,29 @@ function Home() {
                   setRenameOpen(true);
                 }}
                 className="text-sm opacity-60 hover:opacity-100 transition"
-                title="Đổi tên"
+                 title={en ? "Change name" : "Đổi tên"}
               >
                 ✏️
               </button>
             </h1>
             
             <p className="text-xs font-bold text-rose-600">
-              🔥 Chuỗi: {streak?.currentStreak ?? 0} ngày
-              <span className="ml-1 text-muted-foreground">(tổng {streak?.totalDays ?? 0})</span>
+               🔥 {en ? "Streak" : "Chuỗi"}: {streak?.currentStreak ?? 0} {en ? "days" : "ngày"}
+               <span className="ml-1 text-muted-foreground">({en ? "total" : "tổng"} {streak?.totalDays ?? 0})</span>
             </p>
             <p className="text-sm font-bold text-yellow-700">💰 {money}đ</p>
-            <p className="text-xs font-bold text-purple-700">⭐ Cấp {level} • 🏠 {netWorth}đ</p>
+             <p className="text-xs font-bold text-purple-700">⭐ {en ? "Level" : "Cấp"} {level} • 🏠 {netWorth}đ</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 mt-12 w-[160px]">
           <Link to="/shop" className="toy-button text-sm w-full justify-center">
-            🛒 CỬA HÀNG
+             🛒 {en ? "SHOP" : "CỬA HÀNG"}
           </Link>
           <Link to="/ranking" className="toy-button text-sm w-full justify-center">
-            📊 XẾP HẠNG
+             📊 {en ? "RANKINGS" : "XẾP HẠNG"}
           </Link>
           <Link to="/tutorial" className="toy-button text-sm w-full justify-center">
-            📖 HƯỚNG DẪN
+             📖 {en ? "GUIDE" : "HƯỚNG DẪN"}
           </Link>
           {isAdmin(user.email) && (
             <Link to="/admin" className="toy-button text-sm bg-purple-600 text-white w-full justify-center">
@@ -294,18 +314,18 @@ function Home() {
           )}
           {teacherProfile?.isTeacher && (
             <Link to="/classroom" className="toy-button text-sm bg-emerald-600 text-white w-full justify-center">
-              🧑‍🏫 LỚP HỌC
+               🧑‍🏫 {en ? "CLASSROOM" : "LỚP HỌC"}
             </Link>
           )}
           {teacherProfile && !teacherProfile.isTeacher && teacherProfile.teacherStatus === "pending" && (
             <div className="text-[10px] font-black bg-yellow-100 text-yellow-800 rounded-xl px-2 py-1 text-center">
-              🧑‍🏫 Chờ duyệt giáo viên
+               🧑‍🏫 {en ? "Teacher approval pending" : "Chờ duyệt giáo viên"}
             </div>
           )}
           <button onClick={() => setJoinOpen(true)} className="relative toy-button text-sm bg-blue-500 text-white w-full justify-center whitespace-nowrap">
-            🎓 LỚP HỌC{myClasses.length > 0 ? ` (${myClasses.length})` : ""}
+             🎓 {en ? "CLASSROOM" : "LỚP HỌC"}{myClasses.length > 0 ? ` (${myClasses.length})` : ""}
             {hasAnyNew && (
-              <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title="Có thông báo mới từ giáo viên" />
+               <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow animate-pulse" title={en ? "New teacher announcement" : "Có thông báo mới từ giáo viên"} />
             )}
           </button>
 
@@ -316,10 +336,10 @@ function Home() {
 
       <main className="flex-1 flex flex-col md:flex-row items-stretch md:justify-between gap-3 px-4 md:px-6 pb-4">
         <aside className="glass-card p-3 md:p-4 w-full md:w-[260px] flex flex-col gap-3 max-h-[40vh] md:max-h-[78vh] overflow-y-auto">
-          <h3 className="text-center font-black text-foreground">BẠN BÈ ONLINE</h3>
+           <h3 className="text-center font-black text-foreground">{en ? "ONLINE FRIENDS" : "BẠN BÈ ONLINE"}</h3>
 
           {friends.length === 0 ? (
-            <p className="text-xs text-center text-muted-foreground italic">Chưa có bạn bè. Hãy kết bạn bên dưới!</p>
+             <p className="text-xs text-center text-muted-foreground italic">{en ? "No friends yet. Add someone below!" : "Chưa có bạn bè. Hãy kết bạn bên dưới!"}</p>
           ) : (
             <>
               {(showAllFriends ? friends : friends.slice(0, 1)).map((f) => (
@@ -336,7 +356,7 @@ function Home() {
                   onClick={() => setShowAllFriends((v) => !v)}
                   className="w-full mt-1 py-1 rounded-lg bg-white/60 hover:bg-white/80 text-[10px] font-black transition"
                 >
-                  {showAllFriends ? "▲ ẨN BỚT" : "▼ HIỆN THÊM"}
+                   {showAllFriends ? (en ? "▲ SHOW LESS" : "▲ ẨN BỚT") : (en ? "▼ SHOW MORE" : "▼ HIỆN THÊM")}
                 </button>
               )}
             </>
@@ -344,7 +364,7 @@ function Home() {
 
           {incoming.length > 0 && (
             <div className="mt-2 border-t-2 border-white/60 pt-2">
-              <h4 className="text-xs font-black text-center mb-2">📬 LỜI MỜI ({incoming.length})</h4>
+               <h4 className="text-xs font-black text-center mb-2">📬 {en ? "REQUESTS" : "LỜI MỜI"} ({incoming.length})</h4>
               {(showAllIncoming ? incoming : incoming.slice(0, 1)).map((r) => (
                 <div key={r.from.id} className="bg-white/80 rounded-xl p-2 mb-2 text-xs">
                   <div className="font-black">{r.from.username}</div>
@@ -353,11 +373,11 @@ function Home() {
                       onClick={() => {
                         acceptRequest(user.id, r.from.id);
                         refreshFriends(user.id);
-                        toast.success("Đã chấp nhận!");
+                         toast.success(en ? "Friend request accepted!" : "Đã chấp nhận!");
                       }}
                       className="flex-1 bg-emerald-500 text-white rounded-md py-1 font-black text-[10px]"
                     >
-                      ✓ ĐỒNG Ý
+                       ✓ {en ? "ACCEPT" : "ĐỒNG Ý"}
                     </button>
                     <button
                       onClick={() => {
@@ -366,7 +386,7 @@ function Home() {
                       }}
                       className="flex-1 bg-rose-500 text-white rounded-md py-1 font-black text-[10px]"
                     >
-                      ✗ TỪ CHỐI
+                       ✗ {en ? "DECLINE" : "TỪ CHỐI"}
                     </button>
                   </div>
                 </div>
@@ -376,23 +396,23 @@ function Home() {
                   onClick={() => setShowAllIncoming((v) => !v)}
                   className="w-full mt-1 py-1 rounded-lg bg-white/60 hover:bg-white/80 text-[10px] font-black transition"
                 >
-                  {showAllIncoming ? "▲ ẨN BỚT" : "▼ HIỆN THÊM"}
+                   {showAllIncoming ? (en ? "▲ SHOW LESS" : "▲ ẨN BỚT") : (en ? "▼ SHOW MORE" : "▼ HIỆN THÊM")}
                 </button>
               )}
             </div>
           )}
 
           <div className="mt-2 border-t-2 border-white/60 pt-3">
-            <h4 className="text-xs font-black text-center mb-2">➕ KẾT BẠN</h4>
+             <h4 className="text-xs font-black text-center mb-2">➕ {en ? "ADD FRIEND" : "KẾT BẠN"}</h4>
             <input
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Nhập tên đăng nhập"
+               placeholder={en ? "Enter a username" : "Nhập tên đăng nhập"}
               className="w-full mb-2 px-2 py-1 rounded-md border-2 border-white text-xs"
             />
             <button onClick={handleSearch} className="w-full toy-button !text-xs !py-1.5">
-              🔍 TÌM
+               🔍 {en ? "SEARCH" : "TÌM"}
             </button>
 
             {searchErr && <p className="text-[11px] font-bold text-rose-600 mt-2 text-center">{searchErr}</p>}
@@ -425,7 +445,7 @@ function Home() {
             <img src={houseAvatar.url} alt="Vệ Binh Số" className="w-40 h-40 sm:w-52 sm:h-52 object-contain" />
           </div>
           <Link to="/experience" className="toy-button toy-button-primary">
-            TRẢI NGHIỆM
+             {en ? "EXPLORE" : "TRẢI NGHIỆM"}
           </Link>
 
         </div>
@@ -435,13 +455,13 @@ function Home() {
             onClick={() => setSurveyOpen(true)}
             className="toy-button md:w-full md:justify-center text-xs md:text-sm bg-gradient-to-r from-pink-200 to-rose-200 border-pink-300"
           >
-            💗 KHẢO SÁT
+             💗 {en ? "SURVEY" : "KHẢO SÁT"}
           </button>
           <Link to="/missions" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
-            🎁 TIỆN ÍCH
+             🎁 {en ? "TOOLS" : "TIỆN ÍCH"}
           </Link>
           <Link to="/pets" className="toy-button md:w-full md:justify-center text-xs md:text-sm">
-            ⚡ QUYỀN NĂNG
+             ⚡ {en ? "POWERS" : "QUYỀN NĂNG"}
           </Link>
         </aside>
       </main>
@@ -449,7 +469,7 @@ function Home() {
       <footer className="flex items-center justify-between gap-3 p-4 md:p-6">
         <div className="flex gap-2 flex-wrap">
           <Link to="/chat" className="relative toy-button text-sm min-w-[140px] justify-center">
-            💬 TRÒ CHUYỆN
+             💬 {en ? "CHAT" : "TRÒ CHUYỆN"}
             {unreadChat > 0 && (
               <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 rounded-full bg-red-500 text-white text-[11px] font-black flex items-center justify-center border-2 border-white shadow animate-pulse">
                 {unreadChat > 99 ? "99+" : unreadChat}
@@ -459,14 +479,14 @@ function Home() {
           <button
             onClick={takeScreenshot}
             className="toy-button text-sm min-w-[140px] justify-center"
-            title="Chụp màn hình trò chơi"
+             title={en ? "Capture game screen" : "Chụp màn hình trò chơi"}
           >
-            📸 CHỤP ẢNH
+             📸 {en ? "SCREENSHOT" : "CHỤP ẢNH"}
           </button>
         </div>
 
         <button onClick={handleLogout} className="toy-button toy-button-accent min-w-[180px] justify-center">
-          🚪 ĐĂNG XUẤT
+           🚪 {en ? "SIGN OUT" : "ĐĂNG XUẤT"}
         </button>
       </footer>
 
@@ -476,25 +496,25 @@ function Home() {
           onClick={() => setRenameOpen(false)}
         >
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-black mb-2">✏️ Đổi tên đăng nhập</h3>
-            <p className="text-xs text-muted-foreground mb-3">Lần đầu miễn phí. Các lần sau tốn 50 xu/lần.</p>
+             <h3 className="text-xl font-black mb-2">✏️ {en ? "Change username" : "Đổi tên đăng nhập"}</h3>
+             <p className="text-xs text-muted-foreground mb-3">{en ? "The first change is free. Later changes cost 50 coins each." : "Lần đầu miễn phí. Các lần sau tốn 50 xu/lần."}</p>
             <input
               value={renameVal}
               onChange={(e) => setRenameVal(e.target.value)}
               maxLength={20}
-              placeholder="Tên mới (2–20 ký tự)"
+               placeholder={en ? "New name (2–20 characters)" : "Tên mới (2–20 ký tự)"}
               className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold mb-4"
             />
             <div className="flex gap-2">
               <button onClick={() => setRenameOpen(false)} className="toy-button flex-1">
-                Hủy
+                 {en ? "Cancel" : "Hủy"}
               </button>
               <button
                 onClick={doRename}
                 disabled={renameBusy}
                 className="toy-button toy-button-primary flex-1 disabled:opacity-50"
               >
-                {renameBusy ? "Đang đổi..." : "Xác nhận"}
+                 {renameBusy ? (en ? "Updating..." : "Đang đổi...") : (en ? "Confirm" : "Xác nhận")}
               </button>
             </div>
           </div>
@@ -510,10 +530,9 @@ function Home() {
             className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-3xl p-6 max-w-md w-full border-4 border-pink-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-black mb-3 text-rose-700">💗 Khảo sát trải nghiệm</h3>
+             <h3 className="text-xl font-black mb-3 text-rose-700">💗 {en ? "Experience survey" : "Khảo sát trải nghiệm"}</h3>
             <p className="text-sm font-bold text-rose-700 leading-relaxed mb-4">
-              💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn
-              về quá trình trải nghiệm trò chơi của bạn nhée!
+               {en ? "💗 Thank you for playing VỆ BINH SỐ. Please complete this survey to help us understand and improve your experience." : "💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhé!"}
             </p>
             <a
               href="https://byvn.net/AnKf"
@@ -521,11 +540,11 @@ function Home() {
               rel="noopener noreferrer"
               className="block text-center toy-button toy-button-primary mb-2"
             >
-              🔗 MỞ KHẢO SÁT
+               🔗 {en ? "OPEN SURVEY" : "MỞ KHẢO SÁT"}
             </a>
             <p className="text-[10px] text-center text-rose-600 break-all">https://byvn.net/AnKf</p>
             <button onClick={() => setSurveyOpen(false)} className="toy-button w-full mt-3">
-              Đóng
+               {en ? "Close" : "Đóng"}
             </button>
           </div>
         </div>

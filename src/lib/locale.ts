@@ -28,7 +28,11 @@ export function setLocale(locale: Locale) {
 export function useLocale(): Locale {
   const [locale, updateLocale] = useState<Locale>("vi");
   useEffect(() => {
-    const sync = () => updateLocale(getLocale());
+    const sync = () => {
+      const next = getLocale();
+      document.documentElement.lang = next;
+      updateLocale(next);
+    };
     sync();
     window.addEventListener(CHANGE_EVENT, sync);
     window.addEventListener("storage", sync);

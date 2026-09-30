@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-/** Text-to-speech for the interactive film. Returns base64 mp3. */
+/** Text-to-speech for the interactive film. Returns a base64 WAV file. */
 export const speakLine = createServerFn({ method: "POST" })
   .inputValidator((data: { text: string; voice?: string; instructions?: string; speed?: number; locale?: "vi" | "en" }) => {
     if (!data?.text || typeof data.text !== "string") throw new Error("text required");
@@ -22,12 +22,13 @@ export const speakLine = createServerFn({ method: "POST" })
       res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "Lovable-API-Key": apiKey,
           "Content-Type": "application/json",
+          "X-Lovable-AIG-SDK": "fetch",
         },
         body: JSON.stringify({
           model: "google/gemini-3.1-flash-tts-preview",
-          contents: [{ parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
+          contents: [{ role: "user", parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
           generationConfig: {
             responseModalities: ["AUDIO"],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },

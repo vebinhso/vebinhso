@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
+import { useLocale } from "@/lib/locale";
+import { filmCopy } from "@/lib/film-en.generated";
 import { FilmSummaryBoard } from "@/components/FilmSummaryBoard";
 import {
   FILM,
@@ -66,6 +68,8 @@ const DUSTS = Array.from({ length: 14 }, (_, i) => ({
 
 function FilmPage() {
   const navigate = useNavigate();
+  const locale = useLocale();
+  const en = locale === "en";
   const tts = useServerFn(speakLine);
 
   const [nodeId, setNodeId] = useState<string>(FILM_START);
@@ -102,10 +106,10 @@ function FilmPage() {
 
   useEffect(() => {
     const n = FILM[FILM_START];
-    if (!n || pendingRef.current.get(n.id)) return;
+    if (!n || pendingRef.current.get(`${locale}:${n.id}`)) return;
     const p = tts({
       data: {
-        text: n.text,
+        text: filmCopy(locale, n.text) ?? n.text,
         voice: SPEAKER_META[n.speaker].voice,
         instructions: SPEAKER_META[n.speaker].instructions,
         speed: SPEAKER_META[n.speaker].speed,
@@ -113,22 +117,22 @@ function FilmPage() {
     })
       .then((r) => {
         const a = (r as { audio: string }).audio;
-        cacheRef.current.set(n.id, a);
+        cacheRef.current.set(`${locale}:${n.id}`, a);
         return a;
       })
       .catch(() => {
-        pendingRef.current.delete(n.id);
+        pendingRef.current.delete(`${locale}:${n.id}`);
         return "";
       });
-    pendingRef.current.set(n.id, p);
-  }, [tts]);
+    pendingRef.current.set(`${locale}:${n.id}`, p);
+  }, [locale, tts]);
 
   // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
   const beginFilm = useCallback(async () => {
     setPreparing(true);
     const n = FILM[FILM_START];
     const waits: Promise<unknown>[] = [];
-    const pending = pendingRef.current.get(n.id);
+    const pending = pendingRef.current.get(`${locale}:${n.id}`);
     if (pending) waits.push(pending);
     if (n.image) {
       waits.push(
@@ -170,7 +174,7 @@ function FilmPage() {
     let cancelled = false;
     stopAudio();
 
-    const text = node.text;
+    const text = filmCopy(locale, node.text) ?? node.text;
     const cap = createCaptionEngine(
       text,
       (s: string) => setTyped(s),
@@ -197,7 +201,7 @@ function FilmPage() {
         return;
       }
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = "vi-VN";
+      u.lang = en ? "en-US" : "vi-VN";
       u.rate = meta.rate;
       u.pitch = meta.pitch;
       u.onend = () => {
@@ -216,17 +220,17 @@ function FilmPage() {
 
     const play = async () => {
       try {
-        let b64 = cacheRef.current.get(node.id) ?? "";
+        let b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
         if (!b64) {
-          const pending = pendingRef.current.get(node.id);
+          const pending = pendingRef.current.get(`${locale}:${node.id}`);
           b64 = pending
             ? await pending
             : (
                 (await tts({
-                  data: { text, voice: meta.voice, instructions: meta.instructions, speed: meta.speed },
+                  data: { text, locale, voice: meta.voice, instructions: meta.instructions, speed: meta.speed },
                 })) as { audio: string }
               ).audio;
-          if (b64) cacheRef.current.set(node.id, b64);
+          if (b64) cacheRef.current.set(`${locale}:${node.id}`, b64);
         }
 
         if (cancelled || muted) return;
@@ -237,7 +241,7 @@ function FilmPage() {
           return;
         }
 
-        const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
+        const audio = new Audio(`data:audio/wav;base64,${b64}`);
         audio.playbackRate = 1;
         audio.onended = () => {
           if (cancelled) return;
@@ -270,10 +274,10 @@ function FilmPage() {
     upcoming.slice(0, 3).forEach((n) => push(n.next));
 
     upcoming.forEach((n) => {
-      if (!cacheRef.current.get(n.id) && !pendingRef.current.get(n.id)) {
+      if (!cacheRef.current.get(`${locale}:${n.id}`) && !pendingRef.current.get(`${locale}:${n.id}`)) {
         const p = tts({
           data: {
-            text: n.text,
+            text: filmCopy(locale, n.text) ?? n.text,
             voice: SPEAKER_META[n.speaker].voice,
             instructions: SPEAKER_META[n.speaker].instructions,
             speed: SPEAKER_META[n.speaker].speed,
@@ -281,14 +285,14 @@ function FilmPage() {
         })
           .then((r) => {
             const a = (r as { audio: string }).audio;
-            cacheRef.current.set(n.id, a);
+            cacheRef.current.set(`${locale}:${n.id}`, a);
             return a;
           })
           .catch(() => {
-            pendingRef.current.delete(n.id);
+            pendingRef.current.delete(`${locale}:${n.id}`);
             return "";
           });
-        pendingRef.current.set(n.id, p);
+        pendingRef.current.set(`${locale}:${n.id}`, p);
       }
 
       if (n.video) {
@@ -308,7 +312,7 @@ function FilmPage() {
       window.clearTimeout(lateStart);
       cap.stop();
     };
-  }, [meta, muted, node, started, stopAudio, tts]);
+  }, [en, locale, meta, muted, node, started, stopAudio, tts]);
 
   useEffect(() => {
     if (!done || speechDone) return;
@@ -378,7 +382,7 @@ function FilmPage() {
             PHIM TƯƠNG TÁC · BÀI 4
           </p>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 leading-tight tracking-wide drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
-            {FILM_TITLE}
+            {filmCopy(locale, FILM_TITLE)}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
             Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái bẫy?
@@ -392,10 +396,10 @@ function FilmPage() {
             disabled={preparing}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:brightness-110 disabled:opacity-70"
           >
-            {preparing ? "⏳ Đang chuẩn bị phim..." : "▶ BẮT ĐẦU"}
+            {preparing ? (en ? "⏳ Preparing film..." : "⏳ Đang chuẩn bị phim...") : (en ? "▶ START" : "▶ BẮT ĐẦU")}
           </button>
           <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
-            ← Quay lại danh sách bài chơi
+            {en ? "← Back to scenarios" : "← Quay lại danh sách bài chơi"}
           </Link>
         </div>
       </div>
@@ -833,7 +837,7 @@ function FilmPage() {
 
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
         <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">
-          ← Thoát
+          {en ? "← Exit" : "← Thoát"}
         </Link>
         <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
           <div className="h-full bg-amber-400 transition-all" style={{ width: `${progress}%` }} />
@@ -849,7 +853,7 @@ function FilmPage() {
           onClick={() => setAutoPlay((a) => !a)}
           className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
         >
-          {autoPlay ? "▶ Tự chạy" : "⏸ Thủ công"}
+          {autoPlay ? (en ? "▶ Auto" : "▶ Tự chạy") : (en ? "⏸ Manual" : "⏸ Thủ công")}
         </button>
         <button
           onClick={() => {
@@ -885,10 +889,10 @@ function FilmPage() {
                 <div className="flex gap-3 items-start">
                   <img src={FILM_SUMMARY_IMAGE} alt="" className="hidden sm:block w-28 rounded-xl" />
                   <div className="flex-1">
-                    <h3 className="text-base font-black text-amber-300 mb-2">📌 GHI NHỚ</h3>
+                    <h3 className="text-base font-black text-amber-300 mb-2">📌 {en ? "KEY TAKEAWAYS" : "GHI NHỚ"}</h3>
                     <ul className="space-y-1 text-xs sm:text-sm font-bold">
                       {FILM_NOTES.map((n) => (
-                        <li key={n}>☑ {n}</li>
+                        <li key={n}>☑ {filmCopy(locale, n)}</li>
                       ))}
                     </ul>
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -896,10 +900,10 @@ function FilmPage() {
                         onClick={restart}
                         className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black"
                       >
-                        🔄 Chơi lại
+                        🔄 {en ? "Replay" : "Chơi lại"}
                       </button>
                       <Link to="/roleplay" className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15">
-                        📚 Bài chơi khác
+                        📚 {en ? "Other scenarios" : "Bài chơi khác"}
                       </Link>
                     </div>
                   </div>
@@ -911,22 +915,22 @@ function FilmPage() {
                   node.ending.kind === "safe" ? "bg-emerald-950/85 border-emerald-400" : "bg-red-950/85 border-red-500"
                 }`}
               >
-                <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">CÁI KẾT CỦA BẠN</p>
+                <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">{en ? "YOUR ENDING" : "CÁI KẾT CỦA BẠN"}</p>
                 <h2 className="text-base sm:text-xl font-black mb-2">
                   {node.ending.kind === "safe" ? "✅ " : "💀 "}
-                  {node.ending.title}
+                  {filmCopy(locale, node.ending.title)}
                 </h2>
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[26vh] overflow-y-auto">
                   {node.ending.lesson.includes("BÀI HỌC:")
                     ? node.ending.lesson.slice(node.ending.lesson.indexOf("BÀI HỌC:"))
-                    : `BÀI HỌC:\n${node.ending.lesson}`}
+                    : `BÀI HỌC:\n${filmCopy(locale, node.ending.lesson)}`}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowSummary(true)}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-primary text-primary-foreground inline-flex items-center gap-2"
                   >
-                    📋 Tổng kết
+                    📋 {en ? "Summary" : "Tổng kết"}
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-black">
                       +20đ
                     </span>
@@ -935,17 +939,17 @@ function FilmPage() {
                     onClick={() => setShowNotes(true)}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-amber-400 text-black"
                   >
-                    📌 Xem ghi nhớ
+                    📌 {en ? "View takeaways" : "Xem ghi nhớ"}
                   </button>
                   <button onClick={restart} className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black">
-                    🔄 Chơi lại từ đầu
+                    🔄 {en ? "Replay from start" : "Chơi lại từ đầu"}
                   </button>
                   <button
                     onClick={back}
                     disabled={!history.length}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15 disabled:opacity-40"
                   >
-                    ↩ Thử lựa chọn khác
+                    ↩ {en ? "Try another choice" : "Thử lựa chọn khác"}
                   </button>
                 </div>
               </div>
@@ -957,13 +961,13 @@ function FilmPage() {
                 onClick={() => {
                   if (!done) {
                     capRef.current?.finishNow();
-                    setTyped(node.text);
+                    setTyped(filmCopy(locale, node.text) ?? node.text);
                     setDone(true);
                   }
                 }}
               >
-                {node.action && <p className="text-[10px] font-bold italic text-white/45">({node.action})</p>}
-                <p className={`text-[10px] font-black tracking-widest ${meta.color}`}>{meta.name}</p>
+                {node.action && <p className="text-[10px] font-bold italic text-white/45">({filmCopy(locale, node.action)})</p>}
+                <p className={`text-[10px] font-black tracking-widest ${meta.color}`}>{filmCopy(locale, meta.name)}</p>
                 <p className="text-sm sm:text-base font-bold leading-snug min-h-[2.6em]">
                   {typed}
                   {!done && <span className="animate-pulse">▍</span>}
@@ -980,7 +984,7 @@ function FilmPage() {
                           <p
                             className={`text-[11px] font-black tabular-nums ${timeLeft <= 3 ? "text-red-400" : "text-amber-300"}`}
                           >
-                            ⏱ {timeLeft} giây
+                            ⏱ {timeLeft} {en ? "sec" : "giây"}
                           </p>
                         )}
                       </div>
@@ -996,7 +1000,7 @@ function FilmPage() {
                                 : "bg-slate-700/85 border-slate-300"
                           }`}
                         >
-                          {c.label}
+                          {filmCopy(locale, c.label)}
                         </button>
                       ))}
                     </>
@@ -1006,11 +1010,11 @@ function FilmPage() {
                     onClick={() =>
                       done
                         ? node.next && go(node.next)
-                        : (capRef.current?.finishNow(), setTyped(node.text), setDone(true))
+                        : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
                     }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
-                    {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}
+                    {done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
                   </button>
                 )}
               </div>

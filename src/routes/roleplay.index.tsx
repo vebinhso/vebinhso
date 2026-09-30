@@ -11,6 +11,7 @@ import { FILM_POSTER as FILM4_POSTER } from "@/lib/film-4";
 import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
 import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/locale";
 
 
 export const Route = createFileRoute("/roleplay/")({
@@ -35,6 +36,8 @@ type Lesson = {
   emoji: string;
   title: string;
   desc: string;
+  titleEn: string;
+  descEn: string;
   tag: string;
   gradient: string;
 
@@ -49,6 +52,8 @@ const LESSONS: Lesson[] = [
     emoji: "🚨",
     title: "Bài 1: Alo, cảnh sát đây!",
     desc: "Đây là một đoạn phim tương tác ngắn, mô phỏng sự việc lừa đảo qua điện thoại thông qua việc giả danh thành cơ quan chức năng",
+    titleEn: "Lesson 1: Hello, this is the police!",
+    descEn: "An interactive short film about phone scams in which criminals impersonate law-enforcement officers.",
     tag: "An toàn số",
     gradient: "from-rose-500 to-orange-500",
     ready: true,
@@ -60,6 +65,8 @@ const LESSONS: Lesson[] = [
     emoji: "🕶️",
     title: "Bài 2: Gợi nhớ từ Cá voi xanh",
     desc: "Đây là đoạn phim tương tác ngắn, mô phỏng Nếu một ngày bạn trở thành một thành viên trong nhóm chat bí ẩn?.",
+    titleEn: "Lesson 2: Echoes of the Blue Whale",
+    descEn: "An interactive short film about what might happen if you joined a mysterious online group.",
     tag: "An toàn số",
     gradient: "from-sky-500 to-indigo-600",
     ready: true,
@@ -71,6 +78,8 @@ const LESSONS: Lesson[] = [
     emoji: "🛡️",
     title: "Bài 3 · Một cú bấm vì bạn",
     desc: "Nick của Hà nhắn nhờ bấm link bình chọn. Bấm giúp bạn hay dừng lại xác minh?",
+    titleEn: "Lesson 3 · One Click for a Friend",
+    descEn: "Hà's account asks you to open a voting link. Will you help immediately or stop and verify first?",
     tag: "An toàn số",
     gradient: "from-emerald-500 to-teal-600",
     ready: true,
@@ -82,6 +91,8 @@ const LESSONS: Lesson[] = [
     emoji: "🎁",
     title: "Bài 4 · Món quà đắt nhất",
     desc: "Một email thông báo trúng thưởng iPhone. L sẽ làm gì khi nhận được tin vui bất ngờ từ người lạ?",
+    titleEn: "Lesson 4 · The Most Expensive Gift",
+    descEn: "An email says L has won an iPhone. What will L do about this unexpected message from a stranger?",
     tag: "An toàn số",
     gradient: "from-amber-500 to-orange-600",
     ready: true,
@@ -93,6 +104,8 @@ const LESSONS: Lesson[] = [
     emoji: "🎫",
     title: "Bài 5 · Ba vé liền kề",
     desc: "Concert hết vé trong 40 giây. Một tài khoản giấu mặt rao bán ba vé liền kề giá rẻ. Tin hay soi kỹ?",
+    titleEn: "Lesson 5 · Three Seats Together",
+    descEn: "A concert sells out in 40 seconds. An anonymous account offers three adjacent seats cheaply. Trust it or investigate?",
     tag: "An toàn số",
     gradient: "from-violet-500 to-fuchsia-600",
     ready: true,
@@ -107,6 +120,8 @@ const LESSONS: Lesson[] = [
     emoji: "🤖",
     title: "Bài 6 · Làm việc cùng AI",
     desc: "Dùng AI để làm bài tập — đâu là ranh giới của sự trung thực?",
+    titleEn: "Lesson 6 · Working with AI",
+    descEn: "Using AI for schoolwork—where is the line between assistance and academic dishonesty?",
     tag: "Năng lực số",
     gradient: "from-cyan-500 to-blue-700",
     ready: false,
@@ -114,6 +129,7 @@ const LESSONS: Lesson[] = [
 ];
 
 function RoleplayPage() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [picked, setPicked] = useState<Lesson | null>(null);
@@ -179,7 +195,7 @@ function RoleplayPage() {
       <GameLayout showBack>
         <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600">
           <div className="text-5xl animate-bounce">🎭</div>
-          <p className="font-black text-white text-sm sm:text-base">Đang tải các bài chơi nhập vai…</p>
+          <p className="font-black text-white text-sm sm:text-base">{en ? "Loading role-play scenarios…" : "Đang tải các bài chơi nhập vai…"}</p>
           <LoadingPercent percent={loadPct} done={loadPct >= 100} />
         </div>
       </GameLayout>
@@ -195,25 +211,24 @@ function RoleplayPage() {
             <div className="absolute -top-10 -right-6 text-[120px] opacity-20 select-none">🎭</div>
             <div className="relative">
               <span className="inline-block px-3 py-1 rounded-full bg-background/20 text-[11px] font-black tracking-wide mb-2">
-                CHẾ ĐỘ MỚI
+                 {en ? "NEW MODE" : "CHẾ ĐỘ MỚI"}
               </span>
-              <h1 className="text-2xl sm:text-4xl font-black mb-2 drop-shadow">NHẬP VAI TÌNH HUỐNG</h1>
+              <h1 className="text-2xl sm:text-4xl font-black mb-2 drop-shadow">{en ? "INTERACTIVE ROLE-PLAY" : "NHẬP VAI TÌNH HUỐNG"}</h1>
               <p className="font-bold text-sm sm:text-base opacity-90 max-w-2xl mb-3">
-                Hoá thân vào những tình huống có thật trên không gian số. Mỗi bài chơi là một câu chuyện — lựa chọn của
-                bạn quyết định kết cục và số điểm nhận được.
+                 {en ? "Step into realistic digital-life situations. Every scenario is a story—your choices determine the ending and your score." : "Hoá thân vào những tình huống có thật trên không gian số. Mỗi bài chơi là một câu chuyện — lựa chọn của bạn quyết định kết cục và số điểm nhận được."}
               </p>
               <div className="inline-flex items-start gap-3 rounded-2xl bg-black/30 backdrop-blur px-4 py-3 border border-white/10 max-w-2xl">
                 <span className="text-xl shrink-0">🎧</span>
                 <p className="text-xs sm:text-sm font-bold leading-relaxed text-white/95">
-                  Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất.
+                   {en ? "Turn on your speakers or wear headphones for the best experience." : "Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất."}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-lg sm:text-xl font-black">📚 Danh sách bài chơi</h2>
-            <span className="text-xs font-bold text-muted-foreground">{LESSONS.length} bài</span>
+            <h2 className="text-lg sm:text-xl font-black">📚 {en ? "Scenario list" : "Danh sách bài chơi"}</h2>
+            <span className="text-xs font-bold text-muted-foreground">{LESSONS.length} {en ? "lessons" : "bài"}</span>
           </div>
 
           <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -229,7 +244,7 @@ function RoleplayPage() {
                       <>
                         <img
                           src={l.poster}
-                          alt={l.title}
+                          alt={en ? l.titleEn : l.title}
                           loading="eager"
                           decoding="async"
 
@@ -247,25 +262,25 @@ function RoleplayPage() {
                     </span>
                   </div>
                   <div className="p-3 sm:p-4">
-                    <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{l.title}</h3>
+                    <h3 className="font-black text-sm sm:text-base leading-tight mb-1">{en ? l.titleEn : l.title}</h3>
                     <div className="mb-3">
                       <ExpandableText
                         clamp={2}
                         className="text-xs font-bold text-muted-foreground leading-snug"
                         toggleClassName="text-[11px] text-primary"
                       >
-                        {l.desc}
+                        {en ? l.descEn : l.desc}
                       </ExpandableText>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{l.tag}</span>
+                      <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{en ? (l.tag === "An toàn số" ? "Digital safety" : "Digital competence") : l.tag}</span>
                       {l.ready ? (
                         <span className="text-[10px] font-black px-2 py-1 rounded-full bg-emerald-500/25 text-emerald-700 dark:text-emerald-300">
-                          ▶ Chơi ngay
+                           ▶ {en ? "Play now" : "Chơi ngay"}
                         </span>
                       ) : (
                         <span className="text-[10px] font-black px-2 py-1 rounded-full bg-amber-400/25 text-amber-700 dark:text-amber-300">
-                          🔒 Sắp ra mắt
+                           🔒 {en ? "Coming soon" : "Sắp ra mắt"}
                         </span>
                       )}
                     </div>
@@ -278,7 +293,7 @@ function RoleplayPage() {
                               : "border-amber-400/70 bg-amber-400/20 text-amber-700 dark:text-amber-300"
                           }`}
                         >
-                          {claimed[l.id] ? "✔ Đã nhận +50đ" : "🪙 +50đ khi vào chơi"}
+                           {claimed[l.id] ? (en ? "✔ +50 claimed" : "✔ Đã nhận +50đ") : (en ? "🪙 +50 when you start" : "🪙 +50đ khi vào chơi")}
                         </span>
                       </div>
                     )}
@@ -294,7 +309,7 @@ function RoleplayPage() {
                       const got = claimReward("start", l.id);
                       if (got > 0) {
                         setClaimed((c) => ({ ...c, [l.id]: true }));
-                        toast.success(`🪙 +${got} đồng cho bài chơi mới!`);
+                         toast.success(en ? `🪙 +${got} coins for starting a new scenario!` : `🪙 +${got} đồng cho bài chơi mới!`);
                       }
                       navigate({ to: l.to as never });
                     }}
@@ -316,16 +331,16 @@ function RoleplayPage() {
 
           <div className="mt-5 rounded-2xl border-2 border-dashed border-border p-5 text-center">
             <div className="text-3xl mb-1">✨</div>
-            <p className="font-black text-sm">Nhiều bài chơi nhập vai đang được xây dựng</p>
-            <p className="text-xs font-bold text-muted-foreground">Các trò chơi mới sẽ được thêm vào đây liên tục.</p>
+            <p className="font-black text-sm">{en ? "More role-play scenarios are being developed" : "Nhiều bài chơi nhập vai đang được xây dựng"}</p>
+            <p className="text-xs font-bold text-muted-foreground">{en ? "New scenarios will be added regularly." : "Các trò chơi mới sẽ được thêm vào đây liên tục."}</p>
           </div>
 
           <div className="mt-4 flex gap-2 justify-center pb-4">
             <Link to="/play" className="toy-button !text-xs sm:!text-sm">
-              🎮 Chọn bản đồ
+               🎮 {en ? "Choose map" : "Chọn bản đồ"}
             </Link>
             <Link to="/" className="toy-button !text-xs sm:!text-sm">
-              🏠 Trang chủ
+               🏠 {en ? "Home" : "Trang chủ"}
             </Link>
           </div>
         </div>
@@ -342,13 +357,13 @@ function RoleplayPage() {
             >
               {picked.emoji}
             </div>
-            <h3 className="font-black text-base mb-1">{picked.title}</h3>
-            <p className="text-xs font-bold text-muted-foreground mb-4">{picked.desc}</p>
+            <h3 className="font-black text-base mb-1">{en ? picked.titleEn : picked.title}</h3>
+            <p className="text-xs font-bold text-muted-foreground mb-4">{en ? picked.descEn : picked.desc}</p>
             <div className="rounded-xl bg-muted p-3 text-xs font-bold mb-4">
-              🔒 Bài chơi này sắp ra mắt. Hãy quay lại sau nhé!
+               🔒 {en ? "This scenario is coming soon. Please check back later!" : "Bài chơi này sắp ra mắt. Hãy quay lại sau nhé!"}
             </div>
             <button className="toy-button toy-button-primary w-full !text-sm" onClick={() => setPicked(null)}>
-              Đã hiểu
+               {en ? "Got it" : "Đã hiểu"}
             </button>
           </div>
         </div>

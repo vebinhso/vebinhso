@@ -188,10 +188,10 @@ function Register({ setView }: { setView: (v: View) => void }) {
 
   const handleRegister = async () => {
     setError(""); setSuccess("");
-    if (!username.trim() || !email.trim() || !password || !confirm) { setError("Vui lòng điền đầy đủ các trường!"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("Email không hợp lệ!"); return; }
-    if (!isPasswordValid(password)) { setError("Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
-    if (password !== confirm) { setError("Mật khẩu xác nhận không khớp!"); return; }
+    if (!username.trim() || !email.trim() || !password || !confirm) { setError(en ? "Complete all required fields." : "Vui lòng điền đầy đủ các trường!"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError(en ? "Enter a valid email address." : "Email không hợp lệ!"); return; }
+    if (!isPasswordValid(password)) { setError(en ? "Your password does not meet all five requirements below." : "Mật khẩu chưa đủ mạnh! Hãy hoàn thành đủ 5 tiêu chí bên dưới ô mật khẩu."); return; }
+    if (password !== confirm) { setError(en ? "The passwords do not match." : "Mật khẩu xác nhận không khớp!"); return; }
     if (isTeacher && (!teacherSchool.trim() || !teacherSubject.trim())) {
       setError("Đăng ký giáo viên: vui lòng nhập Trường và Môn giảng dạy."); return;
     }
@@ -213,7 +213,7 @@ function Register({ setView }: { setView: (v: View) => void }) {
       if (next !== "/") { window.location.href = next; return; }
       navigate({ to: "/" });
     } catch (e: any) {
-      setError(e?.message || "Đăng ký thất bại");
+      setError(e?.message || (en ? "Registration failed" : "Đăng ký thất bại"));
     } finally { setBusy(false); }
   };
 

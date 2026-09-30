@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Question } from "./questions";
+import { useLocale } from "@/lib/locale";
 
 type Props = {
   question: Question;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
+  const en = useLocale() === "en";
   const correctSet = question.correctIndexes && question.correctIndexes.length > 0
     ? question.correctIndexes
     : [question.answer];
@@ -47,7 +49,7 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
       {question.isRetry && (
         <div className="flex justify-center mb-2">
           <span className="px-3 py-1 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-800 text-xs md:text-sm font-black">
-            🔁 Câu hỏi thử lại{(question.retryCount ?? 0) > 1 ? ` (${question.retryCount})` : ""}
+            🔁 {en ? "Retry question" : "Câu hỏi thử lại"}{(question.retryCount ?? 0) > 1 ? ` (${question.retryCount})` : ""}
           </span>
         </div>
       )}
@@ -104,12 +106,12 @@ export function QuestionView({ question, onAnswer, disabled, compact }: Props) {
           disabled={disabled || picked.length === 0}
           className={`toy-button-green w-full mt-3 ${compact ? "!text-base !py-2" : "!text-lg !py-3"} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          ✓ XÁC NHẬN ({picked.length})
+          ✓ {en ? "CONFIRM" : "XÁC NHẬN"} ({picked.length})
         </button>
       )}
       {isMulti && !disabled && (
         <p className="text-xs font-bold mt-2 opacity-70 text-center">
-          Chọn TẤT CẢ đáp án đúng rồi bấm Xác nhận.
+          {en ? "Select ALL correct answers, then press Confirm." : "Chọn TẤT CẢ đáp án đúng rồi bấm Xác nhận."}
         </p>
       )}
     </div>

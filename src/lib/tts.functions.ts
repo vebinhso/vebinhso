@@ -2,13 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 
 /** Text-to-speech for the interactive film. Returns base64 mp3. */
 export const speakLine = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string; voice?: string; instructions?: string; speed?: number }) => {
+  .inputValidator((data: { text: string; voice?: string; instructions?: string; speed?: number; locale?: "vi" | "en" }) => {
     if (!data?.text || typeof data.text !== "string") throw new Error("text required");
     return {
       text: data.text.slice(0, 600),
       voice: typeof data.voice === "string" ? data.voice.slice(0, 20) : "alloy",
       instructions: typeof data.instructions === "string" ? data.instructions.slice(0, 400) : undefined,
       speed: typeof data.speed === "number" ? Math.min(2, Math.max(0.5, data.speed)) : undefined,
+      locale: data.locale === "en" ? "en" as const : "vi" as const,
     };
   })
   .handler(async ({ data }) => {
@@ -25,12 +26,12 @@ export const speakLine = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-4o-mini-tts",
-          input: data.text,
-          voice: data.voice,
-          ...(data.instructions ? { instructions: data.instructions } : {}),
-          ...(data.speed ? { speed: data.speed } : {}),
-          response_format: "mp3",
+          model: "google/gemini-3.1-flash-tts-preview",
+          contents: [{ parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
+          },
         }),
       });
     } catch {
@@ -56,5 +57,5 @@ export const speakLine = createServerFn({ method: "POST" })
     for (let i = 0; i < bytes.length; i += chunk) {
       bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
     }
-    return { audio: btoa(bin) };
+    return { audio: btoa(bin), mime: "audio/wav" };
   });

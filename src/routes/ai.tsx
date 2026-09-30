@@ -1197,28 +1197,28 @@ function AiPage() {
                   >
                     <p className="text-xs sm:text-sm font-black">
                       {newsResult.verified
-                        ? `✅ ĐÃ ĐƯỢC KIỂM CHỨNG bởi: ${newsResult.verifiedBy.join(", ")}`
-                        : "⚠️ THÔNG TIN CHƯA ĐƯỢC KIỂM CHỨNG — chưa có báo chính thống nào xác nhận. Đừng vội tin hay chia sẻ!"}
+                        ? (en ? `✅ VERIFIED by: ${newsResult.verifiedBy.join(", ")}` : `✅ ĐÃ ĐƯỢC KIỂM CHỨNG bởi: ${newsResult.verifiedBy.join(", ")}`)
+                        : (en ? "⚠️ UNVERIFIED — no established news source has confirmed this. Do not trust or share it yet!" : "⚠️ THÔNG TIN CHƯA ĐƯỢC KIỂM CHỨNG — chưa có báo chính thống nào xác nhận. Đừng vội tin hay chia sẻ!")}
                     </p>
                     <p className="mt-1 text-xs sm:text-sm font-bold">{newsResult.answer}</p>
                   </div>
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(newsResult.fakeScore)}`}>
                     {(en ? NEWS_VERDICT_EN : NEWS_VERDICT_VI)[newsResult.verdict] ?? (en ? "Unverified" : "Chưa kiểm chứng được")} · {newsResult.category}
                   </p>
-                  <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
-                  <Gauge value={newsResult.tabloidScore} label="Mức độ lá cải / tin đồn truyền miệng" />
+                   <Gauge value={newsResult.fakeScore} label={en ? "Fake / misleading score" : "Mức độ là tin giả / sai lệch"} />
+                   <Gauge value={newsResult.tabloidScore} label={en ? "Tabloid / rumor score" : "Mức độ lá cải / tin đồn truyền miệng"} />
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
 
                   {newsResult.matchedNews.length > 0 && (
-                    <SignList title="Báo chính thống có đưa tin tương tự" items={newsResult.matchedNews} tone="good" />
+                     <SignList title={en ? "Similar reports from established sources" : "Báo chính thống có đưa tin tương tự"} items={newsResult.matchedNews} tone="good" />
                   )}
-                  <SignList title="Dấu hiệu tin giả / lá cải" items={newsResult.redFlags} tone="bad" />
-                  <SignList title="Dấu hiệu đáng tin" items={newsResult.goodSigns} tone="good" />
-                  <SignList title="Cách tự kiểm chứng" items={newsResult.checkSteps} tone="info" />
+                   <SignList title={en ? "Fake-news / rumor warning signs" : "Dấu hiệu tin giả / lá cải"} items={newsResult.redFlags} tone="bad" />
+                   <SignList title={en ? "Trustworthy signs" : "Dấu hiệu đáng tin"} items={newsResult.goodSigns} tone="good" />
+                   <SignList title={en ? "How to verify it yourself" : "Cách tự kiểm chứng"} items={newsResult.checkSteps} tone="info" />
                   {newsResult.sources.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-[11px] font-black">
-                        📚 Tin mới nhất đã đối chiếu ({newsResult.checkedAt})
+                         📚 {en ? "Latest sources checked" : "Tin mới nhất đã đối chiếu"} ({newsResult.checkedAt})
                       </p>
                       {newsResult.sources.map((s, i) => (
                         <a
@@ -1234,7 +1234,7 @@ function AiPage() {
                     </div>
                   )}
                   <p className="text-[10px] font-bold text-foreground">
-                    * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
+                     * {en ? "Always compare with established news sources before sharing." : "Luôn đối chiếu với báo chính thống trước khi chia sẻ."}
                   </p>
                 </div>
               )}

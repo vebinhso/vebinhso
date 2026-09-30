@@ -1660,17 +1660,17 @@ function MagicPage() {
       </Canvas>
 
       {/* Mobile joystick + jump + open-door (E) — desktop unchanged */}
-      <TouchControls showActionButton actionKey="e" actionLabel="🚪 MỞ (E)" />
+      <TouchControls showActionButton actionKey="e" actionLabel={en ? "🚪 OPEN (E)" : "🚪 MỞ (E)"} />
 
       {/* HUD top-left */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
-        <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>
+        <Link to="/play" className="toy-button !text-xs">← {en ? "Back to maps" : "Về chọn map"}</Link>
         <div className="glass-card px-3 py-2 text-sm font-black">
-          💰 {globalMoney} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
+          💰 {globalMoney} {en ? "coins" : "đồng"} {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ ${en ? "Area" : "Khu vực"} 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
         </div>
         {stage === 2 && (s2Inv.shield || s2Inv.potion > 0) && (
           <div className="glass-card px-3 py-2 text-xs font-black">
-            {s2Inv.shield && <span>🛡️ Khiên </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
+            {s2Inv.shield && <span>🛡️ {en ? "Shield" : "Khiên"} </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
           </div>
         )}
       </div>
@@ -1678,9 +1678,9 @@ function MagicPage() {
       {/* 20s countdown — top right when exit is opening */}
       {stage === 1 && exitOpen && (
         <div className="absolute top-3 right-3 z-30 glass-card px-4 py-3 text-center" style={{ background: "rgba(40,0,0,0.7)", border: "2px solid #ff6020", boxShadow: "0 0 24px rgba(255,80,20,0.6)" }}>
-          <div className="text-xs font-black text-amber-200">⏱️ CỬA SẼ ĐÓNG TRONG</div>
+          <div className="text-xs font-black text-amber-200">⏱️ {en ? "DOOR CLOSES IN" : "CỬA SẼ ĐÓNG TRONG"}</div>
           <div className="text-3xl font-black text-orange-400" style={{ textShadow: "0 0 12px #ff6020" }}>{exitSeconds}s</div>
-          <div className="text-[10px] font-bold text-amber-100/80 mt-1">Chạy tới cuối hành lang!</div>
+          <div className="text-[10px] font-bold text-amber-100/80 mt-1">{en ? "Run to the end of the corridor!" : "Chạy tới cuối hành lang!"}</div>
         </div>
       )}
 
@@ -1694,14 +1694,14 @@ function MagicPage() {
       {/* hint stage 1 */}
       {stage === 1 && !room && near != null && doors[near] === "closed" && !modal && !won && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
-          Nhấn <span className="text-orange-600">E</span> để mở Cửa {near + 1}
+          {en ? "Press" : "Nhấn"} <span className="text-orange-600">E</span> {en ? `to open Door ${near + 1}` : `để mở Cửa ${near + 1}`}
         </div>
       )}
 
       {/* hint stage 2 */}
       {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz5 && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
-          Nhấn <span className="text-orange-600">E</span> để vào Phòng {s2Near + 1}
+          {en ? "Press" : "Nhấn"} <span className="text-orange-600">E</span> {en ? `to enter Room ${s2Near + 1}` : `để vào Phòng ${s2Near + 1}`}
         </div>
       )}
 
@@ -1718,19 +1718,19 @@ function MagicPage() {
           </div>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
             {s2Room.kind === "pirate" && s2Room.phase >= 5000 && (
-              <button onClick={s2OpenChestPirate} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương (+25)</button>
+              <button onClick={s2OpenChestPirate} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 {en ? "Open chest" : "Mở rương"} (+25)</button>
             )}
             {s2Room.kind === "forest" && s2Room.phase >= 5000 && (
-              <button onClick={s2PickShield} className="toy-button toy-button-primary !text-base px-6 py-3">🛡️ Nhặt khiên</button>
+              <button onClick={s2PickShield} className="toy-button toy-button-primary !text-base px-6 py-3">🛡️ {en ? "Pick up shield" : "Nhặt khiên"}</button>
             )}
             {s2Room.kind === "potion" && s2Room.phase >= 5000 && (
-              <button onClick={s2PickPotion} className="toy-button toy-button-primary !text-base px-6 py-3">🧪 Nhặt thuốc</button>
+              <button onClick={s2PickPotion} className="toy-button toy-button-primary !text-base px-6 py-3">🧪 {en ? "Pick up potion" : "Nhặt thuốc"}</button>
             )}
             {s2Room.kind === "stars" && (
-              <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 Rời phòng</button>
+              <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 {en ? "Leave room" : "Rời phòng"}</button>
             )}
             {s2Room.kind === "room5quiz" && !quiz5 && !room5ChestOpened && (
-              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương</button>
+              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 {en ? "Open chest" : "Mở rương"}</button>
             )}
           </div>
         </>
@@ -1750,7 +1750,7 @@ function MagicPage() {
             opacity: witch.phase === "cast" ? 1 : 0.55,
             fontSize: 36,
           }}
-          title="Bấm để chống tia sét"
+          title={en ? "Press to block lightning" : "Bấm để chống tia sét"}
         >
           🛡️
         </button>
@@ -1763,7 +1763,7 @@ function MagicPage() {
       {/* controls hint */}
       {!room && stage !== "transition" && (
         <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20 hidden [@media(pointer:fine)]:block">
-          WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột
+          {en ? "WASD move · Mouse look · Space jump · E open door · Click to lock pointer" : "WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột"}
         </div>
       )}
 

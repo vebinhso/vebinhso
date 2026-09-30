@@ -1845,7 +1845,7 @@ function MagicPage() {
             <p className="text-xl font-black mb-2">{s2Modal.title}</p>
             <p className="font-bold mb-4">{s2Modal.text}</p>
             {s2Modal.finished ? (
-              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 Hoàn thành — Về chọn map</Link>
+              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 {en ? "Complete — Back to maps" : "Hoàn thành — Về chọn map"}</Link>
             ) : (
               <button onClick={() => setS2Modal(null)} className="toy-button toy-button-primary w-full">Tiếp tục</button>
             )}

@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ExpandableText } from "@/components/ExpandableText";
-import LoadingPercent from "@/components/LoadingPercent";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
@@ -135,8 +134,6 @@ function RoleplayPage() {
   const [user, setUser] = useState<Account | null>(null);
   const [picked, setPicked] = useState<Lesson | null>(null);
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
-  const [loadPct, setLoadPct] = useState(0);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -153,27 +150,15 @@ function RoleplayPage() {
   // Show the lesson list immediately; warm posters in the background.
   useEffect(() => {
     if (!user) return;
-    setReady(true);
-    setLoadPct(100);
     const urls = LESSONS.map((l) => l.poster).filter(Boolean) as string[];
-    let cancelled = false;
     for (const url of urls) {
       const img = new Image();
       img.decoding = "async";
       img.src = url;
     }
-    return () => {
-      cancelled = true;
-    };
   }, [user]);
 
   if (!user) return <RouteLoading />;
-
-          <LoadingPercent percent={loadPct} done={loadPct >= 100} />
-        </div>
-      </GameLayout>
-    );
-  }
 
 
   return (

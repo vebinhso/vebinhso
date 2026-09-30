@@ -150,6 +150,11 @@ function GamePage() {
   const readyRef = useRef(false);
   useEffect(() => {
     setMounted(true);
+    const laptopLayout = window.matchMedia("(min-width: 768px) and (pointer: fine)").matches;
+    if (laptopLayout) {
+      setThaoTacOpen(true);
+      setThucHienOpen(true);
+    }
     const u = getCurrentUser();
     if (!u) {
       navigate({ to: "/login" });
@@ -208,8 +213,8 @@ function GamePage() {
           seen.add(row.user_id ?? "");
           try {
             const info = await getUsernameFn({ data: { userId: row.user_id! } });
-            const name = info?.display_name || info?.username || "Một ai đó";
-            setToast(`👋 ${name} đang tham quan nhà bạn!`);
+            const name = info?.display_name || info?.username || (en ? "Someone" : "Một ai đó");
+            setToast(en ? `👋 ${name} is visiting your home!` : `👋 ${name} đang tham quan nhà bạn!`);
             setTimeout(() => setToast(null), 3500);
           } catch { /* noop */ }
         },
@@ -263,13 +268,13 @@ function GamePage() {
   const handleUndo = () => {
     setHistory((h) => {
       if (h.length === 0) {
-        flash("↩️ Không có gì để hoàn tác");
+        flash(en ? "↩️ Nothing to undo" : "↩️ Không có gì để hoàn tác");
         return h;
       }
       const prev = h[h.length - 1];
       isUndoingRef.current = true;
       setState(prev);
-      flash("↩️ Đã hoàn tác");
+      flash(en ? "↩️ Undone" : "↩️ Đã hoàn tác");
       return h.slice(0, -1);
     });
   };
@@ -327,7 +332,7 @@ function GamePage() {
     const times = Math.max(1, Math.floor(bulkTimes));
     const totalPrice = it.price * times;
     if (state.money < totalPrice) {
-      flash("❌ Không đủ tiền! Trả lời câu hỏi để kiếm thêm.");
+      flash(en ? "❌ Not enough coins! Answer questions to earn more." : "❌ Không đủ tiền! Trả lời câu hỏi để kiếm thêm.");
       return;
     }
     const kind = it.kind ?? "place";
@@ -335,14 +340,14 @@ function GamePage() {
       const add = (it.qty ?? 10) * times;
       setState({ ...state, money: state.money - totalPrice, bricks: state.bricks + add });
       playSfx("purchase", { duck: true });
-      flash(`🧱 +${add} viên gạch vào kho`);
+      flash(en ? `🧱 +${add} bricks added to inventory` : `🧱 +${add} viên gạch vào kho`);
       return;
     }
     if (kind === "concrete") {
       const add = (it.qty ?? 1) * times;
       setState({ ...state, money: state.money - totalPrice, concrete: state.concrete + add });
       playSfx("purchase", { duck: true });
-      flash(`🪣 +${add} xô bê tông tươi vào kho`);
+      flash(en ? `🪣 +${add} buckets of concrete added to inventory` : `🪣 +${add} xô bê tông tươi vào kho`);
       return;
     }
     if (kind === "rooftile") {
@@ -355,14 +360,14 @@ function GamePage() {
         roofTilesTon: style === "ton" ? state.roofTilesTon + qty : state.roofTilesTon,
       });
       playSfx("purchase", { duck: true });
-      flash(`🏠 +${qty} gạch mái ${style === "ton" ? "tôn" : "ngói"} vào kho`);
+      flash(en ? `🏠 +${qty} ${style === "ton" ? "metal" : "tile"} roof pieces added to inventory` : `🏠 +${qty} gạch mái ${style === "ton" ? "tôn" : "ngói"} vào kho`);
       return;
     }
     if (kind === "paint") {
       const add = (it.qty ?? 1) * times;
       setState({ ...state, money: state.money - totalPrice, paint: state.paint + add });
       playSfx("purchase", { duck: true });
-      flash(`🎨 +${add} xô sơn vào kho — dùng để nhuộm sàn theo màu tường`);
+      flash(en ? `🎨 +${add} paint buckets added — use them to match floors to the wall color` : `🎨 +${add} xô sơn vào kho — dùng để nhuộm sàn theo màu tường`);
       return;
     }
     if (kind === "palette") {
@@ -377,7 +382,7 @@ function GamePage() {
 
     // Cửa sổ: phải có ít nhất 1 tường để gắn
     if (it.id === "window" && state.walls.length === 0) {
-      flash("⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");
+      flash(en ? "⚠️ Build a wall before attaching a window." : "⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");
       return;
     }
     if (it.id === "door") setDoorHint(true);
@@ -428,7 +433,7 @@ function GamePage() {
     //    để cửa nằm phẳng với tường (cùng độ dày 0.25m → khi đóng tạo thành 1 mặt phẳng).
     if (it.id === "window" || it.id === "door") {
       if (state.walls.length === 0) {
-        flash(it.id === "door" ? "🚪 Hãy xây tường trước, rồi mới gắn cửa." : "🪟 Hãy xây tường trước, rồi mới gắn cửa sổ.");
+        flash(it.id === "door" ? (en ? "🚪 Build a wall before attaching a door." : "🚪 Hãy xây tường trước, rồi mới gắn cửa.") : (en ? "🪟 Build a wall before attaching a window." : "🪟 Hãy xây tường trước, rồi mới gắn cửa sổ."));
         return;
       }
       const cx0 = x + fw / 2 - 10;
@@ -452,7 +457,7 @@ function GamePage() {
         }
       }
       if (!best || best.d2 > 0.8 * 0.8) {
-        flash(it.id === "door" ? "🚪 Đặt cửa ngay trên 1 đoạn tường nhé." : "🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé.");
+        flash(it.id === "door" ? (en ? "🚪 Place the door directly on a wall." : "🚪 Đặt cửa ngay trên 1 đoạn tường nhé.") : (en ? "🪟 Place the window directly on a wall." : "🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé."));
         return;
       }
       if (state.money < it.price) return;
@@ -562,7 +567,7 @@ function GamePage() {
       walls: state.walls.filter((x) => x.id !== id),
       netWorth: Math.max(0, state.netWorth - refundNW),
     });
-    flash("🧹 Đã gỡ tường");
+    flash(en ? "🧹 Wall removed" : "🧹 Đã gỡ tường");
   };
 
   const removeRoof = (id: string) => {
@@ -573,7 +578,7 @@ function GamePage() {
       roofs: state.roofs.filter((x) => x.id !== id),
       netWorth: Math.max(0, state.netWorth - refundNW),
     });
-    flash("🧹 Đã gỡ mái nhà");
+    flash(en ? "🧹 Roof removed" : "🧹 Đã gỡ mái nhà");
   };
 
   // Build wall between 2 pillars, or build roof from 4 pillars
@@ -590,7 +595,7 @@ function GamePage() {
       const next = [...floorPicks, placedId];
       if (next.length < 4) {
         setFloorPicks(next);
-        flash(`Đã chọn ${next.length}/4 cột trụ cho sàn.`);
+        flash(en ? `Selected ${next.length}/4 pillars for the floor.` : `Đã chọn ${next.length}/4 cột trụ cho sàn.`);
         return;
       }
       const corners = next
@@ -604,7 +609,7 @@ function GamePage() {
       const d = Math.max(1, Math.round(bz - az));
       const tilesNeeded = w * d;
       if (state.concrete < tilesNeeded) {
-        flash(`❌ Thiếu bê tông! Cần ${tilesNeeded} xô (đang có ${state.concrete}).`, 3000);
+        flash(en ? `❌ Not enough concrete! Need ${tilesNeeded} buckets (${state.concrete} available).` : `❌ Thiếu bê tông! Cần ${tilesNeeded} xô (đang có ${state.concrete}).`, 3000);
         setFloorPicks([]);
         return;
       }
@@ -625,8 +630,8 @@ function GamePage() {
       setFloorPicks([]);
       flash(
         painted
-          ? `🎨 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông + ${tilesNeeded} xô sơn (màu ${state.wallColor}).`
-          : `🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.${state.paint > 0 ? ` (Thiếu sơn: cần ${tilesNeeded}, đang có ${state.paint})` : ""}`,
+          ? (en ? `🎨 Built a ${w}m × ${d}m floor — used ${tilesNeeded} concrete + ${tilesNeeded} paint buckets (${state.wallColor}).` : `🎨 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông + ${tilesNeeded} xô sơn (màu ${state.wallColor}).`)
+          : (en ? `🟫 Built a ${w}m × ${d}m floor — used ${tilesNeeded} concrete buckets.${state.paint > 0 ? ` (Not enough paint: need ${tilesNeeded}, ${state.paint} available)` : ""}` : `🟫 Xây sàn ${w}m × ${d}m — tốn ${tilesNeeded} xô bê tông.${state.paint > 0 ? ` (Thiếu sơn: cần ${tilesNeeded}, đang có ${state.paint})` : ""}`),
         2800,
       );
       return;
@@ -641,7 +646,7 @@ function GamePage() {
       const next = [...roofPicks, placedId];
       if (next.length < 4) {
         setRoofPicks(next);
-        flash(`Đã chọn ${next.length}/4 cột trụ chính cho mái nhà.`);
+        flash(en ? `Selected ${next.length}/4 main pillars for the roof.` : `Đã chọn ${next.length}/4 cột trụ chính cho mái nhà.`);
         return;
       }
       // 4 pillars chosen → compute bounding box
@@ -657,7 +662,7 @@ function GamePage() {
       const tilesNeeded = w * d;
       const inv = roofStyle === "ton" ? state.roofTilesTon : state.roofTiles;
       if (inv < tilesNeeded) {
-        flash(`❌ Thiếu gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}! Cần ${tilesNeeded} (đang có ${inv}).`, 3000);
+        flash(en ? `❌ Not enough ${roofStyle === "ton" ? "metal" : "tile"} roofing! Need ${tilesNeeded} (${inv} available).` : `❌ Thiếu gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}! Cần ${tilesNeeded} (đang có ${inv}).`, 3000);
         setRoofPicks([]);
         return;
       }
@@ -679,18 +684,18 @@ function GamePage() {
         netWorth: state.netWorth + value,
       });
       setRoofPicks([]);
-      flash(`🏠 Xây mái nhà ${w}m × ${d}m — tốn ${tilesNeeded} gạch mái.`, 2500);
+      flash(en ? `🏠 Built a ${w}m × ${d}m roof — used ${tilesNeeded} roof pieces.` : `🏠 Xây mái nhà ${w}m × ${d}m — tốn ${tilesNeeded} gạch mái.`, 2500);
       return;
     }
     if (!wallMode) return;
     if (!wallPickA) {
       setWallPickA(placedId);
-      flash("Đã chọn cột A — chọn cột B để xây.");
+      flash(en ? "Pillar A selected — select pillar B to build." : "Đã chọn cột A — chọn cột B để xây.");
       return;
     }
     if (wallPickA === placedId) {
       setWallPickA(null);
-      flash("Đã huỷ chọn cột A");
+      flash(en ? "Pillar A selection cleared" : "Đã huỷ chọn cột A");
       return;
     }
     const A = state.placed.find((p) => p.id === wallPickA);
@@ -706,7 +711,7 @@ function GamePage() {
     const dist = Math.hypot(bx - ax, bz - az);
     const cost = wallCost(dist);
     if (state.bricks < cost.bricks || state.concrete < cost.concrete) {
-      flash(`❌ Thiếu vật liệu! Cần ${cost.bricks} gạch + ${cost.concrete} xô bê tông (đang có ${state.bricks}/${state.concrete}).`, 3000);
+      flash(en ? `❌ Not enough materials! Need ${cost.bricks} bricks + ${cost.concrete} concrete buckets (${state.bricks}/${state.concrete} available).` : `❌ Thiếu vật liệu! Cần ${cost.bricks} gạch + ${cost.concrete} xô bê tông (đang có ${state.bricks}/${state.concrete}).`, 3000);
       setWallPickA(null);
       return;
     }
@@ -731,22 +736,22 @@ function GamePage() {
       netWorth: state.netWorth + wallValue,
     });
     setWallPickA(null);
-    flash(`🧱 Xây tường ${cost.length}m × ${WALL_HEIGHT}m — tốn ${cost.bricks} gạch + ${cost.concrete} bê tông.`, 2500);
+    flash(en ? `🧱 Built a ${cost.length}m × ${WALL_HEIGHT}m wall — used ${cost.bricks} bricks + ${cost.concrete} concrete.` : `🧱 Xây tường ${cost.length}m × ${WALL_HEIGHT}m — tốn ${cost.bricks} gạch + ${cost.concrete} bê tông.`, 2500);
   };
 
   const pickPaletteColor = (hex: string) => {
     setState({ ...state, wallColor: hex });
     setPaletteOpen(false);
-    flash(`🎨 Màu tường mới: ${hex}`);
+    flash(en ? `🎨 New wall color: ${hex}` : `🎨 Màu tường mới: ${hex}`);
   };
 
   const openQuestion = async () => {
     if (!questionsReady) {
-      flash("⏳ Đang tải câu hỏi từ ngân hàng...");
+      flash(en ? "⏳ Loading questions..." : "⏳ Đang tải câu hỏi từ ngân hàng...");
       try { await loadQuestionsFromDB("rural"); setQuestionsReady(true); } catch {}
     }
     const q = randomQuestion();
-    if (!q || !q.q) { flash("⚠️ Chưa có câu hỏi trong ngân hàng admin.", 2000); return; }
+    if (!q || !q.q) { flash(en ? "⚠️ No questions are available yet." : "⚠️ Chưa có câu hỏi trong ngân hàng admin.", 2000); return; }
     setQuestion(q);
     setQuestionResult(null);
   };
@@ -854,7 +859,7 @@ function GamePage() {
     setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ — phải trả lời thêm 1 câu!`);
     setTimeout(() => {
       if (ok) {
-        flash(`💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
+        flash(en ? `💣 Bomb defused! Total: ${gained >= 0 ? "+" : ""}${gained} coins` : `💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
         setBoom(null);
         setBoomResult(null);
       } else {
@@ -889,11 +894,11 @@ function GamePage() {
   const tryGoFloor = (f: number) => {
     if (f === activeFloor) return;
     if (level < floorLevelReq(f)) {
-      flash(`🔒 Cần đạt CẤP ${floorLevelReq(f)} để mở tầng ${f}.`, 2400);
+      flash(en ? `🔒 Reach LEVEL ${floorLevelReq(f)} to unlock floor ${f}.` : `🔒 Cần đạt CẤP ${floorLevelReq(f)} để mở tầng ${f}.`, 2400);
       return;
     }
     if (!canAccessFloor(f)) {
-      flash(`🏗️ Hãy lợp sàn tầng dưới trước khi lên tầng ${f}!`, 2200);
+      flash(en ? `🏗️ Build the lower floor before going to floor ${f}!` : `🏗️ Hãy lợp sàn tầng dưới trước khi lên tầng ${f}!`, 2200);
       return;
     }
     setActiveFloor(f);
@@ -901,7 +906,7 @@ function GamePage() {
     setWallMode(false); setWallPickA(null);
     setRoofMode(false); setRoofPicks([]);
   };
-  const floorLabel = (f: number) => (f === 0 ? "Trệt" : String(f));
+  const floorLabel = (f: number) => (f === 0 ? (en ? "G" : "Trệt") : String(f));
 
   return (
     <div className="fixed inset-0 bg-sky-300 overflow-hidden select-none">
@@ -942,7 +947,7 @@ function GamePage() {
               floors: state.floors.filter((x) => x.id !== id),
               netWorth: Math.max(0, state.netWorth - refund),
             });
-            flash("🧹 Đã gỡ sàn");
+            flash(en ? "🧹 Floor removed" : "🧹 Đã gỡ sàn");
           }}
           activeFloor={activeFloor}
           pickups={pickups}
@@ -1105,11 +1110,11 @@ function GamePage() {
           <button
             onClick={() => {
               if (!meetsWallLevel) {
-                flash(`🔒 Cần đạt CẤP ${wallLevelReq} để xây tường ở tầng ${floorLabel(activeFloor)}.`, 2400);
+                flash(en ? `🔒 Reach LEVEL ${wallLevelReq} to build walls on floor ${floorLabel(activeFloor)}.` : `🔒 Cần đạt CẤP ${wallLevelReq} để xây tường ở tầng ${floorLabel(activeFloor)}.`, 2400);
                 return;
               }
               if (!canEnterWallMode) {
-                flash("Đặt ít nhất 2 cột bê tông trước khi xây tường.");
+                flash(en ? "Place at least 2 concrete pillars before building a wall." : "Đặt ít nhất 2 cột bê tông trước khi xây tường.");
                 return;
               }
               setWallMode((w) => !w);
@@ -1128,11 +1133,11 @@ function GamePage() {
           <button
             onClick={() => {
               if (!meetsFloorLevel) {
-                flash(`🔒 Cần đạt CẤP ${floorLevelReq(activeFloor)} để xây sàn ở tầng ${floorLabel(activeFloor)}.`, 2400);
+                flash(en ? `🔒 Reach LEVEL ${floorLevelReq(activeFloor)} to build the floor on level ${floorLabel(activeFloor)}.` : `🔒 Cần đạt CẤP ${floorLevelReq(activeFloor)} để xây sàn ở tầng ${floorLabel(activeFloor)}.`, 2400);
                 return;
               }
               if (!canEnterFloorMode) {
-                flash("Đặt ít nhất 4 cột bê tông trước khi xây sàn.");
+                flash(en ? "Place at least 4 concrete pillars before building a floor." : "Đặt ít nhất 4 cột bê tông trước khi xây sàn.");
                 return;
               }
               setFloorMode((f) => !f);
@@ -1152,11 +1157,11 @@ function GamePage() {
           <button
             onClick={() => {
               if (!floorOnThisFloor) {
-                flash("Phải xây SÀN trước khi lợp mái cho tầng này.", 2500);
+                flash(en ? "Build the FLOOR before adding a roof to this level." : "Phải xây SÀN trước khi lợp mái cho tầng này.", 2500);
                 return;
               }
               if (!canEnterRoofMode) {
-                flash("Đặt ít nhất 4 cột bê tông trước khi xây mái nhà.");
+                flash(en ? "Place at least 4 concrete pillars before building a roof." : "Đặt ít nhất 4 cột bê tông trước khi xây mái nhà.");
                 return;
               }
               setRoofMode((r) => !r);
@@ -1244,18 +1249,18 @@ function GamePage() {
                   playSfx("place");
                 }}
                 className={`toy-button !text-sm !py-2 !px-4 ${isOpen ? "toy-button-green" : "toy-button-primary"}`}
-                title="Mở/đóng cửa gần nhất"
+                title={en ? "Open or close the nearest door" : "Mở/đóng cửa gần nhất"}
               >
-                {isOpen ? "🚪 ĐÓNG CỬA" : "🚪 MỞ CỬA"}
+                {isOpen ? (en ? "🚪 CLOSE DOOR" : "🚪 ĐÓNG CỬA") : (en ? "🚪 OPEN DOOR" : "🚪 MỞ CỬA")}
               </button>
             )}
             {nearLamp && (
               <button
                 onClick={() => { setToggles({ lightsOn: !wt.lightsOn }); playSfx("place"); }}
                 className={`toy-button !text-sm !py-2 !px-4 ${wt.lightsOn ? "toy-button-green" : ""}`}
-                title="Bật/tắt tất cả đèn"
+                title={en ? "Turn all lights on or off" : "Bật/tắt tất cả đèn"}
               >
-                {wt.lightsOn ? "💡 TẮT ĐÈN" : "💡 BẬT ĐÈN"}
+                {wt.lightsOn ? (en ? "💡 LIGHTS OFF" : "💡 TẮT ĐÈN") : (en ? "💡 LIGHTS ON" : "💡 BẬT ĐÈN")}
               </button>
             )}
           </div>
@@ -1353,23 +1358,23 @@ function GamePage() {
               <span className="text-2xl">{it.icon}</span>
               <div className="text-sm font-black flex-1 min-w-0 truncate">{en ? "Edit" : "Chỉnh"}: {catalogLabel(it.name, en)}</div>
               <button
-                onClick={() => { handleRemove(editingId); setEditingId(null); setMoveMode(false); flash("🗑 Đã xoá vật"); }}
+                onClick={() => { handleRemove(editingId); setEditingId(null); setMoveMode(false); flash(en ? "🗑 Item removed" : "🗑 Đã xoá vật"); }}
                 className="toy-button !text-xs !py-1 !px-3 bg-rose-500 text-white"
-                title="Xoá vật phẩm và hoàn tiền"
-              >🗑 Xoá</button>
-              <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">Xong</button>
+                title={en ? "Remove item and refund" : "Xoá vật phẩm và hoàn tiền"}
+              >🗑 {en ? "Remove" : "Xoá"}</button>
+              <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">{en ? "Done" : "Xong"}</button>
             </div>
             {surfaceItem && (
               <div className="mb-2">
                 <button
                   onClick={snapOnto}
                   className="toy-button toy-button-green !text-xs !py-1 !px-3 w-full"
-                  title="Bù trừ chân đế để đáy vật sát nóc"
-                >📦 Đặt vật trên {surfaceItem.name}</button>
+                  title={en ? "Align the item base with the top surface" : "Bù trừ chân đế để đáy vật sát nóc"}
+                >📦 {en ? "Place on" : "Đặt vật trên"} {catalogLabel(surfaceItem.name, en)}</button>
               </div>
             )}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-xs font-bold w-12 shrink-0">Xoay:</span>
+              <span className="text-xs font-bold w-12 shrink-0">{en ? "Rotate" : "Xoay"}:</span>
               <input
                 type="range"
                 min={0}
@@ -1392,7 +1397,7 @@ function GamePage() {
               <button onClick={() => setAngle(270)} className="toy-button !text-xs !py-1 !px-2">270°</button>
             </div>
             <div className="flex items-start gap-2 flex-wrap">
-              <span className="text-xs font-bold w-12 shrink-0">Dịch:</span>
+              <span className="text-xs font-bold w-12 shrink-0">{en ? "Move" : "Dịch"}:</span>
               <div className="grid grid-cols-3 gap-1 shrink-0">
                 <span />
                 <button onClick={() => nudge(0, -0.5)} className="toy-button !text-xs !py-1 !px-2">↑</button>
@@ -1513,7 +1518,7 @@ function GamePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {WALL_PALETTES.map((p) => (
                 <div key={p.id} className="rounded-2xl p-3 bg-white/70 border border-white/80">
-                  <div className="text-sm font-black mb-2">{p.name}</div>
+                  <div className="text-sm font-black mb-2">{catalogLabel(p.name, en)}</div>
                   <div className="flex rounded-xl overflow-hidden shadow-inner">
                     {p.colors.map((c) => (
                       <button
@@ -1596,7 +1601,7 @@ function GamePage() {
                   setSignLabels(next);
                   saveSignLabels(user.id, next);
                   setSignEditId(null);
-                  flash("🪧 Đã xoá nội dung bảng");
+                  flash(en ? "🪧 Sign text cleared" : "🪧 Đã xoá nội dung bảng");
                 }}
                 className="toy-button !text-xs !py-2 !px-3"
                >{en ? "Clear" : "Xoá nội dung"}</button>
@@ -1607,7 +1612,7 @@ function GamePage() {
                   setSignLabels(next);
                   saveSignLabels(user.id, next);
                   setSignEditId(null);
-                  flash("✅ Đã cập nhật bảng tên");
+                  flash(en ? "✅ House sign updated" : "✅ Đã cập nhật bảng tên");
                 }}
                 className="toy-button toy-button-primary !text-sm !py-2 !px-4 flex-1"
                >{en ? "Save" : "Lưu"}</button>

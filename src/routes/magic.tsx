@@ -15,6 +15,7 @@ import { TigerEmerging, ParrotDescending, BeaverEmerging, RandomAnimal, Corridor
 import { setBgm, playSfx } from "@/lib/audio";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { TouchControls } from "@/game/TouchControls";
+import { useLocale } from "@/lib/locale";
 
 
 export const Route = createFileRoute("/magic")({
@@ -981,6 +982,7 @@ function saveMagic(s: MagicSave) {
 }
 
 function MagicPage() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
   const [near, setNear] = useState<number | null>(null);
@@ -1658,17 +1660,17 @@ function MagicPage() {
       </Canvas>
 
       {/* Mobile joystick + jump + open-door (E) — desktop unchanged */}
-      <TouchControls showActionButton actionKey="e" actionLabel="🚪 MỞ (E)" />
+      <TouchControls showActionButton actionKey="e" actionLabel={en ? "🚪 OPEN (E)" : "🚪 MỞ (E)"} />
 
       {/* HUD top-left */}
       <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
-        <Link to="/play" className="toy-button !text-xs">← Về chọn map</Link>
+        <Link to="/play" className="toy-button !text-xs">← {en ? "Back to maps" : "Về chọn map"}</Link>
         <div className="glass-card px-3 py-2 text-sm font-black">
-          💰 {globalMoney} đồng {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ Stage 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
+          💰 {globalMoney} {en ? "coins" : "đồng"} {stage === 1 ? `· 🚪 ${doors.filter((d) => d === "cleared").length}/10` : `· 🏛️ ${en ? "Area" : "Khu vực"} 2 · ${s2Doors.filter((d) => d === "cleared").length}/5`}
         </div>
         {stage === 2 && (s2Inv.shield || s2Inv.potion > 0) && (
           <div className="glass-card px-3 py-2 text-xs font-black">
-            {s2Inv.shield && <span>🛡️ Khiên </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
+            {s2Inv.shield && <span>🛡️ {en ? "Shield" : "Khiên"} </span>}{s2Inv.potion > 0 && <span>🧪 ×{s2Inv.potion}</span>}
           </div>
         )}
       </div>
@@ -1676,9 +1678,9 @@ function MagicPage() {
       {/* 20s countdown — top right when exit is opening */}
       {stage === 1 && exitOpen && (
         <div className="absolute top-3 right-3 z-30 glass-card px-4 py-3 text-center" style={{ background: "rgba(40,0,0,0.7)", border: "2px solid #ff6020", boxShadow: "0 0 24px rgba(255,80,20,0.6)" }}>
-          <div className="text-xs font-black text-amber-200">⏱️ CỬA SẼ ĐÓNG TRONG</div>
+          <div className="text-xs font-black text-amber-200">⏱️ {en ? "DOOR CLOSES IN" : "CỬA SẼ ĐÓNG TRONG"}</div>
           <div className="text-3xl font-black text-orange-400" style={{ textShadow: "0 0 12px #ff6020" }}>{exitSeconds}s</div>
-          <div className="text-[10px] font-bold text-amber-100/80 mt-1">Chạy tới cuối hành lang!</div>
+          <div className="text-[10px] font-bold text-amber-100/80 mt-1">{en ? "Run to the end of the corridor!" : "Chạy tới cuối hành lang!"}</div>
         </div>
       )}
 
@@ -1692,14 +1694,14 @@ function MagicPage() {
       {/* hint stage 1 */}
       {stage === 1 && !room && near != null && doors[near] === "closed" && !modal && !won && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
-          Nhấn <span className="text-orange-600">E</span> để mở Cửa {near + 1}
+          {en ? "Press" : "Nhấn"} <span className="text-orange-600">E</span> {en ? `to open Door ${near + 1}` : `để mở Cửa ${near + 1}`}
         </div>
       )}
 
       {/* hint stage 2 */}
       {stage === 2 && s2Near != null && s2Doors[s2Near] === "closed" && !s2Modal && !room5Open && !witch && !quiz5 && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-card px-4 py-2 font-black text-sm z-20">
-          Nhấn <span className="text-orange-600">E</span> để vào Phòng {s2Near + 1}
+          {en ? "Press" : "Nhấn"} <span className="text-orange-600">E</span> {en ? `to enter Room ${s2Near + 1}` : `để vào Phòng ${s2Near + 1}`}
         </div>
       )}
 
@@ -1716,19 +1718,19 @@ function MagicPage() {
           </div>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-3">
             {s2Room.kind === "pirate" && s2Room.phase >= 5000 && (
-              <button onClick={s2OpenChestPirate} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương (+25)</button>
+              <button onClick={s2OpenChestPirate} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 {en ? "Open chest" : "Mở rương"} (+25)</button>
             )}
             {s2Room.kind === "forest" && s2Room.phase >= 5000 && (
-              <button onClick={s2PickShield} className="toy-button toy-button-primary !text-base px-6 py-3">🛡️ Nhặt khiên</button>
+              <button onClick={s2PickShield} className="toy-button toy-button-primary !text-base px-6 py-3">🛡️ {en ? "Pick up shield" : "Nhặt khiên"}</button>
             )}
             {s2Room.kind === "potion" && s2Room.phase >= 5000 && (
-              <button onClick={s2PickPotion} className="toy-button toy-button-primary !text-base px-6 py-3">🧪 Nhặt thuốc</button>
+              <button onClick={s2PickPotion} className="toy-button toy-button-primary !text-base px-6 py-3">🧪 {en ? "Pick up potion" : "Nhặt thuốc"}</button>
             )}
             {s2Room.kind === "stars" && (
-              <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 Rời phòng</button>
+              <button onClick={s2ExitStars} className="toy-button toy-button-primary !text-base px-6 py-3">🚪 {en ? "Leave room" : "Rời phòng"}</button>
             )}
             {s2Room.kind === "room5quiz" && !quiz5 && !room5ChestOpened && (
-              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 Mở rương</button>
+              <button onClick={openRoom5Chest} className="toy-button toy-button-primary !text-base px-6 py-3">🎁 {en ? "Open chest" : "Mở rương"}</button>
             )}
           </div>
         </>
@@ -1748,7 +1750,7 @@ function MagicPage() {
             opacity: witch.phase === "cast" ? 1 : 0.55,
             fontSize: 36,
           }}
-          title="Bấm để chống tia sét"
+          title={en ? "Press to block lightning" : "Bấm để chống tia sét"}
         >
           🛡️
         </button>
@@ -1761,7 +1763,7 @@ function MagicPage() {
       {/* controls hint */}
       {!room && stage !== "transition" && (
         <div className="absolute bottom-3 right-3 glass-card px-3 py-2 text-xs font-bold z-20 hidden [@media(pointer:fine)]:block">
-          WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột
+          {en ? "WASD move · Mouse look · Space jump · E open door · Click to lock pointer" : "WASD di chuyển · Chuột nhìn · Space nhảy · E mở cửa · Click để khoá chuột"}
         </div>
       )}
 
@@ -1843,7 +1845,7 @@ function MagicPage() {
             <p className="text-xl font-black mb-2">{s2Modal.title}</p>
             <p className="font-bold mb-4">{s2Modal.text}</p>
             {s2Modal.finished ? (
-              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 Hoàn thành — Về chọn map</Link>
+              <Link to="/play" className="toy-button toy-button-primary w-full">🏆 {en ? "Complete — Back to maps" : "Hoàn thành — Về chọn map"}</Link>
             ) : (
               <button onClick={() => setS2Modal(null)} className="toy-button toy-button-primary w-full">Tiếp tục</button>
             )}
@@ -2031,9 +2033,9 @@ function MagicPage() {
                 animation: "creepyFade 4.2s ease-in-out forwards",
               }}
             >
-              Chào mừng đến lâu đài ma thuật,
+              {en ? "Welcome to the magic castle," : "Chào mừng đến lâu đài ma thuật,"}
               <br />
-              nhiệm vụ của bạn chính là tìm đường thoát khỏi đây...
+              {en ? "your mission is to find a way out…" : "nhiệm vụ của bạn chính là tìm đường thoát khỏi đây..."}
             </p>
           ) : intro === 1 ? (
             <div className="relative flex flex-col items-center gap-4">
@@ -2048,7 +2050,7 @@ function MagicPage() {
                   letterSpacing: "0.08em",
                 }}
               >
-                CHẠY ĐI !
+                {en ? "RUN!" : "CHẠY ĐI !"}
               </h1>
             </div>
           ) : (
@@ -2063,7 +2065,7 @@ function MagicPage() {
                   animation: "creepyFade 2.4s ease-out both, creepyShake 0.22s infinite",
                 }}
               >
-                KHU VỰC 1
+                {en ? "AREA 1" : "KHU VỰC 1"}
               </h2>
             </div>
           )}
@@ -2108,9 +2110,9 @@ function MagicPage() {
         <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-8" style={{ background: "radial-gradient(ellipse at center, #1a0030 0%, #000 70%)" }}>
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-black text-amber-300" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.08em", textShadow: "0 0 24px #ff8030, 0 4px 0 #5a2000" }}>
-              BẢN ĐỒ MA THUẬT
+              {en ? "MAGIC MAP" : "BẢN ĐỒ MA THUẬT"}
             </h1>
-            <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">Chọn khu vực bạn muốn chơi</p>
+            <p className="text-amber-100/80 mt-3 text-sm md:text-base font-bold">{en ? "Choose an area to play" : "Chọn khu vực bạn muốn chơi"}</p>
           </div>
           <div className="flex flex-wrap gap-6 justify-center px-4">
             {/* Khu vực 1 */}
@@ -2124,9 +2126,9 @@ function MagicPage() {
             >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
                 <div className="text-7xl">🏚️</div>
-                <div className="text-2xl font-black text-amber-200">Khu vực 1</div>
-                <div className="text-xs font-bold text-amber-100/80 text-center">Hành lang ma quái · 10 cửa<br/>Dành cho người mới bắt đầu</div>
-                <div className="mt-2 px-4 py-1 rounded-full bg-amber-500 text-black text-xs font-black uppercase tracking-wider">Bắt buộc</div>
+                <div className="text-2xl font-black text-amber-200">{en ? "Area 1" : "Khu vực 1"}</div>
+                <div className="text-xs font-bold text-amber-100/80 text-center">{en ? <>Haunted corridor · 10 doors<br/>For beginners</> : <>Hành lang ma quái · 10 cửa<br/>Dành cho người mới bắt đầu</>}</div>
+                <div className="mt-2 px-4 py-1 rounded-full bg-amber-500 text-black text-xs font-black uppercase tracking-wider">{en ? "Required" : "Bắt buộc"}</div>
               </div>
             </button>
             {/* Khu vực 2 */}
@@ -2145,19 +2147,19 @@ function MagicPage() {
             >
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
                 <div className="text-7xl">{stage2Unlocked ? "🏰" : "🔒"}</div>
-                <div className="text-2xl font-black" style={{ color: stage2Unlocked ? "#d8b0ff" : "#888" }}>Khu vực 2</div>
+                <div className="text-2xl font-black" style={{ color: stage2Unlocked ? "#d8b0ff" : "#888" }}>{en ? "Area 2" : "Khu vực 2"}</div>
                 <div className="text-xs font-bold text-center" style={{ color: stage2Unlocked ? "rgba(216,176,255,0.8)" : "#666" }}>
-                  Lâu đài phù thủy · 5 phòng<br/>
-                  {stage2Unlocked ? "Phòng cướp biển, hồ thần, phù thủy..." : "Hoàn thành Khu vực 1 để mở khóa"}
+                  {en ? "Witch's castle · 5 rooms" : "Lâu đài phù thủy · 5 phòng"}<br/>
+                  {stage2Unlocked ? (en ? "Pirate room, sacred lake, witch…" : "Phòng cướp biển, hồ thần, phù thủy...") : (en ? "Complete Area 1 to unlock" : "Hoàn thành Khu vực 1 để mở khóa")}
                 </div>
                 {stage2Unlocked && (
-                  <div className="mt-2 px-4 py-1 rounded-full bg-purple-500 text-white text-xs font-black uppercase tracking-wider">Đã mở khóa</div>
+                  <div className="mt-2 px-4 py-1 rounded-full bg-purple-500 text-white text-xs font-black uppercase tracking-wider">{en ? "Unlocked" : "Đã mở khóa"}</div>
                 )}
               </div>
             </button>
           </div>
-          <Link to="/play" className="toy-button !text-sm">← Về chọn map</Link>
-          <div className="text-xs text-amber-100/60 italic">💡 Bạn có thể chơi lại bất cứ khu vực nào đã mở khóa</div>
+          <Link to="/play" className="toy-button !text-sm">← {en ? "Back to map selection" : "Về chọn map"}</Link>
+          <div className="text-xs text-amber-100/60 italic">💡 {en ? "You can replay any unlocked area" : "Bạn có thể chơi lại bất cứ khu vực nào đã mở khóa"}</div>
         </div>
       )}
 
@@ -2167,7 +2169,7 @@ function MagicPage() {
           onClick={() => setSelectedArea(null)}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-30 toy-button !text-xs"
         >
-          🗺️ Đổi khu vực
+          🗺️ {en ? "Change area" : "Đổi khu vực"}
         </button>
       )}
     </div>

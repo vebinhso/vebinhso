@@ -38,11 +38,13 @@ import { DuelController } from "@/components/DuelController";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
 
 function GamePage() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [state, setState] = useState<GameState | null>(null);
@@ -907,7 +909,7 @@ function GamePage() {
         fallback={
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-sky-300 to-sky-500">
             <div className="h-14 w-14 animate-spin rounded-full border-4 border-white/50 border-t-white" />
-            <div className="text-white font-black text-xl">Đang tải bản đồ nhà...</div>
+             <div className="text-white font-black text-xl">{en ? "Loading home map…" : "Đang tải bản đồ nhà..."}</div>
             <LoadingPercent />
           </div>
         }
@@ -952,7 +954,7 @@ function GamePage() {
           friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
           onVisitFriend={(ownerId) => {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
-            setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || "nhà bạn" });
+             setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });
           }}
           onItemClick={(id, opts) => {
             const p = state.placed.find((q) => q.id === id);
@@ -987,7 +989,7 @@ function GamePage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setVisitConfirm(null)}>
           <div className="glass-card p-6 max-w-sm w-full rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-2xl font-black mb-2 text-center">🏠 {visitConfirm.name}</div>
-            <div className="text-sm text-center opacity-70 mb-5">Bạn có muốn vào thăm ngôi nhà này không?</div>
+            <div className="text-sm text-center opacity-70 mb-5">{en ? "Would you like to visit this house?" : "Bạn có muốn vào thăm ngôi nhà này không?"}</div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 className="toy-button toy-button-primary min-w-0 !animate-none !rounded-2xl !border-b-4 !px-2 sm:!px-4 !py-2 !text-sm sm:!text-base !leading-none"
@@ -996,11 +998,11 @@ function GamePage() {
                   setVisitConfirm(null);
                   navigate({ to: "/visit/$ownerId", params: { ownerId: id } });
                 }}
-              >🚪 Vào nhà</button>
+              >🚪 {en ? "Enter" : "Vào nhà"}</button>
               <button
                 className="toy-button min-w-0 !animate-none !rounded-2xl !border-b-4 !px-2 sm:!px-4 !py-2 !text-sm sm:!text-base !leading-none"
                 onClick={() => setVisitConfirm(null)}
-              >❌ Thoát</button>
+              >❌ {en ? "Cancel" : "Thoát"}</button>
             </div>
           </div>
         </div>
@@ -1021,7 +1023,7 @@ function GamePage() {
       {activePowers.some((id) => [1,2,3].includes(id)) && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 glass-card px-4 py-1.5 pointer-events-none z-40">
           <div className="text-xs font-black">
-            {activePowers.includes(1) && "🌧️ Đang mưa "}{activePowers.includes(3) && "☀️ Trời nắng "}{activePowers.includes(2) && "🌪️ Lốc xoáy"}
+            {activePowers.includes(1) && (en ? "🌧️ Raining " : "🌧️ Đang mưa ")}{activePowers.includes(3) && (en ? "☀️ Sunny " : "☀️ Trời nắng ")}{activePowers.includes(2) && (en ? "🌪️ Tornado" : "🌪️ Lốc xoáy")}
           </div>
         </div>
       )}
@@ -1045,7 +1047,7 @@ function GamePage() {
               onPointerDown={() => { void friendHousesQ.refetch(); }}
               className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-black text-emerald-800 active:scale-95 transition-transform duration-75 touch-manipulation"
             >
-              🗺️ Bản đồ bạn bè
+              🗺️ {en ? "Friends map" : "Bản đồ bạn bè"}
             </Link>
           </div>
         </div>
@@ -1055,18 +1057,18 @@ function GamePage() {
           <button
             onClick={() => setThaoTacOpen((v) => !v)}
             className={`toy-button !text-xs !py-2 !px-3 ${thaoTacOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
-            title="Mở/đóng nhóm Thao tác"
+            title={en ? "Open/close actions" : "Mở/đóng nhóm Thao tác"}
           >
-            {thaoTacOpen ? "✖ ⚙️ THAO TÁC" : "⚙️ THAO TÁC"}
+            {thaoTacOpen ? `✖ ⚙️ ${en ? "ACTIONS" : "THAO TÁC"}` : `⚙️ ${en ? "ACTIONS" : "THAO TÁC"}`}
           </button>
           {thaoTacOpen && (
             <div className="flex flex-col gap-2 items-end max-h-[40vh] overflow-y-auto overflow-x-hidden pr-1 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
-              <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 Về trang chủ</Link>
+              <Link to="/" className="toy-button text-xs !py-2 !px-3">🏡 {en ? "Home" : "Về trang chủ"}</Link>
               <button onClick={handleUndo} disabled={history.length === 0} className={`toy-button !text-xs !py-2 !px-3 ${history.length === 0 ? "opacity-50" : ""}`}>
-                ↩️ HOÀN TÁC (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
+                ↩️ {en ? "UNDO" : "HOÀN TÁC"} (Ctrl+Z){history.length > 0 ? ` · ${history.length}` : ""}
               </button>
-              <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 CỬA HÀNG</button>
-              <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ KIẾM TIỀN</button>
+              <button onClick={() => setShopOpen(true)} className="toy-button toy-button-primary !text-base !py-2 !px-5">🛒 {en ? "SHOP" : "CỬA HÀNG"}</button>
+              <button onClick={openQuestion} className="toy-button toy-button-green !text-sm !py-2 !px-4">❓ {en ? "EARN COINS" : "KIẾM TIỀN"}</button>
             </div>
           )}
 
@@ -1074,16 +1076,16 @@ function GamePage() {
           <button
             onClick={() => setThucHienOpen((v) => !v)}
             className={`toy-button !text-xs !py-2 !px-3 mt-1 ${thucHienOpen ? "toy-button-primary !text-xs !py-2 !px-3" : ""}`}
-            title="Mở/đóng nhóm Thực hiện"
+            title={en ? "Open/close building tools" : "Mở/đóng nhóm Thực hiện"}
           >
-            {thucHienOpen ? "✖ 🏗️ THỰC HIỆN" : "🏗️ THỰC HIỆN"}
+            {thucHienOpen ? `✖ 🏗️ ${en ? "BUILD" : "THỰC HIỆN"}` : `🏗️ ${en ? "BUILD" : "THỰC HIỆN"}`}
           </button>
           {thucHienOpen && (
             <div className="flex flex-col gap-2 items-end max-h-[50vh] overflow-y-auto overflow-x-hidden pr-1 pb-2 scroll-smooth" style={{ scrollbarWidth: "thin" }}>
 
           {/* Chọn tầng */}
           <div className="glass-card px-2 py-1.5 flex flex-wrap items-center gap-1 max-w-[85vw] sm:max-w-[360px]">
-            <span className="text-[10px] font-black text-stone-700 mr-1 shrink-0">TẦNG:</span>
+            <span className="text-[10px] font-black text-stone-700 mr-1 shrink-0">{en ? "FLOOR" : "TẦNG"}:</span>
             {Array.from({ length: MAX_FLOOR + 1 }, (_, f) => {
               const accessible = canAccessFloor(f);
               const active = activeFloor === f;
@@ -1092,7 +1094,7 @@ function GamePage() {
                   key={f}
                   onClick={() => tryGoFloor(f)}
                   className={`toy-button !text-[11px] !py-1 !px-2 shrink-0 ${active ? "toy-button-primary !text-[11px] !py-1 !px-2" : ""} ${!accessible && !active ? "opacity-50" : ""}`}
-                  title={accessible ? `Lên tầng ${floorLabel(f)}` : level < floorLevelReq(f) ? `Cần CẤP ${floorLevelReq(f)} để mở tầng ${f}` : `Cần lợp sàn tầng ${f - 1} trước`}
+                  title={accessible ? (en ? `Go to floor ${floorLabel(f)}` : `Lên tầng ${floorLabel(f)}`) : level < floorLevelReq(f) ? (en ? `Reach LEVEL ${floorLevelReq(f)} to unlock floor ${f}` : `Cần CẤP ${floorLevelReq(f)} để mở tầng ${f}`) : (en ? `Build floor ${f - 1} first` : `Cần lợp sàn tầng ${f - 1} trước`)}
                 >
                   {!accessible && !active ? "🔒 " : ""}{floorLabel(f)}
                 </button>
@@ -1119,9 +1121,9 @@ function GamePage() {
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${wallMode ? "toy-button-green" : ""} ${!meetsWallLevel ? "opacity-70" : ""}`}
-            title={!meetsWallLevel ? `Cần CẤP ${wallLevelReq} để xây tường tầng ${floorLabel(activeFloor)}` : ""}
+            title={!meetsWallLevel ? (en ? `Reach LEVEL ${wallLevelReq} to build walls on floor ${floorLabel(activeFloor)}` : `Cần CẤP ${wallLevelReq} để xây tường tầng ${floorLabel(activeFloor)}`) : ""}
           >
-            {!meetsWallLevel ? `🔒 XÂY TƯỜNG (CẤP ${wallLevelReq})` : wallMode ? "✅ Đang xây tường" : "🧱 XÂY TƯỜNG"}
+            {!meetsWallLevel ? `🔒 ${en ? "BUILD WALL" : "XÂY TƯỜNG"} (${en ? "LEVEL" : "CẤP"} ${wallLevelReq})` : wallMode ? (en ? "✅ Building walls" : "✅ Đang xây tường") : (en ? "🧱 BUILD WALL" : "🧱 XÂY TƯỜNG")}
           </button>
           <button
             onClick={() => {
@@ -1142,9 +1144,9 @@ function GamePage() {
               setSelected(null);
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${floorMode ? "toy-button-green" : ""} ${!meetsFloorLevel ? "opacity-70" : ""}`}
-            title={!meetsFloorLevel ? `Cần CẤP ${floorLevelReq(activeFloor)} để xây sàn tầng ${floorLabel(activeFloor)}` : ""}
+            title={!meetsFloorLevel ? (en ? `Reach LEVEL ${floorLevelReq(activeFloor)} to build floor ${floorLabel(activeFloor)}` : `Cần CẤP ${floorLevelReq(activeFloor)} để xây sàn tầng ${floorLabel(activeFloor)}`) : ""}
           >
-            {!meetsFloorLevel ? `🔒 XÂY SÀN (CẤP ${floorLevelReq(activeFloor)})` : floorMode ? `✅ Đang xây sàn (${floorPicks.length}/4)` : "🟫 XÂY SÀN"}
+            {!meetsFloorLevel ? `🔒 ${en ? "BUILD FLOOR" : "XÂY SÀN"} (${en ? "LEVEL" : "CẤP"} ${floorLevelReq(activeFloor)})` : floorMode ? `✅ ${en ? "Building floor" : "Đang xây sàn"} (${floorPicks.length}/4)` : (en ? "🟫 BUILD FLOOR" : "🟫 XÂY SÀN")}
           </button>
 
           <button
@@ -1167,23 +1169,23 @@ function GamePage() {
             }}
             className={`toy-button !text-sm !py-2 !px-4 ${roofMode ? "toy-button-green" : ""}`}
           >
-            {roofMode ? `✅ Mái ${roofStyle === "ton" ? "tôn" : "ngói"} (${roofPicks.length}/4)` : "🏠 XÂY MÁI NHÀ"}
+            {roofMode ? `✅ ${en ? "Roof" : "Mái"} ${en ? (roofStyle === "ton" ? "metal" : "tile") : (roofStyle === "ton" ? "tôn" : "ngói")} (${roofPicks.length}/4)` : (en ? "🏠 BUILD ROOF" : "🏠 XÂY MÁI NHÀ")}
           </button>
           {roofMode && (
             <div className="flex gap-1">
               <button
                 onClick={() => setRoofStyle("tile")}
                 className={`toy-button !text-[10px] !py-1 !px-2 ${roofStyle === "tile" ? "toy-button-primary !text-[10px] !py-1 !px-2" : ""}`}
-              >Ngói</button>
+              >{en ? "Tile" : "Ngói"}</button>
               <button
                 onClick={() => setRoofStyle("ton")}
                 className={`toy-button !text-[10px] !py-1 !px-2 ${roofStyle === "ton" ? "toy-button-primary !text-[10px] !py-1 !px-2" : ""}`}
-              >Tôn</button>
+              >{en ? "Metal" : "Tôn"}</button>
             </div>
           )}
           {state.ownedPalettes.length > 0 && (
             <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3" style={{ background: state.wallColor }}>
-              🎨 Đổi màu tường
+              🎨 {en ? "Wall color" : "Đổi màu tường"}
             </button>
           )}
             </div>
@@ -1194,7 +1196,7 @@ function GamePage() {
 
       {/* Level progress */}
       <div className="absolute top-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 pointer-events-none hidden md:block">
-        <div className="text-xs font-black text-center">CẤP {level} → CẤP {lvlInfo.next}</div>
+        <div className="text-xs font-black text-center">{en ? "LEVEL" : "CẤP"} {level} → {en ? "LEVEL" : "CẤP"} {lvlInfo.next}</div>
         <div className="text-[10px] font-bold text-muted-foreground">
           🏠 {state.netWorth}/{lvlInfo.netWorthNeeded}đ • ✅ {state.correctAnswers}/{lvlInfo.questionsNeeded}
         </div>
@@ -1203,13 +1205,13 @@ function GamePage() {
       {/* Controls hint */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 glass-card px-4 py-2 text-xs font-bold pointer-events-none max-w-[92vw] text-center [@media(pointer:coarse)]:hidden">
         {wallMode
-          ? "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông"
+          ? (en ? "🧱 WALL MODE • Click 2 concrete pillars to build a wall between them • 1m × 5m uses 10 bricks + 1 concrete" : "🧱 CHẾ ĐỘ XÂY TƯỜNG • Click 2 cột bê tông để hệ thống tự xây tường giữa chúng • Quy đổi: 1m × 5m = 10 gạch + 1 bê tông")
           : roofMode
-          ? `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`
+          ? (en ? `🏠 ROOF MODE • Click 4 concrete pillars at the house corners • 1m² uses 1 ${roofStyle === "ton" ? "metal" : "tile"} roof piece` : `🏠 CHẾ ĐỘ XÂY MÁI NHÀ • Click 4 cột bê tông là 4 góc nhà • 1m² = 1 gạch mái ${roofStyle === "ton" ? "tôn" : "ngói"}`)
           : (
             <>
-              <span className="hidden [@media(pointer:fine)]:inline">🎮 WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa</span>
-              <span className="[@media(pointer:fine)]:hidden">🎮 Joystick để di chuyển • Chạm để đặt • Chạm vật để chỉnh</span>
+              <span className="hidden [@media(pointer:fine)]:inline">🎮 {en ? "WASD: Move • SPACE: Jump • R: Rotate • Click: Place • Right click: Remove" : "WASD: Di chuyển • SPACE: Nhảy • R: Xoay • Click: Đặt • Chuột phải: Xóa"}</span>
+              <span className="[@media(pointer:fine)]:hidden">🎮 {en ? "Joystick to move • Tap to place • Tap an item to edit" : "Joystick để di chuyển • Chạm để đặt • Chạm vật để chỉnh"}</span>
             </>
           )}
       </div>
@@ -1217,11 +1219,11 @@ function GamePage() {
       {/* Gợi ý đặt cửa */}
       {doorHint && selected === "door" && (
         <div className="absolute bottom-16 [@media(pointer:coarse)]:bottom-36 left-1/2 -translate-x-1/2 bg-amber-100 border-2 border-amber-400 text-amber-900 px-5 py-2.5 rounded-2xl shadow-lg text-sm font-black pointer-events-none animate-bounce z-50">
-          🚪 Hãy bấm vào cửa và xoay về 0°
+          🚪 {en ? "Select the door and rotate it to 0°" : "Hãy bấm vào cửa và xoay về 0°"}
         </div>
       )}
       <div className="absolute bottom-14 [@media(pointer:coarse)]:bottom-28 left-1/2 -translate-x-1/2 px-3 py-1 text-[11px] italic font-bold text-amber-900/90 bg-amber-50/80 rounded-full pointer-events-none max-w-[92vw] text-center shadow-sm">
-        🪙 Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân..
+        🪙 {en ? "Explore to find more coins, but watch your step…" : "Hãy đi xung quanh để kiếm thêm thu nhập nhưng hãy cẩn thận bước chân.."}
       </div>
 
       {/* HUD: cửa & đèn — chỉ hiện khi tới gần và đã có đặt vật tương ứng */}
@@ -1403,7 +1405,7 @@ function GamePage() {
                 <span />
               </div>
               <div className="text-[10px] font-bold text-stone-600 flex-1 min-w-0 basis-full sm:basis-0">
-                {moveMode ? "🟢 Click ô mới trên mảnh đất để dời vật tới đó" : "Bấm 📍 rồi click ô trong mảnh để dời, hoặc dùng mũi tên (0.5m)"}
+                {moveMode ? (en ? "🟢 Click a new spot on the plot to move this item" : "🟢 Click ô mới trên mảnh đất để dời vật tới đó") : (en ? "Press 📍 then click a spot, or use the arrows (0.5m)" : "Bấm 📍 rồi click ô trong mảnh để dời, hoặc dùng mũi tên (0.5m)")}
               </div>
             </div>
           </div>
@@ -1422,9 +1424,9 @@ function GamePage() {
         <div className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-2 md:p-4" onClick={() => setShopOpen(false)}>
           <div className="glass-card max-w-3xl w-full max-h-[92vh] md:max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="p-2 md:p-4 border-b-2 border-white/50 flex flex-wrap items-center justify-between gap-2 min-w-0">
-              <h2 className="text-base md:text-2xl font-black truncate min-w-0">🛒 CỬA HÀNG</h2>
+               <h2 className="text-base md:text-2xl font-black truncate min-w-0">🛒 {en ? "SHOP" : "CỬA HÀNG"}</h2>
               <div className="font-bold text-yellow-700 text-xs md:text-base whitespace-nowrap">💰 {state.money}đ</div>
-              <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3 shrink-0">Đóng</button>
+               <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3 shrink-0">{en ? "Close" : "Đóng"}</button>
             </div>
             <div className="flex flex-wrap gap-1 md:gap-2 p-2 md:p-3 border-b-2 border-white/50">
               {CATEGORIES.map((c) => (
@@ -1439,8 +1441,8 @@ function GamePage() {
             </div>
             {activeCat === "Vật liệu" && (
               <div className="px-3 md:px-4 pt-2 md:pt-3 text-[10px] md:text-[11px] font-bold text-stone-700">
-                💡 Đặt CỘT BÊ TÔNG trước. Mua GẠCH + BÊ TÔNG, rồi bấm
-                {" "}<span className="text-orange-700">🧱 XÂY TƯỜNG</span> (10 gạch + 1 bê tông / 1m×5m).
+                 💡 {en ? "Place CONCRETE PILLARS first. Buy BRICKS + CONCRETE, then press" : "Đặt CỘT BÊ TÔNG trước. Mua GẠCH + BÊ TÔNG, rồi bấm"}
+                 {" "}<span className="text-orange-700">🧱 {en ? "BUILD WALL" : "XÂY TƯỜNG"}</span> ({en ? "10 bricks + 1 concrete" : "10 gạch + 1 bê tông"} / 1m×5m).
               </div>
             )}
             <div className="p-2 md:p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-3" style={{ scrollbarWidth: "thin" }}>
@@ -1454,11 +1456,11 @@ function GamePage() {
                 const totalPrice = it.price * effQty;
                 const canAfford = state.money >= totalPrice;
                 const label =
-                  kind === "brick" ? "MUA GẠCH" :
-                  kind === "concrete" ? "MUA BÊ TÔNG" :
-                  kind === "rooftile" ? "MUA GẠCH MÁI" :
-                  kind === "palette" ? "MỞ PALETTE" :
-                  "MUA & ĐẶT";
+                   kind === "brick" ? (en ? "BUY BRICKS" : "MUA GẠCH") :
+                   kind === "concrete" ? (en ? "BUY CONCRETE" : "MUA BÊ TÔNG") :
+                   kind === "rooftile" ? (en ? "BUY ROOFING" : "MUA GẠCH MÁI") :
+                   kind === "palette" ? (en ? "OPEN PALETTE" : "MỞ PALETTE") :
+                   (en ? "BUY & PLACE" : "MUA & ĐẶT");
                 const setQ = (n: number) => setBuyQty((prev) => ({ ...prev, [it.id]: Math.max(1, Math.min(99, n)) }));
                 return (
                   <div key={it.id} className="relative rounded-2xl md:rounded-3xl p-2 md:p-3 text-center border-2 border-amber-200" style={{
@@ -1489,7 +1491,7 @@ function GamePage() {
                     )}
                     <button onClick={() => buyAndSelect(it.id, isBulk || !isPalette ? qty : 1)} disabled={!canAfford}
                       className={`toy-button !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3 mt-2 w-full ${canAfford ? `toy-button-primary !text-[10px] md:!text-xs !py-1 !px-2 md:!px-3` : "opacity-50"}`}>
-                      {canAfford ? (showQty && effQty > 1 ? `${label} ×${effQty}` : label) : "Hết tiền"}
+                       {canAfford ? (showQty && effQty > 1 ? `${label} ×${effQty}` : label) : (en ? "Not enough coins" : "Hết tiền")}
                     </button>
                   </div>
                 );
@@ -1504,10 +1506,10 @@ function GamePage() {
         <div className="absolute inset-0 bg-black/60 z-40 flex items-center justify-center p-4" onClick={() => setPaletteOpen(false)}>
           <div className="glass-card max-w-4xl w-full max-h-[85vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-2xl font-black">🎨 PALETTE MÀU TƯỜNG</h2>
-              <button onClick={() => setPaletteOpen(false)} className="toy-button !text-xs !py-1 !px-3">Đóng</button>
+               <h2 className="text-2xl font-black">🎨 {en ? "WALL COLOR PALETTE" : "PALETTE MÀU TƯỜNG"}</h2>
+               <button onClick={() => setPaletteOpen(false)} className="toy-button !text-xs !py-1 !px-3">{en ? "Close" : "Đóng"}</button>
             </div>
-            <p className="text-xs font-bold text-stone-700 mb-3">Chọn 1 ô màu bất kỳ để sơn cho các tường (tường mới và sẵn có).</p>
+             <p className="text-xs font-bold text-stone-700 mb-3">{en ? "Choose any color to paint new and existing walls." : "Chọn 1 ô màu bất kỳ để sơn cho các tường (tường mới và sẵn có)."}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {WALL_PALETTES.map((p) => (
                 <div key={p.id} className="rounded-2xl p-3 bg-white/70 border border-white/80">
@@ -1538,9 +1540,9 @@ function GamePage() {
           <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-3 gap-2">
               <div className="text-xs md:text-sm font-bold text-orange-700">
-                ❓ Trả lời đúng để +{question.reward}đ
+                 ❓ {en ? `Answer correctly to earn +${question.reward} coins` : `Trả lời đúng để +${question.reward}đ`}
               </div>
-              <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖ Thoát</button>
+               <button onClick={closeQuestion} className="toy-button !text-xs !py-1 !px-3 shrink-0">✖ {en ? "Exit" : "Thoát"}</button>
             </div>
             <QuestionView question={question} onAnswer={handleAnswer} disabled={!!questionResult} />
             {questionResult && (
@@ -1556,7 +1558,7 @@ function GamePage() {
           <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-red-500">
             <div className="mb-3">
               <div className="text-base md:text-lg font-black text-red-700 animate-pulse">
-                💣 BẠN ĐÃ ĐẠP TRÚNG BOOM! Phải trả lời ĐÚNG để thoát (✅ +10đ • ❌ −5đ){boom.tries > 0 ? ` • Lần ${boom.tries + 1}` : ""}
+                 💣 {en ? `YOU STEPPED ON A BOMB! Answer CORRECTLY to escape (✅ +10 coins • ❌ −5 coins)${boom.tries > 0 ? ` • Attempt ${boom.tries + 1}` : ""}` : `BẠN ĐÃ ĐẠP TRÚNG BOOM! Phải trả lời ĐÚNG để thoát (✅ +10đ • ❌ −5đ)${boom.tries > 0 ? ` • Lần ${boom.tries + 1}` : ""}`}
               </div>
             </div>
             <QuestionView question={boom.q} onAnswer={handleBoomAnswer} disabled={!!boomResult} />
@@ -1572,16 +1574,16 @@ function GamePage() {
         <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-3 md:p-6" onClick={() => setSignEditId(null)}>
           <div className="glass-card max-w-md w-full p-4 md:p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3 gap-2">
-              <h3 className="text-lg md:text-xl font-black">🪧 Bảng tên nhà</h3>
-              <button onClick={() => setSignEditId(null)} className="toy-button !text-xs !py-1 !px-3">✖ Đóng</button>
+               <h3 className="text-lg md:text-xl font-black">🪧 {en ? "House sign" : "Bảng tên nhà"}</h3>
+               <button onClick={() => setSignEditId(null)} className="toy-button !text-xs !py-1 !px-3">✖ {en ? "Close" : "Đóng"}</button>
             </div>
-            <p className="text-xs text-stone-700 mb-2">Tối đa {SIGN_LABEL_MAX} ký tự. Bạn có thể dùng emoji 🏠✨🐶.</p>
+             <p className="text-xs text-stone-700 mb-2">{en ? `Up to ${SIGN_LABEL_MAX} characters. You can use emoji 🏠✨🐶.` : `Tối đa ${SIGN_LABEL_MAX} ký tự. Bạn có thể dùng emoji 🏠✨🐶.`}</p>
             <input
               autoFocus
               value={signDraft}
               onChange={(e) => setSignDraft(e.target.value.slice(0, SIGN_LABEL_MAX))}
               maxLength={SIGN_LABEL_MAX}
-              placeholder="Nhà của ..."
+               placeholder={en ? "Home of…" : "Nhà của ..."}
               className="w-full px-3 py-2 rounded-xl border-2 border-amber-300 focus:border-amber-500 outline-none font-bold mb-2"
             />
             <div className="text-[11px] text-stone-500 mb-3 text-right">{signDraft.length}/{SIGN_LABEL_MAX}</div>
@@ -1597,7 +1599,7 @@ function GamePage() {
                   flash("🪧 Đã xoá nội dung bảng");
                 }}
                 className="toy-button !text-xs !py-2 !px-3"
-              >Xoá nội dung</button>
+               >{en ? "Clear" : "Xoá nội dung"}</button>
               <button
                 onClick={() => {
                   if (!user || !signEditId) return;
@@ -1608,7 +1610,7 @@ function GamePage() {
                   flash("✅ Đã cập nhật bảng tên");
                 }}
                 className="toy-button toy-button-primary !text-sm !py-2 !px-4 flex-1"
-              >Lưu</button>
+               >{en ? "Save" : "Lưu"}</button>
             </div>
           </div>
         </div>

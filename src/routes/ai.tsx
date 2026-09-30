@@ -199,6 +199,7 @@ const VERDICT_VI: Record<string, string> = {
   likely_ai: "Nhiều khả năng do AI",
   ai: "Do AI tạo",
 };
+const VERDICT_EN: Record<string, string> = { real: "REAL content", likely_real: "Likely REAL", human: "Written by a HUMAN", likely_human: "Likely written by a HUMAN", uncertain: "Uncertain", likely_ai: "Likely AI-generated", ai: "AI-generated" };
 function InfoCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border-2 border-border bg-background/60 px-3 py-2">
@@ -217,6 +218,7 @@ const PHONE_TYPE_VI: Record<string, string> = {
   legit: "Số hợp lệ, bình thường",
   unknown: "Chưa rõ",
 };
+const PHONE_TYPE_EN: Record<string, string> = { scam: "Scam signs detected", spam: "Spam / nuisance call", telesales: "Telesales", service: "Service number", personal: "Personal number", legit: "Legitimate number", unknown: "Unknown" };
 
 const LEVEL_VI: Record<string, string> = {
   safe: "An toàn",
@@ -226,6 +228,7 @@ const LEVEL_VI: Record<string, string> = {
   dangerous: "NGUY HIỂM",
   unknown: "Chưa xác định",
 };
+const LEVEL_EN: Record<string, string> = { safe: "Safe", low: "Low risk", medium: "Medium risk", high: "High risk", dangerous: "DANGEROUS", unknown: "Unknown" };
 const NEWS_VERDICT_VI: Record<string, string> = {
   likely_true: "Nhiều khả năng ĐÁNG TIN",
   unverified: "CHƯA KIỂM CHỨNG được",
@@ -233,6 +236,7 @@ const NEWS_VERDICT_VI: Record<string, string> = {
   likely_fake: "Nhiều khả năng TIN GIẢ",
   fake: "TIN GIẢ",
 };
+const NEWS_VERDICT_EN: Record<string, string> = { likely_true: "Likely TRUSTWORTHY", unverified: "UNVERIFIED", misleading: "MISLEADING", likely_fake: "Likely FAKE", fake: "FAKE NEWS" };
 const EMAIL_TYPE_VI: Record<string, string> = {
   phishing: "Lừa lấy thông tin (phishing)",
   spoofing: "Giả mạo người gửi",
@@ -242,6 +246,7 @@ const EMAIL_TYPE_VI: Record<string, string> = {
   legit: "Có vẻ hợp lệ",
   unknown: "Chưa rõ",
 };
+const EMAIL_TYPE_EN: Record<string, string> = { phishing: "Phishing", spoofing: "Sender spoofing", scam: "Scam", spam: "Spam", marketing: "Marketing", legit: "Appears legitimate", unknown: "Unknown" };
 
 const SEV_BORDER: Record<string, string> = {
   low: "border-amber-400",
@@ -748,8 +753,8 @@ function AiPage() {
           {tab === "media" && (
             <div className="mb-3 grid grid-cols-2 gap-2">
               {([
-                { id: "image", label: "🖼️ Kiểm tra ảnh" },
-                { id: "video", label: "🎬 Kiểm tra video" },
+                { id: "image", label: en ? "🖼️ Check image" : "🖼️ Kiểm tra ảnh" },
+                { id: "video", label: en ? "🎬 Check video" : "🎬 Kiểm tra video" },
               ] as const).map((m) => (
                 <button
                   key={m.id}
@@ -785,7 +790,7 @@ function AiPage() {
                   <video src={videoUrl} controls className="mx-auto max-h-64 rounded-xl" />
                 ) : (
                   <p className="text-xs sm:text-sm font-bold text-foreground">
-                    🎬 Bấm để chọn video · hoặc kéo thả tệp (tối đa 60MB)
+                    {en ? "🎬 Click to choose a video · or drag and drop (max 60MB)" : "🎬 Bấm để chọn video · hoặc kéo thả tệp (tối đa 60MB)"}
                   </p>
                 )}
                 <input
@@ -806,7 +811,7 @@ function AiPage() {
                   disabled={loading || !videoFile}
                   className="toy-button toy-button-primary flex-1 !text-xs sm:!text-sm disabled:opacity-50"
                 >
-                  {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🎬 Kiểm tra video"}
+                  {loading ? `⏳ ${en ? "Analyzing" : "Đang phân tích"} ${Math.round(progress)}%` : (en ? "🎬 Check video" : "🎬 Kiểm tra video")}
                 </button>
                 {videoFile && (
                   <button
@@ -817,7 +822,7 @@ function AiPage() {
                     }}
                     className="toy-button !text-xs sm:!text-sm"
                   >
-                    Xoá
+                    {en ? "Remove" : "Xoá"}
                   </button>
                 )}
               </div>
@@ -825,7 +830,7 @@ function AiPage() {
               {videoResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(videoResult.aiScore)}`}>
-                    {VERDICT_VI[videoResult.verdict] ?? "Chưa chắc chắn"}
+                    {(en ? VERDICT_EN : VERDICT_VI)[videoResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
                   <Gauge value={videoResult.aiScore} label="Mức độ do AI tạo / dựng" />
                   <Gauge value={videoResult.deepfakeScore} label="Nguy cơ deepfake (hoán đổi gương mặt)" />
@@ -867,7 +872,7 @@ function AiPage() {
                   />
                 ) : (
                   <p className="text-xs sm:text-sm font-bold text-foreground">
-                    📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh/link ảnh · hoặc kéo thả tệp
+                    {en ? "📁 Click to choose an image · Ctrl+V to paste · or drag and drop" : "📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh/link ảnh · hoặc kéo thả tệp"}
                   </p>
                 )}
                 <input
@@ -888,7 +893,7 @@ function AiPage() {
                   disabled={loading}
                   className="toy-button toy-button-primary flex-1 !text-xs sm:!text-sm disabled:opacity-50"
                 >
-                  {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🔍 Kiểm tra ảnh"}
+                  {loading ? `⏳ ${en ? "Analyzing" : "Đang phân tích"} ${Math.round(progress)}%` : (en ? "🔍 Check image" : "🔍 Kiểm tra ảnh")}
                 </button>
                 {preview && (
                   <button
@@ -898,7 +903,7 @@ function AiPage() {
                     }}
                     className="toy-button !text-xs sm:!text-sm"
                   >
-                    Xoá
+                    {en ? "Remove" : "Xoá"}
                   </button>
                 )}
               </div>
@@ -906,7 +911,7 @@ function AiPage() {
               {imgResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(imgResult.aiScore)}`}>
-                    {VERDICT_VI[imgResult.verdict] ?? "Chưa chắc chắn"}
+                    {(en ? VERDICT_EN : VERDICT_VI)[imgResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
                   <Gauge value={imgResult.aiScore} label="Mức độ do AI tạo" />
                   <Gauge value={imgResult.editedScore} label="Mức độ đã chỉnh sửa / ghép (Photoshop)" />
@@ -939,8 +944,8 @@ function AiPage() {
           {tab === "link" && (
             <div className="mb-3 grid grid-cols-2 gap-2">
               {([
-                { id: "link", label: "🔗 Kiểm tra link" },
-                { id: "email", label: "✉️ Kiểm tra email" },
+                { id: "link", label: en ? "🔗 Check link" : "🔗 Kiểm tra link" },
+                { id: "email", label: en ? "✉️ Check email" : "✉️ Kiểm tra email" },
               ] as const).map((m) => (
                 <button
                   key={m.id}
@@ -968,7 +973,7 @@ function AiPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && url.trim() && !loading) doLink();
                 }}
-                placeholder="Dán đường link cần kiểm tra, ví dụ: https://shopee-trung-thuong.xyz/nhan-qua"
+                placeholder={en ? "Paste a link to check, for example: https://example.com/prize" : "Dán đường link cần kiểm tra, ví dụ: https://shopee-trung-thuong.xyz/nhan-qua"}
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <button
@@ -976,13 +981,13 @@ function AiPage() {
                 disabled={loading || url.trim().length < 3}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang quét ${Math.round(progress)}%` : "🛡️ Quét đường link"}
+                {loading ? `⏳ ${en ? "Scanning" : "Đang quét"} ${Math.round(progress)}%` : (en ? "🛡️ Scan link" : "🛡️ Quét đường link")}
               </button>
 
               {linkResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(linkResult.riskScore)}`}>
-                    {LEVEL_VI[linkResult.level] ?? "Chưa xác định"} · {linkResult.category}
+                    {(en ? LEVEL_EN : LEVEL_VI)[linkResult.level] ?? (en ? "Unknown" : "Chưa xác định")} · {linkResult.category}
                   </p>
                   <Gauge value={linkResult.riskScore} label="Mức độ rủi ro" />
                   <p className="text-xs sm:text-sm font-bold">{linkResult.summary}</p>
@@ -1002,14 +1007,14 @@ function AiPage() {
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Nhập số điện thoại, ví dụ 0912345678 hoặc +84 24 3825 xxxx"
+                placeholder={en ? "Enter a phone number, e.g. 0912345678 or +84 24 3825 xxxx" : "Nhập số điện thoại, ví dụ 0912345678 hoặc +84 24 3825 xxxx"}
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm font-bold"
               />
               <textarea
                 value={phoneCtx}
                 onChange={(e) => setPhoneCtx(e.target.value)}
                 rows={3}
-                placeholder="(Không bắt buộc) Họ nói gì với bạn? Ví dụ: tự xưng công an, báo bạn liên quan vụ án..."
+                placeholder={en ? "(Optional) What did they say? For example, claiming to be police or mentioning a case…" : "(Không bắt buộc) Họ nói gì với bạn? Ví dụ: tự xưng công an, báo bạn liên quan vụ án..."}
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <button
@@ -1017,13 +1022,13 @@ function AiPage() {
                 disabled={loading || phone.replace(/\D/g, "").length < 6}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang kiểm tra ${Math.round(progress)}%` : "📞 Kiểm tra số điện thoại"}
+                {loading ? `⏳ ${en ? "Checking" : "Đang kiểm tra"} ${Math.round(progress)}%` : (en ? "📞 Check phone number" : "📞 Kiểm tra số điện thoại")}
               </button>
 
               {phoneResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(phoneResult.riskScore)}`}>
-                    {LEVEL_VI[phoneResult.level] ?? "Chưa xác định"} · {PHONE_TYPE_VI[phoneResult.type] ?? phoneResult.type}
+                    {(en ? LEVEL_EN : LEVEL_VI)[phoneResult.level] ?? (en ? "Unknown" : "Chưa xác định")} · {(en ? PHONE_TYPE_EN : PHONE_TYPE_VI)[phoneResult.type] ?? phoneResult.type}
                   </p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <InfoCell label="📱 Nhà mạng / loại số" value={phoneResult.lookup.carrier} />
@@ -1064,7 +1069,7 @@ function AiPage() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 rows={6}
-                placeholder="Dán đoạn văn / bài đăng / tin nhắn cần kiểm tra (ít nhất 20 ký tự)..."
+                placeholder={en ? "Paste text, a post, or a message to check (at least 20 characters)…" : "Dán đoạn văn / bài đăng / tin nhắn cần kiểm tra (ít nhất 20 ký tự)..."}
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <button
@@ -1072,13 +1077,13 @@ function AiPage() {
                 disabled={loading || text.trim().length < 20}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang phân tích ${Math.round(progress)}%` : "🔍 Kiểm tra văn bản"}
+                {loading ? `⏳ ${en ? "Analyzing" : "Đang phân tích"} ${Math.round(progress)}%` : (en ? "🔍 Check text" : "🔍 Kiểm tra văn bản")}
               </button>
 
               {textResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(textResult.aiScore)}`}>
-                    {VERDICT_VI[textResult.verdict] ?? "Chưa chắc chắn"}
+                    {(en ? VERDICT_EN : VERDICT_VI)[textResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
                   <Gauge value={textResult.aiScore} label="Mức độ do AI viết" />
                   <Gauge value={textResult.misinfoRisk} label="Nguy cơ lừa đảo / thông tin sai lệch" />
@@ -1115,7 +1120,7 @@ function AiPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 rows={6}
                 placeholder={
-                  "Dán địa chỉ email người gửi và/hoặc nội dung email...\nVí dụ: support@shopee-vn-khuyenmai.xyz — 'Tài khoản của bạn sẽ bị khoá trong 24h, bấm vào đây để xác minh'"
+                  en ? "Paste the sender's email address and/or message content…\nExample: support@example-prize.xyz — 'Your account will be locked in 24 hours; click here to verify'" : "Dán địa chỉ email người gửi và/hoặc nội dung email...\nVí dụ: support@shopee-vn-khuyenmai.xyz — 'Tài khoản của bạn sẽ bị khoá trong 24h, bấm vào đây để xác minh'"
                 }
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
@@ -1124,14 +1129,14 @@ function AiPage() {
                 disabled={loading || email.trim().length < 5}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang kiểm tra ${Math.round(progress)}%` : "✉️ Kiểm tra email giả mạo"}
+                {loading ? `⏳ ${en ? "Checking" : "Đang kiểm tra"} ${Math.round(progress)}%` : (en ? "✉️ Check suspicious email" : "✉️ Kiểm tra email giả mạo")}
               </button>
 
               {emailResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(emailResult.riskScore)}`}>
-                    {LEVEL_VI[emailResult.level] ?? "Chưa xác định"} ·{" "}
-                    {EMAIL_TYPE_VI[emailResult.type] ?? emailResult.type}
+                    {(en ? LEVEL_EN : LEVEL_VI)[emailResult.level] ?? (en ? "Unknown" : "Chưa xác định")} ·{" "}
+                    {(en ? EMAIL_TYPE_EN : EMAIL_TYPE_VI)[emailResult.type] ?? emailResult.type}
                   </p>
                   {emailResult.impersonating && (
                     <p className="text-center text-xs sm:text-sm font-black text-red-600">
@@ -1167,19 +1172,18 @@ function AiPage() {
                 value={news}
                 onChange={(e) => setNews(e.target.value)}
                 rows={6}
-                placeholder='Hỏi thử: "Có thật là ... không?" hoặc dán tiêu đề, nội dung tin, link bài báo...'
+                placeholder={en ? 'Ask: "Is it true that…?" or paste a headline, article text, or news link…' : 'Hỏi thử: "Có thật là ... không?" hoặc dán tiêu đề, nội dung tin, link bài báo...'}
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <p className="text-[10px] font-bold text-foreground">
-                🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên để xem
-                tin đã được kiểm chứng ở đâu chưa.
+                {en ? "🔄 The system cross-checks daily news from Google News and major Vietnamese outlets to see whether the claim has been verified." : "🔄 Hệ thống tự đối chiếu tin mới nhất mỗi ngày từ Google Tin tức, VnExpress, Tuổi Trẻ, Thanh Niên để xem tin đã được kiểm chứng ở đâu chưa."}
               </p>
               <button
                 onClick={doNews}
                 disabled={loading || news.trim().length < 15}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ Đang kiểm chứng ${Math.round(progress)}%` : "📰 Hỏi & kiểm chứng tin"}
+                {loading ? `⏳ ${en ? "Verifying" : "Đang kiểm chứng"} ${Math.round(progress)}%` : (en ? "📰 Ask & verify news" : "📰 Hỏi & kiểm chứng tin")}
               </button>
 
               {newsResult && (
@@ -1193,28 +1197,28 @@ function AiPage() {
                   >
                     <p className="text-xs sm:text-sm font-black">
                       {newsResult.verified
-                        ? `✅ ĐÃ ĐƯỢC KIỂM CHỨNG bởi: ${newsResult.verifiedBy.join(", ")}`
-                        : "⚠️ THÔNG TIN CHƯA ĐƯỢC KIỂM CHỨNG — chưa có báo chính thống nào xác nhận. Đừng vội tin hay chia sẻ!"}
+                        ? (en ? `✅ VERIFIED by: ${newsResult.verifiedBy.join(", ")}` : `✅ ĐÃ ĐƯỢC KIỂM CHỨNG bởi: ${newsResult.verifiedBy.join(", ")}`)
+                        : (en ? "⚠️ UNVERIFIED — no established news source has confirmed this. Do not trust or share it yet!" : "⚠️ THÔNG TIN CHƯA ĐƯỢC KIỂM CHỨNG — chưa có báo chính thống nào xác nhận. Đừng vội tin hay chia sẻ!")}
                     </p>
                     <p className="mt-1 text-xs sm:text-sm font-bold">{newsResult.answer}</p>
                   </div>
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(newsResult.fakeScore)}`}>
-                    {NEWS_VERDICT_VI[newsResult.verdict] ?? "Chưa kiểm chứng được"} · {newsResult.category}
+                    {(en ? NEWS_VERDICT_EN : NEWS_VERDICT_VI)[newsResult.verdict] ?? (en ? "Unverified" : "Chưa kiểm chứng được")} · {newsResult.category}
                   </p>
-                  <Gauge value={newsResult.fakeScore} label="Mức độ là tin giả / sai lệch" />
-                  <Gauge value={newsResult.tabloidScore} label="Mức độ lá cải / tin đồn truyền miệng" />
+                   <Gauge value={newsResult.fakeScore} label={en ? "Fake / misleading score" : "Mức độ là tin giả / sai lệch"} />
+                   <Gauge value={newsResult.tabloidScore} label={en ? "Tabloid / rumor score" : "Mức độ lá cải / tin đồn truyền miệng"} />
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
 
                   {newsResult.matchedNews.length > 0 && (
-                    <SignList title="Báo chính thống có đưa tin tương tự" items={newsResult.matchedNews} tone="good" />
+                     <SignList title={en ? "Similar reports from established sources" : "Báo chính thống có đưa tin tương tự"} items={newsResult.matchedNews} tone="good" />
                   )}
-                  <SignList title="Dấu hiệu tin giả / lá cải" items={newsResult.redFlags} tone="bad" />
-                  <SignList title="Dấu hiệu đáng tin" items={newsResult.goodSigns} tone="good" />
-                  <SignList title="Cách tự kiểm chứng" items={newsResult.checkSteps} tone="info" />
+                   <SignList title={en ? "Fake-news / rumor warning signs" : "Dấu hiệu tin giả / lá cải"} items={newsResult.redFlags} tone="bad" />
+                   <SignList title={en ? "Trustworthy signs" : "Dấu hiệu đáng tin"} items={newsResult.goodSigns} tone="good" />
+                   <SignList title={en ? "How to verify it yourself" : "Cách tự kiểm chứng"} items={newsResult.checkSteps} tone="info" />
                   {newsResult.sources.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-[11px] font-black">
-                        📚 Tin mới nhất đã đối chiếu ({newsResult.checkedAt})
+                         📚 {en ? "Latest sources checked" : "Tin mới nhất đã đối chiếu"} ({newsResult.checkedAt})
                       </p>
                       {newsResult.sources.map((s, i) => (
                         <a
@@ -1230,7 +1234,7 @@ function AiPage() {
                     </div>
                   )}
                   <p className="text-[10px] font-bold text-foreground">
-                    * Luôn đối chiếu với báo chính thống trước khi chia sẻ.
+                     * {en ? "Always compare with established news sources before sharing." : "Luôn đối chiếu với báo chính thống trước khi chia sẻ."}
                   </p>
                 </div>
               )}
@@ -1438,10 +1442,10 @@ function AiPage() {
 
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
             <Link to="/experience" className="toy-button !text-xs sm:!text-sm">
-              ↩ Quay lại trải nghiệm
+              ↩ {en ? "Back to Explore" : "Quay lại trải nghiệm"}
             </Link>
             <Link to="/play" className="toy-button toy-button-primary !text-xs sm:!text-sm">
-              🎮 Vào trò chơi
+              🎮 {en ? "Enter game" : "Vào trò chơi"}
             </Link>
           </div>
         </div>

@@ -35,7 +35,7 @@ function ExperiencePage() {
     setUser(u);
   }, [navigate]);
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
   return (
     <GameLayout showBack>

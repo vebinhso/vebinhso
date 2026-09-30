@@ -149,42 +149,20 @@ function RoleplayPage() {
     setClaimed(map);
   }, [navigate]);
 
-  // Tải sẵn toàn bộ poster trước khi cho vào danh sách bài chơi,
-  // để khi vào là ảnh hiện đủ, không bị giật/lấp ló từng tấm.
+  // Show the lesson list immediately; warm posters in the background.
   useEffect(() => {
     if (!user) return;
+    setReady(true);
+    setLoadPct(100);
     const urls = LESSONS.map((l) => l.poster).filter(Boolean) as string[];
-    if (urls.length === 0) {
-      setLoadPct(100);
-      setReady(true);
-      return;
-    }
-    let done = 0;
     let cancelled = false;
-    const bump = () => {
-      done += 1;
-      if (cancelled) return;
-      setLoadPct(Math.round((done / urls.length) * 100));
-      if (done >= urls.length) setReady(true);
-    };
     for (const url of urls) {
       const img = new Image();
       img.decoding = "async";
-      img.onload = bump;
-      img.onerror = bump;
       img.src = url;
-      if (img.complete) bump();
     }
-    // Không để người chơi chờ vô hạn nếu mạng chậm
-    const t = window.setTimeout(() => {
-      if (!cancelled) {
-        setLoadPct(100);
-        setReady(true);
-      }
-    }, 8000);
     return () => {
       cancelled = true;
-      window.clearTimeout(t);
     };
   }, [user]);
 

@@ -34,7 +34,7 @@ function PlayPage() {
     else window.setTimeout(warm, 300);
   }, [navigate]);
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
   if (!hasOutfit) {
     return (

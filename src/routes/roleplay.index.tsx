@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ExpandableText } from "@/components/ExpandableText";
-import LoadingPercent from "@/components/LoadingPercent";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
@@ -12,6 +11,7 @@ import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
 import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
 import { toast } from "sonner";
 import { useLocale } from "@/lib/locale";
+import RouteLoading from "@/components/RouteLoading";
 
 
 export const Route = createFileRoute("/roleplay/")({
@@ -134,8 +134,6 @@ function RoleplayPage() {
   const [user, setUser] = useState<Account | null>(null);
   const [picked, setPicked] = useState<Lesson | null>(null);
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
-  const [loadPct, setLoadPct] = useState(0);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -149,58 +147,18 @@ function RoleplayPage() {
     setClaimed(map);
   }, [navigate]);
 
-  // Tải sẵn toàn bộ poster trước khi cho vào danh sách bài chơi,
-  // để khi vào là ảnh hiện đủ, không bị giật/lấp ló từng tấm.
+  // Show the lesson list immediately; warm posters in the background.
   useEffect(() => {
     if (!user) return;
     const urls = LESSONS.map((l) => l.poster).filter(Boolean) as string[];
-    if (urls.length === 0) {
-      setLoadPct(100);
-      setReady(true);
-      return;
-    }
-    let done = 0;
-    let cancelled = false;
-    const bump = () => {
-      done += 1;
-      if (cancelled) return;
-      setLoadPct(Math.round((done / urls.length) * 100));
-      if (done >= urls.length) setReady(true);
-    };
     for (const url of urls) {
       const img = new Image();
       img.decoding = "async";
-      img.onload = bump;
-      img.onerror = bump;
       img.src = url;
-      if (img.complete) bump();
     }
-    // Không để người chơi chờ vô hạn nếu mạng chậm
-    const t = window.setTimeout(() => {
-      if (!cancelled) {
-        setLoadPct(100);
-        setReady(true);
-      }
-    }, 8000);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(t);
-    };
   }, [user]);
 
-  if (!user) return null;
-
-  if (!ready) {
-    return (
-      <GameLayout showBack>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600">
-          <div className="text-5xl animate-bounce">🎭</div>
-          <p className="font-black text-white text-sm sm:text-base">{en ? "Loading role-play scenarios…" : "Đang tải các bài chơi nhập vai…"}</p>
-          <LoadingPercent percent={loadPct} done={loadPct >= 100} />
-        </div>
-      </GameLayout>
-    );
-  }
+  if (!user) return <RouteLoading />;
 
 
   return (

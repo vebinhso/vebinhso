@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import RouteLoading from "@/components/RouteLoading";
 import { getCurrentUser, recordLoginDay, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import {
@@ -162,7 +163,7 @@ function GamePage() {
     };
     window.addEventListener("game-change", onGameChange);
     // Fallback: cho phép ghi lại sau 1.5s nếu DB không phản hồi
-    const t = setTimeout(() => { readyRef.current = true; }, 1500);
+    const t = setTimeout(() => { readyRef.current = true; }, 800);
     // Nạp câu hỏi từ DB (lọc theo map hiện tại — tạm 'rural')
     loadQuestionsFromDB("rural")
       .then(() => setQuestionsReady(true))
@@ -307,7 +308,7 @@ function GamePage() {
   }, [activePowers]);
 
 
-  if (!mounted || !user || !state) return null;
+  if (!mounted || !user || !state) return <RouteLoading />;
 
 
   const level = computeLevel(state);

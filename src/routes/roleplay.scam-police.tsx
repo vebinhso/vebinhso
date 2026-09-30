@@ -153,7 +153,7 @@ function FilmPage() {
     }
     await Promise.race([
       Promise.all(waits),
-      new Promise((res) => window.setTimeout(res, 4000)),
+      new Promise((res) => window.setTimeout(res, 1500)),
     ]);
     setPreparing(false);
     setStarted(true);
@@ -210,7 +210,7 @@ function FilmPage() {
     // Nếu giọng đọc tải lâu (>2.2s) thì cho chữ chạy trước để không bị đứng hình
     const lateStart = window.setTimeout(() => {
       if (!cancelled && !cap.isRunning()) cap.startTimer();
-    }, 2200);
+    }, 1200);
 
     const speakBrowser = (markDone = true) => {
       if (typeof window === "undefined" || !window.speechSynthesis) {

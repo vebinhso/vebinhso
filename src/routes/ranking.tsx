@@ -4,8 +4,20 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getCurrentUser } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocale } from "@/lib/locale";
+import LoadingPercent from "@/components/LoadingPercent";
 
-export const Route = createFileRoute("/ranking")({ component: Ranking });
+export const Route = createFileRoute("/ranking")({
+  component: Ranking,
+  head: () => ({ meta: [
+    { title: "Bảng xếp hạng | VỆ BINH SỐ" },
+    { name: "description", content: "Bảng xếp hạng người chơi theo tài sản, cấp độ và bạn bè." },
+    { property: "og:title", content: "Bảng xếp hạng | VỆ BINH SỐ" },
+    { property: "og:description", content: "So sánh thành tích người chơi VỆ BINH SỐ." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
+});
 
 type Tab = "money" | "level" | "friends";
 
@@ -34,6 +46,7 @@ async function fetchRanking(): Promise<Row[]> {
 }
 
 function Ranking() {
+  const en = useLocale() === "en";
   const [tab, setTab] = useState<Tab>("money");
   const me = getCurrentUser();
   const { data: rows = [], isLoading } = useQuery({ queryKey: ["ranking"], queryFn: fetchRanking });
@@ -51,8 +64,8 @@ function Ranking() {
 
   const valueOf = (r: Row) =>
     tab === "money" ? `💰 ${r.money.toLocaleString()}đ`
-      : tab === "level" ? `⭐ Cấp ${r.level}`
-      : `🫂 ${r.friends} bạn`;
+       : tab === "level" ? `⭐ ${en ? "Level" : "Cấp"} ${r.level}`
+       : `🫂 ${r.friends} ${en ? "friends" : "bạn"}`;
 
   const TabBtn = ({ id, label }: { id: Tab; label: string }) => (
     <button
@@ -65,18 +78,18 @@ function Ranking() {
     <GameLayout showBack>
       <div className="p-6 md:p-10 max-w-3xl w-full mx-auto">
         <div className="glass-card p-6">
-          <h1 className="text-3xl font-black text-center mb-4">XẾP HẠNG 📊</h1>
+           <h1 className="text-3xl font-black text-center mb-4">{en ? "RANKINGS" : "XẾP HẠNG"} 📊</h1>
           <div className="flex flex-wrap gap-2 justify-center mb-4">
-            <TabBtn id="money" label="💰 Tiền" />
-            <TabBtn id="level" label="⭐ Cấp độ" />
-            <TabBtn id="friends" label="🫂 Bạn bè" />
+             <TabBtn id="money" label={en ? "💰 Wealth" : "💰 Tiền"} />
+             <TabBtn id="level" label={en ? "⭐ Level" : "⭐ Cấp độ"} />
+             <TabBtn id="friends" label={en ? "🫂 Friends" : "🫂 Bạn bè"} />
           </div>
           <div className="flex flex-col gap-2">
             {isLoading && (
-              <p className="text-center text-sm font-bold text-muted-foreground italic">Đang tải...</p>
+               <div className="flex flex-col items-center gap-2 py-3"><p className="text-center text-sm font-bold text-muted-foreground italic">{en ? "Loading rankings…" : "Đang tải xếp hạng…"}</p><LoadingPercent light={false} /></div>
             )}
             {!isLoading && sorted.length === 0 && (
-              <p className="text-center text-sm font-bold text-muted-foreground italic">Chưa có người chơi nào.</p>
+               <p className="text-center text-sm font-bold text-muted-foreground italic">{en ? "No players yet." : "Chưa có người chơi nào."}</p>
             )}
             {sorted.map((p, i) => {
               const rank = i + 1;
@@ -92,7 +105,7 @@ function Ranking() {
                     <span className="text-2xl w-8 text-center">{badge(rank)}</span>
                     <span className="font-black text-sm w-8">#{rank}</span>
                     <span className="font-black truncate">
-                      {p.name}{isMe && <span className="ml-1 text-xs text-yellow-700">(bạn)</span>}
+                       {p.name}{isMe && <span className="ml-1 text-xs text-yellow-700">({en ? "you" : "bạn"})</span>}
                     </span>
                   </div>
                   <span className="font-bold text-yellow-700 whitespace-nowrap">{valueOf(p)}</span>

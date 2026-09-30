@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { SocialSimulator } from "@/components/SocialSimulator";
+import RouteLoading from "@/components/RouteLoading";
+import { useLocale } from "@/lib/locale";
 
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
@@ -289,6 +291,7 @@ function highlightText(
 }
 
 function AiPage() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [section, setSection] = useState<"check" | "social">("check");
@@ -347,7 +350,7 @@ function AiPage() {
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = null;
-      setTimeout(() => setLoading(false), 200);
+      setLoading(false);
     }
   }
 
@@ -601,14 +604,14 @@ function AiPage() {
   }
 
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
   const TABS: { id: Tab; icon: string; label: string }[] = [
-    { id: "news", icon: "📰", label: "Tin tức có phải giả?" },
-    { id: "media", icon: "🖼️", label: "Ảnh/Video có phải AI?" },
-    { id: "link", icon: "🔗", label: "Link / Email có giả mạo?" },
-    { id: "text", icon: "📝", label: "Văn bản có phải AI?" },
-    { id: "phone", icon: "📞", label: "Số điện thoại" },
+    { id: "news", icon: "📰", label: en ? "Is this news fake?" : "Tin tức có phải giả?" },
+    { id: "media", icon: "🖼️", label: en ? "Is this image/video AI?" : "Ảnh/Video có phải AI?" },
+    { id: "link", icon: "🔗", label: en ? "Is this link/email fake?" : "Link / Email có giả mạo?" },
+    { id: "text", icon: "📝", label: en ? "Was this text written by AI?" : "Văn bản có phải AI?" },
+    { id: "phone", icon: "📞", label: en ? "Phone number" : "Số điện thoại" },
   ];
 
   return (
@@ -617,17 +620,17 @@ function AiPage() {
         <div className="glass-card w-full max-w-3xl p-4 sm:p-6">
           <div className="text-center mb-4">
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
-            <h1 className="text-lg sm:text-2xl font-black">TRUNG TÂM AI</h1>
+            <h1 className="text-lg sm:text-2xl font-black">{en ? "AI CENTER" : "TRUNG TÂM AI"}</h1>
             <p className="text-xs sm:text-sm font-bold text-foreground">
-              Kiểm tra thật – giả, và soi rủi ro lộ thông tin trước khi đăng lên mạng.
+              {en ? "Check authenticity and detect privacy risks before posting online." : "Kiểm tra thật – giả, và soi rủi ro lộ thông tin trước khi đăng lên mạng."}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-4">
             {(
               [
-                { id: "check", icon: "🔍", label: "Thật vs giả" },
-                { id: "social", icon: "🛡️", label: "Rủi ro lộ thông tin" },
+                { id: "check", icon: "🔍", label: en ? "Real vs fake" : "Thật vs giả" },
+                { id: "social", icon: "🛡️", label: en ? "Privacy risks" : "Rủi ro lộ thông tin" },
               ] as const
             ).map((s) => (
               <button
@@ -652,8 +655,8 @@ function AiPage() {
             <div className="grid grid-cols-2 gap-2 mb-4">
               {(
                 [
-                  { id: "classic", icon: "🧰", label: "Truyền thống" },
-                  { id: "social", icon: "📱", label: "Mô phỏng Mạng xã hội" },
+                  { id: "classic", icon: "🧰", label: en ? "Classic tools" : "Truyền thống" },
+                  { id: "social", icon: "📱", label: en ? "Social media simulator" : "Mô phỏng Mạng xã hội" },
                 ] as const
               ).map((s) => (
                 <button
@@ -678,9 +681,7 @@ function AiPage() {
           {section === "social" && riskSection === "social" && (
             <div className="space-y-3">
               <p className="text-xs sm:text-sm font-bold text-foreground">
-                Đây là trang Facebook giả lập. Hãy thử soạn bài và chọn ảnh — trước khi bài được đăng, AI sẽ quét xem
-                ảnh và nội dung có lộ địa chỉ nhà, trường lớp, ngày sinh, nhóm máu, chỉ số sức khoẻ hay lịch trình hằng
-                ngày của bạn không.
+                {en ? "This is a simulated Facebook page. Compose a post and choose an image; before publishing, AI scans for exposed addresses, schools, birthdays, health details, or daily routines." : "Đây là trang Facebook giả lập. Hãy thử soạn bài và chọn ảnh — trước khi bài được đăng, AI sẽ quét xem ảnh và nội dung có lộ địa chỉ nhà, trường lớp, ngày sinh, nhóm máu, chỉ số sức khoẻ hay lịch trình hằng ngày của bạn không."}
               </p>
               <SocialSimulator />
             </div>

@@ -343,12 +343,10 @@ function Editor({
           : { question: res.question || "", expected: res.expected || "" }),
       });
       setProgress(100);
-      await new Promise((resolve) => setTimeout(resolve, 550));
       toast.success("AI đã đề xuất nội dung!");
     } catch (e: any) {
       toast.error(e?.message || "Không gọi được AI");
     }
-    await new Promise((resolve) => setTimeout(resolve, 120));
     setBusy(false);
     setProgress(0);
   };
@@ -377,13 +375,11 @@ function Editor({
         published,
       });
       setProgress(100);
-      await new Promise((resolve) => setTimeout(resolve, 550));
       toast.success(published ? "Đã đăng cho học sinh!" : "Đã lưu nháp");
       onDone();
     } catch (e: any) {
       toast.error(e?.message || "Lỗi khi lưu");
     }
-    await new Promise((resolve) => setTimeout(resolve, 120));
     setBusy(false);
     setProgress(0);
   };

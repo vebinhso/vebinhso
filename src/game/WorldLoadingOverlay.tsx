@@ -14,7 +14,7 @@ export function WorldLoadingOverlay({ label = "Đang tải bản đồ nhà..." 
 
   // Nếu một tài nguyên lỗi hoặc mạng chậm, không được kẹt màn hình tải mãi.
   useEffect(() => {
-    const id = window.setTimeout(() => setTimedOut(true), 8000);
+    const id = window.setTimeout(() => setTimedOut(true), 6000);
     return () => window.clearTimeout(id);
   }, []);
 

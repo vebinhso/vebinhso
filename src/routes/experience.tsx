@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
+import RouteLoading from "@/components/RouteLoading";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { useLocale } from "@/lib/locale";
 
@@ -35,7 +36,7 @@ function ExperiencePage() {
     setUser(u);
   }, [navigate]);
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
   return (
     <GameLayout showBack>

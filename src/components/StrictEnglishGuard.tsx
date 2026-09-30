@@ -111,6 +111,12 @@ export function StrictEnglishGuard() {
     }
 
     walk(root);
+    const nativeAlert = window.alert;
+    const nativeConfirm = window.confirm;
+    const nativePrompt = window.prompt;
+    window.alert = (message) => nativeAlert(translateValue(String(message ?? "")));
+    window.confirm = (message) => nativeConfirm(translateValue(String(message ?? "")));
+    window.prompt = (message, defaultValue) => nativePrompt(translateValue(String(message ?? "")), defaultValue);
     let translating = false;
     const observer = new MutationObserver((mutations) => {
       if (translating) return;
@@ -126,7 +132,12 @@ export function StrictEnglishGuard() {
       }
     });
     observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.alert = nativeAlert;
+      window.confirm = nativeConfirm;
+      window.prompt = nativePrompt;
+    };
   }, [locale]);
 
   return null;

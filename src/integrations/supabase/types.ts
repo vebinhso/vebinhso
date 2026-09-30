@@ -915,6 +915,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          choices_en: Json | null
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
@@ -929,12 +930,14 @@ export type Database = {
           reward: number
           teacher_id: string | null
           text: string
+          text_en: string | null
           updated_at: string
         }
         Insert: {
           answer_index?: number
           category?: string | null
           choices?: Json
+          choices_en?: Json | null
           class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
@@ -949,12 +952,14 @@ export type Database = {
           reward?: number
           teacher_id?: string | null
           text: string
+          text_en?: string | null
           updated_at?: string
         }
         Update: {
           answer_index?: number
           category?: string | null
           choices?: Json
+          choices_en?: Json | null
           class_id?: string | null
           competency_domain?: number | null
           competency_level?: number | null
@@ -969,6 +974,7 @@ export type Database = {
           reward?: number
           teacher_id?: string | null
           text?: string
+          text_en?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1092,6 +1098,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          choices_en: Json | null
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
@@ -1106,6 +1113,7 @@ export type Database = {
           reward: number
           teacher_id: string | null
           text: string
+          text_en: string | null
           updated_at: string
         }
         SetofOptions: {
@@ -1121,6 +1129,7 @@ export type Database = {
           answer_index: number
           category: string | null
           choices: Json
+          choices_en: Json | null
           class_id: string | null
           competency_domain: number | null
           competency_level: number | null
@@ -1135,6 +1144,7 @@ export type Database = {
           reward: number
           teacher_id: string | null
           text: string
+          text_en: string | null
           updated_at: string
         }[]
         SetofOptions: {

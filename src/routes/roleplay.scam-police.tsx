@@ -267,7 +267,7 @@ function FilmPage() {
           return;
         }
 
-        const audio = new Audio(`data:audio/mpeg;base64,${b64}`);
+        const audio = new Audio(`data:audio/wav;base64,${b64}`);
         audio.preload = "auto";
         audio.playbackRate = 1.06;
 

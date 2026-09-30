@@ -28,7 +28,7 @@ export const speakLine = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           model: "google/gemini-3.1-flash-tts-preview",
-          contents: [{ parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
+          contents: [{ role: "user", parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
           generationConfig: {
             responseModalities: ["AUDIO"],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },

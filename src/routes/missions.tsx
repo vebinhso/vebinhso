@@ -6,6 +6,7 @@ import { getLoginAt, getCurrentUser, getLoginStreak } from "@/lib/auth";
 import { getOnlineSeconds, isIdle } from "@/lib/session";
 import { loadGame, saveGame, computeLevel } from "@/lib/game";
 import { isClaimed, setClaimed } from "@/lib/claims";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/missions")({ component: Utilities });
 
@@ -102,6 +103,7 @@ function ProgressRow({
 
 
 function Utilities() {
+  const en = useLocale() === "en";
   const [tab, setTab] = useState<Tab>("daily");
   // Đồng hồ phiên: tính từ lúc người chơi ĐĂNG NHẬP, không phải lúc mở trang tiện ích
   const [seconds, setSeconds] = useState(0);
@@ -131,9 +133,9 @@ function Utilities() {
   const weekRank = 99;
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: "daily",  label: "Quà hằng ngày", icon: "🎁" },
-    { id: "weekly", label: "Quà theo tuần", icon: "📅" },
-    { id: "level",  label: "Quà theo level", icon: "⭐" },
+    { id: "daily",  label: en ? "Daily rewards" : "Quà hằng ngày", icon: "🎁" },
+    { id: "weekly", label: en ? "Weekly rewards" : "Quà theo tuần", icon: "📅" },
+    { id: "level",  label: en ? "Level rewards" : "Quà theo level", icon: "⭐" },
   ];
 
   const list = tab === "daily" ? DAILY : tab === "weekly" ? WEEKLY : LEVELS;
@@ -157,7 +159,7 @@ function Utilities() {
   const levelOf = (m: Milestone) => (tab === "level" ? m.target : undefined);
 
   const handleClaim = (m: Milestone) => {
-    if (!userId) { toast.error("Vui lòng đăng nhập."); return; }
+    if (!userId) { toast.error(en ? "Please sign in." : "Vui lòng đăng nhập."); return; }
     // Trích số tiền từ chuỗi phần thưởng (vd: "+8đ", "50đ + 20 Gạch", "+100đ")
     const matches = Array.from(m.reward.matchAll(/(\d+)\s*đ/g));
     const moneyGain = matches.reduce((s, x) => s + parseInt(x[1], 10), 0);
@@ -168,8 +170,8 @@ function Utilities() {
     setClaimed(userId, claimKey(m), tab, levelOf(m));
     toast.success(
       moneyGain > 0
-        ? `🎉 +${moneyGain}đ đã cộng vào tài khoản! (${m.reward})`
-        : `🎉 Đã nhận quà: ${m.reward}`,
+        ? (en ? `🎉 +${moneyGain} coins added to your account! (${m.reward})` : `🎉 +${moneyGain}đ đã cộng vào tài khoản! (${m.reward})`)
+        : (en ? `🎉 Reward claimed: ${m.reward}` : `🎉 Đã nhận quà: ${m.reward}`),
     );
     setClaimTick((t) => t + 1);
   };
@@ -178,7 +180,7 @@ function Utilities() {
     <GameLayout showBack>
       <div className="p-4 md:p-8 max-w-5xl w-full mx-auto">
         <div className="glass-card p-4 md:p-6">
-          <h1 className="text-2xl md:text-3xl font-black text-center mb-4">🎁 TIỆN ÍCH</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-center mb-4">🎁 {en ? "REWARDS" : "TIỆN ÍCH"}</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
             {/* Sidebar trái */}
@@ -198,9 +200,9 @@ function Utilities() {
                 </button>
               ))}
               <div className="hidden md:block mt-3 rounded-2xl bg-white/70 p-3 border border-black/10">
-                <div className="text-[11px] font-bold text-muted-foreground">⏱️ Phiên online</div>
+                <div className="text-[11px] font-bold text-muted-foreground">⏱️ {en ? "Online session" : "Phiên online"}</div>
                 <div className="text-xl font-black text-orange-600">{fmtTime(seconds)}</div>
-                {idle && <div className="text-[10px] font-bold text-amber-600 mt-1">⏸ Tạm dừng (không hoạt động)</div>}
+                {idle && <div className="text-[10px] font-bold text-amber-600 mt-1">⏸ {en ? "Paused (inactive)" : "Tạm dừng (không hoạt động)"}</div>}
               </div>
             </div>
 

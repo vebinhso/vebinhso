@@ -1066,9 +1066,9 @@ function MagicPage() {
   }, [selectedArea]);
 
   useEffect(() => {
-    if (intro === 0) { const t = setTimeout(() => setIntro(1), 4200); return () => clearTimeout(t); }
-    if (intro === 1) { const t = setTimeout(() => setIntro(2), 2400); return () => clearTimeout(t); } // CHẠY ĐI
-    if (intro === 2) { const t = setTimeout(() => setIntro(3), 2400); return () => clearTimeout(t); } // KHU VỰC 1
+    if (intro === 0) { const t = setTimeout(() => setIntro(1), 2000); return () => clearTimeout(t); }
+    if (intro === 1) { const t = setTimeout(() => setIntro(2), 1200); return () => clearTimeout(t); } // CHẠY ĐI
+    if (intro === 2) { const t = setTimeout(() => setIntro(3), 1200); return () => clearTimeout(t); } // KHU VỰC 1
   }, [intro]);
 
   // Tắt nhạc trang chủ ngay khi vào map ma thuật; bật nhạc ma mị sau intro.
@@ -1193,7 +1193,7 @@ function MagicPage() {
     const t = setTimeout(() => {
       setStage(2);
       setTransStart(null);
-    }, 3200);
+    }, 1500);
     return () => clearTimeout(t);
   }, [stage, transStart]);
 

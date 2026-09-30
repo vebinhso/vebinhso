@@ -12,6 +12,7 @@ import { FILM_POSTER as FILM5_POSTER } from "@/lib/film-5";
 import { claimReward, hasClaimed } from "@/lib/roleplay-rewards";
 import { toast } from "sonner";
 import { useLocale } from "@/lib/locale";
+import RouteLoading from "@/components/RouteLoading";
 
 
 export const Route = createFileRoute("/roleplay/")({
@@ -166,14 +167,8 @@ function RoleplayPage() {
     };
   }, [user]);
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
-  if (!ready) {
-    return (
-      <GameLayout showBack>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600">
-          <div className="text-5xl animate-bounce">🎭</div>
-          <p className="font-black text-white text-sm sm:text-base">{en ? "Loading role-play scenarios…" : "Đang tải các bài chơi nhập vai…"}</p>
           <LoadingPercent percent={loadPct} done={loadPct >= 100} />
         </div>
       </GameLayout>

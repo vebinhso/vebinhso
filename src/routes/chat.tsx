@@ -5,6 +5,8 @@ import { getCurrentUser, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { listFriends, ensureFriendsLoaded } from "@/lib/friends";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocale } from "@/lib/locale";
+import RouteLoading from "@/components/RouteLoading";
 
 export const Route = createFileRoute("/chat")({ component: Chat });
 
@@ -22,6 +24,7 @@ function threadKey(a: string, b: string) {
 }
 
 function Chat() {
+  const en = useLocale() === "en";
   const navigate = useNavigate();
   const [user, setUser] = useState<Account | null>(null);
   const [friends, setFriends] = useState<Account[]>([]);
@@ -194,7 +197,7 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, activeId]);
 
-  if (!user) return null;
+  if (!user) return <RouteLoading />;
 
   const send = async () => {
     if (sendingRef.current) return;
@@ -244,15 +247,15 @@ function Chat() {
         <div className="glass-card p-4 flex-1 flex flex-col md:flex-row gap-3 min-h-[60vh]">
           {/* Friends list */}
           <aside className="md:w-[220px] border-b-2 md:border-b-0 md:border-r-2 border-white/60 pb-3 md:pb-0 md:pr-3">
-            <h2 className="font-black text-center mb-1">💬 BẠN BÈ</h2>
+            <h2 className="font-black text-center mb-1">💬 {en ? "FRIENDS" : "BẠN BÈ"}</h2>
             {className && (
               <p className="text-[10px] text-center font-bold text-emerald-700 mb-2">
-                🎓 Chế độ lớp: {className}
+                🎓 {en ? "Class mode" : "Chế độ lớp"}: {className}
               </p>
             )}
             {visibleFriends.length === 0 ? (
               <p className="text-xs text-center text-muted-foreground italic">
-                {className ? "Chưa có bạn bè nào trong lớp này." : "Chưa có bạn bè để trò chuyện."}
+                {className ? (en ? "No friends in this class yet." : "Chưa có bạn bè nào trong lớp này.") : (en ? "No friends to chat with yet." : "Chưa có bạn bè để trò chuyện.")}
               </p>
             ) : (
               <div className="flex md:flex-col gap-2 overflow-x-auto">
@@ -277,7 +280,7 @@ function Chat() {
                         />
                         <span className="truncate">{f.username}</span>
                         {(f as any).isTeacher && (
-                          <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 rounded px-1">GV</span>
+                          <span className="text-[9px] font-black bg-emerald-100 text-emerald-700 rounded px-1">{en ? "TEACHER" : "GV"}</span>
                         )}
                         {unread > 0 && (
                           <span className="ml-auto shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shadow">
@@ -287,7 +290,7 @@ function Chat() {
                       </div>
                       <div className={`text-[10px] truncate ${active ? "text-white/80" : "text-muted-foreground"}`}>
 
-                        {online ? "Đang online" : "Offline"}
+                        {online ? (en ? "Online now" : "Đang online") : "Offline"}
                       </div>
                     </button>
                   );
@@ -302,8 +305,8 @@ function Chat() {
               <div className="flex-1 flex items-center justify-center text-center">
                 <p className="font-bold text-muted-foreground">
                   {friends.length === 0
-                    ? "Hãy kết bạn ở Trang chủ để bắt đầu trò chuyện."
-                    : "Chọn một người bạn để mở cuộc trò chuyện."}
+                    ? (en ? "Add friends on the Home page to start chatting." : "Hãy kết bạn ở Trang chủ để bắt đầu trò chuyện.")
+                    : (en ? "Choose a friend to open a conversation." : "Chọn một người bạn để mở cuộc trò chuyện.")}
                 </p>
               </div>
             ) : (
@@ -321,12 +324,12 @@ function Chat() {
                 </div>
                 <div className="flex-1 flex flex-col gap-2 overflow-y-auto mb-3 min-h-[260px] max-h-[55vh] p-2 bg-white/40 rounded-xl">
                   {msgs.length === 0 ? (
-                    <p className="m-auto text-sm text-muted-foreground italic">Chưa có tin nhắn nào. Hãy chào nhau! 👋</p>
+                    <p className="m-auto text-sm text-muted-foreground italic">{en ? "No messages yet. Say hello! 👋" : "Chưa có tin nhắn nào. Hãy chào nhau! 👋"}</p>
                   ) : (
                     msgs.map((m, i) => {
                       const me = m.from === user.id;
                       const isLastMine = me && i === msgs.length - 1 - [...msgs].reverse().findIndex((x) => x.from === user.id);
-                      const status = m.seen_at ? "✓✓ Đã xem" : m.delivered_at ? "✓✓ Đã nhận" : "✓ Đã gửi";
+                      const status = m.seen_at ? (en ? "✓✓ Seen" : "✓✓ Đã xem") : m.delivered_at ? (en ? "✓✓ Delivered" : "✓✓ Đã nhận") : (en ? "✓ Sent" : "✓ Đã gửi");
                       return (
                         <div key={m.id} className={`flex flex-col ${me ? "items-end" : "items-start"}`}>
                           <div className={`max-w-[80%] p-2.5 rounded-2xl ${me ? "bg-orange-400 text-white" : "bg-white border-2 border-white"}`}>
@@ -344,7 +347,7 @@ function Chat() {
                   {peerTyping && (
                     <div className="self-start bg-white border-2 border-white px-3 py-1.5 rounded-2xl">
                       <span className="text-xs font-bold text-muted-foreground italic">
-                        {activeFriend.username} đang nhập...
+                        {activeFriend.username} {en ? "is typing…" : "đang nhập..."}
                       </span>
                     </div>
                   )}
@@ -360,10 +363,10 @@ function Chat() {
                       e.preventDefault();
                       send();
                     }}
-                    placeholder="Nhập tin nhắn..."
+                    placeholder={en ? "Type a message…" : "Nhập tin nhắn..."}
                     className="flex-1 px-4 py-3 rounded-2xl border-2 border-gray-200 focus:border-orange-400 outline-none font-bold"
                   />
-                  <button onClick={send} className="toy-button toy-button-primary !text-base !px-6 !py-3">GỬI</button>
+                  <button onClick={send} className="toy-button toy-button-primary !text-base !px-6 !py-3">{en ? "SEND" : "GỬI"}</button>
                 </div>
               </>
             )}

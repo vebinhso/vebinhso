@@ -387,10 +387,10 @@ function FilmPage() {
             disabled={preparing}
             className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-sky-600 to-indigo-500 hover:brightness-110 disabled:opacity-70"
           >
-            {preparing ? "⏳ Đang chuẩn bị phim..." : "▶ BẮT ĐẦU"}
+            {preparing ? (en ? "⏳ Preparing film..." : "⏳ Đang chuẩn bị phim...") : (en ? "▶ START" : "▶ BẮT ĐẦU")}
           </button>
           <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
-            ← Quay lại danh sách bài chơi
+            {en ? "← Back to scenarios" : "← Quay lại danh sách bài chơi"}
           </Link>
         </div>
       </div>
@@ -479,7 +479,7 @@ function FilmPage() {
 
       <div className="absolute top-[5vh] inset-x-0 p-3 flex items-center gap-2">
         <Link to="/roleplay" className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black">
-          ← Thoát
+          {en ? "← Exit" : "← Thoát"}
         </Link>
         <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
           <div className="h-full bg-sky-400 transition-all" style={{ width: `${progress}%` }} />
@@ -495,7 +495,7 @@ function FilmPage() {
           onClick={() => setAutoPlay((a) => !a)}
           className="rounded-full bg-black/60 backdrop-blur px-3 py-1.5 text-xs font-black"
         >
-          {autoPlay ? "▶ Tự chạy" : "⏸ Thủ công"}
+          {autoPlay ? (en ? "▶ Auto" : "▶ Tự chạy") : (en ? "⏸ Manual" : "⏸ Thủ công")}
         </button>
         <button
           onClick={() => {
@@ -516,7 +516,7 @@ function FilmPage() {
                 <div className="flex gap-3 items-start">
                   <img src={FILM_SUMMARY_IMAGE} alt="" className="hidden sm:block w-28 rounded-xl" />
                   <div className="flex-1">
-                    <h3 className="text-base font-black text-amber-300 mb-2">📌 GHI NHỚ</h3>
+                    <h3 className="text-base font-black text-amber-300 mb-2">📌 {en ? "KEY TAKEAWAYS" : "GHI NHỚ"}</h3>
                     <ul className="space-y-1 text-xs sm:text-sm font-bold">
                       {FILM_NOTES.map((n) => (
                         <li key={n}>☑ {filmCopy(locale, n)}</li>
@@ -527,10 +527,10 @@ function FilmPage() {
                         onClick={restart}
                         className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black"
                       >
-                        🔄 Chơi lại
+                        🔄 {en ? "Replay" : "Chơi lại"}
                       </button>
                       <Link to="/roleplay" className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15">
-                        📚 Bài chơi khác
+                        📚 {en ? "Other scenarios" : "Bài chơi khác"}
                       </Link>
                     </div>
                   </div>
@@ -542,31 +542,31 @@ function FilmPage() {
                   node.ending.kind === "safe" ? "bg-emerald-950/85 border-emerald-400" : "bg-red-950/85 border-red-500"
                 }`}
               >
-                <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">CÁI KẾT CỦA BẠN</p>
+                <p className="text-[11px] font-black tracking-widest opacity-70 mb-1">{en ? "YOUR ENDING" : "CÁI KẾT CỦA BẠN"}</p>
                 <h2 className="text-lg sm:text-2xl font-black mb-2">
                   {node.ending.kind === "safe" ? "✅ " : "💀 "}
                   {filmCopy(locale, node.ending.title)}
                 </h2>
                 <p className="text-sm font-bold opacity-90 mb-2">{filmCopy(locale, node.text)}</p>
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3">
-                  🎓 <b>Bài học:</b> {filmCopy(locale, node.ending.lesson)}
+                  🎓 <b>{en ? "Lesson:" : "Bài học:"}</b> {filmCopy(locale, node.ending.lesson)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowNotes(true)}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-amber-400 text-black"
                   >
-                    📌 Xem ghi nhớ
+                    📌 {en ? "View takeaways" : "Xem ghi nhớ"}
                   </button>
                   <button onClick={restart} className="rounded-xl px-4 py-2.5 font-black text-sm bg-white text-black">
-                    🔄 Chơi lại từ đầu
+                    🔄 {en ? "Replay" : "Chơi lại"} từ đầu
                   </button>
                   <button
                     onClick={back}
                     disabled={!history.length}
                     className="rounded-xl px-4 py-2.5 font-black text-sm bg-white/15 disabled:opacity-40"
                   >
-                    ↩ Thử lựa chọn khác
+                    ↩ {en ? "Try another choice" : "Thử lựa chọn khác"}
                   </button>
                 </div>
               </div>
@@ -618,7 +618,7 @@ function FilmPage() {
                     }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
-                    {done ? "▶ Tiếp tục" : "⏩ Bỏ qua hiệu ứng chữ"}
+                    {done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
                   </button>
                 )}
               </div>

@@ -539,6 +539,7 @@ function emptyQuestionDraft(): AdminQuestion {
   return {
     id: "",
     q: "",
+    qEn: "",
     options: [
       { text: "", imageUrl: "" },
       { text: "", imageUrl: "" },
@@ -795,6 +796,11 @@ function QuestionsPanel({
     opts[i] = { ...opts[i], text };
     setDraft({ ...draft, options: opts });
   }
+  function setOptionTextEn(i: number, textEn: string) {
+    const opts = [...draft.options];
+    opts[i] = { ...opts[i], textEn };
+    setDraft({ ...draft, options: opts });
+  }
   function setOptionImage(i: number, imageUrl: string) {
     const opts = [...draft.options];
     opts[i] = { ...opts[i], imageUrl };
@@ -856,7 +862,7 @@ function QuestionsPanel({
     setEditingId(q.id);
     setDraft({
       ...q,
-      options: q.options.map((o) => ({ text: o.text || "", imageUrl: o.imageUrl || "" })),
+      options: q.options.map((o) => ({ text: o.text || "", textEn: o.textEn || "", imageUrl: o.imageUrl || "" })),
       correctIndexes: [...(q.correctIndexes || [])],
       maps: [...(q.maps && q.maps.length ? q.maps : ["all"])],
     });
@@ -1256,6 +1262,13 @@ function QuestionsPanel({
           placeholder="Nội dung câu hỏi (text)"
           className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-3 font-bold"
         />
+        <input
+          value={draft.qEn || ""}
+          onChange={(e) => setDraft({ ...draft, qEn: e.target.value })}
+          placeholder="English question (optional until translated)"
+          lang="en"
+          className="w-full px-3 py-2 rounded-xl border-2 border-sky-200 mb-3 font-bold"
+        />
 
         {/* Options list (2-6) */}
         <div className="space-y-2 mb-3">
@@ -1293,6 +1306,13 @@ function QuestionsPanel({
                     🗑
                   </button>
                 </div>
+                <input
+                  value={o.textEn || ""}
+                  onChange={(e) => setOptionTextEn(i, e.target.value)}
+                  placeholder={`English answer ${i + 1}`}
+                  lang="en"
+                  className="mt-2 w-full px-2 py-1 rounded border-2 border-sky-100 text-sm font-bold"
+                />
                 <div className="mt-1">
                   <ImageUploadField
                     value={o.imageUrl || ""}

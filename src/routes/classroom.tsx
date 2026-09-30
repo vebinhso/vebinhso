@@ -676,6 +676,7 @@ function MiniStat({ label, value, tone }: { label: string; value: string | numbe
 function emptyDraft(): TeacherQuestion {
   return {
     text: "",
+    textEn: "",
     choices: [
       { text: "", imageUrl: "" },
       { text: "", imageUrl: "" },
@@ -713,6 +714,10 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
     const cs = draft.choices.slice(); cs[i] = { ...cs[i], text };
     setDraft({ ...draft, choices: cs });
   };
+  const setOptionTextEn = (i: number, textEn: string) => {
+    const cs = draft.choices.slice(); cs[i] = { ...cs[i], textEn };
+    setDraft({ ...draft, choices: cs });
+  };
   const setOptionImage = (i: number, imageUrl: string) => {
     const cs = draft.choices.slice(); cs[i] = { ...cs[i], imageUrl };
     setDraft({ ...draft, choices: cs });
@@ -737,12 +742,12 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
     const text = (draft.text || "").trim();
     const hasQ = !!text || !!(draft.imageUrl || "").trim();
     if (!hasQ) { toast.error("Nhập nội dung câu hỏi hoặc thêm ảnh"); return null; }
-    const kept: { text: string; imageUrl?: string }[] = [];
+    const kept: { text: string; textEn?: string; imageUrl?: string }[] = [];
     const indexMap = new Map<number, number>();
     draft.choices.forEach((c, i) => {
       const t = (c.text || "").trim();
       const img = (c.imageUrl || "").trim();
-      if (t || img) { indexMap.set(i, kept.length); kept.push({ text: t, imageUrl: img || undefined }); }
+      if (t || img) { indexMap.set(i, kept.length); kept.push({ text: t, textEn: c.textEn?.trim() || undefined, imageUrl: img || undefined }); }
     });
     if (kept.length < 2) { toast.error("Cần ít nhất 2 đáp án (chữ hoặc ảnh)"); return null; }
     const correct = (draft.correctIndexes || [])
@@ -782,7 +787,7 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
     setEditingId(q.id!);
     setDraft({
       ...q,
-      choices: q.choices.map((c) => ({ text: c.text || "", imageUrl: c.imageUrl || "" })),
+      choices: q.choices.map((c) => ({ text: c.text || "", textEn: c.textEn || "", imageUrl: c.imageUrl || "" })),
       correctIndexes: [...(q.correctIndexes || [0])],
     });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
@@ -829,6 +834,13 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
           placeholder="Nội dung câu hỏi (text)"
           className="w-full px-3 py-2 rounded-xl border-2 border-orange-200 mb-3 font-bold"
         />
+        <input
+          value={draft.textEn || ""}
+          onChange={(e) => setDraft({ ...draft, textEn: e.target.value })}
+          placeholder="English question (optional until translated)"
+          lang="en"
+          className="w-full px-3 py-2 rounded-xl border-2 border-sky-200 mb-3 font-bold"
+        />
 
         <div className="space-y-2 mb-3">
           {draft.choices.map((o, i) => {
@@ -849,6 +861,13 @@ function QuestionsPanel({ classId, onCountChanged }: { classId: string; onCountC
                   <button onClick={() => removeOption(i)} disabled={draft.choices.length <= 2}
                     className="text-red-600 font-black text-lg px-1 disabled:opacity-30" title="Xoá đáp án">🗑</button>
                 </div>
+                <input
+                  value={o.textEn || ""}
+                  onChange={(e) => setOptionTextEn(i, e.target.value)}
+                  placeholder={`English answer ${i + 1}`}
+                  lang="en"
+                  className="mt-2 w-full px-2 py-1 rounded border-2 border-sky-100 text-sm font-bold"
+                />
                 <div className="mt-1">
                   <ImageUploadField value={o.imageUrl || ""} onChange={(url) => setOptionImage(i, url)} label={`ảnh đáp án ${String.fromCharCode(65 + i)}`} />
                 </div>

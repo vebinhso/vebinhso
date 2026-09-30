@@ -150,6 +150,11 @@ function GamePage() {
   const readyRef = useRef(false);
   useEffect(() => {
     setMounted(true);
+    const laptopLayout = window.matchMedia("(min-width: 768px) and (pointer: fine)").matches;
+    if (laptopLayout) {
+      setThaoTacOpen(true);
+      setThucHienOpen(true);
+    }
     const u = getCurrentUser();
     if (!u) {
       navigate({ to: "/login" });
@@ -854,7 +859,7 @@ function GamePage() {
     setBoomResult(ok ? `✅ Đúng! ${delta >= 0 ? "+" : ""}${delta}đ` : `❌ Sai! ${delta}đ — phải trả lời thêm 1 câu!`);
     setTimeout(() => {
       if (ok) {
-        flash(`💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
+        flash(en ? `💣 Bomb defused! Total: ${gained >= 0 ? "+" : ""}${gained} coins` : `💣 Đã vô hiệu boom! Tổng: ${gained >= 0 ? "+" : ""}${gained}đ`, 2000);
         setBoom(null);
         setBoomResult(null);
       } else {

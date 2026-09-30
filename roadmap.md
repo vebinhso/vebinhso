@@ -8,4 +8,4 @@
 - [x] Localize roleplay films and English narration
 - [x] Reduce blocking loads and show visible loading feedback
 - [ ] Validate desktop/mobile, loading, and AI voice
-- [ ] Auto-open Actions and Build panels on laptop in both VI/EN
+- [x] Auto-open Actions and Build panels on laptop in both VI/EN

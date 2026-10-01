@@ -727,6 +727,66 @@ export function Fan() {
   );
 }
 
+export function CeilingFan() {
+  return (
+    <group position={[0, 4.15, 0]}>
+      {/* Ceiling cup, short downrod and upper collar. */}
+      <mesh castShadow position={[0, 0.62, 0]}>
+        <cylinderGeometry args={[0.34, 0.24, 0.18, 32]} />
+        <MStd color="#f8fafc" metalness={0.18} roughness={0.28} />
+      </mesh>
+      <mesh castShadow position={[0, 0.41, 0]}>
+        <cylinderGeometry args={[0.115, 0.115, 0.34, 24]} />
+        <MStd color="#f1f5f9" metalness={0.35} roughness={0.2} />
+      </mesh>
+      <mesh castShadow position={[0, 0.24, 0]}>
+        <torusGeometry args={[0.13, 0.025, 12, 32]} />
+        <MStd color="#d7dde2" metalness={0.75} roughness={0.18} />
+      </mesh>
+
+      {/* Teardrop motor body from the reference. */}
+      <mesh castShadow position={[0, 0.02, 0]}>
+        <coneGeometry args={[0.49, 0.76, 48]} />
+        <MStd color="#f8fafc" metalness={0.12} roughness={0.24} />
+      </mesh>
+      <mesh castShadow position={[0, -0.31, 0]}>
+        <sphereGeometry args={[0.48, 40, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <MStd color="#f8fafc" metalness={0.12} roughness={0.24} />
+      </mesh>
+
+      {/* Four wide, slim blades and their polished mounting arms. */}
+      {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle) => (
+        <group key={angle} rotation={[0, angle, 0]}>
+          <RoundedBox args={[0.86, 0.055, 0.17]} radius={0.035} smoothness={3} position={[0.58, -0.18, 0]} rotation={[0, -0.08, -0.035]} castShadow>
+            <MStd color="#d9dde0" metalness={0.62} roughness={0.2} />
+          </RoundedBox>
+          <RoundedBox args={[1.72, 0.075, 0.43]} radius={0.055} smoothness={4} position={[1.72, -0.2, 0]} rotation={[0, -0.055, -0.025]} castShadow receiveShadow>
+            <MStd color="#f7f8f8" metalness={0.18} roughness={0.26} />
+          </RoundedBox>
+          <mesh position={[0.66, -0.205, 0]}>
+            <cylinderGeometry args={[0.09, 0.09, 0.075, 24]} />
+            <MStd color="#eef1f3" metalness={0.72} roughness={0.18} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Layered lower motor cap and decorative chrome ring. */}
+      <mesh castShadow position={[0, -0.39, 0]}>
+        <cylinderGeometry args={[0.35, 0.3, 0.13, 40]} />
+        <MStd color="#edf0f2" metalness={0.35} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, -0.43, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.31, 0.025, 12, 40]} />
+        <MStd color="#c7cdd1" metalness={0.92} roughness={0.1} />
+      </mesh>
+      <mesh castShadow position={[0, -0.49, 0]}>
+        <cylinderGeometry args={[0.27, 0.34, 0.12, 40]} />
+        <MStd color="#f8fafc" metalness={0.18} roughness={0.24} />
+      </mesh>
+    </group>
+  );
+}
+
 export function Speaker() {
   const SpeakerCabinet = ({ x, angle = 0 }: { x: number; angle?: number }) => (
     <group position={[x, 0, 0]} rotation={[0, angle, 0]}>
@@ -1537,6 +1597,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "curtain": return <Curtain />;
     case "painting": return <Painting w={item.w} />;
     case "fan": return <Fan />;
+    case "ceilingfan": return <CeilingFan />;
     case "speaker": return <Speaker />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;

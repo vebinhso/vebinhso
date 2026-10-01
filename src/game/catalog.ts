@@ -123,7 +123,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "balconytable", name: "Bàn trà ban công", category: "Ban công", price: 70, w: 2, d: 2, h: 1, color: "#a16207", icon: "🍵" },
 
   // ===== Bổ sung phòng khách =====
-  { id: "ceilingfan", name: "Quạt trần", category: "Phòng khách", price: 110, w: 2, d: 2, h: 0.5, color: "#e5e7eb", icon: "🌀" },
+  { id: "ceilingfan", name: "Quạt trần", category: "Phòng khách", price: 110, w: 4, d: 4, h: 0.85, color: "#f8fafc", icon: "🌀" },
   { id: "decolamp", name: "Đèn trang trí", category: "Phòng khách", price: 45, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "💡" },
 
   // ===== Bổ sung phòng bếp =====

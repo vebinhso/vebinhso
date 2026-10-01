@@ -1075,7 +1075,7 @@ function CameraView({ controlsRef, mode }: { controlsRef: React.MutableRefObject
     const c = controlsRef.current;
     const t = c ? c.target as THREE.Vector3 : new THREE.Vector3();
     const off =
-      mode === "top" ? [0, 40, 0.01] :
+      mode === "top" ? [0, 80, 18] :
       mode === "front" ? [0, 5, 16] :
       mode === "wide" ? [22, 26, 26] : [0, 14, 22];
     camera.position.set(t.x + off[0], t.y + off[1], t.z + off[2]);
@@ -1172,7 +1172,7 @@ export default function GameWorld(props: Props) {
         enableDamping
         dampingFactor={0.08}
         minDistance={4}
-        maxDistance={45}
+        maxDistance={120}
         maxPolarAngle={Math.PI / 2 - 0.05}
       />
     </Canvas>

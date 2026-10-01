@@ -8,6 +8,10 @@ import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/chara
 import { generateOutfit } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { PasteDropZone } from "@/components/PasteDropZone";
+import { HairPicker } from "@/components/HairPicker";
+import { HairBack, HairFront } from "@/components/HairSvg";
+import { DEFAULT_HAIR_STYLE, isHairStyle, type HairStyleId } from "@/lib/hair";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -34,6 +38,7 @@ function PreviewCharacter({ o }: { o: Outfit }) {
   return (
     <div className="flex items-end justify-center h-56 bg-gradient-to-b from-sky-200 to-emerald-200 rounded-2xl overflow-hidden">
       <svg viewBox="0 0 80 160" className="h-52">
+        <HairBack style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
         {/* legs */}
         <rect x="28" y="100" width="10" height="40" rx="3" fill={o.pants} />
         <rect x="42" y="100" width="10" height="40" rx="3" fill={o.pants} />
@@ -53,7 +58,7 @@ function PreviewCharacter({ o }: { o: Outfit }) {
         {/* head */}
         <circle cx="40" cy="42" r="18" fill={o.skin} />
         {/* hair */}
-        <path d="M22 38 Q40 18 58 38 Q58 28 40 22 Q22 28 22 38 Z" fill={o.hair} />
+        <HairFront style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
         {/* hat */}
         {o.hat && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
         {/* eyes */}
@@ -74,6 +79,19 @@ function CharacterPage() {
   const gen = useServerFn(generateOutfit);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const en = useLocale() === "en";
+  const [tab, setTab] = useState<"hair" | "shirt" | "pants" | "accessory">("hair");
+  const [preview, setPreview] = useState<{ style: HairStyleId; color: string } | null>(null);
+  const currentHairStyle: HairStyleId = isHairStyle(outfit.hairStyle) ? outfit.hairStyle : DEFAULT_HAIR_STYLE;
+  const shown: Outfit = preview ? { ...outfit, hairStyle: preview.style, hair: preview.color } : outfit;
+  // Lưu ngay thay đổi tóc đã trả phí để không mất khi rời trang.
+  const commitHair = (patch: Partial<Outfit>) => {
+    setOutfit((prev) => {
+      const next = { ...prev, ...patch };
+      saveOutfit({ ...next, description: desc || next.description });
+      return next;
+    });
+  };
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -119,7 +137,7 @@ function CharacterPage() {
     setErr(null); setLoading(true);
     try {
       const colors = await gen({ data: { description: desc } });
-      setOutfit({ description: desc, ...colors });
+      setOutfit((prev) => ({ ...prev, description: desc, ...colors, hair: prev.hair, hairStyle: prev.hairStyle }));
     } catch (e: any) {
       setErr(e?.message || "Lỗi tạo trang phục");
     } finally {
@@ -157,7 +175,33 @@ function CharacterPage() {
             <p className="text-xs font-bold text-muted-foreground">Ảnh tối đa 2MB · JPG, PNG</p>
           </div>
 
-          <PreviewCharacter o={outfit} />
+          <PreviewCharacter o={shown} />
+
+          <div className="grid grid-cols-4 gap-2 mt-4">
+            {([
+              ["hair", en ? "Hair" : "Tóc"],
+              ["shirt", en ? "Shirt" : "Áo"],
+              ["pants", en ? "Pants" : "Quần"],
+              ["accessory", en ? "Accessories" : "Phụ kiện"],
+            ] as const).map(([k, label]) => (
+              <button key={k} type="button" onClick={() => setTab(k)}
+                className={`toy-button !text-sm py-2 ${tab === k ? "toy-button-primary" : ""}`}>{label}</button>
+            ))}
+          </div>
+
+          {tab === "hair" ? (
+            <HairPicker
+              currentStyle={currentHairStyle}
+              hasChosen={isHairStyle(outfit.hairStyle)}
+              currentColor={outfit.hair}
+              previewStyle={preview?.style ?? currentHairStyle}
+              previewColor={preview?.color ?? outfit.hair}
+              onPreview={(style, color) => setPreview({ style, color })}
+              onApplyStyle={(style) => { commitHair({ hairStyle: style }); setPreview((p) => p ? { ...p, style } : null); }}
+              onApplyColor={(color) => { commitHair({ hair: color }); setPreview((p) => p ? { ...p, color } : null); }}
+            />
+          ) : (
+          <>
 
 
 
@@ -184,7 +228,6 @@ function CharacterPage() {
 
           <div className="flex flex-wrap gap-2 mt-3">
             <Swatch label="Da" color={outfit.skin} />
-            <Swatch label="Tóc" color={outfit.hair} />
             <Swatch label="Áo" color={outfit.shirt} />
             <Swatch label="Quần" color={outfit.pants} />
             <Swatch label="Giày" color={outfit.shoes} />
@@ -204,6 +247,8 @@ function CharacterPage() {
               ✅ Lưu & Chơi
             </button>
           </div>
+          </>
+          )}
         </div>
       </div>
     </GameLayout>

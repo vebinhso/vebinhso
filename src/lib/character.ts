@@ -10,6 +10,8 @@ export type Outfit = {
   shoes: string;
   hat?: string;
   accent: string;
+  /** Kiểu tóc; chưa có nghĩa là chưa chọn lần nào (lần đầu miễn phí). */
+  hairStyle?: string;
 };
 
 const DEFAULT: Outfit = {

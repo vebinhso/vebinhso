@@ -1,3 +1,5 @@
+import { Hair3D } from "./Hair3D";
+import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, ContactShadows, Html, AdaptiveDpr, AdaptiveEvents } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
@@ -288,10 +290,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         <sphereGeometry args={[0.3, 20, 20]} />
         <meshStandardMaterial color={o.skin} />
       </mesh>
-      <mesh castShadow position={[0, 1.82, -0.03]}>
-        <sphereGeometry args={[0.32, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color={o.hair} />
-      </mesh>
+      <Hair3D style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
       {o.hat && (
         <mesh castShadow position={[0, 1.98, 0]}>
           <coneGeometry args={[0.34, 0.32, 16]} />

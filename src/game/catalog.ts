@@ -58,7 +58,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "fan", name: "Quạt máy đứng", category: "Phòng khách", price: 25, w: 1, d: 1, h: 2, color: "#cbd5e1", icon: "🌀" },
   { id: "tv", name: "TV 55\"", category: "Phòng khách", price: 300, w: 3, d: 0.2, h: 1.5, color: "#0f172a", icon: "📺" },
   { id: "tvstand", name: "Kệ TV", category: "Phòng khách", price: 30, w: 4, d: 1, h: 1, color: "#7c2d12", icon: "🗄️" },
-  { id: "speaker", name: "Bộ loa", category: "Phòng khách", price: 80, w: 1, d: 1, h: 1.5, color: "#1f2937", icon: "🔊" },
+  { id: "speaker", name: "Loa karaoke", category: "Phòng khách", price: 180, w: 2, d: 1, h: 1.65, color: "#18181b", icon: "🔊" },
   { id: "clock", name: "Đồng hồ treo", category: "Phòng khách", price: 35, w: 1, d: 0.1, h: 1, color: "#f3f4f6", icon: "🕰️" },
 
   // ===== Phòng bếp =====

@@ -692,18 +692,72 @@ export function Fan() {
 }
 
 export function Speaker() {
-  return (
-    <group>
-      <mesh castShadow position={[0, 0.75, 0]}>
-        <boxGeometry args={[0.8, 1.5, 0.8]} />
-        <MStd color="#1f2937" roughness={0.6} />
-      </mesh>
-      {[0.4, 0.9, 1.2].map((y, i) => (
-        <mesh key={i} position={[0, y, 0.41]}>
-          <cylinderGeometry args={[0.15 + (i === 1 ? 0.05 : 0), 0.15, 0.05, 20]} rotation-x={Math.PI / 2} />
-          <MStd color="#0a0a0a" metalness={0.8} />
+  const SpeakerCabinet = ({ x, angle = 0 }: { x: number; angle?: number }) => (
+    <group position={[x, 0, 0]} rotation={[0, angle, 0]}>
+      {/* Beveled black wood cabinet and inset front baffle. */}
+      <RoundedBox args={[0.9, 1.58, 0.82]} radius={0.045} smoothness={4} castShadow receiveShadow position={[0, 0.8, 0]}>
+        <MStd color="#18181b" metalness={0.08} roughness={0.48} />
+      </RoundedBox>
+      <RoundedBox args={[0.79, 1.43, 0.055]} radius={0.018} smoothness={3} castShadow position={[0, 0.8, 0.424]}>
+        <MStd color="#27272a" metalness={0.12} roughness={0.62} />
+      </RoundedBox>
+
+      {/* Subtle vertical wood-grain grooves. */}
+      {[-0.3, -0.18, -0.06, 0.06, 0.18, 0.3].map((gx) => (
+        <mesh key={gx} position={[gx, 0.8, 0.456]}>
+          <boxGeometry args={[0.009, 1.31, 0.008]} />
+          <MStd color="#3f3f46" roughness={0.9} />
         </mesh>
       ))}
+
+      {/* Woofer: rubber surround, silver cone, dark dust cap. */}
+      <mesh position={[0, 0.53, 0.475]} castShadow>
+        <torusGeometry args={[0.27, 0.065, 16, 48]} />
+        <MStd color="#3f3f46" metalness={0.34} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.53, 0.477]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.245, 0.085, 48, 1, true]} />
+        <MStd color="#a1a1aa" metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.53, 0.52]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.082, 0.082, 0.025, 32]} />
+        <MStd color="#27272a" metalness={0.32} roughness={0.32} />
+      </mesh>
+
+      {/* Mid driver, matching the reference's smaller upper cone. */}
+      <mesh position={[0, 1.14, 0.47]} castShadow>
+        <torusGeometry args={[0.18, 0.047, 14, 40]} />
+        <MStd color="#52525b" metalness={0.45} roughness={0.28} />
+      </mesh>
+      <mesh position={[0, 1.14, 0.472]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.155, 0.062, 40, 1, true]} />
+        <MStd color="#a1a1aa" metalness={0.9} roughness={0.18} />
+      </mesh>
+      <mesh position={[0, 1.14, 0.51]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.022, 28]} />
+        <MStd color="#3f3f46" metalness={0.35} roughness={0.3} />
+      </mesh>
+
+      {/* Bass ports and visible fasteners. */}
+      {[-0.29, 0.29].map((px) => (
+        <mesh key={`port-${px}`} position={[px, 1.36, 0.47]}>
+          <torusGeometry args={[0.038, 0.014, 10, 24]} />
+          <MStd color="#a1a1aa" metalness={0.8} roughness={0.22} />
+        </mesh>
+      ))}
+      {[[-0.31, 0.17], [0.31, 0.17], [-0.31, 1.45], [0.31, 1.45]].map(([sx, sy]) => (
+        <mesh key={`${sx}-${sy}`} position={[sx, sy, 0.47]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.018, 0.018, 0.015, 14]} />
+          <MStd color="#d4d4d8" metalness={0.88} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  );
+
+  return (
+    <group>
+      <SpeakerCabinet x={-0.49} angle={0.025} />
+      <SpeakerCabinet x={0.49} angle={-0.025} />
     </group>
   );
 }

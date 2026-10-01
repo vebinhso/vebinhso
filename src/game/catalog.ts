@@ -42,6 +42,16 @@ export const CATALOG: CatalogItem[] = [
   { id: "roof_ton", name: "Gạch mái tôn (10 miếng)", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🟥", kind: "rooftile", qty: 10, roofStyle: "ton" },
   { id: "window", name: "Cửa sổ (gắn tường)", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
   { id: "curtain", name: "Rèm cửa", category: "Vật liệu", price: 50, w: 2, d: 0.1, h: 4, color: "#fda4af", icon: "🪟" },
+  { id: "column_roman", name: "Cột La Mã trắng", category: "Vật liệu", price: 60, w: 1, d: 1, h: 3.9, color: "#f1f1ef", icon: "🏛️" },
+  { id: "door_wood_glass", name: "Cửa gỗ cổ điển ô kính", category: "Vật liệu", price: 70, w: 1.2, d: 0.25, h: 3, color: "#a8621f", icon: "🚪" },
+  { id: "door_oak_classic", name: "Cửa gỗ sồi tân cổ điển", category: "Vật liệu", price: 60, w: 1.2, d: 0.25, h: 3, color: "#e3c27d", icon: "🚪" },
+  { id: "door_french_white", name: "Cửa đôi kính kiểu Pháp", category: "Vật liệu", price: 110, w: 2, d: 0.25, h: 3, color: "#f4f5f6", icon: "🚪" },
+  { id: "door_white_panel", name: "Cửa trắng 2 ô panel", category: "Vật liệu", price: 45, w: 1.1, d: 0.25, h: 3, color: "#f2f3f4", icon: "🚪" },
+  { id: "door_black_glass", name: "Cửa kính khung nhôm đen", category: "Vật liệu", price: 80, w: 1.1, d: 0.25, h: 3, color: "#1d1e20", icon: "🚪" },
+  { id: "window_awning_wood", name: "Cửa sổ gỗ bật 3 cánh", category: "Vật liệu", price: 45, w: 2, d: 0.1, h: 1.5, color: "#a88b5f", icon: "🪟" },
+  { id: "window_casement_white", name: "Cửa sổ trắng 2 cánh", category: "Vật liệu", price: 40, w: 2, d: 0.1, h: 1.5, color: "#f3f4f5", icon: "🪟" },
+  { id: "curtain_gray_closed", name: "Rèm xếp ly xám (đóng)", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
+  { id: "curtain_gray_open", name: "Rèm xếp ly xám vén 2 bên", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
 
   // ===== Ngoại thất =====
   { id: "lamp", name: "Cột đèn", category: "Ngoại thất", price: 15, w: 1, d: 1, h: 3, color: "#fbbf24", icon: "💡", shape: "cylinder" },

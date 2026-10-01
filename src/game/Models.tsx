@@ -9,6 +9,7 @@ import * as X from "./ModelsExtra";
 import * as Y from "./ModelsExtra2";
 import * as Z from "./ModelsExtra3";
 import * as K from "./ModelsExtra4";
+import * as V from "./ModelsExtra5";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -1978,6 +1979,16 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "art_parrot": return <Y.ParrotCanvas />;
     case "art_toucan": return <Y.ToucanCanvas />;
     case "plant_monstera": return <Z.MonsteraPot />;
+    case "column_roman": return <V.RomanColumn />;
+    case "door_wood_glass": return <V.DoorWoodGlass placedId={placedId} />;
+    case "door_oak_classic": return <V.DoorOakClassic placedId={placedId} />;
+    case "door_french_white": return <V.DoorFrenchWhite placedId={placedId} />;
+    case "door_white_panel": return <V.DoorWhitePanel placedId={placedId} />;
+    case "door_black_glass": return <V.DoorBlackGlass placedId={placedId} />;
+    case "window_awning_wood": return <V.WindowAwningWood />;
+    case "window_casement_white": return <V.WindowCasementWhite />;
+    case "curtain_gray_closed": return <V.CurtainGrayClosed />;
+    case "curtain_gray_open": return <V.CurtainGrayOpen />;
     case "fridge_french_black": return <K.FridgeFrenchBlack />;
     case "fridge_sbs": return <K.FridgeSideBySide />;
     case "fridge_steel_water": return <K.FridgeStainlessDispenser />;

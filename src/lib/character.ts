@@ -18,6 +18,9 @@ export type Outfit = {
   faceShape?: string;
   expression?: string;
   bodyShape?: string;
+  topStyle?: string;
+  bottomStyle?: string;
+  clothesOwned?: string[];
 };
 
 const DEFAULT: Outfit = {

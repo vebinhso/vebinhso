@@ -144,6 +144,7 @@ function GamePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [moveMode, setMoveMode] = useState(false);
   const [ceilingMount, setCeilingMount] = useState(false);
+  const [viewMode, setViewMode] = useState<"free" | "top" | "front" | "wide">("free");
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
   const [thaoTacOpen, setThaoTacOpen] = useState(false);
@@ -1045,6 +1046,7 @@ function GamePage() {
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onWallPlace={handleWallPlace}
+          viewMode={viewMode}
           onRemove={handleRemove}
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
@@ -1378,6 +1380,20 @@ function GamePage() {
           </div>
         );
       })()}
+
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 pointer-events-auto">
+        {([
+          ["free", "🎥", en ? "Free" : "Tự do"],
+          ["top", "🗺️", en ? "Top" : "Từ trên"],
+          ["front", "🏮", en ? "Front" : "Trực diện"],
+          ["wide", "🏘️", en ? "Wide" : "Toàn cảnh"],
+        ] as const).map(([m, ic, lb]) => (
+          <button key={m} onClick={() => setViewMode(m)} title={lb}
+            className={`glass-card px-2 py-1 text-[11px] font-black flex flex-col items-center w-14 ${viewMode === m ? "ring-2 ring-primary" : ""}`}>
+            <span className="text-lg leading-none">{ic}</span>{lb}
+          </button>
+        ))}
+      </div>
 
       {selected && (
         <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-44 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">

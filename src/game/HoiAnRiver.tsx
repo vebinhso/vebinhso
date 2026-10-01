@@ -91,7 +91,7 @@ function QuizBoard({ onStartQuiz }: { onStartQuiz?: () => void }) {
           className="h-auto w-44 flex-col gap-1 border-2 border-amber-300 bg-amber-950/95 px-3 py-2 text-center text-amber-50 shadow-xl hover:bg-amber-900"
         >
           <span className="text-base font-black">🏮 {en ? "Lantern challenge" : "Thử thách hoa đăng"}</span>
-          <span className="whitespace-normal text-[11px] font-bold leading-snug">{en ? "5 correct out of 7 = 1 lantern" : "Đúng 5/7 câu = 1 hoa đăng"}</span>
+          <span className="whitespace-normal text-[11px] font-bold leading-snug">{en ? "All 7 correct = 1 lantern" : "Đúng cả 7/7 câu = 1 hoa đăng"}</span>
           <span className="text-[10px] opacity-80">{en ? "Come close and tap to play" : "Đến gần và bấm để chơi"}</span>
         </Button>
       </Html>
@@ -99,34 +99,103 @@ function QuizBoard({ onStartQuiz }: { onStartQuiz?: () => void }) {
   );
 }
 
+const PETAL_GEO = new THREE.SphereGeometry(1, 10, 6);
+PETAL_GEO.translate(0, 1, 0);
+const LEAF_GEO = new THREE.CylinderGeometry(0.62, 0.62, 0.05, 10);
+const CANDLE_GEO = new THREE.CylinderGeometry(0.07, 0.07, 0.16, 8);
+const FLAME_GEO = new THREE.SphereGeometry(0.06, 8, 6);
+const LEAF_MAT = new THREE.MeshStandardMaterial({ color: "#3f8a3a", roughness: 0.8, emissive: "#14361a", emissiveIntensity: 0.4 });
+const CANDLE_MAT = new THREE.MeshStandardMaterial({ color: "#fff3d6", roughness: 0.7 });
+const FLAME_MAT = new THREE.MeshBasicMaterial({ color: "#ffd36b" });
+const LOTUS_COLORS = ["#f97362", "#f472b6", "#facc15", "#ef4444", "#60a5fa", "#fb923c"];
+const petalMatCache = new Map<string, THREE.MeshStandardMaterial>();
+function petalMat(color: string, inner: boolean) {
+  const k = color + inner;
+  let m = petalMatCache.get(k);
+  if (!m) {
+    const c = new THREE.Color(color);
+    if (inner) c.lerp(new THREE.Color("#fff1e0"), 0.35);
+    m = new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: inner ? 0.55 : 0.4, roughness: 0.6 });
+    petalMatCache.set(k, m);
+  }
+  return m;
+}
+
+function LotusModel({ color, scale = 1, light = false }: { color: string; scale?: number; light?: boolean }) {
+  const outer = petalMat(color, false);
+  const inner = petalMat(color, true);
+  return (
+    <group scale={scale}>
+      {/* Lá sen xanh */}
+      {Array.from({ length: 6 }).map((_, i) => {
+        const a = (i / 6) * Math.PI * 2 + 0.26;
+        return <mesh key={"l" + i} geometry={PETAL_GEO} material={LEAF_MAT} position={[Math.sin(a) * 0.18, 0.02, Math.cos(a) * 0.18]} rotation={[1.35, a, 0]} scale={[0.2, 0.42, 0.04]} />;
+      })}
+      <mesh geometry={LEAF_GEO} material={LEAF_MAT} position={[0, 0.02, 0]} scale={0.55} />
+      {/* Cánh ngoài */}
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        return <mesh key={"o" + i} geometry={PETAL_GEO} material={outer} position={[Math.sin(a) * 0.14, 0.06, Math.cos(a) * 0.14]} rotation={[0.95, a, 0]} scale={[0.13, 0.22, 0.05]} />;
+      })}
+      {/* Cánh trong */}
+      {Array.from({ length: 6 }).map((_, i) => {
+        const a = (i / 6) * Math.PI * 2 + 0.4;
+        return <mesh key={"i" + i} geometry={PETAL_GEO} material={inner} position={[Math.sin(a) * 0.09, 0.08, Math.cos(a) * 0.09]} rotation={[0.45, a, 0]} scale={[0.1, 0.2, 0.04]} />;
+      })}
+      <mesh geometry={CANDLE_GEO} material={CANDLE_MAT} position={[0, 0.16, 0]} />
+      <mesh geometry={FLAME_GEO} material={FLAME_MAT} position={[0, 0.29, 0]} scale={[1, 1.6, 1]} />
+      {light && <pointLight color="#ffc56b" intensity={1.4} distance={4} decay={2} position={[0, 0.4, 0]} />}
+    </group>
+  );
+}
+
 function LotusLantern({ lantern, index }: { lantern: ReleasedLantern; index: number }) {
   const ref = useRef<THREE.Group>(null);
-  const color = lantern.color || LANTERN_COLORS[index % LANTERN_COLORS.length];
-  const petalMat = useMemo(() => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.7, roughness: 0.65, side: THREE.DoubleSide }), [color]);
+  const color = LOTUS_COLORS[index % LOTUS_COLORS.length];
   useFrame(({ clock }, rawDelta) => {
     if (!ref.current) return;
     const dt = Math.min(rawDelta, 0.05);
-    ref.current.position.x += dt * (0.34 + (index % 3) * 0.06);
-    ref.current.position.z += Math.sin(clock.elapsedTime * 0.7 + index) * dt * 0.08;
-    ref.current.position.y = 0.22 + Math.sin(clock.elapsedTime * 1.4 + index) * 0.035;
-    ref.current.rotation.y += dt * 0.08;
+    ref.current.position.x += dt * (0.22 + (index % 3) * 0.04);
+    if (ref.current.position.x > RIVER_WIDTH / 2 - 2) ref.current.position.x = -RIVER_WIDTH / 2 + 2;
+    ref.current.position.z += Math.sin(clock.elapsedTime * 0.5 + index) * dt * 0.06;
+    ref.current.position.y = 0.1 + Math.sin(clock.elapsedTime * 1.2 + index) * 0.03;
+    ref.current.rotation.y += dt * 0.06;
   });
   return (
-    <group ref={ref} position={[lantern.x, 0.22, lantern.z]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.3, 0.36, 0.12, 8]} />
-        <meshStandardMaterial color="#f5e7c8" roughness={0.9} />
-      </mesh>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <mesh key={i} position={[Math.sin((i / 8) * Math.PI * 2) * 0.24, 0.18, Math.cos((i / 8) * Math.PI * 2) * 0.24]} rotation={[0.42, (i / 8) * Math.PI * 2, 0]} material={petalMat}>
-          <coneGeometry args={[0.16, 0.48, 4]} />
-        </mesh>
+    <group ref={ref} position={[lantern.x, 0.1, lantern.z]}>
+      <LotusModel color={color} scale={1.6} light={index < 8} />
+    </group>
+  );
+}
+
+/** Vài đèn hoa đăng có sẵn trôi chậm trên sông. */
+function AmbientLanterns() {
+  const items = useMemo(() => Array.from({ length: 14 }).map((_, i) => ({
+    x: -90 + ((i * 53) % 180),
+    z: RIVER_CENTER_Z - 7 + ((i * 37) % 14),
+    speed: 0.12 + (i % 4) * 0.035,
+    color: LOTUS_COLORS[i % LOTUS_COLORS.length],
+    s: 1.3 + (i % 3) * 0.2,
+  })), []);
+  const refs = useRef<(THREE.Group | null)[]>([]);
+  useFrame(({ clock }, rawDelta) => {
+    const dt = Math.min(rawDelta, 0.05);
+    items.forEach((it, i) => {
+      const g = refs.current[i];
+      if (!g) return;
+      g.position.x += dt * it.speed;
+      if (g.position.x > RIVER_WIDTH / 2 - 2) g.position.x = -RIVER_WIDTH / 2 + 2;
+      g.position.y = 0.1 + Math.sin(clock.elapsedTime * 1.1 + i) * 0.03;
+      g.rotation.y += dt * 0.05;
+    });
+  });
+  return (
+    <group>
+      {items.map((it, i) => (
+        <group key={i} ref={(el) => { refs.current[i] = el; }} position={[it.x, 0.1, it.z]}>
+          <LotusModel color={it.color} scale={it.s} />
+        </group>
       ))}
-      <mesh position={[0, 0.2, 0]}>
-        <boxGeometry args={[0.14, 0.24, 0.14]} />
-        <meshBasicMaterial color="#fff4b0" />
-      </mesh>
-      <pointLight color={color} intensity={1.2} distance={4} decay={2} />
     </group>
   );
 }
@@ -169,6 +238,7 @@ export const HoiAnRiver = memo(function HoiAnRiver({
         <primitive object={WATER_MAT} attach="material" />
       </mesh>
       <RiverRipples />
+      <AmbientLanterns />
       <QuizBoard onStartQuiz={onStartQuiz} />
       <RowBoat position={[-26, 0.15, RIVER_CENTER_Z - 1]} rotation={Math.PI / 2.15} scale={1.1} />
       <RowBoat position={[25, 0.15, RIVER_CENTER_Z + 2.5]} rotation={Math.PI / 2.5} scale={0.9} />

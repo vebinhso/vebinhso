@@ -1047,13 +1047,13 @@ function GamePage() {
     setRiverQuizResult(ok ? (en ? "✅ Correct!" : "✅ Chính xác!") : (en ? "❌ Not quite." : "❌ Chưa đúng rồi."));
     window.setTimeout(() => {
       if (riverQuiz.number >= 7) {
-        if (correct >= 5 && user) {
+        if (correct >= 7 && user) {
           const nextCount = lanternCount + 1;
           setLanternCount(nextCount);
           window.localStorage.setItem(`vebinhso_river_lanterns_${user.id}`, String(nextCount));
           flash(en ? `🏮 You got ${correct}/7 correct and earned one lantern!` : `🏮 Bạn đúng ${correct}/7 câu và nhận được 1 hoa đăng!`, 3500);
         } else {
-          flash(en ? `You got ${correct}/7. Get 5 correct to earn a lantern.` : `Bạn đúng ${correct}/7 câu. Cần đúng 5 câu để nhận hoa đăng.`, 3500);
+          flash(en ? `You got ${correct}/7. Get all 7 correct to earn a lantern.` : `Bạn đúng ${correct}/7 câu. Cần đúng cả 7 câu để nhận hoa đăng.`, 3500);
         }
         setRiverQuiz(null);
         setRiverQuizResult(null);

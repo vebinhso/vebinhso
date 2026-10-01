@@ -1431,8 +1431,8 @@ function GamePage() {
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 glass-card px-4 py-3 flex flex-col items-center gap-2 pointer-events-auto">
           <div className="text-sm font-black">{en ? "Choose what to do" : "Bạn muốn làm gì?"}</div>
           <div className="flex gap-2">
-            <button onClick={() => setPlayMode("edit")} className="toy-button toy-button-primary !text-sm">🛠️ {en ? "Edit house" : "Sửa nhà"}</button>
-            <button onClick={enterViewMode} className="toy-button !text-sm">👀 {en ? "Explore" : "Xem nhà"}</button>
+            <button onClick={() => setPlayMode("edit")} className="toy-button toy-button-primary !text-sm !px-5 !py-2 !rounded-full !border-b-[6px] !animate-none min-w-[10rem]">🛠️ {en ? "Edit house" : "Sửa nhà"}</button>
+            <button onClick={enterViewMode} className="toy-button !text-sm !px-5 !py-2 !rounded-full !border-b-[6px] min-w-[10rem]">👀 {en ? "Explore" : "Xem nhà"}</button>
           </div>
         </div>
       )}

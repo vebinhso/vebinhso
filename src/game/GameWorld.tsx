@@ -29,6 +29,8 @@ type Props = {
   wallMode: boolean;
   /** Khi có: bấm vào tường sẽ đổ sơn */
   onWallPaint?: (id: string) => void;
+  /** Đặt vật dán lên tường tại điểm bấm (toạ độ thế giới) */
+  onWallPlace?: (wallId: string, x: number, y: number, z: number) => void;
   wallPickA: string | null;
   roofMode: boolean;
   roofPicks: string[];
@@ -425,7 +427,7 @@ function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number;
   return merged;
 }
 
-function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[]; onPaint?: () => void }) {
+function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint, onPlaceAt }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[]; onPaint?: () => void; onPlaceAt?: (x: number, y: number, z: number) => void }) {
   const dx = w.bx - w.ax;
   const dz = w.bz - w.az;
   const len = Math.hypot(dx, dz);
@@ -447,7 +449,7 @@ function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint }: { w: 
     <meshStandardMaterial key={key} color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} transparent={dim} opacity={opacity} />
   );
   return (
-    <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }} onClick={onPaint && !dim ? (e) => { e.stopPropagation(); onPaint(); } : undefined}>
+    <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }} onClick={onPaint && !dim ? (e) => { e.stopPropagation(); onPaint(); } : (onPlaceAt && !dim ? (e) => { e.stopPropagation(); onPlaceAt(e.point.x, e.point.y, e.point.z); } : undefined)}>
       {cuts.length === 0 ? (
         <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
           <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
@@ -817,7 +819,7 @@ const Neighborhood = memo(function Neighborhood({
 });
 
 function PlotAndPlacement({
-  placed, walls, roofs, floors, wallColor, wallMode, onWallPaint, wallPickA, roofMode, roofPicks,
+  placed, walls, roofs, floors, wallColor, wallMode, onWallPaint, onWallPlace, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend,
@@ -911,6 +913,7 @@ function PlotAndPlacement({
           onRemove={() => onWallRemove(w.id)}
           placed={placed}
           onPaint={onWallPaint ? () => onWallPaint(w.id) : undefined}
+          onPlaceAt={onWallPlace && selected && !buildMode && !isDoorItem(selected.id) && !isWindowItem(selected.id) && !isRoof(selected.id) ? (x, y, z) => onWallPlace(w.id, x, y, z) : undefined}
         />
       ))}
 

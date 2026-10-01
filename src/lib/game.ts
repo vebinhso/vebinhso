@@ -140,7 +140,27 @@ function scheduleFlush(uid: string) {
     flushChain = flushChain.then(() => flushToDB(uid)).catch(() => { /* noop */ });
   }, 600);
 }
+// Mảng bản đồ (đồ, tường, mái, sàn) thuộc bản cũ trước khi tải xong từ máy chủ.
+// Nếu một màn hình giữ state cũ rồi lưu lại, ta giữ dữ liệu mới nhất thay vì ghi đè (tránh mất nội thất).
+const STALE_ARRAYS = new WeakSet<object>();
+function markStale(g: GameState) {
+  for (const a of [g.placed, g.walls, g.roofs, g.floors]) if (a) STALE_ARRAYS.add(a);
+}
+markStale(DEFAULT);
 export function saveGame(s: GameState) {
+  if (HYDRATED_UID && HYDRATED_UID === CACHE_UID) {
+    s = {
+      ...s,
+      placed: STALE_ARRAYS.has(s.placed) ? CACHE.placed : s.placed,
+      walls: STALE_ARRAYS.has(s.walls) ? CACHE.walls : s.walls,
+      roofs: STALE_ARRAYS.has(s.roofs) ? CACHE.roofs : s.roofs,
+      floors: STALE_ARRAYS.has(s.floors) ? CACHE.floors : s.floors,
+    };
+    // Bản đồ trước lần lưu này trở thành bản cũ.
+    for (const k of ["placed", "walls", "roofs", "floors"] as const) {
+      if (CACHE[k] !== s[k]) STALE_ARRAYS.add(CACHE[k]);
+    }
+  }
   CACHE = { ...s };
   const u = getCurrentUser();
   if (!u) return;
@@ -202,6 +222,8 @@ async function refreshFromDB(uid: string) {
     }));
   }
   if (CACHE_UID !== uid) return;
+  // Mọi bản sao trước thời điểm này là cũ: không được dùng để ghi đè bản đồ trên máy chủ.
+  markStale(CACHE);
   CACHE = next;
   persistLocal(uid);
   HYDRATED_UID = uid;

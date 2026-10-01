@@ -221,12 +221,12 @@ export function StandingFan() {
         ))}
         <group ref={spin}>
           {Array.from({ length: 7 }).map((_, i) => (
-            <mesh key={i} rotation-z={(i / 7) * Math.PI * 2} position={[0, 0, 0]}>
+            <group key={i} rotation-z={(i / 7) * Math.PI * 2}>
               <mesh position={[0.26, 0, 0]} rotation={[0.5, 0, 0.3]} scale={[1, 0.35, 0.05]}>
                 <sphereGeometry args={[0.24, 16, 10]} />
                 <M c="#f5f4f0" r={0.3} />
               </mesh>
-            </mesh>
+            </group>
           ))}
         </group>
         <mesh position={[0, 0, 0.16]} rotation-x={Math.PI / 2}>

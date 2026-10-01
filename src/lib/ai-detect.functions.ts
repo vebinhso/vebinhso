@@ -582,10 +582,12 @@ Với MỖI phát hiện, trả về hộp bao quanh theo TỌA ĐỘ PHẦN TR�
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"frame":0,"x":0,"y":0,"w":0,"h":0,"label":"tên ngắn ví dụ: Biển số xe","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên che/xoá gì trước khi đăng"]}
 riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+    const { loadSkillForCheck } = await import("./ai-skills.server");
+    const skill = await loadSkillForCheck("privacy_media");
     const parsed = await callGateway({
       model: "google/gemini-3.5-flash",
       messages: [
-        { role: "system", content: sys },
+        { role: "system", content: withSkill(sys, skill) },
         {
           role: "user",
           content: [
@@ -618,6 +620,8 @@ riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. T�
       findings,
       safeSigns: strArr(parsed.safeSigns),
       advice: strArr(parsed.advice),
+      skillKey: skill?.key ?? null,
+      skillVersion: skill?.version ?? null,
     };
   });
 
@@ -636,9 +640,11 @@ Hãy CHỈ RÕ từng đoạn chữ nguy hiểm bằng cách TRÍCH NGUYÊN VĂN
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"quote":"đoạn trích nguyên văn","label":"Số điện thoại","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên sửa/xoá gì trước khi đăng"],"safeVersion":"phiên bản viết lại đã che thông tin nhạy cảm"}
 Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+    const { loadSkillForCheck } = await import("./ai-skills.server");
+    const skill = await loadSkillForCheck("privacy_text");
     const parsed = await callGatewayVerified({
       messages: [
-        { role: "system", content: sys },
+        { role: "system", content: withSkill(sys, skill) },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
@@ -661,6 +667,8 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
       safeSigns: strArr(parsed.safeSigns),
       advice: strArr(parsed.advice),
       safeVersion: str(parsed.safeVersion, ""),
+      skillKey: skill?.key ?? null,
+      skillVersion: skill?.version ?? null,
     };
   });
 

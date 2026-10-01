@@ -534,14 +534,14 @@ function Home() {
                {en ? "💗 Thank you for playing VỆ BINH SỐ. Please complete this survey to help us understand and improve your experience." : "💗 Cảm ơn bạn vì đã trải nghiệm trò chơi Vệ Binh Số. Bạn vui lòng điền khảo sát để chúng mình hiểu rõ hơn về quá trình trải nghiệm trò chơi của bạn nhé!"}
             </p>
             <a
-              href="https://byvn.net/AnKf"
+              href="https://byvn.net/UijV"
               target="_blank"
               rel="noopener noreferrer"
               className="block text-center toy-button toy-button-primary mb-2"
             >
                🔗 {en ? "OPEN SURVEY" : "MỞ KHẢO SÁT"}
             </a>
-            <p className="text-[10px] text-center text-rose-600 break-all">https://byvn.net/AnKf</p>
+            <p className="text-[10px] text-center text-rose-600 break-all">https://byvn.net/UijV</p>
             <button onClick={() => setSurveyOpen(false)} className="toy-button w-full mt-3">
                {en ? "Close" : "Đóng"}
             </button>

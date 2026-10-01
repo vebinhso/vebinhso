@@ -41,6 +41,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useLocale } from "@/lib/locale";
+import { mixPaint, isWhite, colorName } from "@/lib/paint-mix";
+import { PaintBucketIcon } from "@/components/PaintBucketIcon";
 
 export const Route = createFileRoute("/game")({ component: GamePage });
 
@@ -118,6 +120,8 @@ function GamePage() {
 
   // Palette picker modal
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paintColor, setPaintColor] = useState<string | null>(null);
+  const [mixNote, setMixNote] = useState<string | null>(null);
 
   // Multi-floor
   const [activeFloor, setActiveFloor] = useState(0);
@@ -747,9 +751,41 @@ function GamePage() {
   };
 
   const pickPaletteColor = (hex: string) => {
-    setState({ ...state, wallColor: hex });
+    setPaintColor(hex);
     setPaletteOpen(false);
-    flash(en ? `🎨 New wall color: ${hex}` : `🎨 Màu tường mới: ${hex}`);
+    flash(en ? `🪣 Paint bucket filled (${colorName(hex, en)}) — click a wall to pour it` : `🪣 Đã chọn xô màu ${colorName(hex, en)} — bấm vào tường để đổ màu`, 2500);
+  };
+
+  const paintWall = (id: string) => {
+    if (!paintColor) return;
+    if (state.paint < 1) {
+      flash(en ? "❌ No paint buckets left — buy more in the shop (Materials)" : "❌ Hết xô sơn — mua thêm trong cửa hàng (Vật liệu)", 2500);
+      return;
+    }
+    const w = state.walls.find((x) => x.id === id);
+    if (!w) return;
+    const white = isWhite(paintColor);
+    const base = w.painted ? w.color : null;
+    let next = paintColor;
+    let note: string | null = null;
+    if (base && !white && base.toLowerCase() !== paintColor.toLowerCase()) {
+      next = mixPaint(base, paintColor);
+      const a = colorName(base, en), b = colorName(paintColor, en), c = colorName(next, en);
+      note = en
+        ? `${a} + ${b} = ${c}. If you want ${b}, use white first to return the wall to its original state, then try again.`
+        : `${a} + ${b} ra ${c}. Nếu bạn muốn màu ${b}, hãy sử dụng màu trắng để trở lại trạng thái ban đầu và thử lại.`;
+    }
+    setState({
+      ...state,
+      paint: state.paint - 1,
+      walls: state.walls.map((x) => x.id === id
+        ? (white ? { ...x, color: "#f5e6c8", painted: false } : { ...x, color: next, painted: true })
+        : x),
+    });
+    if (note) setMixNote(note);
+    else flash(white
+      ? (en ? "⚪ Wall returned to its original color" : "⚪ Tường đã trở lại trạng thái ban đầu")
+      : (en ? `🎨 Wall painted ${colorName(next, en)}` : `🎨 Đã tô tường màu ${colorName(next, en)}`));
   };
 
   const openQuestion = async () => {
@@ -933,6 +969,7 @@ function GamePage() {
           floors={state.floors}
           wallColor={state.wallColor}
           wallMode={wallMode}
+          onWallPaint={paintColor ? paintWall : undefined}
           wallPickA={wallPickA}
           roofMode={roofMode}
           roofPicks={roofPicks}
@@ -1198,8 +1235,8 @@ function GamePage() {
             </div>
           )}
           {state.ownedPalettes.length > 0 && (
-            <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3" style={{ background: state.wallColor }}>
-              🎨 {en ? "Wall color" : "Đổi màu tường"}
+            <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3 inline-flex items-center gap-1">
+              <PaintBucketIcon color={paintColor ?? "#f5e6c8"} size={20} /> {en ? "Wall color" : "Đổi màu tường"}
             </button>
           )}
             </div>
@@ -1534,6 +1571,28 @@ function GamePage() {
         </div>
       )}
 
+      {paintColor && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 glass-card px-3 py-2 flex items-center gap-2 text-xs font-bold max-w-[92vw]">
+          <PaintBucketIcon color={paintColor} size={40} />
+          <div>
+            <div>{en ? `Bucket: ${colorName(paintColor, en)}` : `Xô màu: ${colorName(paintColor, en)}`} • 🪣 {state.paint}</div>
+            <div className="opacity-80">{en ? "Click a wall to pour paint" : "Bấm vào tường để đổ màu"}</div>
+          </div>
+          <button onClick={() => setPaletteOpen(true)} className="toy-button !text-[10px] !py-1 !px-2">{en ? "Change" : "Đổi"}</button>
+          <button onClick={() => setPaintColor(null)} className="toy-button !text-[10px] !py-1 !px-2">✖</button>
+        </div>
+      )}
+
+      {mixNote && (
+        <div className="absolute inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={() => setMixNote(null)}>
+          <div className="glass-card max-w-md w-full p-5 text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="text-3xl mb-2">🎨</div>
+            <p className="font-bold mb-4">{mixNote}</p>
+            <button onClick={() => setMixNote(null)} className="toy-button toy-button-primary !text-sm !py-2 !px-4">OK</button>
+          </div>
+        </div>
+      )}
+
       {/* Palette modal */}
       {paletteOpen && (
         <div className="absolute inset-0 bg-black/60 z-40 flex items-center justify-center p-4" onClick={() => setPaletteOpen(false)}>
@@ -1542,7 +1601,10 @@ function GamePage() {
                <h2 className="text-2xl font-black">🎨 {en ? "WALL COLOR PALETTE" : "PALETTE MÀU TƯỜNG"}</h2>
                <button onClick={() => setPaletteOpen(false)} className="toy-button !text-xs !py-1 !px-3">{en ? "Close" : "Đóng"}</button>
             </div>
-             <p className="text-xs font-bold text-stone-700 mb-3">{en ? "Choose any color to paint new and existing walls." : "Chọn 1 ô màu bất kỳ để sơn cho các tường (tường mới và sẵn có)."}</p>
+             <p className="text-xs font-bold text-stone-700 mb-3">{en ? "Pick a color to fill your bucket, then click a wall to pour it. Each wall uses 1 paint bucket." : "Chọn màu cho xô sơn, rồi bấm vào tường để đổ màu. Mỗi lần đổ tốn 1 xô sơn."}</p>
+            <button onClick={() => pickPaletteColor("#ffffff")} className="toy-button !text-xs !py-2 !px-3 mb-3 inline-flex items-center gap-2">
+              <PaintBucketIcon color="#ffffff" size={24} /> {en ? "White — reset wall to original" : "Màu trắng — đưa tường về ban đầu"}
+            </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {WALL_PALETTES.map((p) => (
                 <div key={p.id} className="rounded-2xl p-3 bg-white/70 border border-white/80">

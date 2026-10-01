@@ -487,6 +487,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   onStartRiverQuiz,
   onReleaseLantern,
   showFriendLabels = false,
+  hideBuildings = false,
   dim = false,
 }: {
   friends?: FriendHouse[];
@@ -495,6 +496,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   onStartRiverQuiz?: () => void;
   onReleaseLantern?: (x: number, z: number) => void;
   showFriendLabels?: boolean;
+  hideBuildings?: boolean;
   dim?: boolean;
 }) {
   useEffect(() => {
@@ -546,7 +548,7 @@ export const HoiAnTown = memo(function HoiAnTown({
       <Road dir="z" c={SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />
       {/* Lối từ nhà mình ra đường chính */}
       <mesh geometry={G.box} material={M.walk} position={[0, 0.03, 12.5]} scale={[4, 0.04, 3]} />
-      {!dim && fs.map((friend, i) => {
+      {!dim && !hideBuildings && fs.map((friend, i) => {
         const slot = activeFriendSlots[i];
         if (!slot) return null;
         return (
@@ -558,7 +560,7 @@ export const HoiAnTown = memo(function HoiAnTown({
         </group>
         );
       })}
-      {!dim && shopSlots.map((s, i) => {
+      {!dim && !hideBuildings && shopSlots.map((s, i) => {
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
           >

@@ -8,13 +8,16 @@ import {
   getMyHouseSettings,
   updateHouseSettings,
   listMyFriendsForWhitelist,
+  searchHouseAccounts,
   getVisitableHouse,
   type FriendHouse,
   type HousePrivacy,
   type MyHouseSettings as MyHouseData,
+  type HouseSearchResult,
 } from "@/lib/friend-houses.functions";
 import { getCurrentUser } from "@/lib/auth";
 import { useLocale } from "@/lib/locale";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/friends-map")({
   component: FriendsMapPage,
@@ -61,6 +64,7 @@ function FriendsMapPage() {
   const mineFn = useServerFn(getMyHouseSettings);
   const updateFn = useServerFn(updateHouseSettings);
   const visitFn = useServerFn(getVisitableHouse);
+  const searchFn = useServerFn(searchHouseAccounts);
 
   const prefetchVisit = (ownerId: string) => {
     // Warm the 3D chunk + snapshot cache so entering a house feels instant.
@@ -138,6 +142,14 @@ function FriendsMapPage() {
 
   const [selected, setSelected] = useState<FriendHouse | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchQ = useQuery({
+    queryKey: ["house-account-search", searchTerm],
+    queryFn: () => searchFn({ data: { query: searchTerm } }),
+    enabled: searchTerm.length >= 2,
+    staleTime: 30_000,
+  });
 
   if (!me) {
     return (
@@ -171,6 +183,41 @@ function FriendsMapPage() {
         </span>
         <button onClick={() => setSettingsOpen(true)} className="toy-button !py-1 !text-xs">🔐 {en ? "Home access" : "Quyền vào nhà"}</button>
       </div>
+
+      <section className="mx-3 mb-3 sm:mx-4" aria-label={en ? "Search homes" : "Tìm nhà"}>
+        <form
+          className="flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setSearchTerm(searchInput.trim());
+          }}
+        >
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder={en ? "Search username or display name" : "Tìm tên tài khoản hoặc tên hiển thị"}
+            aria-label={en ? "Search accounts" : "Tìm tài khoản"}
+            className="min-w-0 flex-1 rounded-md border bg-background px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+          <Button type="submit" disabled={searchInput.trim().length < 2}>⌕ {en ? "Search" : "Tìm"}</Button>
+        </form>
+
+        {searchTerm.length >= 2 && (
+          <div className="mt-2 overflow-hidden rounded-md border bg-background shadow-sm">
+            {searchQ.isLoading && <p className="p-4 text-sm text-muted-foreground">{en ? "Searching…" : "Đang tìm…"}</p>}
+            {searchQ.isError && <p className="p-4 text-sm text-destructive">{en ? "Search is unavailable right now." : "Hiện chưa thể tìm kiếm."}</p>}
+            {!searchQ.isLoading && searchQ.data?.length === 0 && <p className="p-4 text-sm text-muted-foreground">{en ? "No matching account found." : "Không tìm thấy tài khoản phù hợp."}</p>}
+            {searchQ.data?.map((account) => (
+              <SearchHouseRow
+                key={account.user_id}
+                account={account}
+                onVisit={() => navigate({ to: "/visit/$ownerId", params: { ownerId: account.user_id } })}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
 
       <div
@@ -225,6 +272,27 @@ function FriendsMapPage() {
         />
       )}
     </main>
+  );
+}
+
+function SearchHouseRow({ account, onVisit }: { account: HouseSearchResult; onVisit: () => void }) {
+  const en = useLocale() === "en";
+  const isPublic = account.house_privacy === "public";
+  return (
+    <div className="flex items-center gap-3 border-b p-3 last:border-b-0">
+      {account.avatar_url ? (
+        <img src={account.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+      ) : (
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary font-black text-primary-foreground">{initial(account.username)}</span>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-black">{account.display_name || account.username}</p>
+        <p className="truncate text-xs text-muted-foreground">@{account.username} · {isPublic ? (en ? "Public home" : "Nhà công khai") : (en ? "Private home" : "Nhà riêng tư")}</p>
+      </div>
+      <Button type="button" size="sm" onClick={onVisit} disabled={!isPublic}>
+        {isPublic ? `🏠 ${en ? "View home" : "Xem nhà"}` : `🔒 ${en ? "Locked" : "Đã khóa"}`}
+      </Button>
+    </div>
   );
 }
 

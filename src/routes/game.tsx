@@ -145,7 +145,7 @@ function GamePage() {
   const [moveMode, setMoveMode] = useState(false);
   const [ceilingMount, setCeilingMount] = useState(false);
   const [viewMode, setViewMode] = useState<"free" | "top" | "front" | "wide">("free");
-  const [playMode, setPlayMode] = useState<"edit" | "view">("edit");
+  const [playMode, setPlayMode] = useState<"overview" | "edit" | "view">("overview");
   const enterViewMode = () => {
     setPlayMode("view"); setSelected(null); setShopOpen(false);
     setWallMode(false); setFloorMode(false); setRoofMode(false); setPaintColor(null);
@@ -1051,7 +1051,7 @@ function GamePage() {
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onWallPlace={handleWallPlace}
-          viewMode={playMode === "view" ? "eye" : viewMode}
+          viewMode={playMode === "view" ? "eye" : playMode === "overview" ? "top" : viewMode}
           dimTown={playMode === "edit"}
           onRemove={handleRemove}
           onPillarClick={onPillarClick}
@@ -1080,7 +1080,7 @@ function GamePage() {
              setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });
           }}
           onItemClick={(id, opts) => {
-            if (playMode === "view") return;
+            if (playMode !== "edit") return;
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;
@@ -1179,7 +1179,7 @@ function GamePage() {
           </div>
         </div>
 
-        <div className={`flex flex-col gap-2 pointer-events-auto items-end mt-12 ${playMode === "view" ? "hidden" : ""}`}>
+        <div className={`flex flex-col gap-2 pointer-events-auto items-end mt-12 ${playMode !== "edit" ? "hidden" : ""}`}>
           {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
             onClick={() => setThaoTacOpen((v) => !v)}
@@ -1390,6 +1390,7 @@ function GamePage() {
 
       <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 pointer-events-auto">
         <div className="glass-card p-1 flex flex-col gap-1 mb-1">
+          <button onClick={() => setPlayMode("overview")} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "overview" ? "toy-button-primary" : ""}`}>🗺️ {en ? "Map" : "Bản đồ"}</button>
           <button onClick={() => setPlayMode("edit")} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "edit" ? "toy-button-primary" : ""}`}>🛠️ {en ? "Edit" : "Sửa nhà"}</button>
           <button onClick={enterViewMode} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "view" ? "toy-button-primary" : ""}`}>👀 {en ? "Explore" : "Xem nhà"}</button>
         </div>
@@ -1408,6 +1409,16 @@ function GamePage() {
           </button>
         ))}
       </div>
+
+      {playMode === "overview" && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 glass-card px-4 py-3 flex flex-col items-center gap-2 pointer-events-auto">
+          <div className="text-sm font-black">{en ? "Choose what to do" : "Bạn muốn làm gì?"}</div>
+          <div className="flex gap-2">
+            <button onClick={() => setPlayMode("edit")} className="toy-button toy-button-primary !text-sm">🛠️ {en ? "Edit house" : "Sửa nhà"}</button>
+            <button onClick={enterViewMode} className="toy-button !text-sm">👀 {en ? "Explore" : "Xem nhà"}</button>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-44 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">

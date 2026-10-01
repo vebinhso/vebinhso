@@ -818,7 +818,7 @@ const Neighborhood = memo(function Neighborhood({
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]}>
         <planeGeometry args={[WORLD, WORLD]} />
-        <meshStandardMaterial color="#7fb95e" />
+        <meshStandardMaterial color="#b8b5af" />
       </mesh>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]}>
         <ringGeometry args={[innerHalf + 0.5, innerHalf + 2.5, 64]} />
@@ -868,7 +868,7 @@ function PlotAndPlacement({
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
-        <meshStandardMaterial color="#86c46c" />
+        <meshStandardMaterial color="#b8b5af" />
       </mesh>
       <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} dim={!!dimTown} />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>

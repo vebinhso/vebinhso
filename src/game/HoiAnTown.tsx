@@ -332,7 +332,7 @@ export const HoiAnTown = memo(function HoiAnTown({
 }) {
   useEffect(() => {
     const all = [...Object.values(M), ...wallMats, ...roofMats, ...Object.values(DM)];
-    for (const m of all) { m.transparent = dim; m.opacity = dim ? 0.28 : 1; m.depthWrite = !dim; m.needsUpdate = true; }
+    for (const m of all) { if (m.transparent) { m.transparent = false; m.opacity = 1; m.depthWrite = true; m.needsUpdate = true; } }
   }, [dim]);
   const slots = useMemo(() => buildSlots(), []);
   // Nhà bạn bè ở gần nhà mình nhất, nằm kế nhau dọc đường chính
@@ -353,7 +353,7 @@ export const HoiAnTown = memo(function HoiAnTown({
       <Road dir="z" c={SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />
       {/* Lối từ nhà mình ra đường chính */}
       <mesh geometry={G.box} material={M.walk} position={[0, 0.03, 12.5]} scale={[4, 0.04, 3]} />
-      {ordered.map((s, i) => {
+      {!dim && ordered.map((s, i) => {
         const friend = fs[i];
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
@@ -363,7 +363,7 @@ export const HoiAnTown = memo(function HoiAnTown({
           </group>
         );
       })}
-      {lanterns.map(([a, b], i) => <LanternString key={i} a={a} b={b} />)}
+      {!dim && lanterns.map(([a, b], i) => <LanternString key={i} a={a} b={b} />)}
     </group>
   );
 });

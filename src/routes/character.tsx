@@ -18,6 +18,9 @@ import { equippedBySlot } from "@/lib/accessories";
 import { AppearancePicker } from "@/components/AppearancePicker";
 import { FaceSvg } from "@/components/FaceSvg";
 import { bodyOf, exprOf, faceOf } from "@/lib/appearance";
+import { bottomOf, topOf } from "@/lib/clothes";
+import { ClothesDefs, RangerHelmet, TopEmblem, bottomFill, topFill } from "@/components/ClothesSvg";
+import { BottomShape, ClothesPicker } from "@/components/ClothesPicker";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -232,6 +235,8 @@ function CharacterPage() {
             />
           ) : tab === "look" ? (
             <AppearancePicker o={outfit} onChange={commitHair} />
+          ) : tab === "shirt" || tab === "pants" ? (
+            <ClothesPicker kind={tab === "shirt" ? "top" : "bottom"} o={outfit} onChange={commitHair} />
           ) : tab === "accessory" ? (
             <AccessoryPicker
               owned={outfit.accessoriesOwned}

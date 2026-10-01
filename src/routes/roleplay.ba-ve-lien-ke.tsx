@@ -358,9 +358,9 @@ function FilmPage() {
         <img
           src={FILM_POSTER}
           alt="Poster phim tương tác Món quà đắt nhất"
-          className="absolute inset-x-0 top-0 h-[62%] sm:h-[68%] w-full object-contain object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
+          className="absolute inset-0 w-full h-full object-cover object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
         />
-        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-black via-black/85 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black via-black/80 to-transparent" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-6 sm:pb-10 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-amber-300 mb-2 drop-shadow-lg">
             PHIM TƯƠNG TÁC · BÀI 5

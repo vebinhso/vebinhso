@@ -1026,6 +1026,97 @@ export function Speaker() {
   );
 }
 
+// TV soundbar set: long soundbar + wireless subwoofer + 2 surround speakers + remote
+export function SoundbarSet() {
+  const Satellite = ({ x, z, angle = 0 }: { x: number; z: number; angle?: number }) => (
+    <group position={[x, 0, z]} rotation={[0, angle, 0]}>
+      {/* Small rounded surround speaker */}
+      <RoundedBox args={[0.5, 0.34, 0.42]} radius={0.06} smoothness={4} castShadow receiveShadow position={[0, 0.19, 0]}>
+        <MStd color="#17171a" metalness={0.15} roughness={0.45} />
+      </RoundedBox>
+      {/* Fabric grille front */}
+      <RoundedBox args={[0.42, 0.26, 0.03]} radius={0.012} smoothness={3} position={[0, 0.19, 0.2]}>
+        <MStd color="#26262b" roughness={0.85} />
+      </RoundedBox>
+      {/* Tiny status LED */}
+      <mesh position={[0.14, 0.1, 0.215]}>
+        <sphereGeometry args={[0.012, 10, 8]} />
+        <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={1.4} />
+      </mesh>
+    </group>
+  );
+
+  return (
+    <group>
+      {/* Soundbar */}
+      <group position={[0, 0, 0]}>
+        <RoundedBox args={[3.4, 0.3, 0.42]} radius={0.06} smoothness={4} castShadow receiveShadow position={[0, 0.17, 0]}>
+          <MStd color="#141417" metalness={0.2} roughness={0.42} />
+        </RoundedBox>
+        {/* Grille texture strips */}
+        {Array.from({ length: 22 }, (_, i) => -1.55 + i * 0.148).map((gx) => (
+          <mesh key={gx} position={[gx, 0.17, 0.2]}>
+            <boxGeometry args={[0.02, 0.2, 0.012]} />
+            <MStd color="#2a2a30" roughness={0.9} />
+          </mesh>
+        ))}
+        {/* Top control buttons */}
+        {[-0.18, -0.06, 0.06, 0.18].map((bx) => (
+          <mesh key={bx} position={[bx, 0.325, 0]}>
+            <cylinderGeometry args={[0.035, 0.035, 0.015, 16]} />
+            <MStd color="#333338" metalness={0.4} roughness={0.35} />
+          </mesh>
+        ))}
+        {/* Front display dot */}
+        <mesh position={[0, 0.17, 0.215]}>
+          <sphereGeometry args={[0.014, 10, 8]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={1.2} />
+        </mesh>
+      </group>
+
+      {/* Wireless subwoofer */}
+      <group position={[1.6, 0, -0.9]}>
+        <RoundedBox args={[0.85, 1.25, 0.95]} radius={0.05} smoothness={4} castShadow receiveShadow position={[0, 0.68, 0]}>
+          <MStd color="#17171a" metalness={0.15} roughness={0.45} />
+        </RoundedBox>
+        {/* Front baffle */}
+        <RoundedBox args={[0.72, 1.1, 0.04]} radius={0.02} smoothness={3} position={[0, 0.68, 0.48]}>
+          <MStd color="#232327" roughness={0.7} />
+        </RoundedBox>
+        {/* Brand badge */}
+        <mesh position={[0, 0.32, 0.505]}>
+          <boxGeometry args={[0.14, 0.06, 0.012]} />
+          <MStd color="#4b4b52" metalness={0.6} roughness={0.3} />
+        </mesh>
+        {/* Feet */}
+        {[[-0.3, -0.35], [0.3, -0.35], [-0.3, 0.35], [0.3, 0.35]].map(([fx, fz]) => (
+          <mesh key={`${fx}-${fz}`} position={[fx, 0.035, fz]}>
+            <cylinderGeometry args={[0.05, 0.06, 0.07, 12]} />
+            <MStd color="#0c0c0e" roughness={0.6} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Surround satellites */}
+      <Satellite x={-2.1} z={0.25} angle={0.12} />
+      <Satellite x={2.1} z={0.25} angle={-0.12} />
+
+      {/* Remote control */}
+      <group position={[-0.7, 0, 0.75]} rotation={[0, 0.35, 0]}>
+        <RoundedBox args={[0.16, 0.035, 0.5]} radius={0.015} smoothness={3} castShadow position={[0, 0.02, 0]}>
+          <MStd color="#1c1c20" metalness={0.2} roughness={0.4} />
+        </RoundedBox>
+        {[-0.14, -0.05, 0.04, 0.13].map((bz, i) => (
+          <mesh key={bz} position={[0, 0.042, bz]}>
+            <cylinderGeometry args={[i === 0 ? 0.03 : 0.02, i === 0 ? 0.03 : 0.02, 0.012, 12]} />
+            <MStd color="#3a3a41" roughness={0.4} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
 export function Clock() {
   const ticks = Array.from({ length: 12 }, (_, i) => (i * Math.PI) / 6);
   return (
@@ -1811,6 +1902,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "fan": return <Fan />;
     case "ceilingfan": return <CeilingFan />;
     case "speaker": return <Speaker />;
+    case "soundbar": return <SoundbarSet />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;
     case "microwave": return <Microwave />;

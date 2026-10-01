@@ -80,6 +80,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Bị cản": "Blocked",
   "Bộ loa": "Speakers",
   "Loa karaoke": "Karaoke Speakers",
+  "Bộ loa TV": "TV Soundbar Set",
   "Cấp độ": "Level",
   "Ghế đá": "Stone Bench",
   "Giá cả": "Price",

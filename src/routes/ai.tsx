@@ -1350,9 +1350,9 @@ function AiPage() {
               {riskMode !== "text" && riskMediaResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(riskMediaResult.riskScore)}`}>
-                    {LEVEL_VI[riskMediaResult.level] ?? "Chưa xác định"}
+                    {(en ? LEVEL_EN : LEVEL_VI)[riskMediaResult.level] ?? (en ? "Unknown" : "Chưa xác định")}
                   </p>
-                  <Gauge value={riskMediaResult.riskScore} label="Rủi ro bị lộ thông tin nếu đăng công khai" />
+                  <Gauge value={riskMediaResult.riskScore} label={en ? "Privacy exposure risk if posted publicly" : "Rủi ro bị lộ thông tin nếu đăng công khai"} />
                   <p className="text-xs sm:text-sm font-bold">{riskMediaResult.summary}</p>
 
                   <div className="space-y-3">
@@ -1400,10 +1400,10 @@ function AiPage() {
                       ))}
                     </div>
                   )}
-                  <SignList title="Điều bạn đã làm tốt" items={riskMediaResult.safeSigns} tone="good" />
-                  <SignList title="Nên che / xoá trước khi đăng" items={riskMediaResult.advice} tone="info" />
+                  <SignList title={en ? "What you did well" : "Điều bạn đã làm tốt"} items={riskMediaResult.safeSigns} tone="good" />
+                  <SignList title={en ? "What to hide or remove before posting" : "Nên che / xoá trước khi đăng"} items={riskMediaResult.advice} tone="info" />
                   <p className="text-[10px] font-bold text-foreground">
-                    * Vị trí khoanh vùng do AI ước lượng — có thể lệch đôi chút.
+                    * {en ? "Highlighted positions are estimated by AI and may be slightly offset." : "Vị trí khoanh vùng do AI ước lượng — có thể lệch đôi chút."}
                   </p>
                 </div>
               )}
@@ -1411,9 +1411,9 @@ function AiPage() {
               {riskMode === "text" && riskTextResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(riskTextResult.riskScore)}`}>
-                    {LEVEL_VI[riskTextResult.level] ?? "Chưa xác định"}
+                    {(en ? LEVEL_EN : LEVEL_VI)[riskTextResult.level] ?? (en ? "Unknown" : "Chưa xác định")}
                   </p>
-                  <Gauge value={riskTextResult.riskScore} label="Rủi ro bị lộ thông tin nếu đăng công khai" />
+                  <Gauge value={riskTextResult.riskScore} label={en ? "Privacy exposure risk if posted publicly" : "Rủi ro bị lộ thông tin nếu đăng công khai"} />
                   <p className="text-xs sm:text-sm font-bold">{riskTextResult.summary}</p>
 
                   <div className="rounded-xl border-2 border-border/60 p-3 text-xs sm:text-sm font-bold leading-relaxed whitespace-pre-wrap">
@@ -1437,12 +1437,12 @@ function AiPage() {
                   )}
                   {riskTextResult.safeVersion && (
                     <div className="rounded-xl border-2 border-emerald-400 bg-emerald-50/60 p-3">
-                      <p className="text-xs font-black mb-1">✅ Bản viết lại an toàn hơn</p>
+                      <p className="text-xs font-black mb-1">✅ {en ? "Safer rewritten version" : "Bản viết lại an toàn hơn"}</p>
                       <p className="text-xs sm:text-sm font-bold whitespace-pre-wrap">{riskTextResult.safeVersion}</p>
                     </div>
                   )}
-                  <SignList title="Điều bạn đã làm tốt" items={riskTextResult.safeSigns} tone="good" />
-                  <SignList title="Nên sửa trước khi đăng" items={riskTextResult.advice} tone="info" />
+                  <SignList title={en ? "What you did well" : "Điều bạn đã làm tốt"} items={riskTextResult.safeSigns} tone="good" />
+                  <SignList title={en ? "What to revise before posting" : "Nên sửa trước khi đăng"} items={riskTextResult.advice} tone="info" />
                 </div>
               )}
             </div>

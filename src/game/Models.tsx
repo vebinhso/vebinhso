@@ -9,6 +9,7 @@ import * as X from "./ModelsExtra";
 import * as Y from "./ModelsExtra2";
 import * as Z from "./ModelsExtra3";
 import * as K from "./ModelsExtra4";
+import * as K6 from "./ModelsExtra6";
 import * as V from "./ModelsExtra5";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
@@ -1998,6 +1999,12 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "sink_double_steel": return <K.SinkDoubleSteel />;
     case "sink_black_smart": return <K.SinkBlackSmart />;
     case "dining_oak_set": return <K.OakDiningSet />;
+    case "speaker_full_black": return <K6.SpeakerFullBlack />;
+    case "gas_stove_glass": return <K6.GasStoveGlass />;
+    case "dining_square_set": return <K6.SquareDiningSet />;
+    case "dining_round_slat_set": return <K6.RoundSlatDiningSet />;
+    case "cooler_3door_glass": return <K6.DisplayCooler3Door />;
+    case "kitchen_wood_cabinet": return <K6.WoodenKitchenCabinet />;
     case "plant_paradise": return <Z.BirdParadisePot />;
     case "plant_terracotta": return <Z.TerracottaPlant />;
     case "sign_house": return <Z.HouseSign />;

@@ -221,9 +221,9 @@ function Home() {
   if (!ready || !user) return (
     <GameLayout>
       <div className="flex-1 grid place-items-center p-6">
-        <div className="flex flex-col items-center gap-3" role="status" aria-live="polite">
+        <div className="lp-delay flex flex-col items-center gap-3" role="status" aria-live="polite">
           <img src={houseAvatar.url} alt="" className="h-20 w-20 object-contain animate-pulse" />
-          <p className="font-black">{en ? "Loading your home…" : "Đang tải trang chính…"}</p>
+           <p className="font-black" suppressHydrationWarning>{en ? "Loading your home…" : "Đang tải trang chính…"}</p>
           <LoadingPercent light={false} />
         </div>
       </div>

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import RouteLoading from "@/components/RouteLoading";
-import { getCurrentUser, recordLoginDay, type Account } from "@/lib/auth";
+import { getCurrentUser, hydrateFromSession, recordLoginDay, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import {
   loadGame,
@@ -160,7 +160,11 @@ function GamePage() {
     }
     const u = getCurrentUser();
     if (!u) {
-      navigate({ to: "/login" });
+      // Máy mới / chưa có bộ nhớ đệm: thử khôi phục phiên đăng nhập trước khi chuyển sang trang đăng nhập.
+      hydrateFromSession().then((acc) => {
+        if (acc) window.location.reload();
+        else navigate({ to: "/login" });
+      }).catch(() => navigate({ to: "/login" }));
       return;
     }
     setUser(u);

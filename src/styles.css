@@ -290,3 +290,8 @@
 .lp-anim { animation: lp-bar 2.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards; }
 .lp-count { animation: lp-num 2.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards; counter-reset: lp var(--lp); }
 .lp-count::after { content: counter(lp) "%"; }
+
+/* Chỉ hiện màn tải khi thật sự chậm; tải nhanh thì vào thẳng trang */
+@keyframes lp-fade { to { opacity: 1; } }
+.lp-delay { opacity: 0; animation: lp-fade 0.2s ease-out 0.6s forwards; }
+.lp-delay .lp-anim, .lp-delay .lp-count { animation-delay: 0.6s; }

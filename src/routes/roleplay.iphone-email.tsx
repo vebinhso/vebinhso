@@ -373,22 +373,22 @@ function FilmPage() {
         />
         <img
           src={FILM_POSTER}
-          alt="Poster phim tương tác Món quà đắt nhất"
+          alt={en ? "Interactive film poster" : "Poster phim tương tác Món quà đắt nhất"}
           className="absolute inset-0 w-full h-full object-cover object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
         />
         <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black via-black/80 to-transparent" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-6 sm:pb-10 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-amber-300 mb-2 drop-shadow-lg">
-            PHIM TƯƠNG TÁC · BÀI 4
+            {en ? "INTERACTIVE FILM · LESSON 4" : "PHIM TƯƠNG TÁC · BÀI 4"}
           </p>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 leading-tight tracking-wide drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {filmCopy(locale, FILM_TITLE)}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái bẫy?
+            {en ? <>You play <b className="text-pink-300">L</b>. An email says you have won a phone — a lucky break or a trap?</> : <>Bạn vào vai <b className="text-pink-300">L</b>. Một email báo trúng thưởng điện thoại — cơ hội hay cái bẫy?</>}
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
-            Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+            {en ? "Turn on your speakers or wear headphones for the best experience ♡!" : "Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!"}
           </p>
 
           <button
@@ -921,9 +921,11 @@ function FilmPage() {
                   {filmCopy(locale, node.ending.title)}
                 </h2>
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[26vh] overflow-y-auto">
-                  {node.ending.lesson.includes("BÀI HỌC:")
-                    ? node.ending.lesson.slice(node.ending.lesson.indexOf("BÀI HỌC:"))
-                    : `BÀI HỌC:\n${filmCopy(locale, node.ending.lesson)}`}
+                  {(() => {
+                    const ls = filmCopy(locale, node.ending.lesson) ?? node.ending.lesson;
+                    const key = en ? (ls.includes("LESSONS:") ? "LESSONS:" : "LESSON:") : "BÀI HỌC:";
+                    return ls.includes(key) ? ls.slice(ls.indexOf(key)) : `${key}\n${ls}`;
+                  })()}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button

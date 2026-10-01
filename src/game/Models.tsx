@@ -308,19 +308,25 @@ export function TV({ w = 3, h = 1.5 }) {
         <MStd color="#123f34" metalness={0.05} roughness={0.17} emissive="#159447" emissiveIntensity={0.22} />
       </RoundedBox>
 
-      {/* Layered green leaf forms echo the picture displayed in the reference. */}
-      <mesh position={[-0.82, centerY - 0.02, 0.091]} rotation={[0, 0, 0.62]}>
-        <capsuleGeometry args={[0.22, 1.18, 8, 18]} />
-        <MStd color="#72d80e" roughness={0.32} emissive="#3c9b13" emissiveIntensity={0.16} />
-      </mesh>
-      <mesh position={[0.08, centerY + 0.02, 0.094]} rotation={[0, 0, 0.27]}>
-        <capsuleGeometry args={[0.18, 1.05, 8, 18]} />
-        <MStd color="#58c914" roughness={0.34} emissive="#2e8c15" emissiveIntensity={0.14} />
-      </mesh>
-      <mesh position={[0.9, centerY, 0.092]} rotation={[0, 0, -0.48]}>
-        <capsuleGeometry args={[0.24, 1.2, 8, 18]} />
-        <MStd color="#35a91a" roughness={0.36} emissive="#19751c" emissiveIntensity={0.12} />
-      </mesh>
+      {/* Flat 2D leaf picture displayed on the screen (not 3D objects). */}
+      {[
+        { x: -0.82, y: -0.02, r: 0.62, rad: 0.22, len: 1.18, c: "#72d80e", z: 0.0880 },
+        { x: 0.08, y: 0.02, r: 0.27, rad: 0.18, len: 1.05, c: "#58c914", z: 0.0884 },
+        { x: 0.9, y: 0, r: -0.48, rad: 0.24, len: 1.2, c: "#35a91a", z: 0.0888 },
+      ].map((l, i) => (
+        <group key={i} position={[l.x, centerY + l.y, l.z]} rotation={[0, 0, l.r]}>
+          <mesh>
+            <planeGeometry args={[l.rad * 2, l.len]} />
+            <meshBasicMaterial color={l.c} toneMapped={false} />
+          </mesh>
+          {[1, -1].map((s) => (
+            <mesh key={s} position={[0, (s * l.len) / 2, 0]}>
+              <circleGeometry args={[l.rad, 24]} />
+              <meshBasicMaterial color={l.c} toneMapped={false} />
+            </mesh>
+          ))}
+        </group>
+      ))}
 
       {/* Brushed-metal lower badge, power light and rear electronics housing. */}
       <RoundedBox args={[0.62, 0.045, 0.11]} radius={0.018} smoothness={3} position={[0, 0.275, 0.105]}>

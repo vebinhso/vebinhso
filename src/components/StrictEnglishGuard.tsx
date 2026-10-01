@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { useLocale } from "@/lib/locale";
-import { STRICT_ENGLISH_UI } from "@/lib/strict-english.generated";
+import { STRICT_ENGLISH_UI as BASE_UI } from "@/lib/strict-english.generated";
+import { ROLEPLAY_UI_EN } from "@/lib/roleplay-ui-en";
+
+const STRICT_ENGLISH_UI: Record<string, string> = { ...BASE_UI, ...ROLEPLAY_UI_EN };
 
 const ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
 const textState = new WeakMap<Node, { source: string; rendered: string }>();

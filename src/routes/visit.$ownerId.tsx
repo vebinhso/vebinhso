@@ -131,6 +131,7 @@ function VisitPage() {
           rotation={0}
           activeFloor={activeFloor}
           editingId={null}
+          isolatedHouseView
           {...emptyHandlers}
         />
       </Suspense>

@@ -17,6 +17,28 @@ export type FriendHouse = {
   in_house_owner: string | null;
 };
 
+export type HouseSearchResult = Pick<FriendHouse, "user_id" | "username" | "display_name" | "avatar_url" | "house_privacy" | "house_name">;
+
+export const searchHouseAccounts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { query: string }) => ({ query: String(input.query ?? "").trim().slice(0, 40) }))
+  .handler(async ({ data, context }): Promise<HouseSearchResult[]> => {
+    if (data.query.length < 2) return [];
+    const pattern = `%${data.query}%`;
+    const columns = "user_id, username, display_name, avatar_url, house_privacy, house_name";
+    const [byUsername, byDisplayName] = await Promise.all([
+      (context.supabase.from("profiles") as any).select(columns).ilike("username", pattern).limit(12),
+      (context.supabase.from("profiles") as any).select(columns).ilike("display_name", pattern).limit(12),
+    ]);
+    if (byUsername.error) throw new Error(byUsername.error.message);
+    if (byDisplayName.error) throw new Error(byDisplayName.error.message);
+    const unique = new Map<string, HouseSearchResult>();
+    for (const row of [...(byUsername.data ?? []), ...(byDisplayName.data ?? [])]) {
+      if (row.user_id !== context.userId) unique.set(row.user_id, row as HouseSearchResult);
+    }
+    return Array.from(unique.values()).slice(0, 12);
+  });
+
 export const listFriendHouses = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

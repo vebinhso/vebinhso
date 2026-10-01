@@ -75,6 +75,8 @@ type Props = {
   onStartRiverQuiz?: () => void;
   onReleaseLantern?: (x: number, z: number) => void;
   showFriendLabels?: boolean;
+  /** Giữ cảnh phố nhưng ẩn mọi căn nhà xung quanh khi xem một nhà riêng lẻ. */
+  isolatedHouseView?: boolean;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -794,6 +796,7 @@ function PlotAndPlacement({
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend, dimTown,
   releasedLanterns, onStartRiverQuiz, onReleaseLantern, showFriendLabels,
+  isolatedHouseView,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -836,6 +839,7 @@ function PlotAndPlacement({
         onStartRiverQuiz={onStartRiverQuiz}
         onReleaseLantern={onReleaseLantern}
         showFriendLabels={showFriendLabels}
+        hideBuildings={isolatedHouseView}
         dim={!!dimTown}
       />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>

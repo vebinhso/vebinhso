@@ -12,6 +12,7 @@ import * as THREE from "three";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { useLocale } from "@/lib/locale";
 import { HoiAnRiver, type ReleasedLantern } from "./HoiAnRiver";
+import { Button } from "@/components/ui/button";
 
 // Phố cổ kiểu Hội An: đường xám, dãy nhà vàng sát nhau, mái ngói nâu, đèn lồng.
 const ROAD = "#8f8b85";
@@ -293,6 +294,25 @@ function FriendSign({ friend, onClick }: { friend: FriendHouse; onClick?: () => 
   );
 }
 
+/** Nhãn lớn chỉ hiện ở góc nhìn khám phá từ trên cao. */
+function FriendMapLabel({ friend, onClick }: { friend: FriendHouse; onClick?: () => void }) {
+  const en = useLocale() === "en";
+  const name = friend.house_name || friend.display_name || friend.username;
+  return (
+    <Html position={[0, 8.2, 0]} center sprite distanceFactor={18} zIndexRange={[16, 1]}>
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={(event) => { event.stopPropagation(); onClick?.(); }}
+        className="pointer-events-auto h-8 max-w-44 gap-1.5 border-2 border-primary/50 bg-background/90 px-2.5 text-xs font-black shadow-lg backdrop-blur-sm"
+      >
+        <span aria-hidden="true">🏠</span>
+        <span className="max-w-36 truncate">{en ? `${name}'s house` : `Nhà của ${name}`}</span>
+      </Button>
+    </Html>
+  );
+}
+
 /** Đoạn đường xám + vỉa hè 2 bên. dir "x": chạy theo trục x tại z=c; "z": theo trục z tại x=c */
 function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; to: number }) {
   const len = to - from;
@@ -398,9 +418,20 @@ const MAIN_Z = 16;
 const BACK_Z = -24;
 const SIDE_X = 30;
 const EXT = 92;
-// Mảnh đất bạn bè (cùng cỡ nhà mình) bên kia đường chính, quay mặt ra đường
-const FRIEND_Z = MAIN_Z + 3 + 1.8 + 10.7;
-const FRIEND_XS = [0, -22, 22, -44, 44, -66, 66, -88, 88];
+// Mảnh đất bạn bè cùng cỡ nhà mình, rải theo nhiều tuyến đường thay vì thành một hàng.
+const FRIEND_SLOTS: Array<{ x: number; z: number; rot: number }> = [
+  { x: 0, z: 32.5, rot: Math.PI },
+  { x: -28, z: 32.5, rot: Math.PI },
+  { x: 28, z: 32.5, rot: Math.PI },
+  { x: -46.5, z: 2, rot: Math.PI / 2 },
+  { x: 46.5, z: -4, rot: -Math.PI / 2 },
+  { x: -46.5, z: -32, rot: Math.PI / 2 },
+  { x: 46.5, z: -38, rot: -Math.PI / 2 },
+  { x: -15, z: -40.5, rot: 0 },
+  { x: 15, z: -40.5, rot: 0 },
+  { x: -72, z: 32.5, rot: Math.PI },
+  { x: 72, z: 32.5, rot: Math.PI },
+];
 
 function buildSlots(): Slot[] {
   const slots: Slot[] = [];
@@ -437,6 +468,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   releasedLanterns,
   onStartRiverQuiz,
   onReleaseLantern,
+  showFriendLabels = false,
   dim = false,
 }: {
   friends?: FriendHouse[];
@@ -444,6 +476,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   releasedLanterns?: ReleasedLantern[];
   onStartRiverQuiz?: () => void;
   onReleaseLantern?: (x: number, z: number) => void;
+  showFriendLabels?: boolean;
   dim?: boolean;
 }) {
   useEffect(() => {
@@ -451,12 +484,11 @@ export const HoiAnTown = memo(function HoiAnTown({
     for (const m of all) { if (m.transparent) { m.transparent = false; m.opacity = 1; m.depthWrite = true; m.needsUpdate = true; } }
   }, [dim]);
   const slots = useMemo(() => buildSlots(), []);
-  // Nhà bạn bè ở gần nhà mình nhất, nằm kế nhau dọc đường chính
   const ordered = useMemo(() => [...slots].sort((a, b) => a.d2 - b.d2), [slots]);
   const fs = friends ?? [];
-  // Bỏ nhà phố trùng chỗ với mảnh đất bạn bè
-  const nFriend = Math.min(fs.length, FRIEND_XS.length);
-  const shopSlots = ordered.filter((s) => !FRIEND_XS.slice(0, nFriend).some((fx) => Math.abs(s.x - fx) < 10.5 + HW && Math.abs(s.z - FRIEND_Z) < 10.5 + HD));
+  const activeFriendSlots = FRIEND_SLOTS.slice(0, Math.min(fs.length, FRIEND_SLOTS.length));
+  // Chừa trọn mảnh đất 20×20 quanh mỗi nhà bạn để nhà phố không đè lên nhau.
+  const shopSlots = ordered.filter((s) => !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
   const lanterns: [number, number][][] = [];
   for (let x = -EXT + 6; x < EXT; x += 10) lanterns.push([[x, MAIN_Z - 4.6], [x + 3, MAIN_Z + 4.6]]);
   for (let z = BACK_Z - 26; z < MAIN_Z - 8; z += 12) {
@@ -496,20 +528,22 @@ export const HoiAnTown = memo(function HoiAnTown({
       <Road dir="z" c={SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />
       {/* Lối từ nhà mình ra đường chính */}
       <mesh geometry={G.box} material={M.walk} position={[0, 0.03, 12.5]} scale={[4, 0.04, 3]} />
-      {!dim && fs.slice(0, FRIEND_XS.length).map((friend, i) => (
-        <group key={friend.user_id} position={[FRIEND_XS[i], 0, FRIEND_Z]} rotation={[0, Math.PI, 0]}
+      {!dim && fs.slice(0, FRIEND_SLOTS.length).map((friend, i) => {
+        const slot = FRIEND_SLOTS[i];
+        return (
+        <group key={friend.user_id} position={[slot.x, 0, slot.z]} rotation={[0, slot.rot, 0]}
           onClick={(e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); }}>
           {i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <group scale={1.8}><DefaultHouse /></group>}
           <FriendSign friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />
+          {showFriendLabels && <FriendMapLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
         </group>
-      ))}
+        );
+      })}
       {!dim && shopSlots.map((s, i) => {
-        const friend = fs[FRIEND_XS.length + i];
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
-            onClick={friend ? (e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); } : undefined}>
-            {friend ? (i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <DefaultHouse />) : <ShopHouse seed={s.seed} />}
-            {friend && i < 4 && <FriendSign friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
+          >
+            <ShopHouse seed={s.seed} />
           </group>
         );
       })}

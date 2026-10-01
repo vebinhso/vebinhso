@@ -1174,6 +1174,7 @@ function GamePage() {
           sparkles={sparkles}
           onPlayerPos={handlePlayerPos}
           friendHouses={friendHousesQ.data as FriendHouse[] | undefined}
+          showFriendLabels={playMode === "view" && exploreView === "top"}
           onVisitFriend={(ownerId) => {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
              setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });

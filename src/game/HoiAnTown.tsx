@@ -296,6 +296,72 @@ function LanternString({ a, b }: { a: [number, number]; b: [number, number] }) {
   );
 }
 
+// Cột điện + dây điện kiểu phố cổ
+const POLE_MATS = {
+  rust: new THREE.MeshStandardMaterial({ color: "#7a4a32", roughness: 0.9 }),
+  box: new THREE.MeshStandardMaterial({ color: "#d8d4c8", roughness: 0.6 }),
+  wire: new THREE.MeshBasicMaterial({ color: "#1d1d1d" }),
+  red: new THREE.MeshStandardMaterial({ color: "#c8322b" }),
+  white: new THREE.MeshStandardMaterial({ color: "#f2f2f2" }),
+};
+const POLE_H = 7.5;
+function PowerPole({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh geometry={G.box} material={POLE_MATS.rust} position={[0, POLE_H / 2, 0]} scale={[0.35, POLE_H, 0.35]} />
+      {[2.5, 4.5, 6.3].map((y) => <mesh key={y} geometry={G.box} material={POLE_MATS.rust} position={[0, y, 0]} scale={[0.5, 0.06, 0.5]} />)}
+      <mesh geometry={G.box} material={POLE_MATS.rust} position={[0, POLE_H - 0.3, 0]} scale={[0.12, 0.12, 2.2]} />
+      <mesh geometry={G.box} material={POLE_MATS.box} position={[0.28, 3.4, 0]} scale={[0.2, 0.7, 0.45]} />
+      <mesh geometry={G.box} material={POLE_MATS.box} position={[0.28, 2.6, 0]} scale={[0.2, 0.5, 0.4]} />
+    </group>
+  );
+}
+function PowerWires({ a, b }: { a: [number, number]; b: [number, number] }) {
+  const dx = b[0] - a[0], dz = b[1] - a[1];
+  const len = Math.hypot(dx, dz), ang = Math.atan2(dx, dz);
+  const segs = 4;
+  return (
+    <group position={[a[0], 0, a[1]]} rotation={[0, ang, 0]}>
+      {[[-0.9, POLE_H - 0.3], [0, POLE_H - 0.3], [0.9, POLE_H - 0.3], [0.2, 5.8], [-0.2, 4.6]].map(([ox, y], w) =>
+        Array.from({ length: segs }).map((_, i) => {
+          const t0 = i / segs, t1 = (i + 1) / segs;
+          const sag = (t: number) => -(0.6 + w * 0.12) * 4 * t * (1 - t);
+          const y0 = y + sag(t0), y1 = y + sag(t1);
+          const sl = len / segs;
+          return <mesh key={w + "-" + i} geometry={G.box} material={POLE_MATS.wire}
+            position={[ox, (y0 + y1) / 2, (t0 + t1) / 2 * len]} rotation={[Math.atan2(y0 - y1, sl), 0, 0]} scale={[0.025, 0.025, Math.hypot(sl, y1 - y0)]} />;
+        }))}
+    </group>
+  );
+}
+
+// Biển tên đường (xanh dương, cột sọc đỏ trắng)
+const streetSignCache = new Map<string, THREE.MeshBasicMaterial>();
+function streetSignMat(text: string) {
+  let m = streetSignCache.get(text);
+  if (m) return m;
+  const c = document.createElement("canvas"); c.width = 256; c.height = 96;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#1f5fbf"; g.fillRect(0, 0, 256, 96);
+  g.strokeStyle = "#fff"; g.lineWidth = 6; g.strokeRect(8, 8, 240, 80);
+  g.fillStyle = "#fff"; g.font = "bold 38px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(text, 128, 50);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  m = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+  streetSignCache.set(text, m);
+  return m;
+}
+function StreetSign({ x, z, a, b }: { x: number; z: number; a: string; b?: string }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[0, 1, 2, 3, 4].map((i) => <mesh key={i} geometry={G.box} material={i % 2 ? POLE_MATS.white : POLE_MATS.red} position={[0, 0.3 + i * 0.6, 0]} scale={[0.14, 0.6, 0.14]} />)}
+      <mesh geometry={G.box} material={POLE_MATS.white} position={[0, 3.6, 0]} scale={[0.14, 1.2, 0.14]} />
+      <mesh geometry={G.plane ?? G.box} material={streetSignMat(a)} position={[0.85, 3.5, 0]} scale={[1.6, 0.6, G.plane ? 1 : 0.02]} />
+      {b && <mesh geometry={G.plane ?? G.box} material={streetSignMat(b)} position={[0, 3.95, 0.85]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 0.6, G.plane ? 1 : 0.02]} />}
+    </group>
+  );
+}
+
 // Bố cục đường: đường chính chạy ngang trước nhà mình, 2 đường dọc 2 bên, 1 đường ngang phía sau
 const MAIN_Z = 16;
 const BACK_Z = -24;
@@ -361,8 +427,32 @@ export const HoiAnTown = memo(function HoiAnTown({
     lanterns.push([[SIDE_X - 4.6, z], [SIDE_X + 4.6, z + 3]]);
   }
 
+  const poles: [number, number][] = [];
+  for (let x = -EXT + 2; x <= EXT; x += 16) if (Math.abs(x) > 4) poles.push([x, MAIN_Z - 4.3]);
+  const sidePoles: [number, number][][] = [-1, 1].map((sg) => {
+    const arr: [number, number][] = [];
+    for (let z = BACK_Z - 30; z < MAIN_Z - 8; z += 16) arr.push([sg * SIDE_X + sg * 4.3, z]);
+    return arr;
+  });
+  const signs: { x: number; z: number; a: string; b?: string }[] = [
+    { x: -SIDE_X - 4.3, z: MAIN_Z - 4.3, a: "Trần Phú", b: "Lê Lợi" },
+    { x: SIDE_X + 4.3, z: MAIN_Z - 4.3, a: "Trần Phú", b: "Nguyễn Huệ" },
+    { x: -SIDE_X + 4.3, z: BACK_Z + 4.3, a: "Bạch Đằng", b: "Lê Lợi" },
+    { x: SIDE_X - 4.3, z: BACK_Z + 4.3, a: "Bạch Đằng", b: "Nguyễn Huệ" },
+    { x: -EXT + 1, z: MAIN_Z + 4.3, a: "Trần Phú" },
+    { x: EXT - 1, z: MAIN_Z + 4.3, a: "Trần Phú" },
+    { x: -SIDE_X - 4.3, z: BACK_Z - 32, a: "Lê Lợi" },
+    { x: SIDE_X + 4.3, z: BACK_Z - 32, a: "Nguyễn Huệ" },
+  ];
+
   return (
     <group>
+      {!dim && poles.map(([x, z], i) => <PowerPole key={"p" + i} x={x} z={z} />)}
+      {!dim && poles.slice(1).map((p, i) => <PowerWires key={"w" + i} a={poles[i]} b={p} />)}
+      {!dim && sidePoles.map((arr, k) => arr.map(([x, z], i) => (
+        <group key={"sp" + k + i}><PowerPole x={x} z={z} />{i > 0 && <PowerWires a={arr[i - 1]} b={[x, z]} />}</group>
+      )))}
+      {!dim && signs.map((s, i) => <StreetSign key={"s" + i} {...s} />)}
       <Road dir="x" c={MAIN_Z} from={-EXT - 4} to={EXT + 4} />
       <Road dir="x" c={BACK_Z} from={-SIDE_X} to={SIDE_X} />
       <Road dir="z" c={-SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />

@@ -46,7 +46,7 @@ function translateUncached(value: string): string {
 
 function shouldSkip(node: Node): boolean {
   const parent = node.parentElement;
-  return !!parent?.closest("script,style,code,pre,[contenteditable='true'],[data-no-auto-translate]");
+  return !!parent?.closest("script,style,code,pre,canvas,svg,[contenteditable='true'],[data-no-auto-translate]");
 }
 
 function translateText(node: Text) {
@@ -84,8 +84,17 @@ function walk(root: Node) {
     return;
   }
   if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) return;
-  if (root instanceof Element) translateElement(root);
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+  if (root instanceof Element) {
+    const tag = root.tagName;
+    if (tag === "CANVAS" || tag === "svg" || tag === "SCRIPT" || tag === "STYLE") return;
+    translateElement(root);
+  }
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) =>
+      n.nodeType === Node.ELEMENT_NODE && /^(CANVAS|svg|SCRIPT|STYLE)$/.test((n as Element).tagName)
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT,
+  });
   let current = walker.nextNode();
   while (current) {
     if (current.nodeType === Node.TEXT_NODE) translateText(current as Text);
@@ -137,6 +146,8 @@ export function StrictEnglishGuard() {
       observer.disconnect();
       pending.forEach((n) => {
         if (!n.isConnected) return;
+        // Bỏ qua nút con khi nút cha cũng đang chờ dịch → không duyệt cây 2 lần.
+        for (let p = n.parentNode; p; p = p.parentNode) if (pending.has(p)) return;
         if (n.nodeType === Node.TEXT_NODE) translateText(n as Text);
         else if (n instanceof Element && n.childNodes.length === 0) translateElement(n);
         else walk(n);

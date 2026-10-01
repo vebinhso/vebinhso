@@ -711,7 +711,7 @@ export function Speaker() {
       ))}
 
       {/* Woofer: rubber surround, silver cone, dark dust cap. */}
-      <mesh position={[0, 0.53, 0.475]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh position={[0, 0.53, 0.475]} castShadow>
         <torusGeometry args={[0.27, 0.065, 16, 48]} />
         <MStd color="#3f3f46" metalness={0.34} roughness={0.3} />
       </mesh>
@@ -725,7 +725,7 @@ export function Speaker() {
       </mesh>
 
       {/* Mid driver, matching the reference's smaller upper cone. */}
-      <mesh position={[0, 1.14, 0.47]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh position={[0, 1.14, 0.47]} castShadow>
         <torusGeometry args={[0.18, 0.047, 14, 40]} />
         <MStd color="#52525b" metalness={0.45} roughness={0.28} />
       </mesh>
@@ -740,7 +740,7 @@ export function Speaker() {
 
       {/* Bass ports and visible fasteners. */}
       {[-0.29, 0.29].map((px) => (
-        <mesh key={`port-${px}`} position={[px, 1.36, 0.47]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh key={`port-${px}`} position={[px, 1.36, 0.47]}>
           <torusGeometry args={[0.038, 0.014, 10, 24]} />
           <MStd color="#a1a1aa" metalness={0.8} roughness={0.22} />
         </mesh>

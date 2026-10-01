@@ -1902,6 +1902,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "fan": return <Fan />;
     case "ceilingfan": return <CeilingFan />;
     case "speaker": return <Speaker />;
+    case "soundbar": return <SoundbarSet />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;
     case "microwave": return <Microwave />;

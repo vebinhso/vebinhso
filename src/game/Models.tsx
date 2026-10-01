@@ -11,6 +11,7 @@ import * as Z from "./ModelsExtra3";
 import * as K from "./ModelsExtra4";
 import * as K6 from "./ModelsExtra6";
 import * as K7 from "./ModelsExtra7";
+import { PolaroidFriendsPhoto } from "./ModelsPhoto";
 import * as V from "./ModelsExtra5";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
@@ -1989,6 +1990,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "door_black_glass": return <V.DoorBlackGlass placedId={placedId} />;
     case "window_awning_wood": return <V.WindowAwningWood />;
     case "window_casement_white": return <V.WindowCasementWhite />;
+    case "polaroid_friends": return <PolaroidFriendsPhoto />;
     case "window_french_tall": return <K7.WindowFrenchTallWhite />;
     case "window_triple_oak": return <K7.WindowTripleOakFrame />;
     case "curtain_gray_closed": return <V.CurtainGrayClosed />;

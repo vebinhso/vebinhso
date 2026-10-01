@@ -1236,7 +1236,7 @@ function GamePage() {
               >{en ? "Metal" : "Tôn"}</button>
             </div>
           )}
-          {state.ownedPalettes.length > 0 && (
+          {true && (
             <button onClick={() => setPaletteOpen(true)} className="toy-button !text-xs !py-2 !px-3 inline-flex items-center gap-1">
               <PaintBucketIcon color={paintColor ?? "#f5e6c8"} size={20} /> {en ? "Wall color" : "Đổi màu tường"}
             </button>

@@ -42,32 +42,106 @@ const roofMats = ROOFS.map((c) => new THREE.MeshStandardMaterial({ color: c, rou
 
 type Slot = { x: number; z: number; rot: number; seed: number; d2: number };
 
-/** Mặt tiền nhà (local +z là phía đường) */
+// Bảng hiệu kiểu Hội An: chữ Hán / tiệm Việt, nền gỗ đen chữ vàng, nền đỏ, nền trắng viền xanh...
+const SIGN_TEXTS = ["福建會館", "勝和號", "金山寺", "廣肇會館", "泉昌利", "興生李", "南發", "合元", "昌德", "益維", "Bánh Mì", "Bơ Vàng", "Tiệm Lồng Đèn", "Cà Phê", "Quà Lưu Niệm", "Vải Lụa"];
+const SIGN_STYLES = [
+  { bg: "#1f140c", fg: "#f2c14e", border: "#8a5a2b" },
+  { bg: "#a3201b", fg: "#f7d774", border: "#5a1410" },
+  { bg: "#f4efe2", fg: "#1c1c1c", border: "#2f6f8f" },
+  { bg: "#2c4a3a", fg: "#f2d57e", border: "#c79a3a" },
+  { bg: "#e9c46a", fg: "#7a1d12", border: "#7a1d12" },
+];
+const signMatCache = new Map<number, THREE.MeshBasicMaterial>();
+function signMat(seed: number) {
+  const key = seed % (SIGN_TEXTS.length * SIGN_STYLES.length);
+  let m = signMatCache.get(key);
+  if (m) return m;
+  const text = SIGN_TEXTS[key % SIGN_TEXTS.length];
+  const st = SIGN_STYLES[Math.floor(key / SIGN_TEXTS.length) % SIGN_STYLES.length];
+  const c = document.createElement("canvas");
+  c.width = 256; c.height = 64;
+  const g = c.getContext("2d")!;
+  g.fillStyle = st.border; g.fillRect(0, 0, 256, 64);
+  g.fillStyle = st.bg; g.fillRect(6, 6, 244, 52);
+  g.fillStyle = st.fg; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `bold ${text.length > 8 ? 26 : 36}px serif`;
+  g.fillText(text, 128, 34, 236);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  m = new THREE.MeshBasicMaterial({ map: tex });
+  signMatCache.set(key, m);
+  return m;
+}
+const EXTRA = {
+  flower: new THREE.MeshStandardMaterial({ color: "#d9468f", roughness: 0.8 }),
+  leaf: new THREE.MeshStandardMaterial({ color: "#3f7d3a", roughness: 0.9 }),
+  rail: new THREE.MeshStandardMaterial({ color: "#2a1a10", roughness: 0.8 }),
+  shutter: new THREE.MeshStandardMaterial({ color: "#2f6f5f", roughness: 0.8 }),
+  tile: new THREE.MeshStandardMaterial({ color: "#c0653a", roughness: 0.85 }),
+};
+const LANTERN_MATS = ["#f05a28", "#e8b62c", "#c2185b", "#7b3fa0", "#2e86c1"].map(
+  (c) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.45 }),
+);
+
+/** Mặt tiền nhà Hội An đa dạng (local +z là phía đường): to/nhỏ, 1–3 tầng, ban công, bảng hiệu, đèn lồng, hoa */
 function ShopHouse({ seed }: { seed: number }) {
   const wm = wallMats[seed % wallMats.length];
-  const rm = roofMats[seed % roofMats.length];
-  const two = seed % 3 === 0;
-  const h = two ? HH + 2 : HH;
+  const rm = roofMats[(seed >> 2) % roofMats.length];
+  const type = seed % 4; // 0 nhà ống nhỏ, 1 nhà 2 tầng ban công, 2 nhà rộng thấp, 3 nhà 3 tầng
+  const W = [4.2, 5.4, 7, 4.8][type];
+  const floors = [1, 2, 1, 3][type];
+  const h = floors * 2.6 + 0.6;
+  const D = HD;
+  const fz = D / 2 + 0.01;
+  const lm = LANTERN_MATS[seed % LANTERN_MATS.length];
+  const lm2 = LANTERN_MATS[(seed >> 3) % LANTERN_MATS.length];
+  const nLantern = 2 + (seed % 3);
   return (
     <group>
-      <mesh geometry={G.box} material={wm} position={[0, h / 2, 0]} scale={[HW - 0.1, h, HD]} />
-      {/* Mái ngói 2 mái */}
-      <mesh geometry={G.prism} material={rm} position={[0, h + 0.7, 0]} rotation={[0, 0, Math.PI / 2]} scale={[1.6, HW + 0.4, HD * 0.62]} />
-      {/* Mái hiên trước */}
-      <mesh geometry={G.box} material={rm} position={[0, 2.8, HD / 2 + 0.6]} rotation={[0.35, 0, 0]} scale={[HW, 0.12, 1.4]} />
-      {/* Cửa gỗ */}
-      <mesh geometry={G.box} material={M.door} position={[0, 1.15, HD / 2 + 0.01]} scale={[HW * 0.62, 2.3, 0.05]} />
+      <mesh geometry={G.box} material={wm} position={[0, h / 2, 0]} scale={[W, h, D]} />
+      {/* Mái ngói */}
+      <mesh geometry={G.prism} material={rm} position={[0, h + 0.6, 0]} rotation={[0, 0, Math.PI / 2]} scale={[1.4, W + 0.5, D * 0.6]} />
+      {/* Mái hiên tầng trệt */}
+      <mesh geometry={G.box} material={type === 1 ? EXTRA.tile : rm} position={[0, 2.75, D / 2 + 0.6]} rotation={[0.35, 0, 0]} scale={[W + 0.2, 0.12, 1.4]} />
+      {/* Cửa gỗ / cửa tiệm */}
+      <mesh geometry={G.box} material={M.door} position={[0, 1.1, fz]} scale={[W * (type === 2 ? 0.75 : 0.6), 2.2, 0.05]} />
       {/* Cột gỗ */}
-      <mesh geometry={G.box} material={M.wood} position={[-HW / 2 + 0.25, 1.3, HD / 2 + 1.1]} scale={[0.16, 2.6, 0.16]} />
-      <mesh geometry={G.box} material={M.wood} position={[HW / 2 - 0.25, 1.3, HD / 2 + 1.1]} scale={[0.16, 2.6, 0.16]} />
-      {/* Cửa sổ tầng trên */}
-      {two && <mesh geometry={G.box} material={M.wood} position={[0, h - 1.3, HD / 2 + 0.01]} scale={[HW * 0.5, 1, 0.05]} />}
-      {/* Đèn lồng dưới hiên */}
-      {seed % 2 === 0 && (
+      <mesh geometry={G.box} material={M.wood} position={[-W / 2 + 0.25, 1.3, D / 2 + 1.1]} scale={[0.16, 2.6, 0.16]} />
+      <mesh geometry={G.box} material={M.wood} position={[W / 2 - 0.25, 1.3, D / 2 + 1.1]} scale={[0.16, 2.6, 0.16]} />
+      {/* Bảng hiệu */}
+      <mesh geometry={G.box} material={signMat(seed)} position={[0, type === 2 ? 3.35 : 3.25, D / 2 + 0.08]} scale={[Math.min(W - 0.6, 4), 0.8, 0.08]} />
+      {/* Tầng trên: cửa chớp + ban công */}
+      {Array.from({ length: floors - 1 }).map((_, f) => {
+        const y = 2.6 * (f + 1) + 1.3;
+        return (
+          <group key={f}>
+            <mesh geometry={G.box} material={EXTRA.shutter} position={[-W * 0.22, y, fz]} scale={[W * 0.3, 1.2, 0.05]} />
+            <mesh geometry={G.box} material={EXTRA.shutter} position={[W * 0.22, y, fz]} scale={[W * 0.3, 1.2, 0.05]} />
+            {(type === 1 || f === 1) && (
+              <>
+                <mesh geometry={G.box} material={M.wood} position={[0, y - 0.7, D / 2 + 0.5]} scale={[W, 0.1, 1]} />
+                <mesh geometry={G.box} material={EXTRA.rail} position={[0, y - 0.35, D / 2 + 0.98]} scale={[W, 0.6, 0.05]} />
+                <mesh geometry={G.box} material={EXTRA.flower} position={[0, y - 0.15, D / 2 + 1.02]} scale={[W * 0.9, 0.25, 0.22]} />
+              </>
+            )}
+          </group>
+        );
+      })}
+      {/* Giàn hoa giấy trên mặt tiền */}
+      {seed % 3 === 0 && (
         <>
-          <mesh geometry={G.lantern} material={M.lantern} position={[-1.2, 2.2, HD / 2 + 1]} scale={[1, 1.25, 1]} />
-          <mesh geometry={G.lantern} material={M.lantern} position={[1.2, 2.2, HD / 2 + 1]} scale={[1, 1.25, 1]} />
+          <mesh geometry={G.box} material={EXTRA.leaf} position={[-W / 2 + 0.4, 2.2, D / 2 + 0.12]} scale={[0.6, 2.4, 0.2]} />
+          <mesh geometry={G.box} material={EXTRA.flower} position={[-W / 2 + 0.6, 3.2, D / 2 + 0.2]} scale={[1.2, 0.5, 0.25]} />
         </>
+      )}
+      {/* Đèn lồng nhiều màu dưới hiên */}
+      {Array.from({ length: nLantern }).map((_, i) => {
+        const x = -W / 2 + 0.6 + (i * (W - 1.2)) / Math.max(1, nLantern - 1);
+        return <mesh key={i} geometry={G.lantern} material={i % 2 ? lm2 : lm} position={[x, 2.2, D / 2 + 1]} scale={[1, 1.25, 1]} />;
+      })}
+      {/* Chậu cây trước nhà */}
+      {seed % 2 === 1 && (
+        <mesh geometry={G.box} material={EXTRA.leaf} position={[W / 2 - 0.5, 0.4, D / 2 + 1.6]} scale={[0.6, 0.8, 0.6]} />
       )}
     </group>
   );

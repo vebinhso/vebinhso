@@ -24,7 +24,7 @@ import {
 } from "@/lib/teacher";
 import { getStudentAnswerStats, type StudentAnswerStat } from "@/lib/teacher";
 import { getStudentAssignmentProgress, getStudentNoteTaskProgress, openClassFile, type StudentAssignmentRow, type StudentNoteTaskRow } from "@/lib/classroom-posts";
-import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, removeClassStudent, type JoinRequest } from "@/lib/teacher";
+import { getClassVisibility, setClassVisibility, listJoinRequests, decideJoinRequest, removeClassStudent, setParentConsent, type JoinRequest } from "@/lib/teacher";
 
 import { ImageUploadField } from "@/components/ImageUploadField";
 import { extractTextFromFile, parseQuestionsFromText } from "@/lib/question-file-parser";

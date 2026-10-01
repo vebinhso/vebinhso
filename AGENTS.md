@@ -8,3 +8,4 @@
 - AI Centre check→skill mapping lives in the ai_check_skill table (read server-side with a 60s cache), never in code, so admins can rewire skills without deploys.
 - AI result feedback is written only through server functions with the service client; tables stay admin-read-only and student attachments require both parent consent and a per-submission opt-in.
 - Render the playable and dressing-room avatar through one shared chibi character assembly, so body proportions, garment silhouettes and patterns stay identical everywhere.
+- Determine first-time character setup from the account-scoped character_outfit row, never device storage, so returning users skip setup on every device.

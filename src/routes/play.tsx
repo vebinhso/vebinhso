@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import RouteLoading from "@/components/RouteLoading";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
-import { loadOutfit } from "@/lib/character";
+import { hasSavedOutfit } from "@/lib/character";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/play")({ component: PlayPage });
@@ -19,7 +19,12 @@ function PlayPage() {
     const u = getCurrentUser();
     if (!u) { navigate({ to: "/login" }); return; }
     setUser(u);
-    setHasOutfit(!!loadOutfit());
+    hasSavedOutfit()
+      .then((saved) => {
+        if (!saved) { navigate({ to: "/character", replace: true }); return; }
+        setHasOutfit(true);
+      })
+      .catch(() => setHasOutfit(false));
     // Nạp trước phần nặng để vào bản đồ là chơi ngay, không khựng.
     const warm = () => {
       import("@/game/GameWorld").catch(() => {});
@@ -35,26 +40,7 @@ function PlayPage() {
     else window.setTimeout(warm, 300);
   }, [navigate]);
 
-  if (!user) return <RouteLoading />;
-
-  if (!hasOutfit) {
-    return (
-      <GameLayout showBack>
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="glass-card max-w-lg w-full p-8 text-center">
-            <div className="text-6xl mb-3">🧑‍🎨</div>
-            <h1 className="text-2xl font-black mb-2">{en ? "CREATE YOUR CHARACTER" : "TẠO NHÂN VẬT"}</h1>
-            <p className="font-bold text-muted-foreground mb-6">
-              {en ? "Design your character's outfit before entering the game." : "Trước khi vào game, hãy thiết kế bộ trang phục riêng cho nhân vật của bạn."}
-            </p>
-            <Link to="/character" className="toy-button toy-button-primary w-full !text-lg">
-              ✨ {en ? "Design outfit" : "Thiết kế trang phục"}
-            </Link>
-          </div>
-        </div>
-      </GameLayout>
-    );
-  }
+  if (!user || !hasOutfit) return <RouteLoading />;
 
   return (
     <GameLayout showBack>

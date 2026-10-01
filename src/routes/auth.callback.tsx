@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import LoadingPercent from "@/components/LoadingPercent";
 import { supabase } from "@/integrations/supabase/client";
+import { hydrateFromSession } from "@/lib/auth";
+import { hasSavedOutfit } from "@/lib/character";
 
 export const Route = createFileRoute("/auth/callback")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -17,10 +19,12 @@ function AuthCallbackPage() {
 
   useEffect(() => {
     let done = false;
-    const go = (path: string) => {
+    const go = async (path: string) => {
       if (done) return;
       done = true;
-      const target = path === "/" && next ? next : path;
+      if (path === "/") await hydrateFromSession();
+      const firstDestination = path === "/" && !(await hasSavedOutfit()) ? "/character" : path;
+      const target = firstDestination === "/" && next ? next : firstDestination;
       if (target !== "/" && next && target === next) {
         window.location.href = target;
         return;
@@ -29,18 +33,18 @@ function AuthCallbackPage() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) go("/");
+      if (event === "SIGNED_IN" && session) void go("/");
     });
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (error) { setError(error.message); return; }
-      if (data.session) go("/");
+      if (data.session) void go("/");
     });
 
     const t = setTimeout(() => {
       if (!done) {
         supabase.auth.getSession().then(({ data }) => {
-          go(data.session ? "/" : "/login");
+          void go(data.session ? "/" : "/login");
         });
       }
     }, 6000);

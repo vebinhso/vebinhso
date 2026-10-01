@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PasswordChecklist } from "@/components/PasswordChecklist";
 import { isPasswordValid } from "@/lib/password";
 import { useLocale } from "@/lib/locale";
+import { hasSavedOutfit } from "@/lib/character";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (s: Record<string, unknown>): { next?: string } => ({
@@ -130,7 +131,7 @@ function Login({ setView }: { setView: (v: View) => void }) {
     try {
       await signInWithPassword(email.trim(), password);
       if (next !== "/") { window.location.href = next; return; }
-      navigate({ to: "/" });
+      navigate({ to: (await hasSavedOutfit()) ? "/" : "/character" });
     } catch (e: any) {
       setError(e?.message || (en ? "Sign-in failed" : "Đăng nhập thất bại"));
     } finally { setBusy(false); }
@@ -207,12 +208,12 @@ function Register({ setView }: { setView: (v: View) => void }) {
         setSuccess(en ? "Teacher registration submitted. An administrator will review it before issuing a class code." : "Đã đăng ký giáo viên. Chờ quản trị viên duyệt để nhận mã lớp.");
         setTimeout(() => {
           if (next !== "/") { window.location.href = next; return; }
-          navigate({ to: "/" });
+          navigate({ to: "/character" });
         }, 1500);
         return;
       }
       if (next !== "/") { window.location.href = next; return; }
-      navigate({ to: "/" });
+      navigate({ to: "/character" });
     } catch (e: any) {
       setError(e?.message || (en ? "Registration failed" : "Đăng ký thất bại"));
     } finally { setBusy(false); }

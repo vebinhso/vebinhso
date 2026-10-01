@@ -5,7 +5,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 const CharacterPreview3D = lazy(() => import("@/game/CharacterPreview3D"));
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
-import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/character";
+import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, saveOutfitNow, type Outfit } from "@/lib/character";
 import { generateOutfit } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { PasteDropZone } from "@/components/PasteDropZone";
@@ -181,9 +181,17 @@ function CharacterPage() {
     }
   };
 
-  const handleSave = () => {
-    saveOutfit({ ...outfit, description: desc || outfit.description });
-    navigate({ to: "/play" });
+  const handleSave = async () => {
+    setErr(null);
+    setLoading(true);
+    try {
+      await saveOutfitNow({ ...outfit, description: desc || outfit.description });
+      navigate({ to: "/play" });
+    } catch (e: any) {
+      setErr(e?.message || (en ? "Unable to save your character." : "Không thể lưu nhân vật."));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

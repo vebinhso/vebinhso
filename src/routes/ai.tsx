@@ -1037,33 +1037,33 @@ function AiPage() {
                     {(en ? LEVEL_EN : LEVEL_VI)[phoneResult.level] ?? (en ? "Unknown" : "Chưa xác định")} · {(en ? PHONE_TYPE_EN : PHONE_TYPE_VI)[phoneResult.type] ?? phoneResult.type}
                   </p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    <InfoCell label="📱 Nhà mạng / loại số" value={phoneResult.lookup.carrier} />
-                    <InfoCell label="🌐 Nguồn gốc số" value={phoneResult.origin || phoneResult.lookup.note} />
-                    <InfoCell label="📍 Gọi đến từ" value={phoneResult.locationGuess || phoneResult.lookup.province} />
-                    <InfoCell label="🔢 Dạng quốc tế" value={phoneResult.lookup.e164} />
+                    <InfoCell label={en ? "📱 Carrier / number type" : "📱 Nhà mạng / loại số"} value={phoneResult.lookup.carrier} />
+                    <InfoCell label={en ? "🌐 Number origin" : "🌐 Nguồn gốc số"} value={phoneResult.origin || phoneResult.lookup.note} />
+                    <InfoCell label={en ? "📍 Calling from" : "📍 Gọi đến từ"} value={phoneResult.locationGuess || phoneResult.lookup.province} />
+                    <InfoCell label={en ? "🔢 International format" : "🔢 Dạng quốc tế"} value={phoneResult.lookup.e164} />
                     <InfoCell
-                      label="✅ Định dạng số"
-                      value={phoneResult.lookup.valid ? "Hợp lệ tại Việt Nam" : "Không khớp đầu số hợp lệ"}
+                      label={en ? "✅ Number format" : "✅ Định dạng số"}
+                      value={phoneResult.lookup.valid ? (en ? "Valid in Vietnam" : "Hợp lệ tại Việt Nam") : (en ? "Does not match a valid prefix" : "Không khớp đầu số hợp lệ")}
                     />
                     {phoneResult.strangerNote && (
-                      <InfoCell label="❓ Số lạ?" value={phoneResult.strangerNote} />
+                      <InfoCell label={en ? "❓ Unfamiliar number?" : "❓ Số lạ?"} value={phoneResult.strangerNote} />
                     )}
                   </div>
                   {phoneResult.scamCategoryLabel && (
                     <p className="text-[11px] sm:text-xs font-black text-destructive">
-                      🎣 Kịch bản thường gặp: {phoneResult.scamCategoryLabel}
+                      🎣 {en ? "Common scam pattern" : "Kịch bản thường gặp"}: {phoneResult.scamCategoryLabel}
                     </p>
                   )}
-                  <Gauge value={phoneResult.riskScore} label="Nguy cơ lừa đảo" />
-                  <Gauge value={phoneResult.fakeScore} label="Khả năng là số giả / số ảo" />
+                  <Gauge value={phoneResult.riskScore} label={en ? "Scam risk" : "Nguy cơ lừa đảo"} />
+                  <Gauge value={phoneResult.fakeScore} label={en ? "Fake / spoofed number likelihood" : "Khả năng là số giả / số ảo"} />
                   <p className="text-xs sm:text-sm font-bold">{phoneResult.summary}</p>
                   <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">{phoneResult.lookup.note}</p>
                   <p className="text-[11px] sm:text-xs font-bold text-muted-foreground">
-                    🚨 Đã có ai bị lừa từ số này chưa? {phoneResult.reportNote}
+                    🚨 {en ? "Has anyone reported being scammed by this number?" : "Đã có ai bị lừa từ số này chưa?"} {phoneResult.reportNote}
                   </p>
-                  <SignList title="Dấu hiệu đáng ngờ" items={phoneResult.redFlags} tone="bad" />
-                  <SignList title="Dấu hiệu bình thường" items={phoneResult.goodSigns} tone="good" />
-                  <SignList title="Nên làm gì" items={phoneResult.advice} tone="info" />
+                  <SignList title={en ? "Suspicious signs" : "Dấu hiệu đáng ngờ"} items={phoneResult.redFlags} tone="bad" />
+                  <SignList title={en ? "Normal signs" : "Dấu hiệu bình thường"} items={phoneResult.goodSigns} tone="good" />
+                  <SignList title={en ? "What to do" : "Nên làm gì"} items={phoneResult.advice} tone="info" />
                 </div>
               )}
             </div>

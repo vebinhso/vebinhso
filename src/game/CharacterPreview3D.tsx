@@ -5,6 +5,7 @@ import { bodyOf, faceOf } from "@/lib/appearance";
 import { equippedBySlot } from "@/lib/accessories";
 import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
 import { Hair3D } from "./Hair3D";
+import { Shoes3D } from "./Shoes3D";
 import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { bottomOf, topOf } from "@/lib/clothes";
 
@@ -34,12 +35,9 @@ function Figure({ o }: { o: Outfit }) {
               <meshStandardMaterial color={pants} />
             </mesh>
           )}
-          <mesh position={[x, 0.05, 0.04]} castShadow>
-            <boxGeometry args={[0.28, 0.1, 0.36]} />
-            <meshStandardMaterial color={o.shoes} />
-          </mesh>
         </group>
       ))}
+      <Shoes3D shoeStyle={o.shoeStyle} fallbackColor={o.shoes} />
       {skirt && (
         <mesh position={[0, bot!.kind === "longskirt" ? 0.42 : 0.56, 0]}>
           <cylinderGeometry args={[0.36, bot!.kind === "longskirt" ? 0.55 : 0.48, bot!.kind === "longskirt" ? 0.62 : 0.34, 20]} />

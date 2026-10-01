@@ -116,7 +116,7 @@ function CharacterPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const en = useLocale() === "en";
-  const [tab, setTab] = useState<"look" | "hair" | "shirt" | "pants" | "accessory">("hair");
+  const [tab, setTab] = useState<"look" | "hair" | "shirt" | "pants" | "shoes" | "accessory">("hair");
   const [preview, setPreview] = useState<{ style: HairStyleId; color: string } | null>(null);
   const currentHairStyle: HairStyleId = isHairStyle(outfit.hairStyle) ? outfit.hairStyle : DEFAULT_HAIR_STYLE;
   const shown: Outfit = preview ? { ...outfit, hairStyle: preview.style, hair: preview.color } : outfit;
@@ -225,13 +225,14 @@ function CharacterPage() {
             {view3d && <p className="absolute bottom-2 left-0 right-0 text-center text-xs font-bold text-foreground/70 pointer-events-none">{en ? "Drag to rotate · scroll to zoom" : "Kéo để xoay · cuộn để phóng to"}</p>}
           </div>
 
-          <div className="grid grid-cols-5 gap-2 mt-4">
+          <div className="grid grid-cols-6 gap-2 mt-4">
             {([
               ["look", en ? "Look" : "Ngoại hình"],
               ["hair", en ? "Hair" : "Tóc"],
               ["shirt", en ? "Shirt" : "Áo"],
               ["pants", en ? "Pants" : "Quần"],
-              ["accessory", en ? "Accessories" : "Phụ kiện"],
+              ["shoes", en ? "Shoes" : "Giày"],
+              ["accessory", en ? "Extras" : "Phụ kiện"],
             ] as const).map(([k, label]) => (
               <button key={k} type="button" onClick={() => setTab(k)}
                 className={`toy-button !text-sm py-2 ${tab === k ? "toy-button-primary" : ""}`}>{label}</button>
@@ -251,8 +252,8 @@ function CharacterPage() {
             />
           ) : tab === "look" ? (
             <AppearancePicker o={outfit} onChange={commitHair} />
-          ) : tab === "shirt" || tab === "pants" ? (
-            <ClothesPicker kind={tab === "shirt" ? "top" : "bottom"} o={outfit} onChange={commitHair} />
+          ) : tab === "shirt" || tab === "pants" || tab === "shoes" ? (
+            <ClothesPicker kind={tab === "shirt" ? "top" : tab === "shoes" ? "shoes" : "bottom"} o={outfit} onChange={commitHair} />
           ) : tab === "accessory" ? (
             <AccessoryPicker
               owned={outfit.accessoriesOwned}

@@ -726,16 +726,150 @@ export function Curtain() {
   );
 }
 
+// Vẽ tranh canvas "rừng tuyết" theo phong cách màu nước
+function drawWinterCanvas(): THREE.Texture | null {
+  if (typeof document === "undefined") return null;
+  const W = 1200, H = 800;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const g = cv.getContext("2d");
+  if (!g) return null;
+
+  // Bầu trời
+  const sky = g.createLinearGradient(0, 0, 0, H * 0.55);
+  sky.addColorStop(0, "#cfe2ee");
+  sky.addColorStop(1, "#e6f0f6");
+  g.fillStyle = sky; g.fillRect(0, 0, W, H);
+
+  // Đồi tuyết xa
+  const hill = (pts: number[][], color: string) => {
+    g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
+    g.closePath(); g.fillStyle = color; g.fill();
+  };
+  hill([[0, 460], [320, 430], [640, 350], [900, 300], [1200, 330], [1200, 800], [0, 800]], "#eaf2f8");
+
+  // Rặng thông
+  const pine = (x: number, y: number, s: number, c: string) => {
+    for (let k = 0; k < 3; k++) {
+      const yy = y - k * s * 0.42, ww = s * (0.62 - k * 0.14);
+      g.beginPath(); g.moveTo(x, yy - s * 0.75); g.lineTo(x - ww, yy); g.lineTo(x + ww, yy);
+      g.closePath(); g.fillStyle = c; g.fill();
+    }
+    g.fillStyle = "#f4f8fb";
+    g.beginPath(); g.moveTo(x, y - s * 1.52); g.lineTo(x - s * 0.17, y - s * 1.18); g.lineTo(x + s * 0.17, y - s * 1.18);
+    g.closePath(); g.fill();
+  };
+  const pineCols = ["#8fa8cb", "#6f8cba", "#5f7fb4", "#879fc6"];
+  for (let i = 0; i < 9; i++) pine(680 + i * 62, 380 - (i % 3) * 14, 78, pineCols[i % 4]);
+  for (let i = 0; i < 5; i++) pine(470 + i * 54, 520 - (i % 2) * 10, 62, "#b9cada");
+
+  // Các dải tuyết / bóng xanh
+  hill([[0, 620], [300, 585], [700, 520], [1200, 470], [1200, 800], [0, 800]], "#f2f7fb");
+  hill([[0, 700], [260, 660], [620, 600], [1200, 560], [1200, 800], [0, 800]], "#cfe0f0");
+  hill([[0, 790], [340, 735], [760, 690], [1200, 660], [1200, 800], [0, 800]], "#9dc0e0");
+  hill([[0, 560], [180, 585], [330, 660], [120, 760], [0, 760]], "#7fb0da");
+  hill([[860, 560], [1200, 540], [1200, 700], [900, 690]], "#8fb9df");
+
+  // Lối đi tuyết uốn lượn
+  g.beginPath();
+  g.moveTo(420, 800);
+  g.bezierCurveTo(520, 700, 680, 690, 700, 600);
+  g.bezierCurveTo(715, 530, 660, 500, 640, 470);
+  g.lineWidth = 56; g.lineCap = "round";
+  g.strokeStyle = "#f6fafd"; g.stroke();
+  g.lineWidth = 26; g.strokeStyle = "#ffffff"; g.stroke();
+
+  // Tán cây tròn (xanh xám + cam đất)
+  const blob = (x: number, y: number, rx: number, ry: number, c: string) => {
+    g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = c; g.fill();
+  };
+  // Cây trơ cành
+  const bare = (x: number, base: number, hgt: number, wdt: number) => {
+    g.strokeStyle = "#2b3a60"; g.lineCap = "round";
+    g.lineWidth = wdt; g.beginPath(); g.moveTo(x, base); g.lineTo(x, base - hgt); g.stroke();
+    g.lineWidth = Math.max(2, wdt * 0.55);
+    for (let i = 0; i < 5; i++) {
+      const yy = base - hgt * (0.45 + i * 0.12);
+      const dir = i % 2 === 0 ? -1 : 1;
+      g.beginPath(); g.moveTo(x, yy); g.lineTo(x + dir * hgt * 0.22, yy - hgt * 0.16); g.stroke();
+      g.beginPath(); g.moveTo(x + dir * hgt * 0.12, yy - hgt * 0.085);
+      g.lineTo(x + dir * hgt * 0.2, yy - hgt * 0.24); g.stroke();
+    }
+  };
+  blob(360, 640, 72, 96, "#e7a187");
+  bare(360, 740, 190, 8);
+  blob(470, 600, 80, 104, "#9fb3cc");
+  bare(470, 720, 215, 9);
+  blob(560, 570, 86, 112, "#7f9ac0");
+  bare(558, 712, 240, 10);
+  blob(760, 575, 62, 74, "#9db1c8");
+  bare(760, 670, 150, 7);
+  blob(950, 540, 86, 110, "#e3a083");
+  bare(950, 700, 230, 10);
+  blob(200, 520, 70, 92, "#e9ab93");
+
+  // Hai thân cây lớn tiền cảnh
+  g.strokeStyle = "#263250"; g.lineCap = "round";
+  g.lineWidth = 26; g.beginPath(); g.moveTo(275, 800); g.bezierCurveTo(268, 500, 300, 330, 318, 180); g.stroke();
+  g.lineWidth = 12;
+  g.beginPath(); g.moveTo(300, 360); g.lineTo(195, 262); g.stroke();
+  g.beginPath(); g.moveTo(306, 310); g.lineTo(404, 212); g.stroke();
+  g.beginPath(); g.moveTo(290, 470); g.lineTo(188, 430); g.stroke();
+  g.lineWidth = 22; g.beginPath(); g.moveTo(1040, 800); g.bezierCurveTo(1036, 520, 1046, 320, 1052, 150); g.stroke();
+  g.lineWidth = 10;
+  g.beginPath(); g.moveTo(1046, 380); g.lineTo(1136, 300); g.stroke();
+  g.beginPath(); g.moveTo(1044, 520); g.lineTo(960, 470); g.stroke();
+
+  // Người nhỏ trên lối đi
+  g.fillStyle = "#e9bd86";
+  g.beginPath(); g.ellipse(556, 700, 13, 15, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#26304e";
+  g.beginPath(); g.moveTo(543, 712); g.lineTo(569, 712); g.lineTo(576, 772); g.lineTo(536, 772); g.closePath(); g.fill();
+  g.fillRect(547, 770, 6, 22); g.fillRect(560, 770, 6, 22);
+
+  // Hạt tuyết rơi
+  g.fillStyle = "rgba(255,255,255,0.85)";
+  for (let i = 0; i < 260; i++) {
+    const x = Math.random() * W, y = Math.random() * H * 0.8, r = Math.random() * 2.2 + 0.6;
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
 export function Painting({ w = 2 }) {
+  const tex = useMemo(() => drawWinterCanvas(), []);
+  const h = w * 0.66;
+  const depth = 0.12;
   return (
-    <group>
-      <mesh castShadow position={[0, 1, 0]}>
-        <boxGeometry args={[w, 1.2, 0.08]} />
-        <MStd color="#fbbf24" roughness={0.4} />
+    <group position={[0, 1.05, 0]}>
+      {/* Khung canvas bọc vải (gallery wrap) */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[w, h, depth]} />
+        <MStd color="#e8eef3" roughness={0.92} />
       </mesh>
-      <mesh position={[0, 1, 0.05]}>
-        <boxGeometry args={[w - 0.2, 1, 0.02]} />
-        <MStd color="#60a5fa" emissive="#1e3a8a" emissiveIntensity={0.2} />
+      {/* Mặt tranh */}
+      <mesh position={[0, 0, depth / 2 + 0.002]}>
+        <planeGeometry args={[w, h]} />
+        <meshStandardMaterial map={tex ?? undefined} color={tex ? "#ffffff" : "#bcd6e8"} roughness={0.85} metalness={0} />
+      </mesh>
+      {/* Mép vải cuộn cạnh trái/phải */}
+      <mesh position={[-w / 2 - 0.001, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[depth, h]} />
+        <MStd color="#aebfd0" roughness={0.9} />
+      </mesh>
+      <mesh position={[w / 2 + 0.001, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[depth, h]} />
+        <MStd color="#c7d6e3" roughness={0.9} />
+      </mesh>
+      {/* Bóng đổ nhẹ phía sau */}
+      <mesh position={[0, 0, -depth / 2 - 0.004]}>
+        <planeGeometry args={[w * 0.98, h * 0.98]} />
+        <MStd color="#94a3b8" roughness={1} />
       </mesh>
     </group>
   );

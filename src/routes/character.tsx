@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import houseAvatar from "@/assets/house-avatar.png.asset.json";
 import { GameLayout } from "@/components/GameLayout";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+const CharacterPreview3D = lazy(() => import("@/game/CharacterPreview3D"));
 import { useServerFn } from "@tanstack/react-start";
 import { getCurrentUser } from "@/lib/auth";
 import { DEFAULT_OUTFIT, loadOutfit, saveOutfit, type Outfit } from "@/lib/character";
@@ -107,6 +108,9 @@ function CharacterPage() {
   const [desc, setDesc] = useState("");
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
   const [loading, setLoading] = useState(false);
+  const [view3d, setView3d] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [err, setErr] = useState<string | null>(null);
   const gen = useServerFn(generateOutfit);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -207,7 +211,19 @@ function CharacterPage() {
             <p className="text-xs font-bold text-muted-foreground">Ảnh tối đa 2MB · JPG, PNG</p>
           </div>
 
-          <PreviewCharacter o={shown} />
+          <div className="relative">
+            {view3d && mounted ? (
+              <div className="h-72 bg-gradient-to-b from-sky-200 to-emerald-200 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing">
+                <Suspense fallback={<PreviewCharacter o={shown} />}>
+                  <CharacterPreview3D o={shown} />
+                </Suspense>
+              </div>
+            ) : <PreviewCharacter o={shown} />}
+            <button type="button" onClick={() => setView3d((v) => !v)} className="absolute top-2 right-2 toy-button !text-xs py-1 px-3">
+              {view3d ? "2D" : "3D"}
+            </button>
+            {view3d && <p className="absolute bottom-2 left-0 right-0 text-center text-xs font-bold text-foreground/70 pointer-events-none">{en ? "Drag to rotate · scroll to zoom" : "Kéo để xoay · cuộn để phóng to"}</p>}
+          </div>
 
           <div className="grid grid-cols-5 gap-2 mt-4">
             {([

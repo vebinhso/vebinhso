@@ -282,3 +282,11 @@
   100% { transform: translateX(160vw) skewX(-12deg); opacity: 0; }
 }
 
+
+/* Thanh tải chạy ngay cả trước khi JS sẵn sàng (không đứng ở 0%) */
+@property --lp { syntax: "<integer>"; inherits: false; initial-value: 0; }
+@keyframes lp-bar { from { transform: scaleX(0); } to { transform: scaleX(0.85); } }
+@keyframes lp-num { from { --lp: 0; } to { --lp: 85; } }
+.lp-anim { animation: lp-bar 2.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards; }
+.lp-count { animation: lp-num 2.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards; counter-reset: lp var(--lp); }
+.lp-count::after { content: counter(lp) "%"; }

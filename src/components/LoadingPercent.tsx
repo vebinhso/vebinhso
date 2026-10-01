@@ -65,23 +65,32 @@ export function LoadingPercent({
   doneRef.current = done;
 
   useEffect(() => {
+    const now = () => performance.now();
     let raf = 0;
     let last = performance.now();
-    let value = 0;
+    // Tiếp tục từ chỗ thanh CSS đã chạy trước khi JS sẵn sàng (không quay về 0%).
+    let value = autoRef.current ? Math.min(85, 85 * (1 - Math.exp(-now() / 900))) : 0;
     let shown = -1;
+    barRef.current?.classList.remove("lp-anim");
+    textRef.current?.classList.remove("lp-count");
 
     const tick = (now: number) => {
       const dt = Math.min(80, now - last);
       last = now;
 
-      const goal = autoRef.current ? (doneRef.current ? 100 : 99) : target.current;
+      // Tiến độ thật: số tài nguyên trang đã tải + trạng thái tài liệu
+      let real = 0;
+      if (autoRef.current && typeof document !== "undefined") {
+        real = document.readyState === "complete" ? 92 : document.readyState === "interactive" ? 70 : 40;
+      }
+      const goal = autoRef.current ? (doneRef.current ? 100 : Math.max(real, 99)) : target.current;
       if (doneRef.current) {
         // Khi tác vụ đã hoàn tất phải hiện đúng 100% ngay, tránh bị tháo khỏi DOM ở 98–99%.
         value = 100;
       } else {
         const remaining = goal - value;
         // tiến nhanh lúc đầu, bò chậm dần ở cuối để không đứng yên một chỗ
-        const ease = value < 70 ? 240 : value < 90 ? 900 : 3200;
+        const ease = value < real ? 120 : value < 70 ? 180 : value < 90 ? 600 : 2200;
         value += remaining * Math.min(1, dt / ease);
       }
       if (value < 0) value = 0;
@@ -106,20 +115,21 @@ export function LoadingPercent({
       <div className="relative h-5 w-full">
          <div ref={labelRef} className="absolute top-0 left-0 will-change-[left]">
           <span
-            className={`inline-block -translate-x-1/2 rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums shadow ${
+            className={`${auto ? "lp-count " : ""}inline-block -translate-x-1/2 rounded-full px-2 py-0.5 text-[11px] font-black tabular-nums shadow ${
               light ? "bg-white text-slate-800" : "bg-primary text-primary-foreground"
             }`}
             ref={textRef}
+            data-auto={auto ? "1" : undefined}
           >
-            0%
+            {auto ? "" : "0%"}
           </span>
         </div>
       </div>
       <div className={`h-2.5 w-full overflow-hidden rounded-full ${light ? "bg-white/30" : "bg-foreground/15"}`}>
         <div
           ref={barRef}
-          className={`h-full w-full origin-left rounded-full will-change-transform ${light ? "bg-white" : "bg-primary"}`}
-          style={{ transform: "scaleX(0)" }}
+          className={`${auto ? "lp-anim " : ""}h-full w-full origin-left rounded-full will-change-transform ${light ? "bg-white" : "bg-primary"}`}
+          style={auto ? undefined : { transform: "scaleX(0)" }}
         />
       </div>
     </div>

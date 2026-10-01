@@ -16,7 +16,7 @@ export function WorldLoadingOverlay({ label }: { label?: string }) {
 
   // Nếu một tài nguyên lỗi hoặc mạng chậm, không được kẹt màn hình tải mãi.
   useEffect(() => {
-    const id = window.setTimeout(() => setTimedOut(true), 6000);
+    const id = window.setTimeout(() => setTimedOut(true), 4000);
     return () => window.clearTimeout(id);
   }, []);
 
@@ -33,7 +33,7 @@ export function WorldLoadingOverlay({ label }: { label?: string }) {
   }, [done]);
 
   if (hidden) return null;
-  const pct = finished ? 100 : total === 0 ? 90 : Math.min(99, Math.max(5, Math.floor(progress)));
+  const pct = finished ? 100 : total === 0 ? 30 : Math.min(99, Math.max(5, Math.floor((loaded / Math.max(1,total)) * 100)));
 
 
   return (

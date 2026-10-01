@@ -544,7 +544,7 @@ function AiPage() {
     setRiskMediaResult(null);
     if (riskMode === "image") {
       if (!riskImages.length) {
-        setError("Hãy chọn hoặc dán một ảnh trước.");
+        setError(en ? "Please select or paste an image first." : "Hãy chọn hoặc dán một ảnh trước.");
         return;
       }
       const r = await withProgress(
@@ -555,7 +555,7 @@ function AiPage() {
       return;
     }
     if (!riskVideoFile) {
-      setError("Hãy chọn một video trước.");
+      setError(en ? "Please select a video first." : "Hãy chọn một video trước.");
       return;
     }
     const r = await withProgress(
@@ -585,15 +585,15 @@ function AiPage() {
     setError(null);
     setRiskMediaResult(null);
     if (riskMode === "image") {
-      if (!f.type.startsWith("image/")) return setError("Chỉ nhận tệp ảnh.");
-      if (f.size > MAX_IMG) return setError("Ảnh quá lớn (tối đa 5MB).");
+      if (!f.type.startsWith("image/")) return setError(en ? "Only image files are accepted." : "Chỉ nhận tệp ảnh.");
+      if (f.size > MAX_IMG) return setError(en ? "The image is too large (maximum 5MB)." : "Ảnh quá lớn (tối đa 5MB).");
       const reader = new FileReader();
       reader.onload = () => setRiskImages([String(reader.result || "")]);
       reader.readAsDataURL(f);
       return;
     }
-    if (!f.type.startsWith("video/")) return setError("Chỉ nhận tệp video.");
-    if (f.size > MAX_VID) return setError("Video quá lớn (tối đa 60MB).");
+    if (!f.type.startsWith("video/")) return setError(en ? "Only video files are accepted." : "Chỉ nhận tệp video.");
+    if (f.size > MAX_VID) return setError(en ? "The video is too large (maximum 60MB)." : "Video quá lớn (tối đa 60MB).");
     setRiskImages([]);
     setRiskVideoFile(f);
     setRiskVideoUrl(URL.createObjectURL(f));
@@ -1374,7 +1374,7 @@ function AiPage() {
                       if (riskImages.length > 1 && !boxes.length) return null;
                       return (
                         <div key={fi} className="relative inline-block w-full">
-                          <img src={src} alt={`Khung hình ${fi + 1}`} className="w-full rounded-xl" />
+                          <img src={src} alt={`${en ? "Frame" : "Khung hình"} ${fi + 1}`} className="w-full rounded-xl" />
                           {boxes.map((b) => (
                             <div
                               key={b.gi}

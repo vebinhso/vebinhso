@@ -22,10 +22,11 @@ export function HairBack({ style, color }: { style: HairStyleId; color: string }
     case "pigtails":
       return (
         <g fill={color}>
-          <ellipse cx="17" cy="62" rx="6" ry="14" />
-          <ellipse cx="63" cy="62" rx="6" ry="14" />
-          <circle cx="19" cy="48" r="2.5" fill="#f97316" />
-          <circle cx="61" cy="48" r="2.5" fill="#f97316" />
+          <circle cx="16" cy="46" r="7" /><circle cx="13" cy="54" r="7" /><circle cx="17" cy="62" r="7" />
+          <circle cx="64" cy="46" r="7" /><circle cx="67" cy="54" r="7" /><circle cx="63" cy="62" r="7" />
+          <circle cx="20" cy="42" r="3.2" fill="#ef4135" stroke="#8e241e" strokeWidth=".7" />
+          <circle cx="60" cy="42" r="3.2" fill="#ef4135" stroke="#8e241e" strokeWidth=".7" />
+          <circle cx="19" cy="41" r=".8" fill="#fff" /><circle cx="59" cy="41" r=".8" fill="#fff" />
         </g>
       );
     default:
@@ -34,7 +35,7 @@ export function HairBack({ style, color }: { style: HairStyleId; color: string }
 }
 
 export function HairFront({ style, color }: { style: HairStyleId; color: string }) {
-  const cap = "M21 40 Q21 21 40 21 Q59 21 59 40 Q52 30 40 30 Q28 30 21 40 Z";
+  const cap = "M21 42 Q20 20 40 20 Q60 20 59 42 Q53 32 40 31 Q27 32 21 42 Z";
   switch (style) {
     case "short":
       return <path d={cap} fill={color} />;
@@ -62,7 +63,7 @@ export function HairFront({ style, color }: { style: HairStyleId; color: string 
       return (
         <g fill={color}>
           <path d={cap} />
-          <circle cx="26" cy="22" r="6" /><circle cx="54" cy="22" r="6" />
+          <circle cx="22" cy="25" r="8" /><circle cx="58" cy="25" r="8" />
         </g>
       );
     case "bob":
@@ -70,7 +71,7 @@ export function HairFront({ style, color }: { style: HairStyleId; color: string 
     case "longwavy":
     case "longcurly":
     case "pigtails":
-      return <path d="M21 42 Q21 21 40 21 Q59 21 59 42 L57 36 Q50 33 40 33 Q30 33 23 36 Z" fill={color} />;
+      return <path d="M21 42 Q20 20 40 20 Q60 20 59 42 Q55 33 51 31 L50 42 L45 31 L43 42 L38 31 L35 42 L31 31 L27 42 L25 34 Q23 37 21 42 Z" fill={color} />;
     case "sidebang":
       return <path d="M21 42 Q21 21 40 21 Q59 21 59 42 Q54 30 42 30 Q34 38 24 52 Z" fill={color} />;
   }

@@ -87,17 +87,21 @@ function Face({ skin, shape, expression }: { skin: string; shape?: string; expre
   const closedLeft = expression === "wink" || expression === "laugh" || expression === "tears";
   const closedRight = expression === "laugh" || expression === "tears";
   const sad = expression === "sad" || expression === "upset";
+  const loving = expression === "love";
+  const blushing = expression === "blush" || loving || expression === "smile";
+  const openMouth = expression === "laugh" || expression === "tears" || expression === "love";
   return (
     <group>
       <mesh castShadow position={[0, 1.82, 0]} scale={[s[0] * 1.28, s[1] * 1.18, s[2] * 1.06]}>
         <sphereGeometry args={[0.34, 28, 22]} /><meshStandardMaterial color={skin} roughness={0.88} />
       </mesh>
-      {[-0.135, 0.135].map((x, i) => {
+      {[-0.145, 0.145].map((x, i) => {
         const closed = i === 0 ? closedLeft : closedRight;
-        return closed ? <mesh key={x} position={[x, 1.88, 0.372]} rotation={[0, 0, i === 0 && expression === "wink" ? -0.15 : 0]}><boxGeometry args={[0.11, 0.014, 0.012]} /><meshStandardMaterial color="#332820" /></mesh> : <group key={x}><mesh position={[x, 1.89, 0.377]} scale={[1, 1.22, 0.45]}><sphereGeometry args={[0.062, 16, 12]} /><meshStandardMaterial color="#fffaf2" /></mesh><mesh position={[x, 1.89, 0.411]}><sphereGeometry args={[0.034, 12, 10]} /><meshStandardMaterial color="#332820" /></mesh><mesh position={[x - 0.012, 1.906, 0.438]}><sphereGeometry args={[0.009, 8, 6]} /><meshBasicMaterial color="#ffffff" /></mesh></group>;
+        if (loving) return <group key={x} position={[x, 1.91, 0.405]} rotation={[0, 0, Math.PI / 4]}><mesh><boxGeometry args={[0.075, 0.075, 0.025]} /><meshStandardMaterial color="#ef5350" /></mesh><mesh position={[-0.035, 0.035, 0]}><sphereGeometry args={[0.04, 10, 8]} /><meshStandardMaterial color="#ef5350" /></mesh><mesh position={[0.035, 0.035, 0]}><sphereGeometry args={[0.04, 10, 8]} /><meshStandardMaterial color="#ef5350" /></mesh></group>;
+        return closed ? <mesh key={x} position={[x, 1.89, 0.382]} rotation={[0, 0, i === 0 && expression === "wink" ? -0.15 : 0]}><torusGeometry args={[0.058, 0.011, 6, 16, Math.PI]} /><meshStandardMaterial color="#332820" /></mesh> : <group key={x}><mesh position={[x, 1.9, 0.386]} scale={[1, 1.25, 0.42]}><sphereGeometry args={[0.082, 18, 14]} /><meshStandardMaterial color="#fffaf2" /></mesh><mesh position={[x, 1.895, 0.432]} scale={[1, 1.18, 0.72]}><sphereGeometry args={[0.055, 14, 12]} /><meshStandardMaterial color="#302a2a" /></mesh><mesh position={[x - 0.018, 1.925, 0.472]}><sphereGeometry args={[0.014, 8, 6]} /><meshBasicMaterial color="#ffffff" /></mesh></group>;
       })}
-      <mesh position={[0, 1.76, 0.388]} rotation={[Math.PI / 2, 0, sad ? Math.PI : 0]} scale={[1, 0.6, 1]}><torusGeometry args={[0.065, 0.014, 6, 18, Math.PI]} /><meshStandardMaterial color="#9c4c55" /></mesh>
-      {(expression === "blush" || expression === "love") && [-0.23, 0.23].map((x) => <mesh key={x} position={[x, 1.79, 0.35]} scale={[1.4, 0.55, 0.3]}><sphereGeometry args={[0.055, 12, 8]} /><meshStandardMaterial color="#f48b98" transparent opacity={0.55} /></mesh>)}
+      <mesh position={[0, 1.765, 0.401]} rotation={[Math.PI / 2, 0, sad ? Math.PI : 0]} scale={[openMouth ? 1.05 : 1, openMouth ? 1.6 : 0.6, 1]}><torusGeometry args={[openMouth ? 0.05 : 0.065, 0.013, 7, 18, Math.PI]} /><meshStandardMaterial color="#8f4450" /></mesh>
+      {blushing && [-0.245, 0.245].map((x) => <mesh key={x} position={[x, 1.79, 0.35]} scale={[1.5, 0.55, 0.3]}><sphereGeometry args={[0.055, 12, 8]} /><meshStandardMaterial color="#f48b98" transparent opacity={0.58} /></mesh>)}
     </group>
   );
 }

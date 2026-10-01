@@ -119,7 +119,7 @@ export function ClothesPicker({ kind, o, onChange }: { kind: "top" | "bottom" | 
         <div className="text-sm font-black">{en ? `Your coins: ${money}` : `Xu của bạn: ${money}`}</div>
         {current && (
           <button type="button" className="toy-button !text-xs py-1 px-3"
-            onClick={() => onChange(kind === "top" ? { topStyle: undefined, ...(topOf(o.topStyle)?.suit ? { bottomStyle: undefined } : {}) } : { bottomStyle: undefined })}>
+            onClick={() => onChange(kind === "top" ? { topStyle: undefined, ...(topOf(o.topStyle)?.suit ? { bottomStyle: undefined } : {}) } : kind === "shoes" ? { shoeStyle: undefined } : { bottomStyle: undefined })}>
             {en ? "Take off" : "Cởi ra"}
           </button>
         )}
@@ -135,7 +135,7 @@ export function ClothesPicker({ kind, o, onChange }: { kind: "top" | "bottom" | 
           const on = current === it.id;
           return (
             <div key={it.id} className={`rounded-xl border-2 p-2 bg-card/80 flex flex-col items-center gap-1 ${on ? "border-primary" : "border-border"}`}>
-              {kind === "top" ? <TopThumb t={it as Top} /> : <BottomThumb b={it as Bottom} />}
+              {kind === "top" ? <TopThumb t={it as Top} /> : kind === "shoes" ? <ShoeThumb s={it as Shoe} /> : <BottomThumb b={it as Bottom} />}
               <div className="text-[11px] font-bold text-center leading-tight">{en ? it.en : it.vi}</div>
               {on ? (
                 <span className="text-[11px] font-black text-primary">{en ? "Wearing" : "Đang mặc"}</span>

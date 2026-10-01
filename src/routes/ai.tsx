@@ -144,8 +144,10 @@ function AnalyzingBar({ percent, phase }: { percent: number; phase: string }) {
 /** Ghi chú sai số: kết quả đã được đối chiếu chéo giữa 2 mô hình AI */
 function AccuracyNote({
   accuracy,
+  en,
 }: {
   accuracy?: { margin: number; within: boolean; crossChecked: boolean; models: string[]; note: string } | null;
+  en: boolean;
 }) {
   if (!accuracy) return null;
   const ok = accuracy.within;
@@ -157,7 +159,9 @@ function AccuracyNote({
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className={`text-xs sm:text-sm font-black ${ok ? "text-emerald-800" : "text-amber-800"}`}>
-          {ok ? "✅ ĐỘ TIN CẬY ĐẠT CHUẨN" : "⚠️ SAI SỐ VƯỢT NGƯỠNG"}
+          {ok
+            ? en ? "✅ RELIABILITY WITHIN RANGE" : "✅ ĐỘ TIN CẬY ĐẠT CHUẨN"
+            : en ? "⚠️ MARGIN ABOVE THRESHOLD" : "⚠️ SAI SỐ VƯỢT NGƯỠNG"}
         </span>
         <span className={`text-xl font-black ${ok ? "text-emerald-700" : "text-amber-700"}`}>
           ±{accuracy.margin}%
@@ -165,8 +169,7 @@ function AccuracyNote({
       </div>
       <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">{accuracy.note}</p>
       <p className="mt-1 text-[11px] font-bold text-foreground/80">
-        Nguồn đối chiếu: {accuracy.models.join(" + ")} · Ngưỡng cho phép: ±5% · Nên kiểm chứng lại bằng Google và báo
-        chính thống.
+        {en ? "Cross-check sources" : "Nguồn đối chiếu"}: {accuracy.models.join(" + ")} · {en ? "Allowed threshold" : "Ngưỡng cho phép"}: ±5% · {en ? "Verify again with Google and established news sources." : "Nên kiểm chứng lại bằng Google và báo chính thống."}
       </p>
     </div>
   );
@@ -748,7 +751,7 @@ function AiPage() {
 
           {!loading && active.result?.accuracy ? (
             <div className="mb-3">
-              <AccuracyNote accuracy={active.result.accuracy} />
+              <AccuracyNote accuracy={active.result.accuracy} en={en} />
             </div>
           ) : null}
 

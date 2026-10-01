@@ -356,8 +356,8 @@ function StreetSign({ x, z, a, b }: { x: number; z: number; a: string; b?: strin
     <group position={[x, 0, z]}>
       {[0, 1, 2, 3, 4].map((i) => <mesh key={i} geometry={G.box} material={i % 2 ? POLE_MATS.white : POLE_MATS.red} position={[0, 0.3 + i * 0.6, 0]} scale={[0.14, 0.6, 0.14]} />)}
       <mesh geometry={G.box} material={POLE_MATS.white} position={[0, 3.6, 0]} scale={[0.14, 1.2, 0.14]} />
-      <mesh geometry={G.plane ?? G.box} material={streetSignMat(a)} position={[0.85, 3.5, 0]} scale={[1.6, 0.6, G.plane ? 1 : 0.02]} />
-      {b && <mesh geometry={G.plane ?? G.box} material={streetSignMat(b)} position={[0, 3.95, 0.85]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 0.6, G.plane ? 1 : 0.02]} />}
+      <mesh geometry={G.box} material={streetSignMat(a)} position={[0.85, 3.5, 0]} scale={[1.6, 0.6, 0.02]} />
+      {b && <mesh geometry={G.box} material={streetSignMat(b)} position={[0, 3.95, 0.85]} rotation={[0, Math.PI / 2, 0]} scale={[1.6, 0.6, 0.02]} />}
     </group>
   );
 }

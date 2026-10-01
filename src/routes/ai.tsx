@@ -1,4 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { CheckFeedback } from "@/components/CheckFeedback";
+import type { FeedbackKind } from "@/lib/ai-skills";
 import { GameLayout } from "@/components/GameLayout";
 import { SocialSimulator } from "@/components/SocialSimulator";
 import RouteLoading from "@/components/RouteLoading";
@@ -613,6 +615,21 @@ function AiPage() {
 
   if (!user) return <RouteLoading />;
 
+  const active: { kind: FeedbackKind; result: any; input?: string } =
+    tab === "news"
+      ? { kind: "news", result: newsResult, input: news }
+      : tab === "media"
+        ? mediaMode === "image"
+          ? { kind: "image", result: imgResult }
+          : { kind: "video", result: videoResult }
+        : tab === "link"
+          ? phishMode === "link"
+            ? { kind: "link", result: linkResult, input: url }
+            : { kind: "email", result: emailResult, input: email }
+          : tab === "phone"
+            ? { kind: "phone", result: phoneResult, input: phoneCtx.trim() ? `${phone}\n${phoneCtx}` : phone }
+            : { kind: "text", result: textResult, input: text };
+
   const TABS: { id: Tab; icon: string; label: string }[] = [
     { id: "news", icon: "📰", label: en ? "Is this news fake?" : "Tin tức có phải giả?" },
     { id: "media", icon: "🖼️", label: en ? "Is this image/video AI?" : "Ảnh/Video có phải AI?" },
@@ -729,27 +746,11 @@ function AiPage() {
             ))}
           </div>
 
-          {!loading && (() => {
-            const acc =
-              tab === "news"
-                ? newsResult?.accuracy
-                : tab === "media"
-                  ? mediaMode === "image"
-                    ? imgResult?.accuracy
-                    : videoResult?.accuracy
-                  : tab === "link"
-                    ? phishMode === "link"
-                      ? linkResult?.accuracy
-                      : emailResult?.accuracy
-                    : tab === "phone"
-                      ? phoneResult?.accuracy
-                      : textResult?.accuracy;
-            return acc ? (
-              <div className="mb-3">
-                <AccuracyNote accuracy={acc} />
-              </div>
-            ) : null;
-          })()}
+          {!loading && active.result?.accuracy ? (
+            <div className="mb-3">
+              <AccuracyNote accuracy={active.result.accuracy} />
+            </div>
+          ) : null}
 
 
           {tab === "media" && (
@@ -1242,6 +1243,10 @@ function AiPage() {
               )}
 
             </div>
+          )}
+
+          {!loading && active.result && (
+            <CheckFeedback kind={active.kind} result={active.result} input={active.input} />
           )}
           </>
           )}

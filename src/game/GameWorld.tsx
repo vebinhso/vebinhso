@@ -61,7 +61,7 @@ type Props = {
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
 const SOLID_ITEMS = new Set<string>([
-  "sofa", "bed", "singlebed", "bunkbed", "fridge", "fridge3", "tv", "tvstand",
+  "sofa", "sofa_large", "bed", "singlebed", "bunkbed", "fridge", "fridge3", "tv", "tvstand",
   "stove", "toilet", "lamp", "wardrobe", "table", "roundtable", "desk",
   "bookshelf", "aircon", "vanity", "bathtub", "shower", "washer", "lavabo",
   "sink", "hood", "microwave", "oven", "dishwasher", "ricecooker", "fishpond",

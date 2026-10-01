@@ -138,6 +138,71 @@ export function Sofa({ w = 4, d = 2 }) {
   );
 }
 
+export function LargeSofa() {
+  const fabric = "#e7e5e4";
+  const fabricLight = "#f5f5f4";
+  const seam = "#d6d3d1";
+  const foot = "#292524";
+  const seatY = 0.62;
+
+  const Cushion = ({ x, z, width = 1.42, depth = 1.3 }: { x: number; z: number; width?: number; depth?: number }) => (
+    <group position={[x, seatY, z]}>
+      <RoundedBox args={[width, 0.42, depth]} radius={0.14} smoothness={5} castShadow receiveShadow>
+        <MStd color={fabricLight} roughness={0.92} />
+      </RoundedBox>
+      <mesh position={[0, -0.03, depth / 2 + 0.012]}>
+        <boxGeometry args={[width - 0.18, 0.025, 0.025]} />
+        <MStd color={seam} roughness={1} />
+      </mesh>
+    </group>
+  );
+
+  return (
+    <group>
+      {/* Low modular plinths reproduce the broad U/L-shaped footprint. */}
+      <RoundedBox args={[4.82, 0.42, 1.7]} radius={0.12} smoothness={5} castShadow receiveShadow position={[0, 0.4, -0.95]}>
+        <MStd color={fabric} roughness={0.9} />
+      </RoundedBox>
+      <RoundedBox args={[2.96, 0.42, 3.7]} radius={0.12} smoothness={5} castShadow receiveShadow position={[-0.93, 0.4, 0.55]}>
+        <MStd color={fabric} roughness={0.9} />
+      </RoundedBox>
+
+      {/* Rear backrest and side arms. */}
+      <RoundedBox args={[4.75, 1.1, 0.38]} radius={0.13} smoothness={5} castShadow receiveShadow position={[0, 1.08, -1.8]}>
+        <MStd color={fabricLight} roughness={0.94} />
+      </RoundedBox>
+      <RoundedBox args={[0.42, 0.98, 1.72]} radius={0.14} smoothness={5} castShadow receiveShadow position={[2.29, 0.99, -0.96]}>
+        <MStd color={fabricLight} roughness={0.94} />
+      </RoundedBox>
+      <RoundedBox args={[0.42, 0.98, 1.72]} radius={0.14} smoothness={5} castShadow receiveShadow position={[-2.29, 0.99, -0.96]}>
+        <MStd color={fabricLight} roughness={0.94} />
+      </RoundedBox>
+
+      {/* Three rear seats plus two long chaise modules on the left. */}
+      <Cushion x={-1.46} z={-0.72} />
+      <Cushion x={0} z={-0.72} />
+      <Cushion x={1.46} z={-0.72} />
+      <Cushion x={-1.46} z={0.78} depth={1.62} />
+      <Cushion x={-1.46} z={2.18} depth={1.18} />
+      <Cushion x={0} z={0.78} depth={1.62} />
+      <Cushion x={0} z={2.18} depth={1.18} />
+
+      {/* Inner divider mirrors the raised arm visible between chaise and corner seat. */}
+      <RoundedBox args={[0.38, 0.88, 1.5]} radius={0.12} smoothness={5} castShadow receiveShadow position={[-0.72, 1.02, 0.08]}>
+        <MStd color={fabricLight} roughness={0.94} />
+      </RoundedBox>
+
+      {/* Discreet dark feet keep the sofa visually grounded. */}
+      {[[-2.2, -1.65], [2.2, -1.65], [-2.2, 2.0], [0.68, 2.0]].map(([x, z]) => (
+        <mesh key={`${x}-${z}`} castShadow position={[x, 0.12, z]}>
+          <cylinderGeometry args={[0.06, 0.075, 0.24, 12]} />
+          <MStd color={foot} metalness={0.2} roughness={0.55} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 export function Bed({ w = 4, d = 3 }) {
   return (
     <group>
@@ -1355,6 +1420,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "tree": return <Tree />;
     case "bigtree": return <BigTree />;
     case "sofa": return <Sofa w={item.w} d={item.d} />;
+    case "sofa_large": return <LargeSofa />;
     case "bed": return <Bed w={item.w} d={item.d} />;
     case "singlebed": return <SingleBed />;
     case "bunkbed": return <BunkBed />;

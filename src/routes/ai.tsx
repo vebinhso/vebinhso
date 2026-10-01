@@ -1258,9 +1258,9 @@ function AiPage() {
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 {([
-                  { id: "image", label: "🖼️ Ảnh" },
+                  { id: "image", label: en ? "🖼️ Photo" : "🖼️ Ảnh" },
                   { id: "video", label: "🎬 Video" },
-                  { id: "text", label: "📝 Văn bản" },
+                  { id: "text", label: en ? "📝 Text" : "📝 Văn bản" },
                 ] as const).map((m) => (
                   <button
                     key={m.id}
@@ -1279,8 +1279,9 @@ function AiPage() {
                 ))}
               </div>
               <p className="text-[10px] sm:text-xs font-bold text-foreground">
-                🛡️ Dán ảnh, video hoặc văn bản — hệ thống chấm % rủi ro bị lộ thông tin cá nhân nếu đăng công khai, và
-                chỉ mũi tên đúng vào chỗ nguy hiểm.
+                {en
+                  ? "🛡️ Add an image, video, or text — the system scores the risk of exposing personal information when posted publicly and points to the risky areas."
+                  : "🛡️ Dán ảnh, video hoặc văn bản — hệ thống chấm % rủi ro bị lộ thông tin cá nhân nếu đăng công khai, và chỉ mũi tên đúng vào chỗ nguy hiểm."}
               </p>
 
               {riskMode !== "text" ? (
@@ -1298,14 +1299,18 @@ function AiPage() {
                     className="cursor-pointer rounded-2xl border-2 border-dashed border-border p-4 text-center outline-none focus:ring-2 focus:ring-amber-400"
                   >
                     {riskMode === "image" && riskImages[0] ? (
-                      <img src={riskImages[0]} alt="Ảnh cần kiểm tra rủi ro" className="mx-auto max-h-56 rounded-xl object-contain" />
+                      <img src={riskImages[0]} alt={en ? "Image to check for privacy risks" : "Ảnh cần kiểm tra rủi ro"} className="mx-auto max-h-56 rounded-xl object-contain" />
                     ) : riskMode === "video" && riskVideoUrl ? (
                       <video src={riskVideoUrl} controls className="mx-auto max-h-56 rounded-xl" />
                     ) : (
                       <p className="text-xs sm:text-sm font-bold text-foreground">
                         {riskMode === "image"
-                          ? "📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh · hoặc kéo thả"
-                          : "🎬 Bấm để chọn video · hoặc kéo thả (tối đa 60MB)"}
+                          ? en
+                            ? "📁 Click to select an image · or press Ctrl+V to paste · or drag and drop"
+                            : "📁 Bấm để chọn ảnh · hoặc Ctrl+V dán ảnh · hoặc kéo thả"
+                          : en
+                            ? "🎬 Click to select a video · or drag and drop (up to 60MB)"
+                            : "🎬 Bấm để chọn video · hoặc kéo thả (tối đa 60MB)"}
                       </p>
                     )}
                     <input
@@ -1325,7 +1330,9 @@ function AiPage() {
                     disabled={loading || (riskMode === "image" ? !riskImages.length : !riskVideoFile)}
                     className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
                   >
-                    {loading ? `⏳ Đang soi ${Math.round(progress)}%` : "🛡️ Chấm rủi ro lộ thông tin"}
+                    {loading
+                      ? `⏳ ${en ? "Scanning" : "Đang soi"} ${Math.round(progress)}%`
+                      : en ? "🛡️ Score info-leak risk" : "🛡️ Chấm rủi ro lộ thông tin"}
                   </button>
                 </>
               ) : (
@@ -1334,7 +1341,9 @@ function AiPage() {
                     value={riskText}
                     onChange={(e) => setRiskText(e.target.value)}
                     rows={6}
-                    placeholder="Dán bài đăng / chú thích ảnh / tin nhắn bạn định đăng công khai..."
+                    placeholder={en
+                      ? "Paste the post, caption, or message you plan to share publicly..."
+                      : "Dán bài đăng / chú thích ảnh / tin nhắn bạn định đăng công khai..."}
                     className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
                   />
                   <button
@@ -1342,7 +1351,9 @@ function AiPage() {
                     disabled={loading || riskText.trim().length < 10}
                     className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
                   >
-                    {loading ? `⏳ Đang soi ${Math.round(progress)}%` : "🛡️ Chấm rủi ro lộ thông tin"}
+                    {loading
+                      ? `⏳ ${en ? "Scanning" : "Đang soi"} ${Math.round(progress)}%`
+                      : en ? "🛡️ Score info-leak risk" : "🛡️ Chấm rủi ro lộ thông tin"}
                   </button>
                 </>
               )}

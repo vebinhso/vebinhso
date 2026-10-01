@@ -753,13 +753,15 @@ function GamePage() {
   const pickPaletteColor = (hex: string) => {
     setPaintColor(hex);
     setPaletteOpen(false);
-    flash(en ? `🪣 Paint bucket filled (${colorName(hex, en)}) — click a wall to pour it` : `🪣 Đã chọn xô màu ${colorName(hex, en)} — bấm vào tường để đổ màu`, 2500);
+    flash(en ? `🪣 Bucket filled (${colorName(hex, en)}) — click a wall to pour it (30 coins per pour)` : `🪣 Đã chọn xô màu ${colorName(hex, en)} — bấm vào tường để đổ (30 xu mỗi lần đổ)`, 2500);
   };
+
+  const PAINT_POUR_COST = 30;
 
   const paintWall = (id: string) => {
     if (!paintColor) return;
-    if (state.paint < 1) {
-      flash(en ? "❌ No paint buckets left — buy more in the shop (Materials)" : "❌ Hết xô sơn — mua thêm trong cửa hàng (Vật liệu)", 2500);
+    if (state.money < PAINT_POUR_COST) {
+      flash(en ? `❌ Not enough coins — each pour costs ${PAINT_POUR_COST} coins` : `❌ Không đủ xu — mỗi lần đổ tốn ${PAINT_POUR_COST} xu`, 2500);
       return;
     }
     const w = state.walls.find((x) => x.id === id);
@@ -777,7 +779,7 @@ function GamePage() {
     }
     setState({
       ...state,
-      paint: state.paint - 1,
+      money: state.money - PAINT_POUR_COST,
       walls: state.walls.map((x) => x.id === id
         ? (white ? { ...x, color: "#f5e6c8", painted: false } : { ...x, color: next, painted: true })
         : x),
@@ -1575,7 +1577,7 @@ function GamePage() {
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 glass-card px-3 py-2 flex items-center gap-2 text-xs font-bold max-w-[92vw]">
           <PaintBucketIcon color={paintColor} size={40} />
           <div>
-            <div>{en ? `Bucket: ${colorName(paintColor, en)}` : `Xô màu: ${colorName(paintColor, en)}`} • 🪣 {state.paint}</div>
+            <div>{en ? `Bucket: ${colorName(paintColor, en)}` : `Xô màu: ${colorName(paintColor, en)}`} • 💰 30{en ? " coins/pour" : " xu/lần đổ"}</div>
             <div className="opacity-80">{en ? "Click a wall to pour paint" : "Bấm vào tường để đổ màu"}</div>
           </div>
           <button onClick={() => setPaletteOpen(true)} className="toy-button !text-[10px] !py-1 !px-2">{en ? "Change" : "Đổi"}</button>
@@ -1601,7 +1603,7 @@ function GamePage() {
                <h2 className="text-2xl font-black">🎨 {en ? "WALL COLOR PALETTE" : "PALETTE MÀU TƯỜNG"}</h2>
                <button onClick={() => setPaletteOpen(false)} className="toy-button !text-xs !py-1 !px-3">{en ? "Close" : "Đóng"}</button>
             </div>
-             <p className="text-xs font-bold text-stone-700 mb-3">{en ? "Pick a color to fill your bucket, then click a wall to pour it. Each wall uses 1 paint bucket." : "Chọn màu cho xô sơn, rồi bấm vào tường để đổ màu. Mỗi lần đổ tốn 1 xô sơn."}</p>
+             <p className="text-xs font-bold text-stone-700 mb-3">{en ? "Pick a color to fill your bucket, then click a wall to pour it. Each pour costs 30 coins." : "Chọn màu cho xô sơn, rồi bấm vào tường để đổ màu. Mỗi lần đổ tốn 30 xu."}</p>
             <button onClick={() => pickPaletteColor("#ffffff")} className="toy-button !text-xs !py-2 !px-3 mb-3 inline-flex items-center gap-2">
               <PaintBucketIcon color="#ffffff" size={24} /> {en ? "White — reset wall to original" : "Màu trắng — đưa tường về ban đầu"}
             </button>

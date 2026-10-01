@@ -1,5 +1,5 @@
 // Danh mục quần áo dựng sẵn. Mua 1 lần, mặc/đổi miễn phí.
-export type TopPattern = "plain" | "stripes" | "star" | "heart" | "cat" | "bow" | "trim" | "ranger" | "floral" | "number";
+export type TopPattern = "plain" | "stripes" | "star" | "heart" | "cat" | "bow" | "trim" | "ranger" | "floral" | "number" | "plaid" | "collar" | "zip";
 export type BottomKind = "pants" | "wide" | "skirt" | "longskirt" | "shorts";
 export type BottomPattern = "plain" | "plaid" | "stripes";
 
@@ -40,6 +40,19 @@ export const TOPS: Top[] = [
   ranger("yellow", "vàng", "Yellow", "#facc15"),
   ranger("green", "lục", "Green", "#15803d"),
   ranger("black", "đen", "Black", "#111111"),
+  // Trang phục nam
+  { id: "polo_cream", vi: "Áo polo kem", en: "Cream polo", price: 15, color: "#f3ead8", color2: "#d8cbb0", pattern: "collar" },
+  { id: "jacket_brown", vi: "Áo khoác nâu", en: "Brown jacket", price: 25, color: "#5b4232", color2: "#ffffff", pattern: "trim" },
+  { id: "shirt_stripe_gray", vi: "Sơ mi sọc xám", en: "Gray striped shirt", price: 15, color: "#e8e8e8", color2: "#9ca3af", pattern: "stripes" },
+  { id: "zip_cream", vi: "Áo khoác khóa kem", en: "Cream zip jacket", price: 25, color: "#f5efe2", color2: "#c9bfa8", pattern: "zip" },
+  { id: "knit_brown", vi: "Áo len nâu", en: "Brown knit sweater", price: 20, color: "#6b4f3a", color2: "#6b4f3a", pattern: "plain" },
+  { id: "cardigan_navy", vi: "Cardigan xanh đen", en: "Navy cardigan", price: 20, color: "#1f2430", color2: "#e5e7eb", pattern: "trim" },
+  { id: "polo_gray", vi: "Áo polo xám", en: "Gray polo", price: 15, color: "#9a8f80", color2: "#7d7466", pattern: "collar" },
+  { id: "overshirt_brown", vi: "Áo sơ mi khoác nâu", en: "Brown overshirt", price: 20, color: "#4a3628", color2: "#ffffff", pattern: "trim" },
+  { id: "overshirt_cream", vi: "Áo sơ mi khoác kem", en: "Cream overshirt", price: 20, color: "#efe6d2", color2: "#ffffff", pattern: "trim" },
+  { id: "hoodie_cream", vi: "Hoodie kem", en: "Cream hoodie", price: 20, color: "#f3ecdd", color2: "#d8cbb0", pattern: "plain", hood: true },
+  { id: "shirt_plaid_dark", vi: "Sơ mi caro tối", en: "Dark plaid shirt", price: 20, color: "#374151", color2: "#111827", pattern: "plaid" },
+  { id: "sweater_green", vi: "Áo len xanh rêu", en: "Moss green sweater", price: 20, color: "#5a6b52", color2: "#5a6b52", pattern: "plain" },
 ];
 
 export const BOTTOMS: Bottom[] = [
@@ -59,6 +72,13 @@ export const BOTTOMS: Bottom[] = [
   { id: "shorts_pink", vi: "Quần short hồng", en: "Pink shorts", price: 10, color: "#f4b6c8", color2: "#f4b6c8", kind: "shorts", pattern: "plain" },
   { id: "shorts_gray", vi: "Quần short xám", en: "Gray shorts", price: 10, color: "#6b7280", color2: "#6b7280", kind: "shorts", pattern: "plain" },
   { id: "shorts_black", vi: "Quần short đen", en: "Black shorts", price: 10, color: "#1f1f1f", color2: "#1f1f1f", kind: "shorts", pattern: "plain" },
+  // Quần nam
+  { id: "pants_brown", vi: "Quần nâu ống rộng", en: "Brown wide pants", price: 15, color: "#5f4636", color2: "#5f4636", kind: "wide", pattern: "plain" },
+  { id: "pants_beige", vi: "Quần be ống rộng", en: "Beige wide pants", price: 15, color: "#ddd2ba", color2: "#ddd2ba", kind: "wide", pattern: "plain" },
+  { id: "pants_black", vi: "Quần đen", en: "Black pants", price: 15, color: "#1c1c1c", color2: "#1c1c1c", kind: "pants", pattern: "plain" },
+  { id: "cargo_olive", vi: "Quần túi hộp xanh rêu", en: "Olive cargo", price: 15, color: "#6b7252", color2: "#6b7252", kind: "pants", pattern: "plain" },
+  { id: "jeans_light", vi: "Quần jean xanh nhạt", en: "Light blue jeans", price: 15, color: "#9db8d6", color2: "#9db8d6", kind: "pants", pattern: "plain" },
+  { id: "jeans_dark", vi: "Quần jean đậm gấp gấu", en: "Dark cuffed jeans", price: 15, color: "#2e3440", color2: "#2e3440", kind: "pants", pattern: "plain" },
   rpants("red", "#dc2626"), rpants("blue", "#1d4ed8"), rpants("yellow", "#facc15"), rpants("green", "#15803d"), rpants("black", "#111111"),
 ];
 

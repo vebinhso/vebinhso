@@ -13,7 +13,7 @@ export function ClothesDefs({ top, bottom, uid }: { top?: Top; bottom?: Bottom; 
 }
 
 export function topFill(t: Top, uid: string) {
-  return t.pattern === "stripes" ? `url(#ts-${uid})` : t.pattern === "floral" ? `url(#tf-${uid})` : t.color;
+  return t.pattern === "stripes" ? `url(#ts-${uid})` : t.pattern === "floral" ? `url(#tf-${uid})` : t.pattern === "plaid" ? `url(#tp-${uid})` : t.color;
 }
 export function bottomFill(b: Bottom, uid: string) {
   return b.pattern === "plaid" ? `url(#bp-${uid})` : b.pattern === "stripes" ? `url(#bs-${uid})` : b.color;

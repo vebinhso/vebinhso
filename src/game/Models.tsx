@@ -6,6 +6,7 @@ import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { getLocale } from "@/lib/locale";
 import * as X from "./ModelsExtra";
+import * as Y from "./ModelsExtra2";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -1972,6 +1973,15 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "cafetable": return <X.CafeTable />;
     case "holofan": return <X.HologramFan />;
     case "octaclock": return <X.OctagonClock />;
+    case "art_parrot": return <Y.ParrotCanvas />;
+    case "art_toucan": return <Y.ToucanCanvas />;
+    case "subwoofer": return <Y.Subwoofer />;
+    case "art_abstract": return <Y.AbstractFrameArt />;
+    case "sofa_olive_set": return <Y.OliveSofaSet />;
+    case "roundclock_wood": return <Y.RoundWoodClock />;
+    case "retrofan": return <Y.RetroDeskFan />;
+    case "planktable": return <Y.PlankRoundTable />;
+    case "smarthome_tv": return <Y.SmartHomeTV />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;
     case "microwave": return <Microwave />;

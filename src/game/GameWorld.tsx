@@ -15,7 +15,7 @@ import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
-export const fpState = { on: false, yaw: 0, pitch: 0 };
+export const fpState = { on: false, yaw: 0, pitch: 0, teleport: false };
 const GRID = 20;
 const CELL = 1;
 // Đường đi 1 ô bao quanh mảnh đất 20x20 ⇒ (22² − 20²) = 84 ô đường
@@ -197,6 +197,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     ref.current.position.y += yVel.current * dt;
     if (ref.current.position.y <= floorY) { ref.current.position.y = floorY; yVel.current = 0; grounded.current = true; }
 
+    // Vào chế độ Xem nhà: đưa nhân vật ra trước cửa nhà mình, nhìn vào nhà
+    if (fpState.teleport) { ref.current.position.x = 0; ref.current.position.z = 13; fpState.teleport = false; }
     // Trên tầng cao: giới hạn trong mảnh đất 20x20 để khỏi té khỏi sàn.
     const plotHalf = 20 / 2 - 0.4;
     const limit = activeFloor > 0 ? plotHalf : WORLD / 2 - 0.5;
@@ -1047,7 +1049,7 @@ function CameraView({ controlsRef, mode }: { controlsRef: React.MutableRefObject
     fpState.on = mode === "eye";
     if (mode !== "eye") return;
     const d = new THREE.Vector3(); camera.getWorldDirection(d);
-    fpState.yaw = Math.atan2(-d.x, -d.z); fpState.pitch = 0;
+    fpState.yaw = 0; fpState.pitch = 0; fpState.teleport = true;
     const el = gl.domElement;
     let drag = false, lx = 0, ly = 0;
     const down = (e: PointerEvent) => { drag = true; lx = e.clientX; ly = e.clientY; };

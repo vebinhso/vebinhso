@@ -142,7 +142,7 @@ function CharacterPage() {
           const next = { ...DEFAULT_OUTFIT, ...(data.outfit as Outfit) };
           setOutfit(next);
           if (next.description) setDesc(next.description);
-          try { localStorage.setItem(`character_outfit_${u.id}`, JSON.stringify(next)); } catch { /* noop */ }
+          saveOutfit(next);
         }
       });
     supabase.from("profiles").select("avatar_url").eq("user_id", u.id).maybeSingle()

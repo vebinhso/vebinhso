@@ -1,6 +1,6 @@
 import { Html, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
@@ -16,6 +16,7 @@ export type ReleasedLantern = {
   x: number;
   z: number;
   color: string;
+  wish?: string;
 };
 
 const RIVER_WIDTH = 196;
@@ -151,6 +152,9 @@ function LotusModel({ color, scale = 1, light = false }: { color: string; scale?
 
 function LotusLantern({ lantern, index }: { lantern: ReleasedLantern; index: number }) {
   const ref = useRef<THREE.Group>(null);
+  const [open, setOpen] = useState(false);
+  const { locale } = useLocale();
+  const en = locale === "en";
   const color = LOTUS_COLORS[index % LOTUS_COLORS.length];
   useFrame(({ clock }, rawDelta) => {
     if (!ref.current) return;
@@ -162,8 +166,20 @@ function LotusLantern({ lantern, index }: { lantern: ReleasedLantern; index: num
     ref.current.rotation.y += dt * 0.06;
   });
   return (
-    <group ref={ref} position={[lantern.x, 0.1, lantern.z]}>
+    <group ref={ref} position={[lantern.x, 0.1, lantern.z]}
+      onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+      onPointerOut={() => { document.body.style.cursor = ""; }}>
+      <mesh visible={false}><sphereGeometry args={[0.9, 8, 6]} /></mesh>
       <LotusModel color={color} scale={1.6} light={index < 8} />
+      {open && (
+        <Html position={[0, 1.6, 0]} center distanceFactor={10} zIndexRange={[40, 0]}>
+          <div className="w-48 rounded-xl border-2 border-primary bg-card/95 p-2 text-center text-xs shadow-lg" onClick={() => setOpen(false)}>
+            <div className="font-black">🏮 {en ? "Wish" : "Lời ước"}</div>
+            <div className="mt-1 whitespace-pre-wrap break-words italic">{lantern.wish || (en ? "(No wish written)" : "(Không có lời ước)")}</div>
+          </div>
+        </Html>
+      )}
     </group>
   );
 }

@@ -163,6 +163,8 @@ function GamePage() {
   const [riverQuizResult, setRiverQuizResult] = useState<string | null>(null);
   const [lanternCount, setLanternCount] = useState(0);
   const [releasedLanterns, setReleasedLanterns] = useState<ReleasedLantern[]>([]);
+  const [pendingLantern, setPendingLantern] = useState<{ x: number; z: number } | null>(null);
+  const [wishText, setWishText] = useState("");
 
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -1069,8 +1071,17 @@ function GamePage() {
     if (playMode !== "view") { flash(en ? "🏮 Enter Explore mode to release lanterns." : "🏮 Hãy vào chế độ Xem nhà để thả hoa đăng."); return; }
     if (!nearby.riverBank) { flash(en ? "🏮 Walk closer to the riverbank first." : "🏮 Hãy đi đến gần bờ sông trước."); return; }
     if (lanternCount <= 0) { flash(en ? "🏮 Complete the 7-question challenge to earn a lantern." : "🏮 Hãy hoàn thành thử thách 7 câu để nhận hoa đăng.", 2600); return; }
+    setPendingLantern({ x, z });
+    setWishText("");
+  };
+
+  const confirmReleaseLantern = () => {
+    if (!user || !pendingLantern) return;
+    const { x, z } = pendingLantern;
+    const wish = wishText.trim().slice(0, 120);
+    setPendingLantern(null);
     const safeZ = Math.min(RIVER_NEAR_BANK_Z - 2.5, Math.max(-82, z));
-    const next: ReleasedLantern = { id: `lantern-${Date.now()}`, x, z: safeZ, color: ["#ef4444", "#f59e0b", "#eab308", "#22c55e", "#ec4899"][releasedLanterns.length % 5] };
+    const next: ReleasedLantern = { id: `lantern-${Date.now()}`, x, z: safeZ, wish: wish || undefined, color: ["#ef4444", "#f59e0b", "#eab308", "#22c55e", "#ec4899"][releasedLanterns.length % 5] };
     riverPoseState.kneelingUntil = Date.now() + 1800;
     riverPoseState.targetX = x;
     riverPoseState.targetZ = safeZ;
@@ -1882,6 +1893,22 @@ function GamePage() {
         </div>
       )}
 
+      {pendingLantern && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background/70 p-4" onClick={() => setPendingLantern(null)}>
+          <div className="w-full max-w-sm rounded-2xl border-2 border-primary bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-black">🏮 {en ? "Write your wish" : "Viết lời ước lên hoa đăng"}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{en ? "Tap the lantern on the river later to read it." : "Chạm vào đèn đang trôi để xem lại lời ước."}</p>
+            <textarea autoFocus maxLength={120} value={wishText} onChange={(e) => setWishText(e.target.value)}
+              placeholder={en ? "I wish…" : "Con ước…"}
+              className="mt-3 h-24 w-full resize-none rounded-lg border border-input bg-background p-2 text-sm" />
+            <div className="text-right text-[10px] text-muted-foreground">{wishText.length}/120</div>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setPendingLantern(null)}>{en ? "Cancel" : "Hủy"}</Button>
+              <Button onClick={confirmReleaseLantern}>{en ? "Release lantern" : "Thả hoa đăng"}</Button>
+            </div>
+          </div>
+        </div>
+      )}
       {riverQuiz && (
         <div className="absolute inset-0 bg-foreground/55 z-40 flex items-center justify-center p-3 md:p-6">
           <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-amber-400">

@@ -287,20 +287,56 @@ export function Fridge3() {
 }
 
 export function TV({ w = 3, h = 1.5 }) {
+  const screenH = h * 0.82;
+  const centerY = 0.28 + screenH / 2;
+
   return (
     <group>
-      <mesh castShadow position={[0, h / 2 + 0.5, 0]}>
-        <boxGeometry args={[w, h, 0.12]} />
-        <MStd color="#0f172a" metalness={0.7} roughness={0.3} />
+      {/* Slim beveled television body and near edge-to-edge glass. */}
+      <RoundedBox args={[w, screenH, 0.14]} radius={0.035} smoothness={4} castShadow position={[0, centerY, 0]}>
+        <MStd color="#111315" metalness={0.7} roughness={0.2} />
+      </RoundedBox>
+      <RoundedBox args={[w - 0.1, screenH - 0.1, 0.018]} radius={0.015} smoothness={3} position={[0, centerY + 0.015, 0.078]}>
+        <MStd color="#123f34" metalness={0.05} roughness={0.17} emissive="#159447" emissiveIntensity={0.22} />
+      </RoundedBox>
+
+      {/* Layered green leaf forms echo the picture displayed in the reference. */}
+      <mesh position={[-0.82, centerY - 0.02, 0.091]} rotation={[0, 0, 0.62]}>
+        <capsuleGeometry args={[0.22, 1.18, 8, 18]} />
+        <MStd color="#72d80e" roughness={0.32} emissive="#3c9b13" emissiveIntensity={0.16} />
       </mesh>
-      <mesh position={[0, h / 2 + 0.5, 0.07]}>
-        <boxGeometry args={[w - 0.15, h - 0.15, 0.02]} />
-        <MStd color="#1e3a8a" emissive="#3b82f6" emissiveIntensity={0.8} />
+      <mesh position={[0.08, centerY + 0.02, 0.094]} rotation={[0, 0, 0.27]}>
+        <capsuleGeometry args={[0.18, 1.05, 8, 18]} />
+        <MStd color="#58c914" roughness={0.34} emissive="#2e8c15" emissiveIntensity={0.14} />
       </mesh>
-      <mesh position={[0, 0.1, 0]}>
-        <boxGeometry args={[0.6, 0.08, 0.4]} />
-        <MStd color="#374151" metalness={0.6} />
+      <mesh position={[0.9, centerY, 0.092]} rotation={[0, 0, -0.48]}>
+        <capsuleGeometry args={[0.24, 1.2, 8, 18]} />
+        <MStd color="#35a91a" roughness={0.36} emissive="#19751c" emissiveIntensity={0.12} />
       </mesh>
+
+      {/* Brushed-metal lower badge, power light and rear electronics housing. */}
+      <RoundedBox args={[0.62, 0.045, 0.11]} radius={0.018} smoothness={3} position={[0, 0.275, 0.105]}>
+        <MStd color="#a8adb0" metalness={0.92} roughness={0.18} />
+      </RoundedBox>
+      <mesh position={[0.48, 0.27, 0.116]}>
+        <sphereGeometry args={[0.012, 10, 8]} />
+        <MStd color="#dcfce7" emissive="#4ade80" emissiveIntensity={1.5} />
+      </mesh>
+      <RoundedBox args={[1.28, 0.64, 0.12]} radius={0.05} smoothness={3} position={[0, centerY, -0.1]} castShadow>
+        <MStd color="#202326" metalness={0.28} roughness={0.55} />
+      </RoundedBox>
+
+      {/* Two low, outward-splayed V feet matching the reference television. */}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * w * 0.34, 0.1, 0]}>
+          <RoundedBox args={[0.58, 0.075, 0.11]} radius={0.025} smoothness={3} rotation={[0, side * 0.34, side * 0.035]} position={[side * 0.1, 0, 0.18]} castShadow>
+            <MStd color="#181a1c" metalness={0.72} roughness={0.25} />
+          </RoundedBox>
+          <RoundedBox args={[0.48, 0.07, 0.1]} radius={0.025} smoothness={3} rotation={[0, -side * 0.34, -side * 0.035]} position={[-side * 0.07, 0, -0.14]} castShadow>
+            <MStd color="#181a1c" metalness={0.72} roughness={0.25} />
+          </RoundedBox>
+        </group>
+      ))}
     </group>
   );
 }

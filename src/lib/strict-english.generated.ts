@@ -1,6 +1,7 @@
 // Generated strict-English fallback dictionary for player-visible UI.
 // Existing explicit VI/EN branches remain authoritative; this catches missed legacy copy.
 export const STRICT_ENGLISH_UI: Record<string, string> = {
+  "Tivi": "Television",
   "Mũ": "Hat",
   "mã": "code",
   "Áo": "Shirt",

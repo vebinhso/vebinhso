@@ -5,7 +5,7 @@ describe("redactForFeedback", () => {
   it("masks VN phone numbers", () => {
     expect(redactForFeedback("Gọi 0912 345 678")).toBe("Gọi 0912xxxx78");
     expect(redactForFeedback("số 0912.345.678 nhé")).toBe("số 0912xxxx78 nhé");
-    expect(redactForFeedback("+84 912 345 678")).toBe("+849xxxxx78");
+    expect(redactForFeedback("+84 912 345 678")).toBe("+849xxxxxx78");
   });
   it("masks emails", () => {
     expect(redactForFeedback("liên hệ a.b@gmail.com")).toBe("liên hệ [email]");

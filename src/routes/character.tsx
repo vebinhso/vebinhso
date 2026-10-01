@@ -252,8 +252,8 @@ function CharacterPage() {
             />
           ) : tab === "look" ? (
             <AppearancePicker o={outfit} onChange={commitHair} />
-          ) : tab === "shirt" || tab === "pants" ? (
-            <ClothesPicker kind={tab === "shirt" ? "top" : "bottom"} o={outfit} onChange={commitHair} />
+          ) : tab === "shirt" || tab === "pants" || tab === "shoes" ? (
+            <ClothesPicker kind={tab === "shirt" ? "top" : tab === "shoes" ? "shoes" : "bottom"} o={outfit} onChange={commitHair} />
           ) : tab === "accessory" ? (
             <AccessoryPicker
               owned={outfit.accessoriesOwned}

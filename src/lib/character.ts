@@ -12,6 +12,9 @@ export type Outfit = {
   accent: string;
   /** Kiểu tóc; chưa có nghĩa là chưa chọn lần nào (lần đầu miễn phí). */
   hairStyle?: string;
+  /** Phụ kiện đã mua và đang đeo. */
+  accessoriesOwned?: string[];
+  accessories?: string[];
 };
 
 const DEFAULT: Outfit = {

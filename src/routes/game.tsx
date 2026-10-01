@@ -21,6 +21,7 @@ import {
   type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem, catalogLabel, canStackOn, isFlatMat, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
+import { ItemThumb, ThumbnailBaker, matchItem } from "@/game/ItemThumbs";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
 
@@ -53,6 +54,7 @@ function GamePage() {
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
+  const [shopQuery, setShopQuery] = useState("");
   const [buyQty, setBuyQty] = useState<Record<string, number>>({});
   const [placeQueue, setPlaceQueue] = useState<number>(0);
   const [question, setQuestion] = useState<Question | null>(null);
@@ -1435,6 +1437,15 @@ function GamePage() {
               <div className="font-bold text-yellow-700 text-xs md:text-base whitespace-nowrap">💰 {state.money}đ</div>
                <button onClick={() => setShopOpen(false)} className="toy-button !text-xs !py-1 !px-3 shrink-0">{en ? "Close" : "Đóng"}</button>
             </div>
+            <div className="px-2 md:px-3 pt-2 md:pt-3">
+              <input
+                type="search"
+                value={shopQuery}
+                onChange={(e) => setShopQuery(e.target.value)}
+                placeholder={en ? "🔍 Search items (sofa, TV, fan...)" : "🔍 Tìm đồ (sofa, tivi, quạt...)"}
+                className="w-full rounded-full border-2 border-amber-300 bg-white px-4 py-2 text-sm font-bold outline-none focus:border-amber-500"
+              />
+            </div>
             <div className="flex flex-wrap gap-1 md:gap-2 p-2 md:p-3 border-b-2 border-white/50">
               {CATEGORIES.map((c) => (
                 <button
@@ -1452,8 +1463,18 @@ function GamePage() {
                  {" "}<span className="text-orange-700">🧱 {en ? "BUILD WALL" : "XÂY TƯỜNG"}</span> ({en ? "10 bricks + 1 concrete" : "10 gạch + 1 bê tông"} / 1m×5m).
               </div>
             )}
+            <ThumbnailBaker />
             <div className="p-2 md:p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-3" style={{ scrollbarWidth: "thin" }}>
-              {CATALOG.filter((c) => c.category === activeCat).map((it) => {
+              {(shopQuery.trim()
+                ? CATALOG.filter((c) => matchItem(c, shopQuery, catalogLabel(c.name, en)))
+                : CATALOG.filter((c) => c.category === activeCat)
+              ).length === 0 && (
+                <div className="col-span-full text-center py-8 font-bold text-stone-600">{en ? "No items found" : "Không tìm thấy món đồ nào"}</div>
+              )}
+              {(shopQuery.trim()
+                ? CATALOG.filter((c) => matchItem(c, shopQuery, catalogLabel(c.name, en)))
+                : CATALOG.filter((c) => c.category === activeCat)
+              ).map((it) => {
                 const kind = it.kind ?? "place";
                 const isBulk = kind === "brick" || kind === "concrete" || kind === "rooftile";
                 const isPalette = kind === "palette";
@@ -1474,10 +1495,10 @@ function GamePage() {
                     background: "radial-gradient(circle at 30% 20%, #fffaf0 0%, #ffe8b8 55%, #f7c573 100%)",
                     boxShadow: "0 8px 16px -8px rgba(180,120,0,0.45), inset 0 -4px 0 rgba(0,0,0,0.07), inset 0 3px 0 rgba(255,255,255,0.6)",
                   }}>
-                    <div className="mx-auto w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-1" style={{
-                      background: "radial-gradient(circle at 35% 30%, #ffffff 0%, #fff3c8 50%, #f0b94f 100%)",
-                      boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.25), 0 4px 8px rgba(0,0,0,0.1)",
-                    }}>{it.icon}</div>
+                    <div className="mx-auto w-full aspect-square max-w-[120px] rounded-2xl flex items-center justify-center text-3xl md:text-4xl mb-1 overflow-hidden" style={{
+                      background: "radial-gradient(circle at 50% 40%, #ffffff 0%, #fff6dc 60%, #f6dca0 100%)",
+                      boxShadow: "inset 0 -4px 8px rgba(120,60,0,0.15)",
+                    }}><ItemThumb item={it} className="w-full h-full" /></div>
                     <div className="font-black text-[11px] md:text-sm mt-1 line-clamp-1">{catalogLabel(it.name, en)}</div>
                     <div className="text-[9px] md:text-[10px] text-amber-900/70 font-bold">{it.w}×{it.d}</div>
                     <div className="inline-block px-2 py-0.5 mt-1 rounded-full bg-amber-900 text-amber-100 text-[10px] md:text-xs font-black">

@@ -476,7 +476,7 @@ function AiPage() {
     }
     setImgResult(null);
     const r = await withProgress(
-      ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang đối chiếu dấu hiệu AI...", "Đang chấm điểm..."],
+      [(en ? "Uploading image..." : "Đang tải ảnh lên..."), (en ? "Examining image details..." : "Đang soi chi tiết ảnh..."), (en ? "Checking AI indicators..." : "Đang đối chiếu dấu hiệu AI..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       () => runImage({ data: { imageUrl: preview, locale: en ? "en" : "vi" } }),
     );
     if (r) setImgResult(r);
@@ -488,12 +488,12 @@ function AiPage() {
     }
     setVideoResult(null);
     const r = await withProgress(
-      ["Đang đọc video...", "Đang trích khung hình...", "Đang soi từng khung hình...", "Đang chấm điểm..."],
+      [(en ? "Reading video..." : "Đang đọc video..."), (en ? "Extracting frames..." : "Đang trích khung hình..."), (en ? "Examining each frame..." : "Đang soi từng khung hình..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       async (report) => {
         const frames = await extractFrames(videoFile, 4, (done, total) => {
-          report(5 + (done / total) * 35, `Đang trích khung hình ${done}/${total}...`);
+          report(5 + (done / total) * 35, (en ? `Extracting frame ${done}/${total}...` : `Đang trích khung hình ${done}/${total}...`));
         });
-        report(45, "Đang gửi khung hình cho AI phân tích...");
+        report(45, (en ? "Sending frames for AI analysis..." : "Đang gửi khung hình cho AI phân tích..."));
         return runVideo({ data: { frames, locale: en ? "en" : "vi" } });
       },
     );
@@ -502,7 +502,7 @@ function AiPage() {
   async function doLink() {
     setLinkResult(null);
     const r = await withProgress(
-      ["Đang đọc đường link...", "Đang kiểm tra tên miền...", "Đang dò dấu hiệu lừa đảo...", "Đang chấm điểm rủi ro..."],
+      [(en ? "Reading link..." : "Đang đọc đường link..."), (en ? "Checking domain..." : "Đang kiểm tra tên miền..."), (en ? "Scanning for scam signs..." : "Đang dò dấu hiệu lừa đảo..."), (en ? "Calculating risk..." : "Đang chấm điểm rủi ro...")],
       () => runLink({ data: { url, locale: en ? "en" : "vi" } }),
     );
     if (r) setLinkResult(r);
@@ -510,7 +510,7 @@ function AiPage() {
   async function doText() {
     setTextResult(null);
     const r = await withProgress(
-      ["Đang đọc văn bản...", "Đang phân tích văn phong...", "Đang so sánh mẫu văn AI...", "Đang chấm điểm..."],
+      [(en ? "Reading text..." : "Đang đọc văn bản..."), (en ? "Analyzing writing style..." : "Đang phân tích văn phong..."), (en ? "Comparing AI writing patterns..." : "Đang so sánh mẫu văn AI..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       () => runText({ data: { text, locale: en ? "en" : "vi" } }),
     );
     if (r) setTextResult(r);
@@ -518,7 +518,7 @@ function AiPage() {
   async function doEmail() {
     setEmailResult(null);
     const r = await withProgress(
-      ["Đang đọc email...", "Đang kiểm tra người gửi...", "Đang dò dấu hiệu phishing...", "Đang chấm điểm..."],
+      [(en ? "Reading email..." : "Đang đọc email..."), (en ? "Checking sender..." : "Đang kiểm tra người gửi..."), (en ? "Scanning for phishing signs..." : "Đang dò dấu hiệu phishing..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       () => runEmail({ data: { content: email, locale: en ? "en" : "vi" } }),
     );
     if (r) setEmailResult(r);
@@ -526,7 +526,7 @@ function AiPage() {
   async function doPhone() {
     setPhoneResult(null);
     const r = await withProgress(
-      ["Đang chuẩn hoá số...", "Đang tra cứu nhà mạng...", "Đang xác định vùng gọi...", "Đang chấm điểm rủi ro..."],
+      [(en ? "Normalizing number..." : "Đang chuẩn hoá số..."), (en ? "Looking up carrier..." : "Đang tra cứu nhà mạng..."), (en ? "Identifying call origin..." : "Đang xác định vùng gọi..."), (en ? "Calculating risk..." : "Đang chấm điểm rủi ro...")],
       () => runPhone({ data: { phone, context: phoneCtx, locale: en ? "en" : "vi" } }),
     );
     if (r) setPhoneResult(r);
@@ -534,7 +534,7 @@ function AiPage() {
   async function doNews() {
     setNewsResult(null);
     const r = await withProgress(
-      ["Đang đọc bản tin...", "Đang kiểm tra nguồn tin...", "Đang đối chiếu dấu hiệu tin giả...", "Đang chấm điểm..."],
+      [(en ? "Reading the claim..." : "Đang đọc bản tin..."), (en ? "Checking news sources..." : "Đang kiểm tra nguồn tin..."), (en ? "Checking misinformation indicators..." : "Đang đối chiếu dấu hiệu tin giả..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       () => runNews({ data: { content: news, locale: en ? "en" : "vi" } }),
     );
     if (r) setNewsResult(r);
@@ -548,7 +548,7 @@ function AiPage() {
         return;
       }
       const r = await withProgress(
-        ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang tìm thông tin nhạy cảm...", "Đang chấm rủi ro..."],
+        [(en ? "Uploading image..." : "Đang tải ảnh lên..."), (en ? "Examining image details..." : "Đang soi chi tiết ảnh..."), (en ? "Finding sensitive information..." : "Đang tìm thông tin nhạy cảm..."), (en ? "Calculating risk..." : "Đang chấm rủi ro...")],
         () => runPrivacyMedia({ data: { images: riskImages, locale: en ? "en" : "vi" } }),
       );
       if (r) setRiskMediaResult(r);
@@ -559,13 +559,13 @@ function AiPage() {
       return;
     }
     const r = await withProgress(
-      ["Đang đọc video...", "Đang trích khung hình...", "Đang tìm thông tin nhạy cảm...", "Đang chấm rủi ro..."],
+      [(en ? "Reading video..." : "Đang đọc video..."), (en ? "Extracting frames..." : "Đang trích khung hình..."), (en ? "Finding sensitive information..." : "Đang tìm thông tin nhạy cảm..."), (en ? "Calculating risk..." : "Đang chấm rủi ro...")],
       async (report) => {
         const frames = await extractFrames(riskVideoFile, 4, (done, total) => {
-          report(5 + (done / total) * 35, `Đang trích khung hình ${done}/${total}...`);
+          report(5 + (done / total) * 35, (en ? `Extracting frame ${done}/${total}...` : `Đang trích khung hình ${done}/${total}...`));
         });
         setRiskImages(frames);
-        report(45, "Đang gửi khung hình cho AI phân tích...");
+        report(45, (en ? "Sending frames for AI analysis..." : "Đang gửi khung hình cho AI phân tích..."));
         return runPrivacyMedia({ data: { images: frames, locale: en ? "en" : "vi" } });
       },
     );
@@ -575,7 +575,7 @@ function AiPage() {
   async function doRiskText() {
     setRiskTextResult(null);
     const r = await withProgress(
-      ["Đang đọc văn bản...", "Đang tìm thông tin cá nhân...", "Đang đánh giá nguy cơ...", "Đang chấm rủi ro..."],
+      [(en ? "Reading text..." : "Đang đọc văn bản..."), (en ? "Finding personal information..." : "Đang tìm thông tin cá nhân..."), (en ? "Assessing risk..." : "Đang đánh giá nguy cơ..."), (en ? "Calculating risk..." : "Đang chấm rủi ro...")],
       () => runPrivacyText({ data: { text: riskText, locale: en ? "en" : "vi" } }),
     );
     if (r) setRiskTextResult(r);

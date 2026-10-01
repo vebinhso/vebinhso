@@ -499,19 +499,52 @@ export function Table({ w = 3, d = 2, h = 0.8 }) {
 }
 
 export function RoundTable() {
+  const legAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
   return (
     <group>
-      <mesh castShadow receiveShadow position={[0, 1, 0]}>
-        <cylinderGeometry args={[1, 1, 0.1, 32]} />
-        <MStd color="#a16207" roughness={0.5} />
+      {/* Warm walnut tray top with a raised rounded rim. */}
+      <mesh castShadow receiveShadow position={[0, 0.92, 0]}>
+        <cylinderGeometry args={[1, 1, 0.13, 64]} />
+        <MStd color="#713b1e" roughness={0.3} />
       </mesh>
-      <mesh castShadow position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.12, 0.18, 1, 12]} />
-        <MStd color="#78350f" />
+      <mesh receiveShadow position={[0, 1, 0]}>
+        <cylinderGeometry args={[0.88, 0.88, 0.03, 64]} />
+        <MStd color="#9a6241" roughness={0.52} />
       </mesh>
-      <mesh castShadow position={[0, 0.05, 0]}>
-        <cylinderGeometry args={[0.5, 0.6, 0.1, 16]} />
-        <MStd color="#78350f" />
+      <mesh castShadow position={[0, 1.035, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.91, 0.075, 16, 64]} />
+        <MStd color="#5a2d17" roughness={0.26} />
+      </mesh>
+
+      {/* Fine wood-grain lines across the inset top. */}
+      {[-0.58, -0.38, -0.18, 0.02, 0.22, 0.42, 0.62].map((z) => {
+        const halfWidth = Math.sqrt(Math.max(0, 0.72 - z * z));
+        return (
+          <mesh key={z} position={[0, 1.019, z]}>
+            <boxGeometry args={[halfWidth * 2, 0.006, 0.012]} />
+            <MStd color="#7f4a2d" roughness={0.75} />
+          </mesh>
+        );
+      })}
+
+      {/* Slim black steel frame: four posts and a circular lower brace. */}
+      {legAngles.map((angle) => {
+        const x = Math.cos(angle) * 0.78;
+        const z = Math.sin(angle) * 0.78;
+        return (
+          <mesh key={angle} castShadow position={[x, 0.49, z]}>
+            <cylinderGeometry args={[0.038, 0.046, 0.84, 16]} />
+            <MStd color="#151617" metalness={0.78} roughness={0.22} />
+          </mesh>
+        );
+      })}
+      <mesh castShadow position={[0, 0.12, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.78, 0.045, 14, 64]} />
+        <MStd color="#111214" metalness={0.82} roughness={0.2} />
+      </mesh>
+      <mesh castShadow position={[0, 0.82, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.79, 0.025, 12, 64]} />
+        <MStd color="#17191b" metalness={0.82} roughness={0.18} />
       </mesh>
     </group>
   );

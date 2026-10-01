@@ -1595,7 +1595,7 @@ function MagicPage() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      <Canvas shadows camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 2]}>
+      <Canvas shadows camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 1.5]}>
 
         <Suspense fallback={null}>
           {stage === 1 && room ? (

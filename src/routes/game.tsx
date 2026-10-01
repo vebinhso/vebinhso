@@ -1604,7 +1604,7 @@ function GamePage() {
           });
         };
         // Tìm surface đang nằm dưới topper (footprint chồng lấn + cùng tầng)
-        const isWallMounted = typeof ed.angleRad === "number" && !isWindowItem(ed.itemId) && !DOOR_IDS_SET.has(ed.itemId);
+        const isWallMounted = typeof ed.angleRad === "number" && !isWindowItem(ed.itemId) && !isDoorItem(ed.itemId);
         const edSwap = ed.rotation % 2 === 1;
         const edW = edSwap ? it.d : it.w;
         const edD = edSwap ? it.w : it.d;
@@ -1615,7 +1615,7 @@ function GamePage() {
         const candidates = isWallMounted ? [] : state.placed.filter((p) => {
           if (p.id === ed.id) return false;
           if ((p.floor ?? 0) !== (ed.floor ?? 0)) return false;
-          if (isRoof(p.itemId) || isWindowItem(p.itemId) || DOOR_IDS_SET.has(p.itemId) || isFlatMat(p.itemId)) return false;
+          if (isRoof(p.itemId) || isWindowItem(p.itemId) || isDoorItem(p.itemId) || isFlatMat(p.itemId)) return false;
           const pi = getItem(p.itemId);
           if (!pi) return false;
           const ps = p.rotation % 2 === 1;

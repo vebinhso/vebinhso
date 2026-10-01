@@ -32,6 +32,118 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_check_feedback: {
+        Row: {
+          attached_content: string | null
+          check_kind: string
+          consent_basis: string | null
+          content_expires_at: string | null
+          created_at: string
+          id: string
+          note: string | null
+          rating: number
+          reason: string | null
+          reporter_role: string
+          result_level: string | null
+          result_scores: Json
+          skill_key: string | null
+          skill_version: number | null
+          user_id: string
+        }
+        Insert: {
+          attached_content?: string | null
+          check_kind: string
+          consent_basis?: string | null
+          content_expires_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          rating: number
+          reason?: string | null
+          reporter_role: string
+          result_level?: string | null
+          result_scores?: Json
+          skill_key?: string | null
+          skill_version?: number | null
+          user_id: string
+        }
+        Update: {
+          attached_content?: string | null
+          check_kind?: string
+          consent_basis?: string | null
+          content_expires_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          rating?: number
+          reason?: string | null
+          reporter_role?: string
+          result_level?: string | null
+          result_scores?: Json
+          skill_key?: string | null
+          skill_version?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_check_skill: {
+        Row: {
+          check_kind: string
+          skill_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          check_kind: string
+          skill_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          check_kind?: string
+          skill_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_check_skill_skill_key_fkey"
+            columns: ["skill_key"]
+            isOneToOne: false
+            referencedRelation: "ai_skills"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      ai_skill_versions: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          skill_key: string
+          version: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          skill_key: string
+          version: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          skill_key?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_skill_versions_skill_key_fkey"
+            columns: ["skill_key"]
+            isOneToOne: false
+            referencedRelation: "ai_skills"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       ai_skills: {
         Row: {
           content: string
@@ -414,6 +526,9 @@ export type Database = {
           class_id: string
           id: string
           joined_at: string
+          parent_consent_ai: boolean
+          parent_consent_at: string | null
+          parent_consent_by: string | null
           student_id: string
           teacher_id: string
         }
@@ -421,6 +536,9 @@ export type Database = {
           class_id: string
           id?: string
           joined_at?: string
+          parent_consent_ai?: boolean
+          parent_consent_at?: string | null
+          parent_consent_by?: string | null
           student_id: string
           teacher_id: string
         }
@@ -428,6 +546,9 @@ export type Database = {
           class_id?: string
           id?: string
           joined_at?: string
+          parent_consent_ai?: boolean
+          parent_consent_at?: string | null
+          parent_consent_by?: string | null
           student_id?: string
           teacher_id?: string
         }
@@ -1227,6 +1348,7 @@ export type Database = {
           display_name: string
           email: string
           joined_at: string
+          parent_consent_ai: boolean
           user_id: string
           username: string
         }[]
@@ -1293,6 +1415,7 @@ export type Database = {
           reward: number
         }[]
       }
+      has_parent_consent: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1337,6 +1460,7 @@ export type Database = {
           username: string
         }[]
       }
+      purge_expired_feedback_content: { Args: never; Returns: undefined }
       reject_teacher: { Args: { uid: string }; Returns: undefined }
       remove_class_student: {
         Args: { _class_id: string; _student_id: string }
@@ -1349,6 +1473,10 @@ export type Database = {
       set_active_class: { Args: { _class_id: string }; Returns: undefined }
       set_class_visibility: {
         Args: { _class_id: string; _visibility: string }
+        Returns: undefined
+      }
+      set_parent_consent: {
+        Args: { _class_id: string; _student_id: string; _value: boolean }
         Returns: undefined
       }
     }

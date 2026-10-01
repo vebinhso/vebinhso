@@ -1052,7 +1052,7 @@ function GamePage() {
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onWallPlace={handleWallPlace}
-          viewMode={playMode === "view" ? "eye" : playMode === "overview" ? "top" : viewMode}
+          viewMode={playMode === "view" ? exploreView : playMode === "overview" ? "top" : viewMode}
           dimTown={playMode === "edit"}
           onRemove={handleRemove}
           onPillarClick={onPillarClick}

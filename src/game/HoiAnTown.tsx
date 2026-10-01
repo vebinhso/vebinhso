@@ -299,15 +299,14 @@ function FriendMapLabel({ friend, onClick }: { friend: FriendHouse; onClick?: ()
   const en = useLocale() === "en";
   const name = friend.house_name || friend.display_name || friend.username;
   return (
-    <Html position={[0, 8.2, 0]} center sprite distanceFactor={18} zIndexRange={[16, 1]}>
+    <Html position={[0, 9.2, 0]} center sprite distanceFactor={15} zIndexRange={[24, 2]}>
       <Button
-        size="sm"
-        variant="secondary"
+        size="default"
         onClick={(event) => { event.stopPropagation(); onClick?.(); }}
-        className="pointer-events-auto h-8 max-w-44 gap-1.5 border-2 border-primary/50 bg-background/90 px-2.5 text-xs font-black shadow-lg backdrop-blur-sm"
+        className="pointer-events-auto h-11 min-w-40 max-w-64 gap-2 border-2 border-primary-foreground/80 bg-primary px-4 text-sm font-black text-primary-foreground shadow-xl ring-4 ring-primary/35 backdrop-blur-sm animate-pulse sm:text-base"
       >
         <span aria-hidden="true">🏠</span>
-        <span className="max-w-36 truncate">{en ? `${name}'s house` : `Nhà của ${name}`}</span>
+        <span className="max-w-52 truncate">{en ? `${name}'s house` : `Nhà của ${name}`}</span>
       </Button>
     </Html>
   );
@@ -418,20 +417,39 @@ const MAIN_Z = 16;
 const BACK_Z = -24;
 const SIDE_X = 30;
 const EXT = 92;
-// Mảnh đất bạn bè cùng cỡ nhà mình, rải theo nhiều tuyến đường thay vì thành một hàng.
-const FRIEND_SLOTS: Array<{ x: number; z: number; rot: number }> = [
-  { x: 0, z: 32.5, rot: Math.PI },
-  { x: -28, z: 32.5, rot: Math.PI },
-  { x: 28, z: 32.5, rot: Math.PI },
-  { x: -46.5, z: 2, rot: Math.PI / 2 },
-  { x: 46.5, z: -4, rot: -Math.PI / 2 },
-  { x: -46.5, z: -32, rot: Math.PI / 2 },
-  { x: 46.5, z: -38, rot: -Math.PI / 2 },
-  { x: -15, z: -40.5, rot: 0 },
-  { x: 15, z: -40.5, rot: 0 },
-  { x: -72, z: 32.5, rot: Math.PI },
-  { x: 72, z: 32.5, rot: Math.PI },
-];
+type FriendSlot = { x: number; z: number; rot: number };
+
+/**
+ * Tạo đủ lô 20×20 cho toàn bộ bạn bè trong ranh giới phố.
+ * Vị trí gần nhà người chơi được dùng trước, sau đó lan đều sang hai bên và phía sau.
+ */
+function buildFriendSlots(count: number): FriendSlot[] {
+  const candidates: FriendSlot[] = [];
+  const xs = [-80, -60, -40, -20, 0, 20, 40, 60, 80];
+  const zs = [-54, -34, -14, 6, 32, 54];
+  for (const z of zs) {
+    for (const x of xs) {
+      // Chừa khu đất 20×20 của người chơi và lối vào phía trước.
+      if (Math.abs(x) < 15 && z > -15 && z < 15) continue;
+      const dx = Math.abs(x - SIDE_X);
+      const dl = Math.abs(x + SIDE_X);
+      const rot = z >= MAIN_Z
+        ? Math.PI
+        : z <= BACK_Z
+          ? 0
+          : dl < dx
+            ? Math.PI / 2
+            : -Math.PI / 2;
+      candidates.push({ x, z, rot });
+    }
+  }
+  candidates.sort((a, b) => {
+    const da = a.x * a.x + (a.z - MAIN_Z) * (a.z - MAIN_Z);
+    const db = b.x * b.x + (b.z - MAIN_Z) * (b.z - MAIN_Z);
+    return da - db;
+  });
+  return candidates.slice(0, count);
+}
 
 function buildSlots(): Slot[] {
   const slots: Slot[] = [];
@@ -486,7 +504,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   const slots = useMemo(() => buildSlots(), []);
   const ordered = useMemo(() => [...slots].sort((a, b) => a.d2 - b.d2), [slots]);
   const fs = friends ?? [];
-  const activeFriendSlots = FRIEND_SLOTS.slice(0, Math.min(fs.length, FRIEND_SLOTS.length));
+  const activeFriendSlots = useMemo(() => buildFriendSlots(fs.length), [fs.length]);
   // Chừa trọn mảnh đất 20×20 quanh mỗi nhà bạn để nhà phố không đè lên nhau.
   const shopSlots = ordered.filter((s) => !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
   const lanterns: [number, number][][] = [];
@@ -528,12 +546,13 @@ export const HoiAnTown = memo(function HoiAnTown({
       <Road dir="z" c={SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />
       {/* Lối từ nhà mình ra đường chính */}
       <mesh geometry={G.box} material={M.walk} position={[0, 0.03, 12.5]} scale={[4, 0.04, 3]} />
-      {!dim && fs.slice(0, FRIEND_SLOTS.length).map((friend, i) => {
-        const slot = FRIEND_SLOTS[i];
+      {!dim && fs.map((friend, i) => {
+        const slot = activeFriendSlots[i];
+        if (!slot) return null;
         return (
         <group key={friend.user_id} position={[slot.x, 0, slot.z]} rotation={[0, slot.rot, 0]}
           onClick={(e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); }}>
-          {i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <group scale={1.8}><DefaultHouse /></group>}
+          <FriendHousePreview ownerId={friend.user_id} />
           <FriendSign friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />
           {showFriendLabels && <FriendMapLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
         </group>

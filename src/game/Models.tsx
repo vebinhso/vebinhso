@@ -1027,15 +1027,59 @@ export function Speaker() {
 }
 
 export function Clock() {
+  const ticks = Array.from({ length: 12 }, (_, i) => (i * Math.PI) / 6);
   return (
     <group>
-      <mesh castShadow position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.45, 0.45, 0.08, 28]} rotation-x={Math.PI / 2} />
-        <MStd color="#f3f4f6" />
+      {/* Clock body */}
+      <mesh castShadow position={[0, 0.75, 0]}>
+        <cylinderGeometry args={[0.5, 0.5, 0.1, 36]} rotation-x={Math.PI / 2} />
+        <MStd color="#e5e7eb" roughness={0.35} />
       </mesh>
-      <mesh position={[0, 0.5, 0.05]}>
-        <cylinderGeometry args={[0.4, 0.4, 0.02, 28]} rotation-x={Math.PI / 2} />
-        <MStd color="#ffffff" />
+      {/* Face */}
+      <mesh position={[0, 0.75, 0.052]}>
+        <cylinderGeometry args={[0.44, 0.44, 0.015, 36]} rotation-x={Math.PI / 2} />
+        <MStd color="#fafafa" roughness={0.25} />
+      </mesh>
+      {/* Hour ticks — longer at 12/3/6/9 */}
+      {ticks.map((a, i) => {
+        const major = i % 3 === 0;
+        const len = major ? 0.09 : 0.05;
+        const r = 0.36;
+        return (
+          <mesh
+            key={i}
+            position={[Math.sin(a) * r, 0.75 + Math.cos(a) * r, 0.062]}
+            rotation={[0, 0, -a]}
+          >
+            <boxGeometry args={[major ? 0.028 : 0.016, len, 0.012]} />
+            <MStd color="#374151" roughness={0.4} />
+          </mesh>
+        );
+      })}
+      {/* Hour hand (points to 12) */}
+      <mesh position={[0, 0.85, 0.068]}>
+        <boxGeometry args={[0.035, 0.22, 0.012]} />
+        <MStd color="#1f2937" roughness={0.35} />
+      </mesh>
+      {/* Minute hand (points to 3) */}
+      <mesh position={[0.14, 0.75, 0.07]}>
+        <boxGeometry args={[0.3, 0.024, 0.012]} />
+        <MStd color="#1f2937" roughness={0.35} />
+      </mesh>
+      {/* Center pin */}
+      <mesh position={[0, 0.75, 0.075]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.02, 16]} rotation-x={Math.PI / 2} />
+        <MStd color="#6b7280" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Pendulum rod */}
+      <mesh position={[0, -0.15, 0.01]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.8, 10]} />
+        <MStd color="#9ca3af" metalness={0.5} roughness={0.35} />
+      </mesh>
+      {/* Pendulum ring */}
+      <mesh position={[0, -0.62, 0.01]}>
+        <torusGeometry args={[0.09, 0.018, 10, 24]} />
+        <MStd color="#9ca3af" metalness={0.5} roughness={0.35} />
       </mesh>
     </group>
   );

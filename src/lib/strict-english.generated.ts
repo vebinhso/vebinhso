@@ -424,6 +424,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Đóng lớp học": "Close Class",
   "Đăng ký ngay": "Register Now",
   "Đồng hồ treo": "Wall Clock",
+  "Đồng hồ treo tường": "Wall Clock",
   "đang nhập...": "logging in...",
   "Ảnh sắp đăng": "Photos to be posted",
   "Ảnh đính kèm": "Attached Photos",

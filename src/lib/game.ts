@@ -128,14 +128,24 @@ export function recordAnswer(isCorrect: boolean) {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+// Chỉ ghi lên DB sau khi đã tải xong dữ liệu từ DB — tránh ghi đè bằng cache rỗng/cũ.
+let HYDRATED_UID: string | null = null;
+let PENDING_FLUSH = false;
+let flushChain: Promise<void> = Promise.resolve();
+function scheduleFlush(uid: string) {
+  if (typeof window === "undefined") return;
+  if (HYDRATED_UID !== uid) { PENDING_FLUSH = true; return; }
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    flushChain = flushChain.then(() => flushToDB(uid)).catch(() => { /* noop */ });
+  }, 600);
+}
 export function saveGame(s: GameState) {
   CACHE = { ...s };
   const u = getCurrentUser();
   if (!u) return;
   persistLocal(u.id);
-  if (typeof window === "undefined") return;
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { flushToDB(u.id).catch(() => { /* noop */ }); }, 600);
+  scheduleFlush(u.id);
 }
 
 async function refreshFromDB(uid: string) {
@@ -147,6 +157,7 @@ async function refreshFromDB(uid: string) {
     (supabase.from as any)("floors").select("*").eq("user_id", uid),
   ]);
   const next: GameState = { ...CACHE };
+  let restoreLocal = false;
   if (gs.data) {
     next.money = gs.data.money ?? 0;
     next.netWorth = gs.data.net_worth ?? 0;
@@ -162,32 +173,55 @@ async function refreshFromDB(uid: string) {
     next.ownedPalettes = Array.isArray(gs.data.owned_palettes) ? (gs.data.owned_palettes as string[]) : [];
     next.paint = (gs.data as any).paint ?? 0;
   }
-  if (items.data) {
+  if (items.error || walls.error || roofs.error) return; // không chắc dữ liệu → không đụng
+  if (items.data && items.data.length === 0 && CACHE.placed.length > 0) restoreLocal = true;
+  else if (items.data) {
     next.placed = items.data.map((r: any) => ({
       id: r.id, itemId: r.item_id, x: r.x, z: r.z, rotation: r.rotation, floor: r.floor ?? 0,
       ...(r.angle_rad != null ? { angleRad: r.angle_rad } : {}),
       ...(r.stack_y != null ? { stackY: r.stack_y } : {}),
     }));
   }
-  if (walls.data) {
+  if (walls.data && walls.data.length === 0 && CACHE.walls.length > 0) restoreLocal = true;
+  else if (walls.data) {
     next.walls = walls.data.map((r: any) => ({
       id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, color: r.color, value: r.value, floor: r.floor ?? 0,
     }));
   }
-  if (roofs.data) {
+  if (roofs.data && roofs.data.length === 0 && CACHE.roofs.length > 0) restoreLocal = true;
+  else if (roofs.data) {
     next.roofs = roofs.data.map((r: any) => ({
       id: r.id, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style as "tile" | "ton", value: r.value, floor: r.floor ?? 0,
     }));
   }
-  if ((floors as any)?.data) {
+  if ((floors as any)?.data && (floors as any).data.length === 0 && CACHE.floors.length > 0) restoreLocal = true;
+  else if ((floors as any)?.data) {
     next.floors = (floors as any).data.map((r: any) => ({
       id: r.id, ax: Number(r.ax), az: Number(r.az), bx: Number(r.bx), bz: Number(r.bz), value: r.value, floor: r.floor ?? 0,
       ...(r.color ? { color: r.color } : {}),
     }));
   }
+  if (CACHE_UID !== uid) return;
   CACHE = next;
   persistLocal(uid);
+  HYDRATED_UID = uid;
+  if (restoreLocal || PENDING_FLUSH) { PENDING_FLUSH = false; scheduleFlush(uid); }
   if (typeof window !== "undefined") window.dispatchEvent(new Event("game-change"));
+}
+
+/** Ghi an toàn: chèn bản mới trước, chỉ xoá bản cũ khi chèn thành công — không bao giờ để trống. */
+async function replaceRows(table: string, uid: string, rows: Record<string, unknown>[]) {
+  const from = (supabase.from as any)(table);
+  const old = await from.select("id").eq("user_id", uid);
+  if (old.error) return;
+  const oldIds: string[] = (old.data ?? []).map((r: any) => r.id);
+  if (rows.length) {
+    const ins = await (supabase.from as any)(table).insert(rows);
+    if (ins.error) return;
+  }
+  for (let i = 0; i < oldIds.length; i += 200) {
+    await (supabase.from as any)(table).delete().eq("user_id", uid).in("id", oldIds.slice(i, i + 200));
+  }
 }
 
 
@@ -211,41 +245,21 @@ async function flushToDB(uid: string) {
     owned_palettes: CACHE.ownedPalettes,
     paint: CACHE.paint,
   });
-  // Items/walls/roofs: full replace strategy (simple, OK for small collections)
-  await supabase.from("placed_items").delete().eq("user_id", uid);
-  if (CACHE.placed.length) {
-    await supabase.from("placed_items").insert(
-      CACHE.placed.map((p) => ({
-        user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0,
-        angle_rad: p.angleRad ?? null,
-        stack_y: p.stackY ?? null,
-      })),
-    );
-  }
-  await supabase.from("walls").delete().eq("user_id", uid);
-  if (CACHE.walls.length) {
-    await supabase.from("walls").insert(
-      CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0, floor: w.floor ?? 0 })),
-    );
-  }
-  await supabase.from("roofs").delete().eq("user_id", uid);
-  if (CACHE.roofs.length) {
-    await supabase.from("roofs").insert(
-      CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })),
-    );
-  }
-  await (supabase.from as any)("floors").delete().eq("user_id", uid);
-  if (CACHE.floors.length) {
-    await (supabase.from as any)("floors").insert(
-      CACHE.floors.map((f) => ({ user_id: uid, ax: f.ax, az: f.az, bx: f.bx, bz: f.bz, value: f.value ?? 0, floor: f.floor ?? 0, color: f.color ?? null })),
-    );
-  }
+  await replaceRows("placed_items", uid, CACHE.placed.map((p) => ({
+    user_id: uid, item_id: p.itemId, x: p.x, z: p.z, rotation: p.rotation, floor: p.floor ?? 0,
+    angle_rad: p.angleRad ?? null, stack_y: p.stackY ?? null,
+  })));
+  await replaceRows("walls", uid, CACHE.walls.map((w) => ({ user_id: uid, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz, color: w.color, value: w.value ?? 0, floor: w.floor ?? 0 })));
+  await replaceRows("roofs", uid, CACHE.roofs.map((r) => ({ user_id: uid, ax: r.ax, az: r.az, bx: r.bx, bz: r.bz, style: r.style, value: r.value, floor: r.floor ?? 0 })));
+  await replaceRows("floors", uid, CACHE.floors.map((f) => ({ user_id: uid, ax: f.ax, az: f.az, bx: f.bx, bz: f.bz, value: f.value ?? 0, floor: f.floor ?? 0, color: f.color ?? null })));
   if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved"));
 }
 
 export function resetGameCacheForLogout() {
   CACHE = { ...DEFAULT };
   CACHE_UID = null;
+  HYDRATED_UID = null;
+  PENDING_FLUSH = false;
 }
 
 // Levels

@@ -9,6 +9,7 @@ import boatAsset from "@/assets/hoi-an-rowboat.glb.asset.json";
 export const RIVER_CENTER_Z = -73;
 export const RIVER_NEAR_BANK_Z = -61;
 export const RIVER_BOARD_POSITION = [0, RIVER_NEAR_BANK_Z + 1.5] as const;
+export const riverPoseState = { kneelingUntil: 0, targetX: 0, targetZ: RIVER_NEAR_BANK_Z - 4 };
 
 export type ReleasedLantern = {
   id: string;

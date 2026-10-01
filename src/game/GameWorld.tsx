@@ -13,11 +13,10 @@ import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
-import { RIVER_NEAR_BANK_Z, type ReleasedLantern } from "./HoiAnRiver";
+import { RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
 export const fpState = { on: false, yaw: 0, pitch: 0, teleport: false };
-export const riverPoseState = { kneelingUntil: 0, targetX: 0, targetZ: RIVER_NEAR_BANK_Z - 4 };
 const GRID = 20;
 const CELL = 1;
 // Đường đi 1 ô bao quanh mảnh đất 20x20 ⇒ (22² − 20²) = 84 ô đường
@@ -846,6 +845,7 @@ function PlotAndPlacement({
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend, dimTown,
+  releasedLanterns, onStartRiverQuiz, onReleaseLantern,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -884,9 +884,9 @@ function PlotAndPlacement({
       <HoiAnTown
         friends={friendHouses}
         onVisitFriend={onVisitFriend}
-        releasedLanterns={props.releasedLanterns}
-        onStartRiverQuiz={props.onStartRiverQuiz}
-        onReleaseLantern={props.onReleaseLantern}
+        releasedLanterns={releasedLanterns}
+        onStartRiverQuiz={onStartRiverQuiz}
+        onReleaseLantern={onReleaseLantern}
         dim={!!dimTown}
       />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>

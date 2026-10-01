@@ -44,8 +44,7 @@ import { useLocale } from "@/lib/locale";
 import { mixPaint, isWhite, colorName } from "@/lib/paint-mix";
 import { PaintBucketIcon } from "@/components/PaintBucketIcon";
 import { Button } from "@/components/ui/button";
-import { RIVER_BOARD_POSITION, RIVER_NEAR_BANK_Z, type ReleasedLantern } from "@/game/HoiAnRiver";
-import { riverPoseState } from "@/game/GameWorld";
+import { RIVER_BOARD_POSITION, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "@/game/HoiAnRiver";
 
 export const Route = createFileRoute("/game")({
   head: () => ({

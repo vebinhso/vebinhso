@@ -12,6 +12,7 @@ import type { Pickup } from "@/lib/worldPickups";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
+import { HoiAnTown } from "./HoiAnTown";
 
 const GRID = 20;
 const CELL = 1;
@@ -30,6 +31,8 @@ type Props = {
   /** Khi có: bấm vào tường sẽ đổ sơn */
   onWallPaint?: (id: string) => void;
   /** Đặt vật dán lên tường tại điểm bấm (toạ độ thế giới) */
+  /** Góc nhìn camera */
+  viewMode?: "free" | "top" | "front" | "wide";
   onWallPlace?: (wallId: string, x: number, y: number, z: number) => void;
   wallPickA: string | null;
   roofMode: boolean;
@@ -858,7 +861,7 @@ function PlotAndPlacement({
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
-      <Neighborhood friends={friendHouses} onVisitFriend={onVisitFriend} />
+      <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />
@@ -1028,6 +1031,22 @@ function PlotAndPlacement({
 }
 
 
+function CameraView({ controlsRef, mode }: { controlsRef: React.MutableRefObject<any>; mode: string }) {
+  const { camera } = useThree();
+  useEffect(() => {
+    const c = controlsRef.current;
+    const t = c ? c.target as THREE.Vector3 : new THREE.Vector3();
+    const off =
+      mode === "top" ? [0, 40, 0.01] :
+      mode === "front" ? [0, 5, 16] :
+      mode === "wide" ? [22, 26, 26] : [0, 14, 22];
+    camera.position.set(t.x + off[0], t.y + off[1], t.z + off[2]);
+    camera.lookAt(t);
+    c?.update();
+  }, [mode, camera, controlsRef]);
+  return null;
+}
+
 export default function GameWorld(props: Props) {
   const controlsRef = useRef<any>(null);
 
@@ -1107,6 +1126,7 @@ export default function GameWorld(props: Props) {
       )}
       <fog attach="fog" args={["#eaf6ff", 110, 250]} />
 
+      <CameraView controlsRef={controlsRef} mode={props.viewMode ?? "free"} />
       <OrbitControls
         ref={controlsRef}
         enablePan={false}

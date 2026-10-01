@@ -1109,7 +1109,7 @@ export default function GameWorld(props: Props) {
 
   const maxDpr = useMemo(() => {
     const device = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-    return isLowEnd ? Math.min(device, 1.25) : Math.min(device, 1.5);
+    return isLowEnd ? 1 : Math.min(device, 1.25);
   }, [isLowEnd]);
 
   return (
@@ -1117,7 +1117,7 @@ export default function GameWorld(props: Props) {
       shadows={isLowEnd ? false : true}
       camera={{ position: [0, 18, 28], fov: 55 }}
       dpr={[1, maxDpr]}
-      performance={{ min: 0.5 }}
+      performance={{ min: 0.4 }}
       gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.28 }}
     >
       <AdaptiveDpr pixelated={false} />

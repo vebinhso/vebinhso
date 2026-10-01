@@ -50,9 +50,9 @@ function ShopHouse({ seed }: { seed: number }) {
   const h = two ? HH + 2 : HH;
   return (
     <group>
-      <mesh geometry={G.box} material={wm} position={[0, h / 2, 0]} scale={[HW - 0.1, h, HD]} castShadow receiveShadow />
+      <mesh geometry={G.box} material={wm} position={[0, h / 2, 0]} scale={[HW - 0.1, h, HD]} />
       {/* Mái ngói 2 mái */}
-      <mesh geometry={G.prism} material={rm} position={[0, h + 0.7, 0]} rotation={[0, 0, Math.PI / 2]} scale={[1.6, HW + 0.4, HD * 0.62]} castShadow />
+      <mesh geometry={G.prism} material={rm} position={[0, h + 0.7, 0]} rotation={[0, 0, Math.PI / 2]} scale={[1.6, HW + 0.4, HD * 0.62]} />
       {/* Mái hiên trước */}
       <mesh geometry={G.box} material={rm} position={[0, 2.8, HD / 2 + 0.6]} rotation={[0.35, 0, 0]} scale={[HW, 0.12, 1.4]} />
       {/* Cửa gỗ */}
@@ -96,14 +96,14 @@ function DefaultHouse() {
   );
   return (
     <group>
-      <mesh geometry={G.box} material={DM.wall} position={[0, H / 2, 0]} scale={[W, H, D]} castShadow receiveShadow />
+      <mesh geometry={G.box} material={DM.wall} position={[0, H / 2, 0]} scale={[W, H, D]} />
       {/* Đầu hồi tam giác */}
       <mesh geometry={G.prism} material={DM.wall} position={[0, H + 0.9, 0]} rotation={[Math.PI / 2, 0, Math.PI / 2]} scale={[1.8, D - 0.02, W * 0.58]} />
       {/* Mái ngói đỏ 2 mái */}
-      <mesh geometry={G.box} material={DM.roof} position={[-W / 4 - 0.1, H + 1.05, 0]} rotation={[0, 0, 0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} castShadow />
-      <mesh geometry={G.box} material={DM.roof} position={[W / 4 + 0.1, H + 1.05, 0]} rotation={[0, 0, -0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} castShadow />
+      <mesh geometry={G.box} material={DM.roof} position={[-W / 4 - 0.1, H + 1.05, 0]} rotation={[0, 0, 0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} />
+      <mesh geometry={G.box} material={DM.roof} position={[W / 4 + 0.1, H + 1.05, 0]} rotation={[0, 0, -0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} />
       {/* Ống khói */}
-      <mesh geometry={G.box} material={DM.brick} position={[W / 4 + 0.4, H + 1.9, -0.6]} scale={[0.7, 1.6, 0.7]} castShadow />
+      <mesh geometry={G.box} material={DM.brick} position={[W / 4 + 0.4, H + 1.9, -0.6]} scale={[0.7, 1.6, 0.7]} />
       <mesh geometry={G.box} material={DM.trim} position={[W / 4 + 0.4, H + 2.75, -0.6]} scale={[0.9, 0.15, 0.9]} />
       {/* Cửa + tay nắm */}
       <mesh geometry={G.box} material={DM.door} position={[0, 1.05, D / 2 + 0.03]} scale={[1.1, 2.1, 0.06]} />
@@ -132,11 +132,11 @@ function FriendHousePreview({ ownerId }: { ownerId: string }) {
   const half = 10;
   return (
     <group scale={PREVIEW_SCALE} position={[0, 0, 0]}>
-      <mesh geometry={G.box} material={M.walk} position={[0, 0.02, 0]} scale={[20, 0.04, 20]} receiveShadow />
+      <mesh geometry={G.box} material={M.walk} position={[0, 0.02, 0]} scale={[20, 0.04, 20]} />
       {h.walls.map((w) => <WallMesh key={w.id} w={w} color="#f5e6c8" onRemove={() => {}} placed={h.placed} />)}
       {h.floors.map((f) => <FloorMesh key={f.id} f={f} onRemove={() => {}} />)}
       {h.roofs.map((r) => <RoofMesh key={r.id} r={r} onRemove={() => {}} />)}
-      {h.placed.slice(0, 80).map((p) => {
+      {h.placed.slice(0, 30).map((p) => {
         const it = getItem(p.itemId);
         if (!it) return null;
         const swap = p.rotation % 2 === 1;
@@ -187,9 +187,9 @@ function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; t
   const sc = (w: number): [number, number, number] => (dir === "x" ? [len, 0.04, w] : [w, 0.04, len]);
   return (
     <group>
-      <mesh geometry={G.box} material={M.road} position={pos(0, 0.0)} scale={sc(6)} receiveShadow />
-      <mesh geometry={G.box} material={M.walk} position={pos(-3.9, 0.06)} scale={sc(1.8)} receiveShadow />
-      <mesh geometry={G.box} material={M.walk} position={pos(3.9, 0.06)} scale={sc(1.8)} receiveShadow />
+      <mesh geometry={G.box} material={M.road} position={pos(0, 0.0)} scale={sc(6)} />
+      <mesh geometry={G.box} material={M.walk} position={pos(-3.9, 0.06)} scale={sc(1.8)} />
+      <mesh geometry={G.box} material={M.walk} position={pos(3.9, 0.06)} scale={sc(1.8)} />
     </group>
   );
 }
@@ -284,8 +284,8 @@ export const HoiAnTown = memo(function HoiAnTown({
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
             onClick={friend ? (e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); } : undefined}>
-            {friend ? <FriendHousePreview ownerId={friend.user_id} /> : <ShopHouse seed={s.seed} />}
-            {friend && !dim && <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
+            {friend ? (i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <DefaultHouse />) : <ShopHouse seed={s.seed} />}
+            {friend && !dim && i < 10 && <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
           </group>
         );
       })}

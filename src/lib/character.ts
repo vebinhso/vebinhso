@@ -71,6 +71,19 @@ export function loadOutfit(): Outfit | null {
   return CACHE;
 }
 
+/** Kiểm tra thiết kế đã lưu theo tài khoản, dùng khi đăng nhập trên thiết bị mới. */
+export async function hasSavedOutfit(): Promise<boolean> {
+  const u = getCurrentUser();
+  if (!u) return false;
+  const { data, error } = await supabase
+    .from("character_outfit")
+    .select("user_id")
+    .eq("user_id", u.id)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 export function saveOutfit(o: Outfit) {
   const u = getCurrentUser();
@@ -87,6 +100,21 @@ export function saveOutfit(o: Outfit) {
       () => {},
     );
   }, 500);
+}
+
+/** Lưu chắc chắn trước khi rời trang thiết kế lần đầu. */
+export async function saveOutfitNow(o: Outfit): Promise<void> {
+  const u = getCurrentUser();
+  if (!u) return;
+  CACHE = o;
+  CACHE_UID = u.id;
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(localKey(u.id), JSON.stringify(o)); } catch { /* noop */ }
+  }
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  const { error } = await supabase.from("character_outfit").upsert({ user_id: u.id, outfit: o as any });
+  if (error) throw error;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("game-saved"));
 }
 
 export const DEFAULT_OUTFIT = DEFAULT;

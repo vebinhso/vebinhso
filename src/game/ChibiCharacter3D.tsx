@@ -3,7 +3,7 @@ import * as THREE from "three";
 import type { Outfit } from "@/lib/character";
 import { bodyOf, faceOf } from "@/lib/appearance";
 import { bottomOf, topOf, type BottomPattern, type TopPattern } from "@/lib/clothes";
-import { equippedBySlot } from "@/lib/accessories";
+import { equippedBySlot, type AccessoryId } from "@/lib/accessories";
 import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
 import { Hair3D } from "./Hair3D";
@@ -102,7 +102,7 @@ function Face({ skin, shape, expression }: { skin: string; shape?: string; expre
   );
 }
 
-function Arm({ side, skin, shirt, shirt2, pattern, accessory, armRef }: { side: -1 | 1; skin: string; shirt: string; shirt2: string; pattern: TopPattern; accessory?: string; armRef?: RefObject<THREE.Group | null> }) {
+function Arm({ side, skin, shirt, shirt2, pattern, accessory, armRef }: { side: -1 | 1; skin: string; shirt: string; shirt2: string; pattern: TopPattern; accessory?: AccessoryId; armRef?: RefObject<THREE.Group | null> }) {
   return <group ref={armRef} position={[side * 0.44, 1.3, 0]} rotation={[0, 0, side * -0.08]}>
     <mesh castShadow position={[0, -0.18, 0]}><capsuleGeometry args={[0.115, 0.38, 6, 12]} /><GarmentMaterial pattern={pattern} color={shirt} color2={shirt2} /></mesh>
     <mesh castShadow position={[0, -0.47, 0]}><sphereGeometry args={[0.125, 14, 12]} /><meshStandardMaterial color={skin} roughness={0.9} />{accessory && <ArmAccessory3D id={accessory} />}</mesh>

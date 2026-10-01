@@ -120,11 +120,12 @@ function CharacterPage() {
   const [preview, setPreview] = useState<{ style: HairStyleId; color: string } | null>(null);
   const currentHairStyle: HairStyleId = isHairStyle(outfit.hairStyle) ? outfit.hairStyle : DEFAULT_HAIR_STYLE;
   const shown: Outfit = preview ? { ...outfit, hairStyle: preview.style, hair: preview.color } : outfit;
-  // Lưu ngay thay đổi tóc đã trả phí để không mất khi rời trang.
+  // Lưu ngay mọi thay đổi (tóc, ngoại hình, quần áo, phụ kiện) vào tài khoản.
   const commitHair = (patch: Partial<Outfit>) => {
     setOutfit((prev) => {
       const next = { ...prev, ...patch };
-      saveOutfit({ ...next, description: desc || next.description });
+      const toSave = { ...next, description: desc || next.description };
+      queueMicrotask(() => { saveOutfitNow(toSave).catch(() => saveOutfit(toSave)); });
       return next;
     });
   };
@@ -134,6 +135,16 @@ function CharacterPage() {
     if (!u) { navigate({ to: "/login" }); return; }
     const existing = loadOutfit();
     if (existing) { setOutfit(existing); setDesc(existing.description); }
+    // Luôn lấy bản đã lưu trên tài khoản để không ghi đè bằng mặc định.
+    supabase.from("character_outfit").select("outfit").eq("user_id", u.id).maybeSingle()
+      .then(({ data }) => {
+        if (data?.outfit && typeof data.outfit === "object") {
+          const next = { ...DEFAULT_OUTFIT, ...(data.outfit as Outfit) };
+          setOutfit(next);
+          if (next.description) setDesc(next.description);
+          saveOutfit(next);
+        }
+      });
     supabase.from("profiles").select("avatar_url").eq("user_id", u.id).maybeSingle()
       .then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url); });
   }, [navigate]);

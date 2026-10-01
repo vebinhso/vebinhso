@@ -130,7 +130,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "kitchenlamp", name: "Đèn bếp", category: "Phòng bếp", price: 35, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "💡" },
 
   // ===== Bổ sung phòng ngủ =====
-  { id: "chair", name: "Ghế đơn", category: "Phòng ngủ", price: 30, w: 1, d: 1, h: 1, color: "#a78bfa", icon: "🪑" },
+  { id: "chair", name: "Ghế nhựa", category: "Phòng ngủ", price: 30, w: 1, d: 1, h: 1.65, color: "#dc2626", icon: "🪑" },
   { id: "nightlamp", name: "Đèn ngủ", category: "Phòng ngủ", price: 25, w: 1, d: 1, h: 0.5, color: "#fde68a", icon: "🕯️" },
   { id: "bedroompainting", name: "Tranh phòng ngủ", category: "Phòng ngủ", price: 20, w: 2, d: 0.1, h: 1, color: "#f9a8d4", icon: "🖼️" },
 

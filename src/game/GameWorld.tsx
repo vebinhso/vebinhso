@@ -267,14 +267,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         <boxGeometry args={[0.22, 0.7, 0.22]} />
         <meshStandardMaterial color={o.pants} />
       </mesh>
-      <mesh position={[-0.18, 0.05, 0.04]} castShadow>
-        <boxGeometry args={[0.28, 0.1, 0.36]} />
-        <meshStandardMaterial color={o.shoes} />
-      </mesh>
-      <mesh position={[0.18, 0.05, 0.04]} castShadow>
-        <boxGeometry args={[0.28, 0.1, 0.36]} />
-        <meshStandardMaterial color={o.shoes} />
-      </mesh>
+      <Shoes3D shoeStyle={o.shoeStyle} fallbackColor={o.shoes} />
       <mesh ref={body} castShadow position={[0, 1.02, 0]} scale={[bShape.top / 32, 1, (bShape.waist + 32) / 64]}>
         <boxGeometry args={[0.65, 0.65, 0.38]} />
         <meshStandardMaterial color={o.shirt} />

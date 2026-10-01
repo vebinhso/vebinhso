@@ -341,7 +341,8 @@ function GamePage() {
 
   const flash = (msg: string, ms = 1800) => {
     setToast(msg);
-    setTimeout(() => setToast(null), ms);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), ms);
   };
 
   const buyAndSelect = (itemId: string, bulkTimes: number = 1) => {

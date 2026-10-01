@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
+import { SkillsPanel } from "@/components/SkillsPanel";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import {
@@ -72,6 +73,7 @@ type Tab =
   | "content"
   | "maps"
   | "pickups"
+  | "skills"
   | "logs";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -86,6 +88,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "content", label: "Nội dung", icon: "📝" },
   { id: "maps", label: "Khu vực", icon: "🗺️" },
   { id: "pickups", label: "Vật phẩm map", icon: "🪙" },
+  { id: "skills", label: "Skill AI", icon: "🧠" },
   { id: "logs", label: "Nhật ký", icon: "📜" },
 ];
 
@@ -169,6 +172,7 @@ function AdminPage() {
               {tab === "content" && <ContentPanel />}
               {tab === "maps" && <MapsPanel cfg={cfg} onChange={update} />}
               {tab === "pickups" && <PickupsPanel />}
+              {tab === "skills" && <SkillsPanel />}
               {tab === "logs" && <LogsPanel />}
             </main>
           </div>

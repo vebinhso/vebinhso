@@ -18,6 +18,9 @@ import { equippedBySlot } from "@/lib/accessories";
 import { AppearancePicker } from "@/components/AppearancePicker";
 import { FaceSvg } from "@/components/FaceSvg";
 import { bodyOf, exprOf, faceOf } from "@/lib/appearance";
+import { bottomOf, topOf } from "@/lib/clothes";
+import { ClothesDefs, RangerHelmet, TopEmblem, bottomFill, topFill } from "@/components/ClothesSvg";
+import { BottomShape, ClothesPicker } from "@/components/ClothesPicker";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -44,39 +47,56 @@ function PreviewCharacter({ o }: { o: Outfit }) {
   const acc = equippedBySlot(o.accessories);
   const b = bodyOf(o.bodyShape);
   const hs = isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE;
+  const top = topOf(o.topStyle);
+  const bot = bottomOf(o.bottomStyle);
+  const uid = "pv";
+  const shirtFill = top ? topFill(top, uid) : o.shirt;
+  const helmet = top?.helmet;
+  const torsoBottom = top?.long ? 128 : 101;
   return (
     <div className="flex items-end justify-center h-56 bg-gradient-to-b from-sky-200 to-emerald-200 rounded-2xl overflow-hidden">
       <svg viewBox="0 0 80 160" className="h-52">
-        {!acc.head && <HairBack style={hs} color={o.hair} />}
-        {/* legs */}
-        <rect x="28" y="100" width="10" height="40" rx="3" fill={o.pants} />
-        <rect x="42" y="100" width="10" height="40" rx="3" fill={o.pants} />
+        <ClothesDefs top={top} bottom={bot} uid={uid} />
+        {!acc.head && !helmet && <HairBack style={hs} color={o.hair} />}
+        {/* legs (skin under skirts/shorts) */}
+        {bot && bot.kind !== "pants" && bot.kind !== "wide" && (
+          <g fill={o.skin}><rect x="29" y="100" width="8" height="40" rx="3" /><rect x="43" y="100" width="8" height="40" rx="3" /></g>
+        )}
+        {bot ? <BottomShape b={bot} fill={bottomFill(bot, uid)} /> : (
+          <>
+            <rect x="28" y="100" width="10" height="40" rx="3" fill={o.pants} />
+            <rect x="42" y="100" width="10" height="40" rx="3" fill={o.pants} />
+          </>
+        )}
         {/* shoes */}
         <rect x="27" y="138" width="12" height="6" rx="2" fill={o.shoes} />
         <rect x="41" y="138" width="12" height="6" rx="2" fill={o.shoes} />
         {/* body */}
-        <path d={`M${40 - b.top / 2} 62 Q40 58 ${40 + b.top / 2} 62 L${40 + b.waist / 2} 82 L${40 + b.hip / 2} 101 L${40 - b.hip / 2} 101 L${40 - b.waist / 2} 82 Z`} fill={o.shirt} />
+        <path d={`M${40 - b.top / 2} 62 Q40 58 ${40 + b.top / 2} 62 L${40 + b.waist / 2} 82 L${40 + b.hip / 2 + (top?.long ? 2 : 0)} ${torsoBottom} L${40 - b.hip / 2 - (top?.long ? 2 : 0)} ${torsoBottom} L${40 - b.waist / 2} 82 Z`} fill={shirtFill} />
         {/* accent belt */}
-        <rect x={40 - b.hip / 2} y="96" width={b.hip} height="5" fill={o.accent} />
+        {!top && <rect x={40 - b.hip / 2} y="96" width={b.hip} height="5" fill={o.accent} />}
+        {top?.hood && <path d="M28 62 Q40 70 52 62 L50 60 Q40 66 30 60 Z" fill={top.color2 === "#111111" ? "#e5e5e5" : top.color2} opacity="0.7" />}
+        {top && <TopEmblem t={top} />}
         {/* arms */}
-        <rect x={30 - b.top / 2} y="62" width="10" height="40" rx="4" fill={o.shirt} />
-        <rect x={50 + b.top / 2} y="62" width="10" height="40" rx="4" fill={o.shirt} />
+        <rect x={30 - b.top / 2} y="62" width="10" height="40" rx="4" fill={shirtFill} />
+        <rect x={50 + b.top / 2} y="62" width="10" height="40" rx="4" fill={shirtFill} />
         {/* hands */}
-        <circle cx="19" cy="105" r="5" fill={o.skin} />
-        <circle cx="61" cy="105" r="5" fill={o.skin} />
+        <circle cx="19" cy="105" r="5" fill={helmet ? "#ffffff" : o.skin} />
+        <circle cx="61" cy="105" r="5" fill={helmet ? "#ffffff" : o.skin} />
         {acc.neck && <AccessorySvg id={acc.neck} hair={o.hair} />}
         {acc.wrist && <AccessorySvg id={acc.wrist} hair={o.hair} />}
         {acc.finger && <AccessorySvg id={acc.finger} hair={o.hair} />}
-        {acc.head && <AccessorySvg id={acc.head} hair={o.hair} />}
+        {acc.head && !helmet && <AccessorySvg id={acc.head} hair={o.hair} />}
         {/* head */}
         <path d={faceOf(o.faceShape).d} fill={o.skin} />
-        {/* hair */}
-        {!acc.head && <HairFront style={hs} color={o.hair} />}
-        {/* hat */}
-        {o.hat && !acc.head && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
-        {/* eyes */}
-        <FaceSvg e={exprOf(o.expression)} />
-        {acc.beard && <AccessorySvg id={acc.beard} hair={o.hair} />}
+        {helmet ? <RangerHelmet color={top!.color} /> : (
+          <>
+            {!acc.head && <HairFront style={hs} color={o.hair} />}
+            {o.hat && !acc.head && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
+            <FaceSvg e={exprOf(o.expression)} />
+            {acc.beard && <AccessorySvg id={acc.beard} hair={o.hair} />}
+          </>
+        )}
       </svg>
     </div>
   );
@@ -215,6 +235,8 @@ function CharacterPage() {
             />
           ) : tab === "look" ? (
             <AppearancePicker o={outfit} onChange={commitHair} />
+          ) : tab === "shirt" || tab === "pants" ? (
+            <ClothesPicker kind={tab === "shirt" ? "top" : "bottom"} o={outfit} onChange={commitHair} />
           ) : tab === "accessory" ? (
             <AccessoryPicker
               owned={outfit.accessoriesOwned}
@@ -271,6 +293,11 @@ function CharacterPage() {
             </button>
           </div>
           </>
+          )}
+          {tab !== "hair" && tab !== "shirt" && tab !== "pants" && tab !== "accessory" && tab !== "look" ? null : (
+            <button onClick={handleSave} className="toy-button toy-button-primary !text-base py-3 w-full mt-5">
+              {en ? "✅ Save & Play" : "✅ Lưu & Chơi"}
+            </button>
           )}
         </div>
       </div>

@@ -373,7 +373,7 @@ export const HoiAnTown = memo(function HoiAnTown({
         <group key={friend.user_id} position={[FRIEND_XS[i], 0, FRIEND_Z]} rotation={[0, Math.PI, 0]}
           onClick={(e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); }}>
           {i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <group scale={1.8}><DefaultHouse /></group>}
-          <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />
+          <FriendSign friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />
         </group>
       ))}
       {!dim && shopSlots.map((s, i) => {

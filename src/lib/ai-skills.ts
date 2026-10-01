@@ -10,16 +10,13 @@ export const SKILL_KEYS = [
 ] as const;
 export type SkillKey = (typeof SKILL_KEYS)[number];
 
-export const SKILL_FOR_CHECK = {
-  news: "vbs-bao-gia",
-  image: "vbs-hinh-anh-ai",
-  video: "vbs-video-ai",
-  link: "vbs-link-email-gia",
-  email: "vbs-link-email-gia",
-  text: "vbs-van-ban-ai",
-  phone: "vbs-so-dien-thoai-gia",
-} as const;
-export type CheckKind = keyof typeof SKILL_FOR_CHECK;
+export const CHECK_KINDS = [
+  "news", "image", "video", "link", "email", "text", "phone", "privacy_media", "privacy_text",
+] as const;
+export type CheckKind = (typeof CHECK_KINDS)[number];
+
+export const FEEDBACK_KINDS = ["news", "image", "video", "link", "email", "text", "phone"] as const;
+export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
 
 export const CHECK_LABELS_VI: Record<CheckKind, string> = {
   news: "Tin tức",
@@ -29,6 +26,8 @@ export const CHECK_LABELS_VI: Record<CheckKind, string> = {
   email: "Email",
   text: "Văn bản",
   phone: "Số điện thoại",
+  privacy_media: "Lộ thông tin qua ảnh/video",
+  privacy_text: "Lộ thông tin qua chữ",
 };
 
 export type RuntimeSkill = { key: string; version: number; text: string };

@@ -136,7 +136,11 @@ export async function deleteClass(classId: string): Promise<void> {
   if (error) throw error;
 }
 
-export type ClassroomStudent = { user_id: string; username: string; display_name: string; email: string; joined_at: string };
+export type ClassroomStudent = { user_id: string; username: string; display_name: string; email: string; joined_at: string; parent_consent_ai?: boolean };
+export async function setParentConsent(classId: string, studentId: string, value: boolean) {
+  const { error } = await (supabase.rpc as any)("set_parent_consent", { _class_id: classId, _student_id: studentId, _value: value });
+  if (error) throw error;
+}
 export async function getClassStudents(classId: string): Promise<ClassroomStudent[]> {
   const { data, error } = await supabase.rpc("get_class_students", { _class_id: classId } as any);
   if (error) throw error;

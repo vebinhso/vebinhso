@@ -2,14 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SKILL_FOR_CHECK, CHECK_LABELS_VI, parseSkillMarkdown, type CheckKind } from "@/lib/ai-skills";
-import { listSkills, upsertSkillMarkdown, setSkillEnabled, type SkillRow } from "@/lib/ai-skills-admin";
+import { CHECK_LABELS_VI, parseSkillMarkdown, type CheckKind } from "@/lib/ai-skills";
+import {
+  listSkills, upsertSkillMarkdown, setSkillEnabled, listCheckSkills, listSkillVersions,
+  type SkillRow, type CheckSkillRow, type SkillVersionRow,
+} from "@/lib/ai-skills-admin";
+import { CheckSkillMapping, FeedbackBlocks } from "@/components/SkillFeedbackBlocks";
 import { pushAdminLog } from "@/lib/admin";
 
-function usedFor(key: string): string {
-  return (Object.keys(SKILL_FOR_CHECK) as CheckKind[])
-    .filter((k) => SKILL_FOR_CHECK[k] === key)
-    .map((k) => CHECK_LABELS_VI[k])
+function usedFor(key: string, mapping: CheckSkillRow[]): string {
+  return mapping
+    .filter((m) => m.skill_key === key)
+    .map((m) => CHECK_LABELS_VI[m.check_kind as CheckKind] ?? m.check_kind)
     .join(", ") || "—";
 }
 
@@ -19,6 +23,23 @@ export function SkillsPanel() {
   const [busy, setBusy] = useState(false);
   const [viewing, setViewing] = useState<SkillRow | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [mapping, setMapping] = useState<CheckSkillRow[]>([]);
+  const [versions, setVersions] = useState<SkillVersionRow[]>([]);
+  const [versionPick, setVersionPick] = useState<number | null>(null);
+
+  const reloadMapping = async () => {
+    try { setMapping(await listCheckSkills()); }
+    catch (e) { toast.error(`Không tải được bảng kết nối: ${(e as Error).message}`); }
+  };
+  useEffect(() => { void reloadMapping(); }, []);
+  useEffect(() => {
+    setVersions([]); setVersionPick(null);
+    if (!viewing) return;
+    listSkillVersions(viewing.key).then(setVersions).catch(() => setVersions([]));
+  }, [viewing]);
+  const shownContent = versionPick == null
+    ? viewing?.content
+    : versions.find((v) => v.version === versionPick)?.content ?? viewing?.content;
 
   const reload = async () => {
     try {
@@ -79,7 +100,7 @@ export function SkillsPanel() {
           </button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">Skill có hiệu lực trong AI Centre sau tối đa 1 phút.</p>
+      <p className="text-xs text-muted-foreground">Thay đổi có hiệu lực trong AI Centre sau khoảng 1 phút.</p>
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/60 text-left">
@@ -102,7 +123,7 @@ export function SkillsPanel() {
               <tr key={r.key} className="border-t">
                 <td className="p-2 font-mono text-xs">{r.key}</td>
                 <td className="p-2">{r.title}</td>
-                <td className="p-2">{usedFor(r.key)}</td>
+                <td className="p-2">{usedFor(r.key, mapping)}</td>
                 <td className="p-2 text-center">{r.version}</td>
                 <td className="p-2"><Switch checked={r.enabled} onCheckedChange={(v) => void toggle(r, v)} /></td>
                 <td className="p-2 text-xs">{new Date(r.updated_at).toLocaleString("vi-VN")}</td>
@@ -112,12 +133,25 @@ export function SkillsPanel() {
           </tbody>
         </table>
       </div>
+      <CheckSkillMapping skills={rows} mapping={mapping} onChanged={() => void reloadMapping()} />
+      <FeedbackBlocks />
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewing?.title} <span className="font-mono text-xs text-muted-foreground">({viewing?.key} · v{viewing?.version})</span></DialogTitle>
           </DialogHeader>
-          <pre className="whitespace-pre-wrap text-sm">{viewing?.content}</pre>
+          {versions.length > 1 && (
+            <label className="flex items-center gap-2 text-sm font-bold">
+              Phiên bản
+              <select value={versionPick ?? viewing?.version ?? ""} onChange={(e) => setVersionPick(Number(e.target.value))}
+                className="rounded-lg border bg-background p-1 text-sm">
+                {versions.map((v) => (
+                  <option key={v.id} value={v.version}>v{v.version} · {new Date(v.created_at).toLocaleString("vi-VN")}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          <pre className="whitespace-pre-wrap text-sm">{shownContent}</pre>
         </DialogContent>
       </Dialog>
     </div>

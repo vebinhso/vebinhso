@@ -136,21 +136,20 @@ function buildSlots(): Slot[] {
   const off = 3 + 1.8 + HD / 2 + 1.2; // tâm nhà cách tim đường
   // Đường chính (ngang): 2 bên
   for (let x = -EXT + HW / 2; x < EXT; x += HW) {
-    const nearSide = Math.abs(x) < SIDE_X + 4.5;
-    // Phía bắc (giáp nhà mình) chỉ dựng ngoài mảnh đất và ngoài đường dọc
-    if (!(Math.abs(x) < 14) && !(Math.abs(Math.abs(x) - SIDE_X) < 6)) push(x, MAIN_Z - off, Math.PI);
-    if (!(Math.abs(Math.abs(x) - SIDE_X) < 6) || !nearSide) push(x, MAIN_Z + off, 0);
+    if (Math.abs(x) >= 14 && Math.abs(Math.abs(x) - SIDE_X) >= 6) push(x, MAIN_Z - off, 0);
+    push(x, MAIN_Z + off, Math.PI);
   }
-  // Đường sau
-  for (let x = -SIDE_X + 7; x < SIDE_X - 6; x += HW) {
-    push(x, BACK_Z - off, Math.PI);
+  // Đường sau: 2 bên
+  for (let x = -SIDE_X + 7.5; x < SIDE_X - 6; x += HW) {
+    push(x, BACK_Z - off, 0);
+    push(x, BACK_Z + off, Math.PI);
   }
   // 2 đường dọc
   for (const sx of [-SIDE_X, SIDE_X]) {
-    for (let z = BACK_Z - 30; z < MAIN_Z - 7; z += HW) {
+    for (let z = BACK_Z - 32; z < MAIN_Z - off - HD / 2 - HW / 2; z += HW) {
       if (Math.abs(z - BACK_Z) < 6) continue;
-      push(sx - off, z, -Math.PI / 2);
-      push(sx + off, z, Math.PI / 2);
+      push(sx - off, z, Math.PI / 2);
+      push(sx + off, z, -Math.PI / 2);
     }
   }
   return slots;

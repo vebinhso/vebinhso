@@ -12,6 +12,7 @@ import type { Pickup } from "@/lib/worldPickups";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
+import { HoiAnTown } from "./HoiAnTown";
 
 const GRID = 20;
 const CELL = 1;
@@ -858,7 +859,7 @@ function PlotAndPlacement({
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
-      <Neighborhood friends={friendHouses} onVisitFriend={onVisitFriend} />
+      <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />

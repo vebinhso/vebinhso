@@ -1,5 +1,6 @@
 // Models 3D chi tiết, PBR (metalness/roughness) — hướng tả thực cartoon
 import * as THREE from "three";
+import { useMemo } from "react";
 import { RoundedBox, Text } from "@react-three/drei";
 import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";

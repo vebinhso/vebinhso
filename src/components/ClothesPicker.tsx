@@ -80,13 +80,13 @@ export function BottomShape({ b, fill }: { b: Bottom; fill: string }) {
   }
 }
 
-export function ClothesPicker({ kind, o, onChange }: { kind: "top" | "bottom"; o: Outfit; onChange: (p: Partial<Outfit>) => void }) {
+export function ClothesPicker({ kind, o, onChange }: { kind: "top" | "bottom" | "shoes"; o: Outfit; onChange: (p: Partial<Outfit>) => void }) {
   const en = useLocale() === "en";
   const [money, setMoney] = useState(() => loadGame().money);
   const [msg, setMsg] = useState<string | null>(null);
   const owned = new Set(o.clothesOwned ?? []);
-  const items = kind === "top" ? TOPS : BOTTOMS.filter((b) => !b.hidden);
-  const current = kind === "top" ? o.topStyle : o.bottomStyle;
+  const items: (Top | Bottom | Shoe)[] = kind === "top" ? TOPS : kind === "shoes" ? SHOES : BOTTOMS.filter((b) => !b.hidden);
+  const current = kind === "top" ? o.topStyle : kind === "shoes" ? o.shoeStyle : o.bottomStyle;
 
   const wear = (id: string, newOwned: string[]) => {
     if (kind === "top") {
@@ -95,6 +95,9 @@ export function ClothesPicker({ kind, o, onChange }: { kind: "top" | "bottom"; o
       if (t.suit) { const b = bottomOf(t.suit)!; patch.bottomStyle = b.id; patch.pants = b.color; }
       else if (topOf(o.topStyle)?.suit) { patch.bottomStyle = undefined; }
       onChange(patch);
+    } else if (kind === "shoes") {
+      const s = shoeOf(id)!;
+      onChange({ shoeStyle: id, shoes: s.color, clothesOwned: newOwned });
     } else {
       const b = bottomOf(id)!;
       const patch: Partial<Outfit> = { bottomStyle: id, pants: b.color, clothesOwned: newOwned };

@@ -84,3 +84,35 @@ export const BOTTOMS: Bottom[] = [
 
 export const topOf = (id?: string) => TOPS.find((t) => t.id === id);
 export const bottomOf = (id?: string) => BOTTOMS.find((b) => b.id === id);
+
+// ============= Giày dép =============
+export type ShoeKind = "sneaker" | "boot" | "tallboot" | "flat" | "heel" | "sandal" | "clogs";
+export type Shoe = {
+  id: string; vi: string; en: string; price: number;
+  color: string; color2: string; kind: ShoeKind;
+};
+
+export const SHOES: Shoe[] = [
+  { id: "sneaker_red", vi: "Giày thể thao đỏ", en: "Red sneakers", price: 15, color: "#dc2626", color2: "#ffffff", kind: "sneaker" },
+  { id: "sneaker_white", vi: "Giày thể thao trắng", en: "White sneakers", price: 10, color: "#f5f5f5", color2: "#d4d4d4", kind: "sneaker" },
+  { id: "slipon_checker", vi: "Slip-on caro", en: "Checker slip-ons", price: 15, color: "#f5f5f5", color2: "#111111", kind: "sneaker" },
+  { id: "boot_black", vi: "Boot đen buộc dây", en: "Black lace-up boots", price: 20, color: "#1c1c1c", color2: "#4b5563", kind: "boot" },
+  { id: "boot_chelsea", vi: "Boot Chelsea đen", en: "Chelsea boots", price: 20, color: "#111827", color2: "#374151", kind: "boot" },
+  { id: "boot_timber", vi: "Boot vàng nâu", en: "Tan work boots", price: 20, color: "#d9a05b", color2: "#8b5a2b", kind: "boot" },
+  { id: "boot_ugg", vi: "Boot lông nâu", en: "Fuzzy boots", price: 20, color: "#7c5a3a", color2: "#c9a876", kind: "boot" },
+  { id: "tallboot_brown", vi: "Boot cao nâu", en: "Knee-high brown boots", price: 25, color: "#8b5a2b", color2: "#5f3d1e", kind: "tallboot" },
+  { id: "tallboot_black", vi: "Boot cao đen", en: "Knee-high black boots", price: 25, color: "#1c1c1c", color2: "#000000", kind: "tallboot" },
+  { id: "boot_cowboy", vi: "Boot cao bồi", en: "Cowboy boots", price: 25, color: "#8b5a2b", color2: "#d4a017", kind: "tallboot" },
+  { id: "wellington", vi: "Ủng đi mưa", en: "Rain boots", price: 15, color: "#3f6b4f", color2: "#2c4a37", kind: "tallboot" },
+  { id: "oxford", vi: "Giày tây nâu", en: "Brown oxfords", price: 20, color: "#7a5a43", color2: "#5f4636", kind: "flat" },
+  { id: "loafer", vi: "Giày lười nâu", en: "Brown loafers", price: 15, color: "#6b4a2f", color2: "#4a3421", kind: "flat" },
+  { id: "ballerina", vi: "Giày búp bê xanh", en: "Blue ballerina flats", price: 15, color: "#3b82c4", color2: "#dbeafe", kind: "flat" },
+  { id: "maryjanes", vi: "Giày quai đen", en: "Mary Janes", price: 15, color: "#1c1c1c", color2: "#4b5563", kind: "flat" },
+  { id: "crocs", vi: "Dép sục hồng", en: "Pink clogs", price: 10, color: "#ec4899", color2: "#be185d", kind: "clogs" },
+  { id: "sandals", vi: "Sandal quai vàng", en: "Strappy sandals", price: 10, color: "#d4a017", color2: "#8b6914", kind: "sandal" },
+  { id: "flipflops", vi: "Dép tông", en: "Flip flops", price: 5, color: "#0ea5e9", color2: "#0369a1", kind: "sandal" },
+  { id: "heels_red", vi: "Giày cao gót đỏ", en: "Red high heels", price: 25, color: "#dc2626", color2: "#7f1d1d", kind: "heel" },
+  { id: "wedge_brown", vi: "Giày đế xuồng", en: "Wedge heels", price: 25, color: "#b45309", color2: "#78350f", kind: "heel" },
+];
+
+export const shoeOf = (id?: string) => SHOES.find((s) => s.id === id);

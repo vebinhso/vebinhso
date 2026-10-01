@@ -20,6 +20,7 @@ export type Outfit = {
   bodyShape?: string;
   topStyle?: string;
   bottomStyle?: string;
+  shoeStyle?: string;
   clothesOwned?: string[];
 };
 

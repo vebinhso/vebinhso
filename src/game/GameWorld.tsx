@@ -197,9 +197,9 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     const swing = Math.sin(walkPhase.current) * 0.7;
     if (armL.current) armL.current.rotation.x = kneeling ? -1.15 : swing;
     if (armR.current) armR.current.rotation.x = kneeling ? -1.15 : -swing;
-    if (legL.current) { legL.current.rotation.x = kneeling ? -1.25 : -swing; legL.current.position.y = kneeling ? 0.23 : 0.35; legL.current.position.z = kneeling ? 0.18 : 0; }
-    if (legR.current) { legR.current.rotation.x = kneeling ? -1.25 : swing; legR.current.position.y = kneeling ? 0.23 : 0.35; legR.current.position.z = kneeling ? 0.18 : 0; }
-    if (body.current) { body.current.position.y = kneeling ? 0.78 : 1.02; body.current.rotation.x = kneeling ? 0.18 : 0; }
+    if (legL.current) { legL.current.rotation.x = kneeling ? -1.25 : -swing; legL.current.position.y = kneeling ? 0.3 : 0.58; legL.current.position.z = kneeling ? 0.18 : 0; }
+    if (legR.current) { legR.current.rotation.x = kneeling ? -1.25 : swing; legR.current.position.y = kneeling ? 0.3 : 0.58; legR.current.position.z = kneeling ? 0.18 : 0; }
+    if (body.current) { body.current.position.y = kneeling ? -0.24 : 0; body.current.rotation.x = kneeling ? 0.18 : 0; }
     if (kneeling) ref.current.rotation.y = Math.atan2(riverPoseState.targetX - ref.current.position.x, riverPoseState.targetZ - ref.current.position.z);
 
     if (k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }

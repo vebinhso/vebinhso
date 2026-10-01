@@ -53,7 +53,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "sofa", name: "Ghế sofa", category: "Phòng khách", price: 130, w: 4, d: 2, h: 1.8, color: "#2587c7", icon: "🛋️" },
   { id: "sofa_large", name: "Ghế sofa to", category: "Phòng khách", price: 260, w: 5, d: 4, h: 1.65, color: "#e7e5e4", icon: "🛋️" },
   { id: "table", name: "Bàn phòng khách", category: "Phòng khách", price: 100, w: 3, d: 2, h: 1, color: "#92400e", icon: "🪑" },
-  { id: "roundtable", name: "Bàn tròn", category: "Phòng khách", price: 80, w: 2, d: 2, h: 1, color: "#a16207", icon: "🍵", shape: "cylinder" },
+  { id: "roundtable", name: "Bàn trà", category: "Phòng khách", price: 80, w: 2, d: 2, h: 1.05, color: "#713b1e", icon: "🍵", shape: "cylinder" },
   { id: "painting", name: "Tranh treo tường", category: "Phòng khách", price: 15, w: 2, d: 0.1, h: 1.2, color: "#fbbf24", icon: "🖼️" },
   { id: "fan", name: "Quạt máy đứng", category: "Phòng khách", price: 25, w: 1, d: 1, h: 2, color: "#cbd5e1", icon: "🌀" },
   { id: "tv", name: "Tivi", category: "Phòng khách", price: 300, w: 3, d: 0.65, h: 1.5, color: "#111315", icon: "📺" },

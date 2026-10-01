@@ -111,6 +111,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "GHI NHỚ": "REMEMBER",
   "Ghi chú": "Notes",
   "Ghế đơn": "Single Chair",
+  "Ghế nhựa": "Plastic Chair",
   "Hòm thư": "Mailbox",
   "Hôm qua": "Yesterday",
   "Khu vực": "Area",

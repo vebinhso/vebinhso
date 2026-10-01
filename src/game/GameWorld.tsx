@@ -65,7 +65,7 @@ const SOLID_ITEMS = new Set<string>([
   "stove", "toilet", "lamp", "wardrobe", "table", "roundtable", "desk",
   "bookshelf", "aircon", "vanity", "bathtub", "shower", "washer", "lavabo",
   "sink", "hood", "microwave", "oven", "dishwasher", "ricecooker", "fishpond",
-  "pool", "pethouse", "teaset", "fence", "gate", "gardenlamp", "mailbox", "pillar",
+  "pool", "pethouse", "teaset", "fence", "gate", "gardenlamp", "mailbox", "pillar", "chair",
 ]);
 
 function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, walls, placed, onPlayerPos }: { controlsRef: React.MutableRefObject<any>; activeFloor: number; pickups?: Pickup[]; collectedIds?: Set<string>; onPickup?: (p: Pickup) => void; walls?: WallSegment[]; placed?: PlacedItem[]; onPlayerPos?: (x: number, z: number) => void }) {

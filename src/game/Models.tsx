@@ -1,6 +1,6 @@
 // Models 3D chi tiết, PBR (metalness/roughness) — hướng tả thực cartoon
 import * as THREE from "three";
-import { Text } from "@react-three/drei";
+import { RoundedBox, Text } from "@react-three/drei";
 import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { getLocale } from "@/lib/locale";
@@ -1154,6 +1154,57 @@ export function PatternPotTall() {
   );
 }
 
+// Ghế nhựa đỏ dựa theo ảnh tham chiếu: mặt ghế bo tròn, chân choãi nhẹ,
+// tựa lưng cao với ba nan dọc và bề mặt nhựa bóng.
+export function PlasticChair() {
+  const plastic = "#d71912";
+  const plasticDark = "#a90f0a";
+  const legPositions: Array<[number, number, number, number, number]> = [
+    [-0.34, 0.35, 0.31, -0.07, 0.07],
+    [0.34, 0.35, 0.31, -0.07, -0.07],
+    [-0.34, 0.35, -0.31, 0.07, 0.07],
+    [0.34, 0.35, -0.31, 0.07, -0.07],
+  ];
+
+  return (
+    <group>
+      {legPositions.map(([x, y, z, rx, rz], index) => (
+        <mesh key={index} castShadow position={[x, y, z]} rotation={[rx, 0, rz]}>
+          <cylinderGeometry args={[0.055, 0.075, 0.7, 12]} />
+          <MStd color={index < 2 ? plastic : plasticDark} roughness={0.28} />
+        </mesh>
+      ))}
+
+      <RoundedBox args={[0.88, 0.14, 0.88]} radius={0.09} smoothness={3} castShadow receiveShadow position={[0, 0.72, 0]}>
+        <MStd color={plastic} roughness={0.24} />
+      </RoundedBox>
+      <mesh castShadow position={[0, 0.77, 0.02]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.64, 0.58]} />
+        <meshStandardMaterial color="#ef3027" roughness={0.2} />
+      </mesh>
+
+      {[-0.39, 0.39].map((x) => (
+        <mesh key={x} castShadow position={[x, 1.18, -0.37]} rotation={[-0.08, 0, x * -0.08]}>
+          <capsuleGeometry args={[0.065, 0.78, 6, 12]} />
+          <MStd color={plastic} roughness={0.25} />
+        </mesh>
+      ))}
+      <RoundedBox args={[0.83, 0.13, 0.12]} radius={0.055} smoothness={3} castShadow position={[0, 1.57, -0.38]}>
+        <MStd color={plastic} roughness={0.22} />
+      </RoundedBox>
+      <RoundedBox args={[0.78, 0.1, 0.1]} radius={0.04} smoothness={3} castShadow position={[0, 0.88, -0.37]}>
+        <MStd color={plasticDark} roughness={0.28} />
+      </RoundedBox>
+      {[-0.25, 0, 0.25].map((x) => (
+        <mesh key={x} castShadow position={[x, 1.23, -0.37]} rotation={[-0.05, 0, x * -0.08]}>
+          <capsuleGeometry args={[0.045, 0.56, 6, 10]} />
+          <MStd color={plastic} roughness={0.25} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // Curvy chair using lathe back + soft cushion sphere — far from a cube
 export function BalconyChair() {
   // Curved seat back profile
@@ -1321,6 +1372,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "patternpot_s": return <PatternPotSmall />;
     case "patternpot_m": return <PatternPotMid />;
     case "patternpot_l": return <PatternPotTall />;
+    case "chair": return <PlasticChair />;
     case "balconychair": return <BalconyChair />;
     case "balconytable": return <BalconyTable />;
     case "diningtable":

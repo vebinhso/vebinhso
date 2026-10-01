@@ -143,6 +143,7 @@ function GamePage() {
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
   const [editingId, setEditingId] = useState<string | null>(null);
   const [moveMode, setMoveMode] = useState(false);
+  const [ceilingMount, setCeilingMount] = useState(false);
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
   const [thaoTacOpen, setThaoTacOpen] = useState(false);
@@ -420,6 +421,46 @@ function GamePage() {
     setShopOpen(false);
   };
 
+  const handleWallPlace = (wallId: string, px: number, py: number, pz: number) => {
+    const it = selected ? getItem(selected) : null;
+    if (!it || !state) return;
+    if (wallMode || floorMode) return;
+    const w = state.walls.find((ww) => ww.id === wallId);
+    if (!w) return;
+    if (state.money < it.price) { flash(en ? "❌ Not enough coins." : "❌ Không đủ xu."); return; }
+    const cx0 = px - 10, cz0 = pz - 10;
+    const dx = w.bx - w.ax, dz = w.bz - w.az;
+    const len2 = dx * dx + dz * dz;
+    if (len2 === 0) return;
+    const len = Math.sqrt(len2);
+    let t = ((cx0 - w.ax) * dx + (cz0 - w.az) * dz) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const qx = w.ax + t * dx, qz = w.az + t * dz;
+    // Pháp tuyến hướng về phía người bấm
+    let nx = dz / len, nz = -dx / len;
+    if ((cx0 - qx) * nx + (cz0 - qz) * nz < 0) { nx = -nx; nz = -nz; }
+    const off = 0.125 + it.d / 2 + 0.01;
+    const base = (w.floor ?? 0) * WALL_HEIGHT;
+    const y = Math.max(0, Math.min(WALL_HEIGHT - it.h, py - base - it.h / 2));
+    const item: PlacedItem = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      itemId: it.id,
+      x: qx + nx * off + 10,
+      z: qz + nz * off + 10,
+      rotation: 0,
+      floor: w.floor ?? 0,
+      angleRad: Math.atan2(nx, nz),
+      ...(y > 0 ? { stackY: y } : {}),
+    };
+    setState({ ...state, money: state.money - it.price, netWorth: state.netWorth + it.price, placed: [...state.placed, item] });
+    playSfx("place");
+    if (placeQueue > 0) {
+      const remain = placeQueue - 1;
+      setPlaceQueue(remain);
+      if (remain <= 0) setSelected(null);
+    }
+  };
+
   const handlePlace = (x: number, z: number) => {
     // Chế độ DỊCH CHUYỂN: cập nhật vị trí item đang chỉnh, không tạo item mới
     if (editingId && moveMode && state) {
@@ -532,7 +573,9 @@ function GamePage() {
     // Tính stackY: nếu item là topper và TẤT CẢ item bị chồng lên đều là surface
     // (và topper nằm gọn trong footprint surface), cho phép đặt lên nóc surface cao nhất.
     let stackY = 0;
-    if (overlaps.length > 0) {
+    if (ceilingMount) {
+      stackY = Math.max(0, WALL_HEIGHT - it.h - 0.02);
+    } else if (overlaps.length > 0) {
       const allSurfaces = overlaps.every((p) => {
         const pi = getItem(p.itemId);
         if (!pi || !STACK_SURFACES.has(pi.id) || !canStackOn(it.id, pi.id)) return false;
@@ -542,8 +585,11 @@ function GamePage() {
         // topper phải nằm hoàn toàn trong footprint surface
         return x >= p.x && z >= p.z && x + fw <= p.x + pw && z + fd <= p.z + pd;
       });
-      if (!allSurfaces) return;
-      stackY = Math.max(
+      if (!allSurfaces) {
+        // Đặt chồng lên vật cao nhất bên dưới
+        stackY = Math.max(...overlaps.map((p) => (p.stackY ?? 0) + (getItem(p.itemId)?.h ?? 0)));
+        if (stackY + it.h > WALL_HEIGHT * 1.6) { flash(en ? "⚠️ Stack is too high." : "⚠️ Chồng quá cao rồi."); return; }
+      } else stackY = Math.max(
         ...overlaps.map((p) => {
           return (p.stackY ?? 0) + surfaceTopY(p.itemId);
         })
@@ -998,6 +1044,7 @@ function GamePage() {
           rotation={rotation}
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
+          onWallPlace={handleWallPlace}
           onRemove={handleRemove}
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
@@ -1336,6 +1383,8 @@ function GamePage() {
         <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-44 left-1/2 -translate-x-1/2 glass-card px-4 py-2 flex items-center gap-3 pointer-events-auto">
           <span className="text-2xl">{getItem(selected)?.icon}</span>
           <div className="text-sm font-black">{en ? "Placing" : "Đang đặt"}: {catalogLabel(getItem(selected)?.name ?? "", en)}</div>
+          <button onClick={() => setCeilingMount((v) => !v)} className={`toy-button !text-xs !py-1 !px-3 ${ceilingMount ? "ring-2 ring-primary" : ""}`}>{ceilingMount ? (en ? "💡 Ceiling: ON" : "💡 Gắn trần: BẬT") : (en ? "💡 Ceiling: OFF" : "💡 Gắn trần: TẮT")}</button>
+          <span className="hidden [@media(pointer:fine)]:inline text-xs opacity-70">{en ? "Click a wall to stick it on" : "Bấm vào tường để dán lên"}</span>
           <button onClick={() => setSelected(null)} className="toy-button !text-xs !py-1 !px-3">{en ? "Cancel" : "Hủy"}</button>
         </div>
       )}

@@ -64,33 +64,76 @@ export function BigTree() {
 }
 
 export function Sofa({ w = 4, d = 2 }) {
+  const blue = "#2587c7";
+  const blueLight = "#54a9dc";
+  const blueDark = "#17679f";
+  const wood = "#a86624";
+
   return (
     <group>
-      <mesh castShadow receiveShadow position={[0, 0.3, 0]}>
-        <boxGeometry args={[w, 0.55, d]} />
-        <MStd color="#a78bfa" roughness={0.85} />
-      </mesh>
-      <mesh castShadow position={[0, 0.9, -d / 2 + 0.2]}>
-        <boxGeometry args={[w, 0.95, 0.35]} />
-        <MStd color="#8b5cf6" roughness={0.85} />
-      </mesh>
-      <mesh castShadow position={[-w / 2 + 0.15, 0.75, 0]}>
-        <boxGeometry args={[0.3, 0.85, d]} />
-        <MStd color="#8b5cf6" />
-      </mesh>
-      <mesh castShadow position={[w / 2 - 0.15, 0.75, 0]}>
-        <boxGeometry args={[0.3, 0.85, d]} />
-        <MStd color="#8b5cf6" />
-      </mesh>
-      {[...Array(Math.max(1, Math.floor(w / 1.3)))].map((_, i, arr) => {
-        const x = -w / 2 + (i + 0.5) * (w / arr.length);
-        return (
-          <mesh key={i} castShadow position={[x, 0.7, 0.1]}>
-            <boxGeometry args={[w / arr.length - 0.18, 0.3, d - 0.6]} />
-            <MStd color="#c4b5fd" />
+      {/* Khung bọc vải và tấm yếm trước */}
+      <RoundedBox args={[w - 0.2, 0.55, d - 0.22]} radius={0.14} smoothness={4} castShadow receiveShadow position={[0, 0.52, 0]}>
+        <MStd color={blueDark} roughness={0.72} />
+      </RoundedBox>
+      <RoundedBox args={[w - 0.3, 0.42, 0.18]} radius={0.08} smoothness={4} castShadow position={[0, 0.48, d / 2 - 0.08]}>
+        <MStd color={blue} roughness={0.78} />
+      </RoundedBox>
+
+      {/* Tựa lưng cao, hơi ngả về sau như mẫu */}
+      <RoundedBox args={[w - 0.5, 1.16, 0.36]} radius={0.18} smoothness={5} castShadow receiveShadow position={[0, 1.18, -d / 2 + 0.2]} rotation={[-0.09, 0, 0]}>
+        <MStd color={blue} roughness={0.74} />
+      </RoundedBox>
+      {[-1.1, 0, 1.1].map((x) => (
+        <mesh key={x} castShadow position={[x * (w / 4), 1.22, -d / 2 + 0.405]}>
+          <capsuleGeometry args={[0.025, 0.7, 3, 6]} />
+          <MStd color={blueDark} roughness={0.8} />
+        </mesh>
+      ))}
+
+      {/* Hai tay ghế cong, dày và thấp dần về phía trước */}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * (w / 2 - 0.25), 0, 0]}>
+          <RoundedBox args={[0.5, 0.78, d - 0.22]} radius={0.2} smoothness={5} castShadow receiveShadow position={[0, 0.86, 0.02]} rotation={[0, 0, side * -0.035]}>
+            <MStd color={blue} roughness={0.7} />
+          </RoundedBox>
+          <RoundedBox args={[0.42, 0.12, d - 0.36]} radius={0.06} smoothness={4} castShadow position={[side * -0.02, 1.22, 0.05]}>
+            <MStd color={blueLight} roughness={0.78} />
+          </RoundedBox>
+        </group>
+      ))}
+
+      {/* Hai đệm ngồi tách rời, viền rõ */}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * (w - 1.05) / 4, 0.88, 0.18]}>
+          <RoundedBox args={[(w - 1.02) / 2, 0.34, d - 0.72]} radius={0.14} smoothness={5} castShadow receiveShadow>
+            <MStd color={blueLight} roughness={0.78} />
+          </RoundedBox>
+          <mesh position={[0, -0.04, (d - 0.72) / 2 + 0.008]}>
+            <boxGeometry args={[(w - 1.12) / 2, 0.025, 0.025]} />
+            <MStd color={blueDark} roughness={0.9} />
           </mesh>
-        );
-      })}
+        </group>
+      ))}
+
+      {/* Gối tựa: hai gối xanh lớn và hai gối trắng nhỏ */}
+      {[-1, 1].map((side) => (
+        <RoundedBox key={`blue-${side}`} args={[0.94, 0.9, 0.24]} radius={0.2} smoothness={5} castShadow position={[side * (w / 2 - 0.92), 1.39, -0.48]} rotation={[0.04, side * 0.05, side * -0.16]}>
+          <MStd color={blueLight} roughness={0.88} />
+        </RoundedBox>
+      ))}
+      {[-1, 1].map((side) => (
+        <RoundedBox key={`white-${side}`} args={[0.7, 0.68, 0.22]} radius={0.16} smoothness={5} castShadow position={[side * 0.48, 1.32, -0.36]} rotation={[0.03, side * 0.04, side * -0.08]}>
+          <MStd color="#f5f5ed" roughness={0.92} />
+        </RoundedBox>
+      ))}
+
+      {/* Chân gỗ thon và hơi choãi */}
+      {[-1, 1].flatMap((xSide) => [-1, 1].map((zSide) => (
+        <mesh key={`${xSide}-${zSide}`} castShadow position={[xSide * (w / 2 - 0.55), 0.18, zSide * (d / 2 - 0.35)]} rotation={[zSide * 0.08, 0, xSide * -0.13]}>
+          <cylinderGeometry args={[0.055, 0.085, 0.48, 12]} />
+          <MStd color={wood} roughness={0.5} />
+        </mesh>
+      )))}
     </group>
   );
 }

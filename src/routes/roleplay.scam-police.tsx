@@ -78,7 +78,6 @@ function FilmPage() {
   const [done, setDone] = useState(false);
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
-  const [preparing, setPreparing] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
@@ -133,32 +132,10 @@ function FilmPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
-  const beginFilm = useCallback(async () => {
-    if (preparing) return;
-    setPreparing(true);
-    const n = FILM[FILM_START];
-    const waits: Promise<unknown>[] = [];
-    const pending = pendingRef.current.get(`${locale}:${n.id}`);
-    if (pending) waits.push(pending);
-    if (n.image) {
-      waits.push(
-        new Promise<void>((res) => {
-          const im = new Image();
-          im.onload = () => res();
-          im.onerror = () => res();
-          im.src = n.image;
-        })
-      );
-    }
-    await Promise.race([
-      Promise.all(waits),
-      new Promise((res) => window.setTimeout(res, 1500)),
-    ]);
-    setPreparing(false);
+  // Vào phim ngay sau thao tác của người chơi để giọng đọc có thể phát tức thì.
+  const beginFilm = useCallback(() => {
     setStarted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preparing]);
+  }, []);
 
 
   const stopAudio = useCallback(() => {
@@ -169,13 +146,12 @@ function FilmPage() {
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
   }, []);
 
-  // Reset nhịp cảnh mới + hiệu ứng hoà hình (crossfade)
+  // Hiện trọn phụ đề ngay khi vào cảnh; giọng đọc chạy độc lập, không chờ hiệu ứng gõ chữ.
   useEffect(() => {
-    setTyped("");
-    setDone(false);
+    setTyped(filmCopy(locale, node.text) ?? node.text);
+    setDone(true);
     setSpeechDone(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeId]);
+  }, [locale, node.text]);
 
   useEffect(() => {
     if (!prevVisual) return;
@@ -426,10 +402,9 @@ function FilmPage() {
 
           <button
             onClick={beginFilm}
-            disabled={preparing}
-            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110 disabled:opacity-70"
+            className="w-full max-w-md rounded-2xl py-4 font-black text-lg bg-gradient-to-r from-red-600 to-orange-500 hover:brightness-110"
           >
-            {preparing ? (en ? "⏳ Preparing film..." : "⏳ Đang chuẩn bị phim...") : (en ? "▶ START" : "▶ BẮT ĐẦU")}
+            {en ? "▶ START" : "▶ BẮT ĐẦU"}
           </button>
           <Link to="/roleplay" className="block mt-3 text-xs font-bold text-white/60 hover:text-white">
             {en ? "← Back to scenarios" : "← Quay lại danh sách bài chơi"}

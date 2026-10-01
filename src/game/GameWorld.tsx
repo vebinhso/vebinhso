@@ -4,6 +4,7 @@ import { Suspense, memo, useMemo, type ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { getItem, topperBottomY, type CatalogItem } from "./catalog";
+import { isDoorItem, isWindowItem } from "./catalog";
 import { ItemModel } from "./Models";
 import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/game";
 import { WALL_HEIGHT } from "@/lib/game";
@@ -150,8 +151,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         if (placed) {
           for (const p of placed) {
             if ((p.floor ?? 0) !== 0) continue;
-            if (p.itemId === "door" && (t.doorsOpen || t.openDoorIds?.includes(p.id))) continue;
-            if (p.itemId !== "door" && !SOLID_ITEMS.has(p.itemId)) continue;
+            if (isDoorItem(p.itemId) && (t.doorsOpen || t.openDoorIds?.includes(p.id))) continue;
+            if (!isDoorItem(p.itemId) && !SOLID_ITEMS.has(p.itemId)) continue;
             const it = getItem(p.itemId);
             if (!it) continue;
             const swap = p.rotation % 2 === 1;
@@ -394,7 +395,7 @@ function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number;
   const wFloor = w.floor ?? 0;
   const raw: { t0: number; t1: number }[] = [];
   for (const p of placed) {
-    if (p.itemId !== "door") continue;
+    if (!isDoorItem(p.itemId)) continue;
     if ((p.floor ?? 0) !== wFloor) continue;
     const it = getItem(p.itemId);
     if (!it) continue;
@@ -947,7 +948,7 @@ function PlotAndPlacement({
         // Khi đặt vật lên nóc surface: bù trừ khoảng đáy sẵn có của model topper
         // để 2 mặt phẳng tiếp xúc trực tiếp thay vì bay lơ lửng.
         const topperBaseInset = (p.stackY ?? 0) > 0 ? topperBottomY(p.itemId) : 0;
-        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (p.itemId === "window" ? 1.2 : 0) + (p.stackY ?? 0) - topperBaseInset;
+        const yOffset = isRoof(p.itemId) ? WALL_HEIGHT : (isWindowItem(p.itemId) ? 1.2 : 0) + (p.stackY ?? 0) - topperBaseInset;
         const isOtherFloor = pFloor !== activeFloor;
         const isWallPickPillar = wallMode && p.itemId === "pillar" && wallPickA === p.id;
         const isRoofPickPillar = roofMode && p.itemId === "pillar" && roofPicks.includes(p.id);
@@ -1006,7 +1007,7 @@ function PlotAndPlacement({
         const wx = hover.x - half + fw / 2;
         const wz = hover.z - half + fd / 2;
         const inside = hover.x >= 0 && hover.z >= 0 && hover.x + fw <= GRID && hover.z + fd <= GRID;
-        const yOffset = isRoof(selected.id) ? WALL_HEIGHT : (selected.id === "window" ? 1.2 : 0);
+        const yOffset = isRoof(selected.id) ? WALL_HEIGHT : (isWindowItem(selected.id) ? 1.2 : 0);
         return (
           <group position={[wx, yOffset + floorY, wz]} rotation={[0, (rotation * Math.PI) / 2, 0]}>
             <mesh position={[0, selected.h / 2, 0]}>

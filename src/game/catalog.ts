@@ -282,3 +282,9 @@ export function surfaceTopY(id: string): number {
 export function topperBottomY(id: string): number {
   return TOPPER_BOTTOM_Y[id] ?? 0;
 }
+
+// Các món gắn tường kiểu cửa ra vào / cửa sổ (snap tường, khoét lỗ, mở/đóng)
+export const DOOR_IDS = new Set<string>(["door", "door_wood_glass", "door_oak_classic", "door_french_white", "door_white_panel", "door_black_glass"]);
+export const WINDOW_IDS = new Set<string>(["window", "window_awning_wood", "window_casement_white"]);
+export const isDoorItem = (id?: string | null) => !!id && DOOR_IDS.has(id);
+export const isWindowItem = (id?: string | null) => !!id && WINDOW_IDS.has(id);

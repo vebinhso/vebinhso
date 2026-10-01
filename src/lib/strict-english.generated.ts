@@ -112,6 +112,8 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Bộ bàn ăn tròn gỗ nâu ghế nan": "Brown Round Dining Set with Slat Chairs",
   "Tủ mát trưng bày 3 cánh kính": "3-Door Glass Display Cooler",
   "Tủ gỗ bếp 2 cánh": "2-Door Wooden Kitchen Cabinet",
+  "Cửa sổ kiểu Pháp trắng 2 cánh": "White French 2-Sash Window",
+  "Cửa sổ 3 ô khung gỗ sồi": "Oak-Frame Triple Window",
   "Tủ lạnh side-by-side xám đen": "Dark Gray Side-by-Side Fridge",
   "Tủ lạnh inox có vòi lấy nước": "Stainless Fridge with Water Dispenser",
   "Tủ lạnh mini đen bóng": "Glossy Black Mini Fridge",

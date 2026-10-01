@@ -50,6 +50,8 @@ export const CATALOG: CatalogItem[] = [
   { id: "door_black_glass", name: "Cửa kính khung nhôm đen", category: "Vật liệu", price: 80, w: 1.1, d: 0.25, h: 3, color: "#1d1e20", icon: "🚪" },
   { id: "window_awning_wood", name: "Cửa sổ gỗ bật 3 cánh", category: "Vật liệu", price: 45, w: 2, d: 0.1, h: 1.5, color: "#a88b5f", icon: "🪟" },
   { id: "window_casement_white", name: "Cửa sổ trắng 2 cánh", category: "Vật liệu", price: 40, w: 2, d: 0.1, h: 1.5, color: "#f3f4f5", icon: "🪟" },
+  { id: "window_french_tall", name: "Cửa sổ kiểu Pháp trắng 2 cánh", category: "Vật liệu", price: 55, w: 1.6, d: 0.1, h: 2.2, color: "#f4f5f6", icon: "🪟" },
+  { id: "window_triple_oak", name: "Cửa sổ 3 ô khung gỗ sồi", category: "Vật liệu", price: 65, w: 2.6, d: 0.1, h: 1.8, color: "#b89670", icon: "🪟" },
   { id: "curtain_gray_closed", name: "Rèm xếp ly xám (đóng)", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
   { id: "curtain_gray_open", name: "Rèm xếp ly xám vén 2 bên", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
 
@@ -301,6 +303,6 @@ export function topperBottomY(id: string): number {
 
 // Các món gắn tường kiểu cửa ra vào / cửa sổ (snap tường, khoét lỗ, mở/đóng)
 export const DOOR_IDS = new Set<string>(["door", "door_wood_glass", "door_oak_classic", "door_french_white", "door_white_panel", "door_black_glass"]);
-export const WINDOW_IDS = new Set<string>(["window", "window_awning_wood", "window_casement_white"]);
+export const WINDOW_IDS = new Set<string>(["window", "window_awning_wood", "window_casement_white", "window_french_tall", "window_triple_oak"]);
 export const isDoorItem = (id?: string | null) => !!id && DOOR_IDS.has(id);
 export const isWindowItem = (id?: string | null) => !!id && WINDOW_IDS.has(id);

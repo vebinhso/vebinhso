@@ -921,9 +921,11 @@ function FilmPage() {
                   {filmCopy(locale, node.ending.title)}
                 </h2>
                 <p className="text-xs sm:text-sm font-bold bg-black/40 rounded-xl p-3 mb-3 whitespace-pre-line max-h-[26vh] overflow-y-auto">
-                  {node.ending.lesson.includes("BÀI HỌC:")
-                    ? node.ending.lesson.slice(node.ending.lesson.indexOf("BÀI HỌC:"))
-                    : `BÀI HỌC:\n${filmCopy(locale, node.ending.lesson)}`}
+                  {(() => {
+                    const ls = filmCopy(locale, node.ending.lesson) ?? node.ending.lesson;
+                    const key = en ? (ls.includes("LESSONS:") ? "LESSONS:" : "LESSON:") : "BÀI HỌC:";
+                    return ls.includes(key) ? ls.slice(ls.indexOf(key)) : `${key}\n${ls}`;
+                  })()}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button

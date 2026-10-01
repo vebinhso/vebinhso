@@ -73,6 +73,7 @@ type Props = {
   releasedLanterns?: ReleasedLantern[];
   onStartRiverQuiz?: () => void;
   onReleaseLantern?: (x: number, z: number) => void;
+  showFriendLabels?: boolean;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -845,7 +846,7 @@ function PlotAndPlacement({
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend, dimTown,
-  releasedLanterns, onStartRiverQuiz, onReleaseLantern,
+  releasedLanterns, onStartRiverQuiz, onReleaseLantern, showFriendLabels,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -887,6 +888,7 @@ function PlotAndPlacement({
         releasedLanterns={releasedLanterns}
         onStartRiverQuiz={onStartRiverQuiz}
         onReleaseLantern={onReleaseLantern}
+        showFriendLabels={showFriendLabels}
         dim={!!dimTown}
       />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
@@ -1091,7 +1093,7 @@ function CameraView({ controlsRef, mode }: { controlsRef: React.MutableRefObject
     const c = controlsRef.current;
     const t = c ? c.target as THREE.Vector3 : new THREE.Vector3();
     const off =
-      mode === "top" ? [0, 80, 18] :
+      mode === "top" ? [0, 125, 5] :
       mode === "front" ? [0, 5, 16] :
       mode === "wide" ? [22, 26, 26] : [0, 14, 22];
     camera.position.set(t.x + off[0], t.y + off[1], t.z + off[2]);
@@ -1188,7 +1190,7 @@ export default function GameWorld(props: Props) {
         enableDamping
         dampingFactor={0.08}
         minDistance={4}
-        maxDistance={120}
+        maxDistance={170}
         maxPolarAngle={Math.PI / 2 - 0.05}
       />
     </Canvas>

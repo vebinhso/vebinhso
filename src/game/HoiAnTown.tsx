@@ -82,9 +82,38 @@ const EXTRA = {
   shutter: new THREE.MeshStandardMaterial({ color: "#2f6f5f", roughness: 0.8 }),
   tile: new THREE.MeshStandardMaterial({ color: "#c0653a", roughness: 0.85 }),
 };
-const LANTERN_MATS = ["#f05a28", "#e8b62c", "#c2185b", "#7b3fa0", "#2e86c1"].map(
-  (c) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.45 }),
-);
+// Lồng đèn Hội An: thân lụa có sọc nan tre, chóp/đáy vàng đồng, tua rua
+const LANTERN_COLORS = ["#ff5a1f", "#ffc933", "#e8255f", "#8b3fd9", "#1fa3e0", "#3ccf5a", "#fff1d6", "#ff8a1f", "#18b8a8"];
+const LANTERN_GEO = (() => {
+  const pts: THREE.Vector2[] = [];
+  for (let i = 0; i <= 12; i++) { const t = i / 12; pts.push(new THREE.Vector2(0.06 + Math.sin(t * Math.PI) * 0.3, (t - 0.5) * 0.8)); }
+  return new THREE.LatheGeometry(pts, 12);
+})();
+let ribTex: THREE.Texture | null = null;
+function getRibTex() {
+  if (ribTex || typeof document === "undefined") return ribTex;
+  const c = document.createElement("canvas"); c.width = 128; c.height = 32;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#fff"; g.fillRect(0, 0, 128, 32);
+  g.fillStyle = "rgba(0,0,0,0.28)";
+  for (let i = 0; i < 12; i++) g.fillRect(i * (128 / 12), 0, 2, 32);
+  ribTex = new THREE.CanvasTexture(c); ribTex.colorSpace = THREE.SRGBColorSpace;
+  return ribTex;
+}
+const LANTERN_MATS = LANTERN_COLORS.map((c) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.9, map: getRibTex() ?? undefined, side: THREE.DoubleSide }));
+const LANTERN_CAP = new THREE.MeshStandardMaterial({ color: "#b8862b", metalness: 0.6, roughness: 0.4 });
+const CAP_GEO = new THREE.CylinderGeometry(0.09, 0.09, 0.08, 8);
+const TASSEL_GEO = new THREE.CylinderGeometry(0.015, 0.04, 0.35, 6);
+function Lantern({ mat, position, scale = 1 }: { mat: THREE.Material; position: [number, number, number]; scale?: number }) {
+  return (
+    <group position={position} scale={scale}>
+      <mesh geometry={LANTERN_GEO} material={mat} />
+      <mesh geometry={CAP_GEO} material={LANTERN_CAP} position={[0, 0.42, 0]} />
+      <mesh geometry={CAP_GEO} material={LANTERN_CAP} position={[0, -0.42, 0]} />
+      <mesh geometry={TASSEL_GEO} material={mat} position={[0, -0.62, 0]} />
+    </group>
+  );
+}
 
 /** Mặt tiền nhà Hội An đa dạng (local +z là phía đường): to/nhỏ, 1–3 tầng, ban công, bảng hiệu, đèn lồng, hoa */
 function ShopHouse({ seed }: { seed: number }) {
@@ -140,7 +169,7 @@ function ShopHouse({ seed }: { seed: number }) {
       {/* Đèn lồng nhiều màu dưới hiên */}
       {Array.from({ length: nLantern }).map((_, i) => {
         const x = -W / 2 + 0.6 + (i * (W - 1.2)) / Math.max(1, nLantern - 1);
-        return <mesh key={i} geometry={G.lantern} material={i % 2 ? lm2 : lm} position={[x, 2.2, D / 2 + 1]} scale={[1, 1.25, 1]} />;
+        return <Lantern key={i} mat={i % 2 ? lm2 : lm} position={[x, 2.2, D / 2 + 1]} />;
       })}
       {/* Chậu cây trước nhà */}
       {seed % 2 === 1 && (
@@ -283,14 +312,15 @@ function LanternString({ a, b }: { a: [number, number]; b: [number, number] }) {
   const dx = b[0] - a[0], dz = b[1] - a[1];
   const len = Math.hypot(dx, dz);
   const ang = Math.atan2(dx, dz);
-  const n = 4;
+  const n = 6;
+  const seed = Math.abs(Math.round(a[0] * 7 + a[1] * 13));
   return (
     <group position={[(a[0] + b[0]) / 2, 5.6, (a[1] + b[1]) / 2]} rotation={[0, ang, 0]}>
       <mesh geometry={G.box} material={M.wire} scale={[0.03, 0.03, len]} />
       {Array.from({ length: n }).map((_, i) => {
         const t = (i + 1) / (n + 1) - 0.5;
         const sag = -0.5 * (1 - (2 * t) ** 2);
-        return <mesh key={i} geometry={G.lantern} material={M.lantern} position={[0, sag - 0.4, t * len]} scale={[1, 1.3, 1]} />;
+        return <Lantern key={i} mat={LANTERN_MATS[(seed + i * 5) % LANTERN_MATS.length]} position={[0, sag - 0.55 - (i % 2) * 0.35, t * len]} scale={0.9} />;
       })}
     </group>
   );
@@ -428,7 +458,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   }
 
   const poles: [number, number][] = [];
-  for (let x = -EXT + 2; x <= EXT; x += 16) if (Math.abs(x) > 4) poles.push([x, MAIN_Z - 4.3]);
+  for (let x = -EXT + 2; x <= EXT; x += 16) if (Math.abs(x) > 18) poles.push([x, MAIN_Z - 4.3]);
   const sidePoles: [number, number][][] = [-1, 1].map((sg) => {
     const arr: [number, number][] = [];
     for (let z = BACK_Z - 30; z < MAIN_Z - 8; z += 16) arr.push([sg * SIDE_X + sg * 4.3, z]);
@@ -448,7 +478,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   return (
     <group>
       {!dim && poles.map(([x, z], i) => <PowerPole key={"p" + i} x={x} z={z} />)}
-      {!dim && poles.slice(1).map((p, i) => <PowerWires key={"w" + i} a={poles[i]} b={p} />)}
+      {!dim && poles.slice(1).map((p, i) => (poles[i][0] < 0 && p[0] > 0 ? null : <PowerWires key={"w" + i} a={poles[i]} b={p} />))}
       {!dim && sidePoles.map((arr, k) => arr.map(([x, z], i) => (
         <group key={"sp" + k + i}><PowerPole x={x} z={z} />{i > 0 && <PowerWires a={arr[i - 1]} b={[x, z]} />}</group>
       )))}

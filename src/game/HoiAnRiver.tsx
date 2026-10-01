@@ -153,8 +153,7 @@ function LotusModel({ color, scale = 1, light = false }: { color: string; scale?
 function LotusLantern({ lantern, index }: { lantern: ReleasedLantern; index: number }) {
   const ref = useRef<THREE.Group>(null);
   const [open, setOpen] = useState(false);
-  const { locale } = useLocale();
-  const en = locale === "en";
+  const en = useLocale() === "en";
   const color = LOTUS_COLORS[index % LOTUS_COLORS.length];
   useFrame(({ clock }, rawDelta) => {
     if (!ref.current) return;

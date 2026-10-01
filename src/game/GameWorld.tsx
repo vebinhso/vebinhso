@@ -120,15 +120,24 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
   const o = outfit || { skin: "#fde68a", hair: "#7c2d12", shirt: "#ef4444", pants: "#1e40af", shoes: "#1f2937", accent: "#fcd34d", hat: undefined };
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => { setInputKey(e.key, true); };
-    const up = (e: KeyboardEvent) => { setInputKey(e.key, false); };
+    installInputGuards();
+    const down = (e: KeyboardEvent) => { if (isTypingTarget(e.target)) return; setInputKey(e.key, true); };
+    const up = (e: KeyboardEvent) => {
+      setInputKey(e.key, false);
+      // Phím ký tự/Shift có thể đổi e.key giữa keydown và keyup → xả theo mã vật lý.
+      const code = e.code?.startsWith("Key") ? e.code.slice(3) : "";
+      if (code) setInputKey(code, false);
+      if (e.key === "Shift" || e.key === "Meta" || e.key === "Alt") clearInput();
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
   }, []);
 
-  useFrame((_, dt) => {
+  useFrame((_, rawDt) => {
     if (!ref.current) return;
+    // Giật lag: kẹp bước thời gian để nhân vật không văng xa.
+    const dt = Math.min(rawDt, 0.05);
     const k = playerInput;
     const speed = 6;
     const camDir = new THREE.Vector3();

@@ -1,10 +1,10 @@
 import { getCurrentUser } from "@/lib/auth";
 import { memo, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getVisitableHouse } from "@/lib/friend-houses.functions";
 import { getItem, topperBottomY } from "./catalog";
-import { isWindowItem } from "./catalog";
+import { isWindowItem, isDoorItem } from "./catalog";
 import { ItemModel } from "./Models";
 import { WallMesh, RoofMesh, FloorMesh } from "./GameWorld";
 import { WALL_HEIGHT } from "@/lib/game";
@@ -460,8 +460,13 @@ function hashId(id: string) {
   return h >>> 0;
 }
 
-/** Mỗi bạn giữ cố định một lô (lưu theo người xem); bạn mới chỉ lấy lô trống. */
-function assignFriendSlots(ids: string[]): Map<string, FriendSlot> {
+/**
+ * Mỗi bạn giữ cố định một lô (lưu theo người xem). Bạn mới: nhà gần xây xong
+ * nhận lô trống gần nhà mình nhất; nhà gần như trống (chỉ có cửa) xếp ra phía
+ * đối diện / xa hơn. Lô của tài khoản đã bị xóa được giữ lại và lấp bằng nhà mẫu.
+ * score: undefined = chưa tải dữ liệu → tạm đặt, chưa lưu.
+ */
+function assignFriendSlots(ids: string[], score: (id: string) => number | undefined): { map: Map<string, FriendSlot>; orphans: FriendSlot[] } {
   const n = ALL_FRIEND_SLOTS.length;
   let viewer = "anon";
   try { viewer = getCurrentUser()?.id ?? "anon"; } catch { /* noop */ }
@@ -470,21 +475,38 @@ function assignFriendSlots(ids: string[]): Map<string, FriendSlot> {
   try { saved = JSON.parse(localStorage.getItem(key) || "{}"); } catch { /* noop */ }
   const used = new Set<number>();
   const out = new Map<string, FriendSlot>();
+  const idSet = new Set(ids);
   for (const id of ids) {
     const idx = saved[id];
     if (typeof idx === "number" && idx >= 0 && idx < n && !used.has(idx)) { used.add(idx); out.set(id, ALL_FRIEND_SLOTS[idx]); }
   }
-  let changed = false;
-  for (const id of [...ids].sort()) {
-    if (out.has(id)) continue;
-    const start = hashId(viewer + ":" + id) % n;
-    for (let k = 0; k < n; k++) {
-      const idx = (start + k) % n;
-      if (!used.has(idx)) { used.add(idx); saved[id] = idx; out.set(id, ALL_FRIEND_SLOTS[idx]); changed = true; break; }
+  // Lô của tài khoản không còn trong danh sách → giữ chỗ, lấp nhà mẫu.
+  const orphans: FriendSlot[] = [];
+  if (ids.length > 0) {
+    for (const [id, idx] of Object.entries(saved)) {
+      if (!idSet.has(id) && typeof idx === "number" && idx >= 0 && idx < n && !used.has(idx)) { used.add(idx); orphans.push(ALL_FRIEND_SLOTS[idx]); }
     }
   }
+  // ALL_FRIEND_SLOTS đã sắp gần → xa. Nhà thưa: ưu tiên phía đối diện đường chính, rồi xa nhất.
+  const nearOrder = ALL_FRIEND_SLOTS.map((_, i) => i);
+  const sparseOrder = [...nearOrder].sort((i, j) => {
+    const oi = ALL_FRIEND_SLOTS[i].z >= MAIN_Z ? 0 : 1, oj = ALL_FRIEND_SLOTS[j].z >= MAIN_Z ? 0 : 1;
+    return oi - oj || j - i;
+  });
+  const pending = ids.filter((id) => !out.has(id));
+  pending.sort((x, y) => (score(y) ?? -1) - (score(x) ?? -1) || (x < y ? -1 : 1));
+  let changed = false;
+  for (const id of pending) {
+    const sc = score(id);
+    const order = sc !== undefined && sc < 6 ? sparseOrder : nearOrder;
+    const idx = order.find((i) => !used.has(i));
+    if (idx === undefined) break;
+    used.add(idx);
+    out.set(id, ALL_FRIEND_SLOTS[idx]);
+    if (sc !== undefined) { saved[id] = idx; changed = true; }
+  }
   if (changed) { try { localStorage.setItem(key, JSON.stringify(saved)); } catch { /* noop */ } }
-  return out;
+  return { map: out, orphans };
 }
 
 function buildSlots(): Slot[] {
@@ -543,8 +565,32 @@ export const HoiAnTown = memo(function HoiAnTown({
   const ordered = useMemo(() => [...slots].sort((a, b) => a.d2 - b.d2), [slots]);
   const fs = friends ?? [];
   const idsKey = fs.map((f) => f.user_id).join(",");
-  const slotMap = useMemo(() => assignFriendSlots(idsKey ? idsKey.split(",") : []), [idsKey]);
-  const activeFriendSlots = useMemo(() => Array.from(slotMap.values()), [slotMap]);
+  const fetchHouse = useServerFn(getVisitableHouse);
+  const previews = useQueries({
+    queries: fs.map((f) => ({
+      queryKey: ["friend-house-preview", f.user_id],
+      queryFn: () => fetchHouse({ data: { ownerId: f.user_id } }),
+      staleTime: 5 * 60_000,
+      retry: false,
+    })),
+  });
+  // Điểm "mức độ xây": tường + mái + sàn + đồ (cửa không tính nhiều).
+  const scoreKey = previews.map((q, i) => {
+    if (q.isError) return fs[i].user_id + ":0";
+    const h = q.data;
+    if (!h) return fs[i].user_id + ":?";
+    const items = h.placed.filter((p) => !isDoorItem(p.itemId)).length;
+    return fs[i].user_id + ":" + (h.walls.length * 2 + h.roofs.length * 2 + h.floors.length + items);
+  }).join(",");
+  const { map: slotMap, orphans } = useMemo(() => {
+    const scores = new Map<string, number>();
+    for (const part of scoreKey ? scoreKey.split(",") : []) {
+      const [id, v] = part.split(":");
+      if (v !== "?") scores.set(id, Number(v));
+    }
+    return assignFriendSlots(idsKey ? idsKey.split(",") : [], (id) => scores.get(id));
+  }, [idsKey, scoreKey]);
+  const activeFriendSlots = useMemo(() => [...Array.from(slotMap.values()), ...orphans], [slotMap, orphans]);
   // Chừa trọn mảnh đất 20×20 quanh mỗi nhà bạn để nhà phố không đè lên nhau.
   const shopSlots = ordered.filter((s) => !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
   const lanterns: [number, number][][] = [];
@@ -598,6 +644,11 @@ export const HoiAnTown = memo(function HoiAnTown({
         </group>
         );
       })}
+      {!dim && !hideBuildings && orphans.map((s) => (
+        <group key={`orphan-${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}>
+          <group scale={1.8}><DefaultHouse /></group>
+        </group>
+      ))}
       {!dim && !hideBuildings && shopSlots.map((s, i) => {
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}

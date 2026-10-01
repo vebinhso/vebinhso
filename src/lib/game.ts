@@ -21,6 +21,7 @@ export type WallSegment = {
   color: string;
   value?: number;
   floor?: number;
+  painted?: boolean;
 };
 
 export type RoofSegment = {

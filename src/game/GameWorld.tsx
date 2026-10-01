@@ -27,6 +27,8 @@ type Props = {
   floors: FloorSegment[];
   wallColor: string;
   wallMode: boolean;
+  /** Khi có: bấm vào tường sẽ đổ sơn */
+  onWallPaint?: (id: string) => void;
   wallPickA: string | null;
   roofMode: boolean;
   roofPicks: string[];
@@ -423,7 +425,7 @@ function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number;
   return merged;
 }
 
-function WallMesh({ w, color, highlight, dim, onRemove, placed }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[] }) {
+function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[]; onPaint?: () => void }) {
   const dx = w.bx - w.ax;
   const dz = w.bz - w.az;
   const len = Math.hypot(dx, dz);
@@ -445,7 +447,7 @@ function WallMesh({ w, color, highlight, dim, onRemove, placed }: { w: WallSegme
     <meshStandardMaterial key={key} color={highlight ? "#fde047" : (w.color || color)} roughness={0.9} transparent={dim} opacity={opacity} />
   );
   return (
-    <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }}>
+    <group position={[cx, baseY, cz]} rotation={[0, angle, 0]} onContextMenu={(e) => { e.stopPropagation(); if (!dim) onRemove(); }} onClick={onPaint && !dim ? (e) => { e.stopPropagation(); onPaint(); } : undefined}>
       {cuts.length === 0 ? (
         <mesh castShadow receiveShadow position={[0, WALL_HEIGHT / 2, 0]}>
           <boxGeometry args={[0.25, WALL_HEIGHT, len]} />
@@ -815,7 +817,7 @@ const Neighborhood = memo(function Neighborhood({
 });
 
 function PlotAndPlacement({
-  placed, walls, roofs, floors, wallColor, wallMode, wallPickA, roofMode, roofPicks,
+  placed, walls, roofs, floors, wallColor, wallMode, onWallPaint, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend,
@@ -908,6 +910,7 @@ function PlotAndPlacement({
           dim={(w.floor ?? 0) !== activeFloor}
           onRemove={() => onWallRemove(w.id)}
           placed={placed}
+          onPaint={onWallPaint ? () => onWallPaint(w.id) : undefined}
         />
       ))}
 

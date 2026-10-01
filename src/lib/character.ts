@@ -15,6 +15,9 @@ export type Outfit = {
   /** Phụ kiện đã mua và đang đeo. */
   accessoriesOwned?: string[];
   accessories?: string[];
+  faceShape?: string;
+  expression?: string;
+  bodyShape?: string;
 };
 
 const DEFAULT: Outfit = {

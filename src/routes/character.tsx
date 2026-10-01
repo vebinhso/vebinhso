@@ -15,6 +15,9 @@ import { useLocale } from "@/lib/locale";
 import { AccessoryPicker } from "@/components/AccessoryPicker";
 import { AccessorySvg } from "@/components/AccessorySvg";
 import { equippedBySlot } from "@/lib/accessories";
+import { AppearancePicker } from "@/components/AppearancePicker";
+import { FaceSvg } from "@/components/FaceSvg";
+import { bodyOf, exprOf, faceOf } from "@/lib/appearance";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -39,6 +42,7 @@ function Swatch({ label, color }: { label: string; color?: string }) {
 
 function PreviewCharacter({ o }: { o: Outfit }) {
   const acc = equippedBySlot(o.accessories);
+  const b = bodyOf(o.bodyShape);
   const hs = isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE;
   return (
     <div className="flex items-end justify-center h-56 bg-gradient-to-b from-sky-200 to-emerald-200 rounded-2xl overflow-hidden">
@@ -51,12 +55,12 @@ function PreviewCharacter({ o }: { o: Outfit }) {
         <rect x="27" y="138" width="12" height="6" rx="2" fill={o.shoes} />
         <rect x="41" y="138" width="12" height="6" rx="2" fill={o.shoes} />
         {/* body */}
-        <rect x="24" y="60" width="32" height="46" rx="6" fill={o.shirt} />
+        <path d={`M${40 - b.top / 2} 62 Q40 58 ${40 + b.top / 2} 62 L${40 + b.waist / 2} 82 L${40 + b.hip / 2} 101 L${40 - b.hip / 2} 101 L${40 - b.waist / 2} 82 Z`} fill={o.shirt} />
         {/* accent belt */}
-        <rect x="24" y="96" width="32" height="5" fill={o.accent} />
+        <rect x={40 - b.hip / 2} y="96" width={b.hip} height="5" fill={o.accent} />
         {/* arms */}
-        <rect x="14" y="62" width="10" height="40" rx="4" fill={o.shirt} />
-        <rect x="56" y="62" width="10" height="40" rx="4" fill={o.shirt} />
+        <rect x={30 - b.top / 2} y="62" width="10" height="40" rx="4" fill={o.shirt} />
+        <rect x={50 + b.top / 2} y="62" width="10" height="40" rx="4" fill={o.shirt} />
         {/* hands */}
         <circle cx="19" cy="105" r="5" fill={o.skin} />
         <circle cx="61" cy="105" r="5" fill={o.skin} />
@@ -65,15 +69,13 @@ function PreviewCharacter({ o }: { o: Outfit }) {
         {acc.finger && <AccessorySvg id={acc.finger} hair={o.hair} />}
         {acc.head && <AccessorySvg id={acc.head} hair={o.hair} />}
         {/* head */}
-        <circle cx="40" cy="42" r="18" fill={o.skin} />
+        <path d={faceOf(o.faceShape).d} fill={o.skin} />
         {/* hair */}
         {!acc.head && <HairFront style={hs} color={o.hair} />}
         {/* hat */}
         {o.hat && !acc.head && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
         {/* eyes */}
-        <circle cx="34" cy="44" r="2" fill="#111" />
-        <circle cx="46" cy="44" r="2" fill="#111" />
-        <path d="M34 52 Q40 56 46 52" stroke="#111" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        <FaceSvg e={exprOf(o.expression)} />
         {acc.beard && <AccessorySvg id={acc.beard} hair={o.hair} />}
       </svg>
     </div>
@@ -90,7 +92,7 @@ function CharacterPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const en = useLocale() === "en";
-  const [tab, setTab] = useState<"hair" | "shirt" | "pants" | "accessory">("hair");
+  const [tab, setTab] = useState<"look" | "hair" | "shirt" | "pants" | "accessory">("hair");
   const [preview, setPreview] = useState<{ style: HairStyleId; color: string } | null>(null);
   const currentHairStyle: HairStyleId = isHairStyle(outfit.hairStyle) ? outfit.hairStyle : DEFAULT_HAIR_STYLE;
   const shown: Outfit = preview ? { ...outfit, hairStyle: preview.style, hair: preview.color } : outfit;
@@ -147,7 +149,7 @@ function CharacterPage() {
     setErr(null); setLoading(true);
     try {
       const colors = await gen({ data: { description: desc } });
-      setOutfit((prev) => ({ ...prev, description: desc, ...colors, hair: prev.hair, hairStyle: prev.hairStyle }));
+      setOutfit((prev) => ({ ...prev, description: desc, ...colors, hair: prev.hair, hairStyle: prev.hairStyle, skin: prev.skin }));
     } catch (e: any) {
       setErr(e?.message || "Lỗi tạo trang phục");
     } finally {
@@ -187,8 +189,9 @@ function CharacterPage() {
 
           <PreviewCharacter o={shown} />
 
-          <div className="grid grid-cols-4 gap-2 mt-4">
+          <div className="grid grid-cols-5 gap-2 mt-4">
             {([
+              ["look", en ? "Look" : "Ngoại hình"],
               ["hair", en ? "Hair" : "Tóc"],
               ["shirt", en ? "Shirt" : "Áo"],
               ["pants", en ? "Pants" : "Quần"],
@@ -210,6 +213,8 @@ function CharacterPage() {
               onApplyStyle={(style) => { commitHair({ hairStyle: style }); setPreview((p) => p ? { ...p, style } : null); }}
               onApplyColor={(color) => { commitHair({ hair: color }); setPreview((p) => p ? { ...p, color } : null); }}
             />
+          ) : tab === "look" ? (
+            <AppearancePicker o={outfit} onChange={commitHair} />
           ) : tab === "accessory" ? (
             <AccessoryPicker
               owned={outfit.accessoriesOwned}

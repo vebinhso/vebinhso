@@ -1,3 +1,4 @@
+import { bodyOf, faceOf } from "@/lib/appearance";
 import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
 import { equippedBySlot } from "@/lib/accessories";
 import { Hair3D } from "./Hair3D";
@@ -255,6 +256,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
 
   // Character: 2 cells tall × 1 cell wide
   const acc = equippedBySlot(o.accessories);
+  const bShape = bodyOf(o.bodyShape);
   return (
     <group ref={ref} position={[0, 0, 0]}>
       <mesh ref={legL} castShadow position={[-0.18, 0.35, 0]}>
@@ -273,7 +275,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         <boxGeometry args={[0.28, 0.1, 0.36]} />
         <meshStandardMaterial color={o.shoes} />
       </mesh>
-      <mesh ref={body} castShadow position={[0, 1.02, 0]}>
+      <mesh ref={body} castShadow position={[0, 1.02, 0]} scale={[bShape.top / 32, 1, (bShape.waist + 32) / 64]}>
         <boxGeometry args={[0.65, 0.65, 0.38]} />
         <meshStandardMaterial color={o.shirt} />
       </mesh>
@@ -291,7 +293,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         <meshStandardMaterial color={o.shirt} />
         {acc.finger && <ArmAccessory3D id={acc.finger} />}
       </mesh>
-      <mesh castShadow position={[0, 1.65, 0]}>
+      <mesh castShadow position={[0, 1.65, 0]} scale={faceOf(o.faceShape).s3 as unknown as [number, number, number]}>
         <sphereGeometry args={[0.3, 20, 20]} />
         <meshStandardMaterial color={o.skin} />
       </mesh>

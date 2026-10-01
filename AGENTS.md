@@ -4,3 +4,4 @@
 - Keep Vietnamese system questions canonical and pair them by stable ID with position-aligned English questions and choices; never auto-translate teacher/class or uploaded assignment content.
 
 - Wall-attached door/window behavior keys off DOOR_IDS/WINDOW_IDS in the catalog (isDoorItem/isWindowItem), so new door or window models snap, cut holes and open without touching game logic.
+- Keep the Hội An river activity modular in HoiAnRiver and persist its lightweight lantern inventory per account on-device, because it is cosmetic gameplay and must not add map-render churn.

@@ -43,8 +43,22 @@ import { useServerFn } from "@tanstack/react-start";
 import { useLocale } from "@/lib/locale";
 import { mixPaint, isWhite, colorName } from "@/lib/paint-mix";
 import { PaintBucketIcon } from "@/components/PaintBucketIcon";
+import { Button } from "@/components/ui/button";
+import { RIVER_BOARD_POSITION, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "@/game/HoiAnRiver";
 
-export const Route = createFileRoute("/game")({ component: GamePage });
+export const Route = createFileRoute("/game")({
+  head: () => ({
+    meta: [
+      { title: "Khu phố Hội An — VỆ BINH SỐ" },
+      { name: "description", content: "Khám phá khu phố Hội An, xây nhà và tham gia thử thách thả hoa đăng." },
+      { property: "og:title", content: "Khu phố Hội An — VỆ BINH SỐ" },
+      { property: "og:description", content: "Khám phá khu phố Hội An, xây nhà và tham gia thử thách thả hoa đăng." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: GamePage,
+});
 
 
 function GamePage() {
@@ -69,10 +83,12 @@ function GamePage() {
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
   const wt = useWorldToggles();
   // Chỉ lưu KẾT QUẢ ở gần (cửa/đèn) thay vì toạ độ → nhân vật di chuyển không làm cả trang render lại
-  const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean }>({ doorId: null, lamp: false });
+  const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean; riverBoard: boolean; riverBank: boolean }>({ doorId: null, lamp: false, riverBoard: false, riverBank: false });
+  const playerPosRef = useRef({ x: 0, z: 0 });
   const placedRef = useRef<PlacedItem[]>([]);
   placedRef.current = state?.placed ?? [];
   const handlePlayerPos = useCallback((px: number, pz: number) => {
+    playerPosRef.current = { x: px, z: pz };
     const placed = placedRef.current;
     let nearest: { id: string; d2: number } | null = null;
     let lamp = false;
@@ -94,7 +110,9 @@ function GamePage() {
       }
     }
     const doorId = nearest?.id ?? null;
-    setNearby((prev) => (prev.doorId === doorId && prev.lamp === lamp ? prev : { doorId, lamp }));
+    const riverBoard = Math.hypot(px - RIVER_BOARD_POSITION[0], pz - RIVER_BOARD_POSITION[1]) <= 6;
+    const riverBank = pz <= RIVER_NEAR_BANK_Z + 7;
+    setNearby((prev) => (prev.doorId === doorId && prev.lamp === lamp && prev.riverBoard === riverBoard && prev.riverBank === riverBank ? prev : { doorId, lamp, riverBoard, riverBank }));
   }, []);
   const listFriendsFn = useServerFn(listFriendHouses);
   const friendHousesQ = useQuery({
@@ -139,6 +157,10 @@ function GamePage() {
   // Boom modal: BẮT BUỘC trả lời đúng mới biến mất. Sai → câu mới.
   const [boom, setBoom] = useState<null | { q: Question; tries: number; correct: number; gained: number }>(null);
   const [boomResult, setBoomResult] = useState<string | null>(null);
+  const [riverQuiz, setRiverQuiz] = useState<null | { question: Question; number: number; correct: number }>(null);
+  const [riverQuizResult, setRiverQuizResult] = useState<string | null>(null);
+  const [lanternCount, setLanternCount] = useState(0);
+  const [releasedLanterns, setReleasedLanterns] = useState<ReleasedLantern[]>([]);
 
   // Chỉnh sửa item đã đặt: xoay tự do 360° + dịch chuyển trong tầng hiện tại
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -180,6 +202,13 @@ function GamePage() {
       return;
     }
     setUser(u);
+    const lanternKey = `vebinhso_river_lanterns_${u.id}`;
+    const releasedKey = `vebinhso_released_lanterns_${u.id}`;
+    setLanternCount(Math.max(0, Number(window.localStorage.getItem(lanternKey) ?? 0) || 0));
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(releasedKey) ?? "[]");
+      if (Array.isArray(stored)) setReleasedLanterns(stored.slice(-40));
+    } catch { setReleasedLanterns([]); }
     try { recordLoginDay(u.id); } catch {}
     setState(loadGame());
     // Khi cache đã được refresh từ DB, đồng bộ lại state React
@@ -984,6 +1013,75 @@ function GamePage() {
     }, 1200);
   };
 
+  const startRiverQuiz = async () => {
+    if (!nearby.riverBoard) {
+      flash(en ? "🏮 Walk closer to the lantern challenge board." : "🏮 Hãy đi đến gần bảng thử thách hoa đăng.", 2200);
+      return;
+    }
+    if (!questionsReady) {
+      try { await loadQuestionsFromDB("rural"); setQuestionsReady(true); } catch {}
+    }
+    const q = randomQuestion();
+    if (!q?.q) { flash(en ? "⚠️ No questions are available yet." : "⚠️ Chưa có câu hỏi trong ngân hàng."); return; }
+    setRiverQuiz({ question: q, number: 1, correct: 0 });
+    setRiverQuizResult(null);
+  };
+
+  const handleRiverQuizAnswer = async (picked: number[]) => {
+    if (!riverQuiz || riverQuizResult) return;
+    const selectedIndex = picked[0] ?? -1;
+    const graded = await gradeAnswer(riverQuiz.question, selectedIndex);
+    const correctSet = graded.correctIndexes;
+    const ok = graded.isCorrect && picked.length === correctSet.length && [...correctSet].sort().join(",") === [...picked].sort().join(",");
+    reportAnswerResult(riverQuiz.question, ok);
+    const correct = riverQuiz.correct + (ok ? 1 : 0);
+    setState((current) => current ? {
+      ...current,
+      correctAnswers: current.correctAnswers + (ok ? 1 : 0),
+      totalAnswered: current.totalAnswered + 1,
+      answerStreak: ok ? current.answerStreak + 1 : 0,
+    } : current);
+    playSfx(ok ? "rightHouse" : "wrongHouse", { duck: true });
+    setRiverQuizResult(ok ? (en ? "✅ Correct!" : "✅ Chính xác!") : (en ? "❌ Not quite." : "❌ Chưa đúng rồi."));
+    window.setTimeout(() => {
+      if (riverQuiz.number >= 7) {
+        if (correct >= 5 && user) {
+          const nextCount = lanternCount + 1;
+          setLanternCount(nextCount);
+          window.localStorage.setItem(`vebinhso_river_lanterns_${user.id}`, String(nextCount));
+          flash(en ? `🏮 You got ${correct}/7 correct and earned one lantern!` : `🏮 Bạn đúng ${correct}/7 câu và nhận được 1 hoa đăng!`, 3500);
+        } else {
+          flash(en ? `You got ${correct}/7. Get 5 correct to earn a lantern.` : `Bạn đúng ${correct}/7 câu. Cần đúng 5 câu để nhận hoa đăng.`, 3500);
+        }
+        setRiverQuiz(null);
+        setRiverQuizResult(null);
+        return;
+      }
+      setRiverQuiz({ question: randomQuestion(), number: riverQuiz.number + 1, correct });
+      setRiverQuizResult(null);
+    }, 850);
+  };
+
+  const releaseRiverLantern = (x: number, z: number) => {
+    if (!user) return;
+    if (playMode !== "view") { flash(en ? "🏮 Enter Explore mode to release lanterns." : "🏮 Hãy vào chế độ Xem nhà để thả hoa đăng."); return; }
+    if (!nearby.riverBank) { flash(en ? "🏮 Walk closer to the riverbank first." : "🏮 Hãy đi đến gần bờ sông trước."); return; }
+    if (lanternCount <= 0) { flash(en ? "🏮 Complete the 7-question challenge to earn a lantern." : "🏮 Hãy hoàn thành thử thách 7 câu để nhận hoa đăng.", 2600); return; }
+    const safeZ = Math.min(RIVER_NEAR_BANK_Z - 2.5, Math.max(-82, z));
+    const next: ReleasedLantern = { id: `lantern-${Date.now()}`, x, z: safeZ, color: ["#ef4444", "#f59e0b", "#eab308", "#22c55e", "#ec4899"][releasedLanterns.length % 5] };
+    riverPoseState.kneelingUntil = Date.now() + 1800;
+    riverPoseState.targetX = x;
+    riverPoseState.targetZ = safeZ;
+    const nextReleased = [...releasedLanterns, next].slice(-40);
+    const nextCount = lanternCount - 1;
+    setReleasedLanterns(nextReleased);
+    setLanternCount(nextCount);
+    window.localStorage.setItem(`vebinhso_river_lanterns_${user.id}`, String(nextCount));
+    window.localStorage.setItem(`vebinhso_released_lanterns_${user.id}`, JSON.stringify(nextReleased));
+    playSfx("rightHouse", { duck: true });
+    flash(en ? "🏮 Your lantern is drifting down the river…" : "🏮 Hoa đăng của bạn đang trôi theo dòng sông…", 2600);
+  };
+
   const pillarsPlaced = state.placed.filter((p) => p.itemId === "pillar" && (p.floor ?? 0) === activeFloor);
   // Tầng trệt (0) miễn phí; tầng 1/2/3 cần đạt cấp tương ứng
   const WALL_LEVEL_REQ = [0, 3, 10, 18];
@@ -1080,6 +1178,9 @@ function GamePage() {
             const f = (friendHousesQ.data as FriendHouse[] | undefined)?.find((x) => x.user_id === ownerId);
              setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });
           }}
+          releasedLanterns={releasedLanterns}
+          onStartRiverQuiz={startRiverQuiz}
+          onReleaseLantern={releaseRiverLantern}
           onItemClick={(id, opts) => {
             if (playMode !== "edit") return;
             const p = state.placed.find((q) => q.id === id);
@@ -1169,6 +1270,7 @@ function GamePage() {
             <div className="font-bold text-yellow-700 truncate">💰 {state.money}đ • 🏠 {state.netWorth}đ</div>
             <div className="text-[10px] sm:text-xs font-bold text-blue-700 truncate">Lv.{level} • ✅ {state.correctAnswers} • 🔥 {state.answerStreak}</div>
             <div className="text-[10px] sm:text-xs font-bold text-stone-700 truncate">🧱 {state.bricks} • 🪣 {state.concrete} • 🏠 {state.roofTiles} • 🟥 {state.roofTilesTon}</div>
+            <div className="text-[10px] sm:text-xs font-black text-rose-700 truncate">🏮 {en ? "Lanterns" : "Hoa đăng"}: {lanternCount}</div>
             <Link
               to="/friends-map"
               preload="render"
@@ -1770,6 +1872,22 @@ function GamePage() {
             {questionResult && (
               <div className="mt-4 text-center font-black text-xl md:text-2xl">{questionResult}</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {riverQuiz && (
+        <div className="absolute inset-0 bg-foreground/55 z-40 flex items-center justify-center p-3 md:p-6">
+          <div className="glass-card max-w-2xl w-full p-5 md:p-7 max-h-[90vh] overflow-y-auto border-4 border-amber-400">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="text-lg font-black text-amber-800">🏮 {en ? "Lantern challenge" : "Thử thách hoa đăng"}</div>
+                <div className="text-xs font-bold text-stone-700">{en ? `Question ${riverQuiz.number}/7 • Correct: ${riverQuiz.correct} • Need 5` : `Câu ${riverQuiz.number}/7 • Đúng: ${riverQuiz.correct} • Cần 5`}</div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => { setRiverQuiz(null); setRiverQuizResult(null); }}>✖ {en ? "Exit" : "Thoát"}</Button>
+            </div>
+            <QuestionView question={riverQuiz.question} onAnswer={handleRiverQuizAnswer} disabled={!!riverQuizResult} />
+            {riverQuizResult && <div className="mt-4 text-center text-xl font-black">{riverQuizResult}</div>}
           </div>
         </div>
       )}

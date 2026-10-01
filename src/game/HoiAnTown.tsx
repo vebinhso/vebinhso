@@ -11,6 +11,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { useLocale } from "@/lib/locale";
+import { HoiAnRiver, type ReleasedLantern } from "./HoiAnRiver";
 
 // Phố cổ kiểu Hội An: đường xám, dãy nhà vàng sát nhau, mái ngói nâu, đèn lồng.
 const ROAD = "#8f8b85";
@@ -433,10 +434,16 @@ function buildSlots(): Slot[] {
 export const HoiAnTown = memo(function HoiAnTown({
   friends,
   onVisitFriend,
+  releasedLanterns,
+  onStartRiverQuiz,
+  onReleaseLantern,
   dim = false,
 }: {
   friends?: FriendHouse[];
   onVisitFriend?: (ownerId: string) => void;
+  releasedLanterns?: ReleasedLantern[];
+  onStartRiverQuiz?: () => void;
+  onReleaseLantern?: (x: number, z: number) => void;
   dim?: boolean;
 }) {
   useEffect(() => {
@@ -507,6 +514,13 @@ export const HoiAnTown = memo(function HoiAnTown({
         );
       })}
       {!dim && lanterns.map(([a, b], i) => <LanternString key={i} a={a} b={b} />)}
+      {!dim && (
+        <HoiAnRiver
+          releasedLanterns={releasedLanterns}
+          onStartQuiz={onStartRiverQuiz}
+          onReleaseLantern={onReleaseLantern}
+        />
+      )}
     </group>
   );
 });

@@ -7,7 +7,13 @@ export const speakLine = createServerFn({ method: "POST" })
     return {
       text: data.text.slice(0, 600),
       voice: typeof data.voice === "string" ? data.voice.slice(0, 20) : "alloy",
-      instructions: typeof data.instructions === "string" ? data.instructions.slice(0, 400) : undefined,
+      instructions:
+        typeof data.instructions === "string" &&
+        !(data.locale === "en" && /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(data.instructions))
+          ? data.instructions.slice(0, 400)
+          : data.locale === "en"
+            ? "Natural native English speaker, expressive and in character, like a film voice actor. Do not use a Vietnamese accent."
+            : undefined,
       speed: typeof data.speed === "number" ? Math.min(2, Math.max(0.5, data.speed)) : undefined,
       locale: data.locale === "en" ? "en" as const : "vi" as const,
     };

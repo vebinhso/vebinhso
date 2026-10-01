@@ -1,3 +1,4 @@
+import { FILM_EN_EXTRA } from "./film-en-extra";
 // Generated bilingual film copy. Vietnamese source strings remain canonical.
 export const FILM_EN: Record<string, string> = {
   "K — Kẻ giả danh công an": "K — The fake police officer",
@@ -398,5 +399,5 @@ export const FILM_EN: Record<string, string> = {
 
 export function filmCopy(locale: "vi" | "en", value?: string): string | undefined {
   if (!value || locale !== "en") return value;
-  return FILM_EN[value] ?? value;
+  return FILM_EN[value] ?? FILM_EN_EXTRA[value] ?? value;
 }

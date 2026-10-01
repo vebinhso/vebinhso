@@ -1080,6 +1080,7 @@ function GamePage() {
              setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });
           }}
           onItemClick={(id, opts) => {
+            if (playMode === "view") return;
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;

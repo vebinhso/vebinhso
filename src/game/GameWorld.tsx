@@ -11,7 +11,7 @@ import type { PlacedItem, WallSegment, RoofSegment, FloorSegment } from "@/lib/g
 import { WALL_HEIGHT } from "@/lib/game";
 import type { Pickup } from "@/lib/worldPickups";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
-import { playerInput, setInputKey } from "@/lib/player-input";
+import { playerInput, setInputKey, clearInput, installInputGuards, isTypingTarget } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
 import { RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";

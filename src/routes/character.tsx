@@ -289,6 +289,11 @@ function CharacterPage() {
           </div>
           </>
           )}
+          {tab !== "hair" && tab !== "shirt" && tab !== "pants" && tab !== "accessory" && tab !== "look" ? null : (
+            <button onClick={handleSave} className="toy-button toy-button-primary !text-base py-3 w-full mt-5">
+              {en ? "✅ Save & Play" : "✅ Lưu & Chơi"}
+            </button>
+          )}
         </div>
       </div>
     </GameLayout>

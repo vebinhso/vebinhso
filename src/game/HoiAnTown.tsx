@@ -382,7 +382,7 @@ export const HoiAnTown = memo(function HoiAnTown({
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
             onClick={friend ? (e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); } : undefined}>
             {friend ? (i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <DefaultHouse />) : <ShopHouse seed={s.seed} />}
-            {friend && i < 4 && <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
+            {friend && i < 4 && <FriendSign friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
           </group>
         );
       })}

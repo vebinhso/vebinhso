@@ -202,7 +202,7 @@ function FriendHousePreview({ ownerId }: { ownerId: string }) {
   });
   const h = q.data;
   const empty = !h || (h.placed.length === 0 && h.walls.length === 0 && h.roofs.length === 0 && h.floors.length === 0);
-  if (empty) return <DefaultHouse />;
+  if (empty) return <group scale={1.8}><DefaultHouse /></group>;
   const half = 10;
   return (
     <group scale={PREVIEW_SCALE} position={[0, 0, 0]}>
@@ -362,7 +362,7 @@ export const HoiAnTown = memo(function HoiAnTown({
       {!dim && fs.slice(0, FRIEND_XS.length).map((friend, i) => (
         <group key={friend.user_id} position={[FRIEND_XS[i], 0, FRIEND_Z]} rotation={[0, Math.PI, 0]}
           onClick={(e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); }}>
-          {i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <DefaultHouse />}
+          {i < 8 ? <FriendHousePreview ownerId={friend.user_id} /> : <group scale={1.8}><DefaultHouse /></group>}
           <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />
         </group>
       ))}

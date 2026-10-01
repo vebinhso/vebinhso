@@ -460,6 +460,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Quản trị viên": "Administrator",
   "RẤT NGUY HIỂM": "VERY DANGEROUS",
   "Sofa chữ nhật": "Rectangular Sofa",
+  "Ghế sofa": "Sofa",
   "Số điện thoại": "Phone Number",
   "Toàn project.": "Entire project.",
   "Trần Hưng Đạo": "Tran Hung Dao",

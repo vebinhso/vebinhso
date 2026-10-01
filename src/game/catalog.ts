@@ -47,6 +47,13 @@ export const CATALOG: CatalogItem[] = [
   { id: "lamp", name: "Cột đèn", category: "Ngoại thất", price: 15, w: 1, d: 1, h: 3, color: "#fbbf24", icon: "💡", shape: "cylinder" },
   { id: "mailbox", name: "Hòm thư", category: "Ngoại thất", price: 10, w: 1, d: 1, h: 1.5, color: "#dc2626", icon: "📫" },
   { id: "sign", name: "Bảng tên nhà (chạm để chỉnh)", category: "Ngoại thất", price: 20, w: 2, d: 0.2, h: 1.5, color: "#f59e0b", icon: "🪧" },
+  { id: "plant_monstera", name: "Chậu trầu bà lá xẻ", category: "Ngoại thất", price: 45, w: 1, d: 1, h: 1.5, color: "#4f8f3a", icon: "🪴" },
+  { id: "plant_paradise", name: "Chậu chuối cảnh", category: "Ngoại thất", price: 40, w: 1, d: 1, h: 1.6, color: "#3e8233", icon: "🌿" },
+  { id: "plant_terracotta", name: "Chậu cây lá xanh đất nung", category: "Ngoại thất", price: 25, w: 1, d: 1, h: 1, color: "#d98a62", icon: "🪴" },
+  { id: "sign_house", name: "Bảng hiệu hình ngôi nhà", category: "Ngoại thất", price: 35, w: 2, d: 0.3, h: 2.6, color: "#d8341f", icon: "🏠" },
+  { id: "sign_arrow", name: "Biển chỉ hướng mũi tên", category: "Ngoại thất", price: 25, w: 2, d: 0.3, h: 2, color: "#d8341f", icon: "⬅️" },
+  { id: "sign_hanging", name: "Bảng treo dây", category: "Ngoại thất", price: 30, w: 2, d: 0.3, h: 1.9, color: "#d8341f", icon: "🪧" },
+  { id: "mailbox_cream", name: "Hòm thư cờ cam", category: "Ngoại thất", price: 30, w: 1, d: 1, h: 1.6, color: "#e7cba6", icon: "📬" },
   { id: "tree", name: "Cây xanh", category: "Ngoại thất", price: 20, w: 1, d: 1, h: 2.5, color: "#16a34a", icon: "🌳" },
 
   // ===== Phòng khách =====

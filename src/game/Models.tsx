@@ -7,6 +7,7 @@ import { useWorldToggles } from "@/lib/world-toggles";
 import { getLocale } from "@/lib/locale";
 import * as X from "./ModelsExtra";
 import * as Y from "./ModelsExtra2";
+import * as Z from "./ModelsExtra3";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -1975,6 +1976,13 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "octaclock": return <X.OctagonClock />;
     case "art_parrot": return <Y.ParrotCanvas />;
     case "art_toucan": return <Y.ToucanCanvas />;
+    case "plant_monstera": return <Z.MonsteraPot />;
+    case "plant_paradise": return <Z.BirdParadisePot />;
+    case "plant_terracotta": return <Z.TerracottaPlant />;
+    case "sign_house": return <Z.HouseSign />;
+    case "sign_arrow": return <Z.ArrowSign />;
+    case "sign_hanging": return <Z.HangingSign />;
+    case "mailbox_cream": return <Z.CreamMailbox />;
     case "subwoofer": return <Y.Subwoofer />;
     case "art_abstract": return <Y.AbstractFrameArt />;
     case "sofa_olive_set": return <Y.OliveSofaSet />;

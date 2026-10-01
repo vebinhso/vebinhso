@@ -1,4 +1,12 @@
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getVisitableHouse } from "@/lib/friend-houses.functions";
+import { getItem, topperBottomY } from "./catalog";
+import { isWindowItem } from "./catalog";
+import { ItemModel } from "./Models";
+import { WallMesh, RoofMesh, FloorMesh } from "./GameWorld";
+import { WALL_HEIGHT } from "@/lib/game";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import type { FriendHouse } from "@/lib/friend-houses.functions";
@@ -11,6 +19,7 @@ const WALLS = ["#e9b93c", "#f0c24b", "#e3ad2f", "#f2cf63", "#dca93a"];
 const ROOFS = ["#5b3a29", "#6b4430", "#4a3226"];
 
 const HW = 5; // bề rộng mặt tiền
+const STEP = 9; // khoảng cách giữa các nhà (có khe hở)
 const HD = 6; // chiều sâu nhà
 const HH = 4.2;
 
@@ -64,12 +73,95 @@ function ShopHouse({ seed }: { seed: number }) {
   );
 }
 
+
+const DM = {
+  wall: new THREE.MeshStandardMaterial({ color: "#f2c94c", roughness: 0.9 }),
+  roof: new THREE.MeshStandardMaterial({ color: "#b8321f", roughness: 0.8 }),
+  trim: new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.6 }),
+  glass: new THREE.MeshStandardMaterial({ color: "#9fd3ef", roughness: 0.2 }),
+  door: new THREE.MeshStandardMaterial({ color: "#8a4b25", roughness: 0.8 }),
+  brick: new THREE.MeshStandardMaterial({ color: "#a0412b", roughness: 0.9 }),
+};
+
+/** Nhà mặc định (chưa trang trí): tường vàng, mái ngói đỏ, ống khói, 3 cửa sổ, 1 cửa */
+function DefaultHouse() {
+  const W = 6, D = 5, H = 3.4;
+  const win = (x: number, y: number) => (
+    <group position={[x, y, D / 2 + 0.03]}>
+      <mesh geometry={G.box} material={DM.trim} scale={[1.2, 1, 0.06]} />
+      <mesh geometry={G.box} material={DM.glass} position={[0, 0, 0.02]} scale={[1, 0.8, 0.05]} />
+      <mesh geometry={G.box} material={DM.trim} position={[0, 0, 0.05]} scale={[0.08, 0.8, 0.04]} />
+      <mesh geometry={G.box} material={DM.trim} position={[0, 0, 0.05]} scale={[1, 0.08, 0.04]} />
+    </group>
+  );
+  return (
+    <group>
+      <mesh geometry={G.box} material={DM.wall} position={[0, H / 2, 0]} scale={[W, H, D]} castShadow receiveShadow />
+      {/* Đầu hồi tam giác */}
+      <mesh geometry={G.prism} material={DM.wall} position={[0, H + 0.9, 0]} rotation={[Math.PI / 2, 0, Math.PI / 2]} scale={[1.8, D - 0.02, W * 0.58]} />
+      {/* Mái ngói đỏ 2 mái */}
+      <mesh geometry={G.box} material={DM.roof} position={[-W / 4 - 0.1, H + 1.05, 0]} rotation={[0, 0, 0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} castShadow />
+      <mesh geometry={G.box} material={DM.roof} position={[W / 4 + 0.1, H + 1.05, 0]} rotation={[0, 0, -0.55]} scale={[W / 2 + 1.1, 0.25, D + 0.8]} castShadow />
+      {/* Ống khói */}
+      <mesh geometry={G.box} material={DM.brick} position={[W / 4 + 0.4, H + 1.9, -0.6]} scale={[0.7, 1.6, 0.7]} castShadow />
+      <mesh geometry={G.box} material={DM.trim} position={[W / 4 + 0.4, H + 2.75, -0.6]} scale={[0.9, 0.15, 0.9]} />
+      {/* Cửa + tay nắm */}
+      <mesh geometry={G.box} material={DM.door} position={[0, 1.05, D / 2 + 0.03]} scale={[1.1, 2.1, 0.06]} />
+      <mesh geometry={G.lantern} material={DM.trim} position={[0.35, 1, D / 2 + 0.08]} scale={0.2} />
+      {win(-1.9, 1.6)}
+      {win(1.9, 1.6)}
+      {win(0, H + 0.7)}
+    </group>
+  );
+}
+
+const PREVIEW_SCALE = 0.3;
+
+/** Hiện giao diện thật của nhà bạn (thu nhỏ); chưa trang trí → nhà mặc định */
+function FriendHousePreview({ ownerId }: { ownerId: string }) {
+  const fetchHouse = useServerFn(getVisitableHouse);
+  const q = useQuery({
+    queryKey: ["friend-house-preview", ownerId],
+    queryFn: () => fetchHouse({ data: { ownerId } }),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const h = q.data;
+  const empty = !h || (h.placed.length === 0 && h.walls.length === 0 && h.roofs.length === 0 && h.floors.length === 0);
+  if (empty) return <DefaultHouse />;
+  const half = 10;
+  return (
+    <group scale={PREVIEW_SCALE} position={[0, 0, 0]}>
+      <mesh geometry={G.box} material={M.walk} position={[0, 0.02, 0]} scale={[20, 0.04, 20]} receiveShadow />
+      {h.walls.map((w) => <WallMesh key={w.id} w={w} color="#f5e6c8" onRemove={() => {}} placed={h.placed} />)}
+      {h.floors.map((f) => <FloorMesh key={f.id} f={f} onRemove={() => {}} />)}
+      {h.roofs.map((r) => <RoofMesh key={r.id} r={r} onRemove={() => {}} />)}
+      {h.placed.slice(0, 80).map((p) => {
+        const it = getItem(p.itemId);
+        if (!it) return null;
+        const swap = p.rotation % 2 === 1;
+        const hasAngle = typeof p.angleRad === "number";
+        const wx = hasAngle ? p.x - half : p.x - half + (swap ? it.d : it.w) / 2;
+        const wz = hasAngle ? p.z - half : p.z - half + (swap ? it.w : it.d) / 2;
+        const inset = (p.stackY ?? 0) > 0 ? topperBottomY(p.itemId) : 0;
+        const y = (isWindowItem(p.itemId) ? 1.2 : 0) + (p.stackY ?? 0) - inset + (p.floor ?? 0) * WALL_HEIGHT;
+        const rotY = hasAngle ? (p.angleRad as number) : (p.rotation * Math.PI) / 2;
+        return (
+          <group key={p.id} position={[wx, y, wz]} rotation={[0, rotY, 0]}>
+            <ItemModel item={it} placedId={`pv-${p.id}`} />
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function FriendLabel({ friend, onClick }: { friend: FriendHouse; onClick?: () => void }) {
   const en = useLocale() === "en";
   const name = friend.house_name || friend.display_name || friend.username;
   const building = friend.is_online && friend.in_house_owner === friend.user_id;
   return (
-    <Html position={[0, HH + 3.2, HD / 2]} center distanceFactor={16} zIndexRange={[10, 0]}>
+    <Html position={[0, HH + 3.4, 0]} center distanceFactor={16} zIndexRange={[10, 0]}>
       <button
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
         className="pointer-events-auto cursor-pointer flex flex-col items-center gap-0.5 select-none"
@@ -133,20 +225,20 @@ function buildSlots(): Slot[] {
     seed = (seed * 9301 + 49297) % 233280;
     slots.push({ x, z, rot, seed, d2: x * x + (z - MAIN_Z) ** 2 });
   };
-  const off = 3 + 1.8 + HD / 2 + 1.2; // tâm nhà cách tim đường
+  const off = 3 + 1.8 + HD / 2 + 2; // tâm nhà cách tim đường
   // Đường chính (ngang): 2 bên
-  for (let x = -EXT + HW / 2; x < EXT; x += HW) {
+  for (let x = -EXT + HW / 2; x < EXT; x += STEP) {
     if (Math.abs(x) >= 14 && Math.abs(Math.abs(x) - SIDE_X) >= 6) push(x, MAIN_Z - off, 0);
     push(x, MAIN_Z + off, Math.PI);
   }
   // Đường sau: 2 bên
-  for (let x = -SIDE_X + 7.5; x < SIDE_X - 6; x += HW) {
+  for (let x = -SIDE_X + 7.5; x < SIDE_X - 6; x += STEP) {
     push(x, BACK_Z - off, 0);
     push(x, BACK_Z + off, Math.PI);
   }
   // 2 đường dọc
   for (const sx of [-SIDE_X, SIDE_X]) {
-    for (let z = BACK_Z - 32; z < MAIN_Z - off - HD / 2 - HW / 2; z += HW) {
+    for (let z = BACK_Z - 32; z < MAIN_Z - off - HD / 2 - HW / 2; z += STEP) {
       if (Math.abs(z - BACK_Z) < 6) continue;
       push(sx - off, z, Math.PI / 2);
       push(sx + off, z, -Math.PI / 2);
@@ -158,10 +250,16 @@ function buildSlots(): Slot[] {
 export const HoiAnTown = memo(function HoiAnTown({
   friends,
   onVisitFriend,
+  dim = false,
 }: {
   friends?: FriendHouse[];
   onVisitFriend?: (ownerId: string) => void;
+  dim?: boolean;
 }) {
+  useEffect(() => {
+    const all = [...Object.values(M), ...wallMats, ...roofMats, ...Object.values(DM)];
+    for (const m of all) { m.transparent = dim; m.opacity = dim ? 0.28 : 1; m.depthWrite = !dim; m.needsUpdate = true; }
+  }, [dim]);
   const slots = useMemo(() => buildSlots(), []);
   // Nhà bạn bè ở gần nhà mình nhất, nằm kế nhau dọc đường chính
   const ordered = useMemo(() => [...slots].sort((a, b) => a.d2 - b.d2), [slots]);
@@ -186,8 +284,8 @@ export const HoiAnTown = memo(function HoiAnTown({
         return (
           <group key={`${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}
             onClick={friend ? (e) => { e.stopPropagation(); onVisitFriend?.(friend.user_id); } : undefined}>
-            <ShopHouse seed={s.seed} />
-            {friend && <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
+            {friend ? <FriendHousePreview ownerId={friend.user_id} /> : <ShopHouse seed={s.seed} />}
+            {friend && !dim && <FriendLabel friend={friend} onClick={() => onVisitFriend?.(friend.user_id)} />}
           </group>
         );
       })}

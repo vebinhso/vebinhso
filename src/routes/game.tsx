@@ -145,6 +145,11 @@ function GamePage() {
   const [moveMode, setMoveMode] = useState(false);
   const [ceilingMount, setCeilingMount] = useState(false);
   const [viewMode, setViewMode] = useState<"free" | "top" | "front" | "wide">("free");
+  const [playMode, setPlayMode] = useState<"edit" | "view">("edit");
+  const enterViewMode = () => {
+    setPlayMode("view"); setSelected(null); setShopOpen(false);
+    setWallMode(false); setFloorMode(false); setRoofMode(false); setPaintColor(null);
+  };
   // Gợi ý khi mua cửa: hiện lên để nhắc người chơi xoay về 0°
   const [doorHint, setDoorHint] = useState(false);
   const [thaoTacOpen, setThaoTacOpen] = useState(false);
@@ -1046,7 +1051,8 @@ function GamePage() {
           onRotate={() => setRotation((r) => (r + 1) % 4)}
           onPlace={handlePlace}
           onWallPlace={handleWallPlace}
-          viewMode={viewMode}
+          viewMode={playMode === "view" ? "eye" : viewMode}
+          dimTown={playMode === "edit"}
           onRemove={handleRemove}
           onPillarClick={onPillarClick}
           onWallRemove={removeWall}
@@ -1074,6 +1080,7 @@ function GamePage() {
              setVisitConfirm({ ownerId, name: f?.house_name || f?.display_name || f?.username || (en ? "friend's house" : "nhà bạn") });
           }}
           onItemClick={(id, opts) => {
+            if (playMode === "view") return;
             const p = state.placed.find((q) => q.id === id);
             if (!p) return;
             if ((p.floor ?? 0) !== activeFloor) return;
@@ -1172,7 +1179,7 @@ function GamePage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pointer-events-auto items-end mt-12">
+        <div className={`flex flex-col gap-2 pointer-events-auto items-end mt-12 ${playMode === "view" ? "hidden" : ""}`}>
           {/* THAO TÁC — luôn có toggle; desktop mặc định mở khi thaoTacOpen=true; trên mobile bắt đầu đóng */}
           <button
             onClick={() => setThaoTacOpen((v) => !v)}
@@ -1382,7 +1389,14 @@ function GamePage() {
       })()}
 
       <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 pointer-events-auto">
-        {([
+        <div className="glass-card p-1 flex flex-col gap-1 mb-1">
+          <button onClick={() => setPlayMode("edit")} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "edit" ? "toy-button-primary" : ""}`}>🛠️ {en ? "Edit" : "Sửa nhà"}</button>
+          <button onClick={enterViewMode} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "view" ? "toy-button-primary" : ""}`}>👀 {en ? "Explore" : "Xem nhà"}</button>
+        </div>
+        {playMode === "view" && (
+          <div className="glass-card px-2 py-1 text-[10px] font-bold w-28">{en ? "First-person view. Drag to look, WASD to walk." : "Góc nhìn nhân vật. Kéo chuột để nhìn, WASD để đi."}</div>
+        )}
+        {playMode === "edit" && ([
           ["free", "🎥", en ? "Free" : "Tự do"],
           ["top", "🗺️", en ? "Top" : "Từ trên"],
           ["front", "🏮", en ? "Front" : "Trực diện"],

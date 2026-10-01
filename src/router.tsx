@@ -14,7 +14,7 @@ export const getRouter = () => {
     defaultPreloadDelay: 30,
     defaultPreloadStaleTime: 0,
     defaultPendingMs: 150,
-    defaultPendingMinMs: 300,
+    defaultPendingMinMs: 0,
     defaultPendingComponent: RouteLoading,
   });
 

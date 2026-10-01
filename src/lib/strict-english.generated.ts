@@ -595,6 +595,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Rèm cửa FREE 5 ô": "FREE 5-slot curtains",
   "Thiết kế bằng AI": "AI-designed",
   "Toàn project TS.": "Entire TS project.",
+  "Bức tranh treo tường": "Wall Canvas Painting",
   "Tranh treo tường": "Wall painting",
   "Trường giảng dạy": "Teaching school",
   "Tên hiển thị (*)": "Display name (*)",

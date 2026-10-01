@@ -13,9 +13,11 @@ import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
+import { RIVER_NEAR_BANK_Z, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
 export const fpState = { on: false, yaw: 0, pitch: 0, teleport: false };
+export const riverPoseState = { kneelingUntil: 0, targetX: 0, targetZ: RIVER_NEAR_BANK_Z - 4 };
 const GRID = 20;
 const CELL = 1;
 // Đường đi 1 ô bao quanh mảnh đất 20x20 ⇒ (22² − 20²) = 84 ô đường
@@ -69,6 +71,9 @@ type Props = {
   friendHouses?: FriendHouse[];
   /** Bấm vào nhà bạn để tham quan */
   onVisitFriend?: (ownerId: string) => void;
+  releasedLanterns?: ReleasedLantern[];
+  onStartRiverQuiz?: () => void;
+  onReleaseLantern?: (x: number, z: number) => void;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -89,6 +94,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
   const armR = useRef<THREE.Mesh>(null!);
   const legL = useRef<THREE.Mesh>(null!);
   const legR = useRef<THREE.Mesh>(null!);
+  const body = useRef<THREE.Mesh>(null!);
   const keys = useRef<Record<string, boolean>>({});
   const yVel = useRef(0);
   const grounded = useRef(true);
@@ -131,7 +137,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     if (k["s"]) move.sub(camDir);
     if (k["d"]) move.add(right);
     if (k["a"]) move.sub(right);
-    const moving = move.lengthSq() > 0;
+    const kneeling = Date.now() < riverPoseState.kneelingUntil;
+    const moving = !kneeling && move.lengthSq() > 0;
     if (moving) {
       move.normalize().multiplyScalar(speed * dt);
       const blocked = (nx: number, nz: number) => {
@@ -187,10 +194,12 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
       walkPhase.current *= 0.8;
     }
     const swing = Math.sin(walkPhase.current) * 0.7;
-    if (armL.current) armL.current.rotation.x = swing;
-    if (armR.current) armR.current.rotation.x = -swing;
-    if (legL.current) legL.current.rotation.x = -swing;
-    if (legR.current) legR.current.rotation.x = swing;
+    if (armL.current) armL.current.rotation.x = kneeling ? -1.15 : swing;
+    if (armR.current) armR.current.rotation.x = kneeling ? -1.15 : -swing;
+    if (legL.current) { legL.current.rotation.x = kneeling ? -1.25 : -swing; legL.current.position.y = kneeling ? 0.23 : 0.35; legL.current.position.z = kneeling ? 0.18 : 0; }
+    if (legR.current) { legR.current.rotation.x = kneeling ? -1.25 : swing; legR.current.position.y = kneeling ? 0.23 : 0.35; legR.current.position.z = kneeling ? 0.18 : 0; }
+    if (body.current) { body.current.position.y = kneeling ? 0.78 : 1.02; body.current.rotation.x = kneeling ? 0.18 : 0; }
+    if (kneeling) ref.current.rotation.y = Math.atan2(riverPoseState.targetX - ref.current.position.x, riverPoseState.targetZ - ref.current.position.z);
 
     if (k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
     yVel.current -= 18 * dt;
@@ -203,7 +212,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     const plotHalf = 20 / 2 - 0.4;
     const limit = activeFloor > 0 ? plotHalf : WORLD / 2 - 0.5;
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
-    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, -limit, limit);
+    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, activeFloor === 0 ? RIVER_NEAR_BANK_Z + 2 : -limit, limit);
 
     // Va chạm pickup (chỉ ở tầng trệt)
     if (activeFloor === 0 && pickups && onPickup) {
@@ -259,7 +268,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
         <boxGeometry args={[0.28, 0.1, 0.36]} />
         <meshStandardMaterial color={o.shoes} />
       </mesh>
-      <mesh castShadow position={[0, 1.02, 0]}>
+      <mesh ref={body} castShadow position={[0, 1.02, 0]}>
         <boxGeometry args={[0.65, 0.65, 0.38]} />
         <meshStandardMaterial color={o.shirt} />
       </mesh>
@@ -872,7 +881,14 @@ function PlotAndPlacement({
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#b8b5af" />
       </mesh>
-      <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} dim={!!dimTown} />
+      <HoiAnTown
+        friends={friendHouses}
+        onVisitFriend={onVisitFriend}
+        releasedLanterns={props.releasedLanterns}
+        onStartRiverQuiz={props.onStartRiverQuiz}
+        onReleaseLantern={props.onReleaseLantern}
+        dim={!!dimTown}
+      />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />

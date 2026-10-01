@@ -405,6 +405,15 @@ function GamePage() {
       return;
     }
     if (isDoorItem(it.id)) setDoorHint(true);
+    // Đang xây tường/sàn → nhắc hoàn thiện hoặc thoát trước khi đặt vật
+    if (wallMode || floorMode) {
+      flash(
+        en
+          ? `⚠️ You are ${wallMode ? "building a wall" : "building a floor"} — finish it or press ✖ to exit before placing items.`
+          : `⚠️ Bạn đang ${wallMode ? "xây tường" : "xây sàn"} — hãy hoàn thiện hoặc bấm ✖ để thoát trước khi đặt vật.`,
+      );
+      return;
+    }
     setSelected(itemId);
     setPlaceQueue(times > 1 ? times : 0);
     if (times > 1) flash(en ? `🛒 Purchased ${times} × ${catalogLabel(it.name, true)} — tap the ground to place each item.` : `🛒 Đã mua ${times} × ${it.name} — bấm vào đất để đặt lần lượt.`);

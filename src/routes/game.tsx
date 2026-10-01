@@ -146,6 +146,7 @@ function GamePage() {
   const [ceilingMount, setCeilingMount] = useState(false);
   const [viewMode, setViewMode] = useState<"free" | "top" | "front" | "wide">("free");
   const [playMode, setPlayMode] = useState<"overview" | "edit" | "view">("overview");
+  const [exploreView, setExploreView] = useState<"eye" | "free" | "top" | "front" | "wide">("eye");
   const enterViewMode = () => {
     setPlayMode("view"); setSelected(null); setShopOpen(false);
     setWallMode(false); setFloorMode(false); setRoofMode(false); setPaintColor(null);

@@ -6,6 +6,12 @@ import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-mess
 import { SCAM_PHONE_CATEGORY_LABELS, SCAM_PHONE_PROMPT_BLOCK } from "@/lib/scam-phones";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+type ResultLocale = "vi" | "en";
+const resultLocale = (value: unknown): ResultLocale => value === "en" ? "en" : "vi";
+const resultLanguage = (locale: ResultLocale) => locale === "en"
+  ? "IMPORTANT: Write every user-facing value in English, including answer, summary, category labels, signs, findings, explanations, advice, and verification steps. Keep only quoted source text and proper names in their original language."
+  : "QUAN TRỌNG: Viết mọi nội dung hiển thị cho người dùng bằng tiếng Việt dễ hiểu.";
+const fallback = (locale: ResultLocale, vi: string, en: string) => locale === "en" ? en : vi;
 
 async function callGateway(body: unknown) {
   const apiKey = process.env["LOVABLE_API_KEY"];
@@ -61,7 +67,7 @@ export type Accuracy = {
  * Gọi 2 mô hình AI khác nhau cho cùng một câu hỏi, lấy trung bình các điểm số
  * và tính SAI SỐ (nửa khoảng chênh lệch). Nếu sai số > 5% thì cảnh báo người dùng.
  */
-async function callGatewayVerified(body: Record<string, unknown>, scoreKeys: string[]) {
+async function callGatewayVerified(body: Record<string, unknown>, scoreKeys: string[], locale: ResultLocale) {
   const [a, b] = await Promise.all([
     callGateway({ ...body, model: PRIMARY_MODEL }),
     callGateway({ ...body, model: CROSS_MODEL, reasoning_effort: "none" }).catch(() => null),
@@ -89,11 +95,17 @@ async function callGatewayVerified(body: Record<string, unknown>, scoreKeys: str
     within,
     crossChecked,
     models: crossChecked ? ["Google Gemini", "OpenAI GPT"] : ["Google Gemini"],
-    note: crossChecked
-      ? within
-        ? `Đã đối chiếu chéo 2 mô hình AI (Google Gemini & OpenAI GPT) — kết quả khớp nhau, sai số ước tính ±${margin}% (trong ngưỡng cho phép 5%).`
-        : `Hai mô hình AI (Google Gemini & OpenAI GPT) chưa thống nhất — sai số ước tính ±${margin}%, VƯỢT ngưỡng 5%. Hãy tự kiểm chứng thêm bằng Google hoặc nguồn chính thống trước khi tin.`
-      : `Chỉ một mô hình AI trả lời được nên chưa đối chiếu chéo — sai số có thể tới ±${margin}%. Hãy kiểm chứng thêm bằng Google hoặc nguồn chính thống.`,
+    note: locale === "en"
+      ? crossChecked
+        ? within
+          ? `Cross-checked by two AI models (Google Gemini and OpenAI GPT). Results agree, with an estimated margin of ±${margin}% (within the 5% threshold).`
+          : `The two AI models disagree. The estimated margin is ±${margin}%, above the 5% threshold. Verify with Google or established sources before trusting this result.`
+        : `Only one AI model responded, so cross-checking was unavailable. The margin may be as high as ±${margin}%. Verify with Google or established sources.`
+      : crossChecked
+        ? within
+          ? `Đã đối chiếu chéo 2 mô hình AI (Google Gemini & OpenAI GPT) — kết quả khớp nhau, sai số ước tính ±${margin}% (trong ngưỡng cho phép 5%).`
+          : `Hai mô hình AI (Google Gemini & OpenAI GPT) chưa thống nhất — sai số ước tính ±${margin}%, VƯỢT ngưỡng 5%. Hãy tự kiểm chứng thêm bằng Google hoặc nguồn chính thống trước khi tin.`
+        : `Chỉ một mô hình AI trả lời được nên chưa đối chiếu chéo — sai số có thể tới ±${margin}%. Hãy kiểm chứng thêm bằng Google hoặc nguồn chính thống.`,
   };
   merged["accuracy"] = accuracy;
   return merged as any;
@@ -102,14 +114,14 @@ async function callGatewayVerified(body: Record<string, unknown>, scoreKeys: str
 
 /** Phân tích ảnh: có phải do AI tạo không, mức độ bao nhiêu */
 export const analyzeImage = createServerFn({ method: "POST" })
-  .inputValidator((data: { imageUrl: string }) => {
+  .inputValidator((data: { imageUrl: string; locale?: ResultLocale }) => {
     const url = data?.imageUrl;
     if (!url || typeof url !== "string") throw new Error("Thiếu ảnh");
     if (!/^data:image\/(png|jpeg|jpg|webp|gif);base64,/.test(url) && !/^https?:\/\//.test(url)) {
       throw new Error("Ảnh không hợp lệ");
     }
     if (url.length > 8_000_000) throw new Error("Ảnh quá lớn (tối đa ~5MB)");
-    return { imageUrl: url };
+    return { imageUrl: url, locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -122,7 +134,7 @@ ${FORENSIC_PROMPT_BLOCK}
 
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"editedScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"difficulty":"Dễ|Trung bình|Khó","aiCategory":"id nhóm A hoặc khong_ro","editCategory":"id nhóm B hoặc khong_ro","summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu ảnh do AI tạo"],"editSigns":["dấu hiệu bị chỉnh sửa thủ công"],"realSigns":["dấu hiệu ảnh thật"],"tips":["cách tự kiểm chứng, bám theo phần Kiểm chứng của nhóm đã chọn"]}
-aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ công. Viết tiếng Việt dễ hiểu với học sinh.`;
+aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ công. ${resultLanguage(data.locale)}`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: withSkill(sys, skill) },
@@ -135,7 +147,7 @@ aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ
         },
       ],
       response_format: { type: "json_object" },
-    }, ["aiScore", "confidence", "editedScore"]);
+    }, ["aiScore", "confidence", "editedScore"], data.locale);
     const catId = (v: unknown) => {
       const s = str(v, "khong_ro").trim();
       return AI_CATEGORY_LABELS[s] ? s : "khong_ro";
@@ -149,7 +161,7 @@ aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
-      summary: str(parsed.summary, "Không đủ dữ liệu để kết luận chắc chắn."),
+      summary: str(parsed.summary, fallback(data.locale, "Không đủ dữ liệu để kết luận chắc chắn.", "There is not enough evidence for a reliable conclusion.")),
       aiSigns: strArr(parsed.aiSigns),
       editSigns: strArr(parsed.editSigns),
       realSigns: strArr(parsed.realSigns),
@@ -167,10 +179,10 @@ aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ
 
 /** Kiểm tra đường link có độc hại / lừa đảo không */
 export const analyzeLink = createServerFn({ method: "POST" })
-  .inputValidator((data: { url: string }) => {
+  .inputValidator((data: { url: string; locale?: ResultLocale }) => {
     const u = data?.url;
     if (!u || typeof u !== "string" || u.trim().length < 3) throw new Error("Thiếu đường link");
-    return { url: u.trim().slice(0, 500) };
+    return { url: u.trim().slice(0, 500), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -178,14 +190,14 @@ export const analyzeLink = createServerFn({ method: "POST" })
     const sys = `Bạn là hệ thống kiểm tra an toàn đường link (giống Kaspersky / VirusTotal) cho học sinh Việt Nam. Phân tích URL dựa trên: tên miền lạ, đuôi miền rủi ro (.tk .xyz .top .cc), giả mạo thương hiệu (typosquatting: faceb00k, shopee-vn-khuyenmai), dùng link rút gọn, IP thay cho tên miền, quá nhiều subdomain, tham số đáng ngờ, từ khoá lừa đảo (trung thưởng, nap the, kiem tien, otp, xac minh tai khoan), không dùng HTTPS.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","category":"phishing|malware|scam|adult|gambling|shortener|unknown|clean","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu nguy hiểm"],"goodSigns":["dấu hiệu an toàn"],"advice":["nên làm gì"]}
-Viết tiếng Việt. Nếu không chắc, nói rõ là không chắc và khuyên thận trọng.`;
+${resultLanguage(data.locale)} Nếu không chắc, nói rõ là không chắc và khuyên thận trọng.`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: withSkill(sys, skill) },
         { role: "user", content: `Kiểm tra link này: ${data.url}` },
       ],
       response_format: { type: "json_object" },
-    }, ["riskScore"]);
+    }, ["riskScore"], data.locale);
     return {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
@@ -193,7 +205,7 @@ Viết tiếng Việt. Nếu không chắc, nói rõ là không chắc và khuy�
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
       category: str(parsed.category, "unknown"),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
@@ -202,12 +214,12 @@ Viết tiếng Việt. Nếu không chắc, nói rõ là không chắc và khuy�
 
 /** Kiểm tra đoạn văn bản có phải do AI viết không */
 export const analyzeText = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string }) => {
+  .inputValidator((data: { text: string; locale?: ResultLocale }) => {
     const t = data?.text;
     if (!t || typeof t !== "string" || t.trim().length < 20) {
       throw new Error("Cần ít nhất 20 ký tự để phân tích");
     }
-    return { text: t.trim().slice(0, 6000) };
+    return { text: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -221,14 +233,14 @@ ${SCAM_MESSAGE_PROMPT_BLOCK}
 
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"scamCategory":"id nhóm lừa đảo hoặc khong_ro","platform":"nền tảng có khả năng nhất hoặc rỗng","difficulty":"Dễ|Trung bình|Khó","scamSigns":["dấu hiệu lừa đảo"],"tips":["cách kiểm chứng và nên làm gì"]}
-misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. Viết tiếng Việt.`;
+misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. ${resultLanguage(data.locale)}`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: withSkill(sys, skill) },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
-    }, ["aiScore", "confidence", "misinfoRisk"]);
+    }, ["aiScore", "confidence", "misinfoRisk"], data.locale);
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
@@ -238,7 +250,7 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = 
       aiScore: clampScore(parsed.aiScore),
       verdict: str(parsed.verdict, "uncertain"),
       confidence: clampScore(parsed.confidence),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       aiSigns: strArr(parsed.aiSigns),
       humanSigns: strArr(parsed.humanSigns),
       misinfoRisk: clampScore(parsed.misinfoRisk),
@@ -255,12 +267,12 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = 
 
 /** Kiểm tra email có phải giả mạo / lừa đảo không */
 export const analyzeEmail = createServerFn({ method: "POST" })
-  .inputValidator((data: { content: string }) => {
+  .inputValidator((data: { content: string; locale?: ResultLocale }) => {
     const t = data?.content;
     if (!t || typeof t !== "string" || t.trim().length < 5) {
       throw new Error("Hãy dán địa chỉ email hoặc nội dung email cần kiểm tra");
     }
-    return { content: t.trim().slice(0, 6000) };
+    return { content: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -272,14 +284,14 @@ ${PHISHING_PROMPT_BLOCK}
 
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","type":"phishing|spoofing|scam|spam|marketing|legit|unknown","scamCategory":"id nhóm kịch bản hoặc khong_ro","difficulty":"Dễ|Trung bình|Khó","impersonating":"tên thương hiệu bị giả mạo hoặc rỗng","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu giả mạo"],"goodSigns":["dấu hiệu đáng tin"],"advice":["nên làm gì"]}
-riskScore = mức độ email là giả mạo/lừa đảo. difficulty = mức độ khó nhận ra với học sinh. Viết tiếng Việt dễ hiểu.`;
+riskScore = mức độ email là giả mạo/lừa đảo. difficulty = mức độ khó nhận ra với học sinh. ${resultLanguage(data.locale)}`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: withSkill(sys, skill) },
         { role: "user", content: `Kiểm tra email này:\n${data.content}` },
       ],
       response_format: { type: "json_object" },
-    }, ["riskScore"]);
+    }, ["riskScore"], data.locale);
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = PHISHING_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
@@ -295,7 +307,7 @@ riskScore = mức độ email là giả mạo/lừa đảo. difficulty = mức �
         ? str(parsed.difficulty, "")
         : "Trung bình",
       impersonating: str(parsed.impersonating, ""),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       redFlags: strArr(parsed.redFlags, 8),
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
@@ -413,12 +425,12 @@ async function fetchLatestNews(content: string): Promise<Headline[]> {
 
 /** Kiểm tra tin tức: tin giả / tin lá cải / tin truyền miệng — đối chiếu tin mới nhất mỗi ngày */
 export const analyzeNews = createServerFn({ method: "POST" })
-  .inputValidator((data: { content: string }) => {
+  .inputValidator((data: { content: string; locale?: ResultLocale }) => {
     const t = data?.content;
     if (!t || typeof t !== "string" || t.trim().length < 15) {
       throw new Error("Cần ít nhất 15 ký tự (tiêu đề, nội dung tin hoặc link bài báo)");
     }
-    return { content: t.trim().slice(0, 6000) };
+    return { content: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -440,7 +452,7 @@ Nhiệm vụ:
 Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
-fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. Viết tiếng Việt dễ hiểu.`;
+fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. ${resultLanguage(data.locale)}`;
 
     const parsed = await callGatewayVerified({
       messages: [
@@ -451,7 +463,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
         },
       ],
       response_format: { type: "json_object" },
-    }, ["fakeScore", "tabloidScore"]);
+    }, ["fakeScore", "tabloidScore"], data.locale);
     const verifiedBy = strArr(parsed.verifiedBy, 5);
     const verified = parsed.verified === true && verifiedBy.length > 0;
     return {
@@ -461,8 +473,8 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       answer: str(
         parsed.answer,
         verified
-          ? "Thông tin này có nguồn báo chính thống đưa tin."
-          : "Đây là thông tin CHƯA được kiểm chứng — chưa có báo chính thống nào xác nhận, bạn không nên tin hay chia sẻ.",
+          ? fallback(data.locale, "Thông tin này có nguồn báo chính thống đưa tin.", "This information has been reported by an established news source.")
+          : fallback(data.locale, "Đây là thông tin CHƯA được kiểm chứng — chưa có báo chính thống nào xác nhận, bạn không nên tin hay chia sẻ.", "This information is UNVERIFIED. No established news source has confirmed it, so do not trust or share it yet."),
       ),
       verified,
       verifiedBy,
@@ -470,8 +482,8 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       tabloidScore: clampScore(parsed.tabloidScore),
       level: str(parsed.level, "unknown"),
       verdict: verified ? str(parsed.verdict, "likely_true") : "unverified",
-      category: str(parsed.category, "chưa rõ"),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      category: str(parsed.category, fallback(data.locale, "chưa rõ", "unclear")),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       matchedNews: strArr(parsed.matchedNews, 4),
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
@@ -485,7 +497,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
 
 /** Kiểm tra video: có phải do AI tạo (deepfake / AI video) hoặc chứa nội dung AI không */
 export const analyzeVideo = createServerFn({ method: "POST" })
-  .inputValidator((data: { frames: string[]; note?: string }) => {
+  .inputValidator((data: { frames: string[]; note?: string; locale?: ResultLocale }) => {
     const frames = Array.isArray(data?.frames)
       ? data.frames.filter(
           (f) => typeof f === "string" && /^data:image\/(png|jpeg|jpg|webp);base64,/.test(f),
@@ -495,7 +507,7 @@ export const analyzeVideo = createServerFn({ method: "POST" })
     const picked = frames.slice(0, 5);
     const total = picked.reduce((s, f) => s + f.length, 0);
     if (total > 12_000_000) throw new Error("Video quá lớn để phân tích");
-    return { frames: picked, note: typeof data?.note === "string" ? data.note.slice(0, 500) : "" };
+    return { frames: picked, note: typeof data?.note === "string" ? data.note.slice(0, 500) : "", locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
@@ -504,7 +516,7 @@ export const analyzeVideo = createServerFn({ method: "POST" })
 Người dùng gửi nhiều KHUNG HÌNH liên tiếp trích từ một video. Hãy so sánh các khung hình: khuôn mặt có biến dạng/nhấp nháy giữa các khung không, viền mặt – tóc – tai có nhoè hay không khớp, mắt/răng bất thường, tay và ngón tay, chữ trong khung bị loạn, hậu cảnh trôi/biến hình, ánh sáng và bóng đổ không nhất quán, kết cấu da quá mượt, chuyển động vật lý phi thực tế, watermark của công cụ AI.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"real|likely_real|uncertain|likely_ai|ai","confidence":0-100,"deepfakeScore":0-100,"editedScore":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"realSigns":["dấu hiệu video thật"],"tips":["cách kiểm chứng"]}
-aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi hoán đổi gương mặt. editedScore = mức độ đã cắt ghép/chỉnh sửa. Viết tiếng Việt dễ hiểu với học sinh.`;
+aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi hoán đổi gương mặt. editedScore = mức độ đã cắt ghép/chỉnh sửa. ${resultLanguage(data.locale)}`;
     const parsed = await callGatewayVerified({
       messages: [
         { role: "system", content: withSkill(sys, skill) },
@@ -520,7 +532,7 @@ aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi
         },
       ],
       response_format: { type: "json_object" },
-    }, ["aiScore", "confidence", "deepfakeScore", "editedScore"]);
+    }, ["aiScore", "confidence", "deepfakeScore", "editedScore"], data.locale);
     return {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
@@ -530,7 +542,7 @@ aiScore = mức độ video do AI tạo/dựng. deepfakeScore = mức độ nghi
       confidence: clampScore(parsed.confidence),
       deepfakeScore: clampScore(parsed.deepfakeScore),
       editedScore: clampScore(parsed.editedScore),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       aiSigns: strArr(parsed.aiSigns),
       realSigns: strArr(parsed.realSigns),
       tips: strArr(parsed.tips),
@@ -561,7 +573,7 @@ const sev = (v: unknown): "low" | "medium" | "high" =>
 
 /** Phân tích rủi ro lộ thông tin cá nhân từ ảnh / khung hình video */
 export const analyzePrivacyMedia = createServerFn({ method: "POST" })
-  .inputValidator((data: { images: string[] }) => {
+  .inputValidator((data: { images: string[]; locale?: ResultLocale }) => {
     const imgs = Array.isArray(data?.images)
       ? data.images.filter(
           (f) =>
@@ -573,7 +585,7 @@ export const analyzePrivacyMedia = createServerFn({ method: "POST" })
     const picked = imgs.slice(0, 4);
     const total = picked.reduce((s, f) => s + f.length, 0);
     if (total > 12_000_000) throw new Error("Tệp quá lớn để phân tích");
-    return { images: picked };
+    return { images: picked, locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const sys = `Bạn là chuyên gia bảo vệ dữ liệu cá nhân, giúp học sinh Việt Nam biết một tấm ảnh/video khi đăng lên mạng có thể làm LỘ THÔNG TIN gì.
@@ -581,7 +593,7 @@ Hãy soi kỹ và CHỈ RA VỊ TRÍ trong ảnh của từng thứ có thể l�
 Với MỖI phát hiện, trả về hộp bao quanh theo TỌA ĐỘ PHẦN TRĂM của ảnh (x,y là góc trên trái, w,h là chiều rộng/cao, tất cả 0-100) và số thứ tự khung hình "frame" (bắt đầu từ 0; nếu chỉ có 1 ảnh thì luôn là 0).
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"frame":0,"x":0,"y":0,"w":0,"h":0,"label":"tên ngắn ví dụ: Biển số xe","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên che/xoá gì trước khi đăng"]}
-riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. Tối đa 8 findings. ${resultLanguage(data.locale)}`;
     const { loadSkillForCheck } = await import("./ai-skills.server");
     const skill = await loadSkillForCheck("privacy_media");
     const parsed = await callGateway({
@@ -616,7 +628,7 @@ riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. T�
     return {
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       findings,
       safeSigns: strArr(parsed.safeSigns),
       advice: strArr(parsed.advice),
@@ -627,19 +639,19 @@ riskScore = mức độ rủi ro bị lộ thông tin khi đăng công khai. T�
 
 /** Phân tích rủi ro lộ thông tin cá nhân trong văn bản */
 export const analyzePrivacyText = createServerFn({ method: "POST" })
-  .inputValidator((data: { text: string }) => {
+  .inputValidator((data: { text: string; locale?: ResultLocale }) => {
     const t = data?.text;
     if (!t || typeof t !== "string" || t.trim().length < 10) {
       throw new Error("Cần ít nhất 10 ký tự để phân tích");
     }
-    return { text: t.trim().slice(0, 6000) };
+    return { text: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
     const sys = `Bạn là chuyên gia bảo vệ dữ liệu cá nhân cho học sinh Việt Nam. Người dùng dán một đoạn văn bản (bài đăng, tin nhắn, chú thích ảnh) và muốn biết nếu đăng công khai thì rủi ro lộ thông tin bao nhiêu.
 Hãy CHỈ RÕ từng đoạn chữ nguy hiểm bằng cách TRÍCH NGUYÊN VĂN đoạn đó ("quote" phải xuất hiện y hệt trong văn bản gốc): họ tên đầy đủ, số điện thoại, email, địa chỉ nhà, tên trường/lớp, số căn cước, số tài khoản ngân hàng, mã OTP, mật khẩu, biển số xe, lịch trình đi lại ("nhà không có ai đến chủ nhật"), link cá nhân, tên bố mẹ, ngày sinh đầy đủ.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"1-2 câu tiếng Việt","findings":[{"quote":"đoạn trích nguyên văn","label":"Số điện thoại","detail":"vì sao nguy hiểm, 1 câu","severity":"low|medium|high"}],"safeSigns":["điều đã làm tốt"],"advice":["nên sửa/xoá gì trước khi đăng"],"safeVersion":"phiên bản viết lại đã che thông tin nhạy cảm"}
-Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
+Tối đa 8 findings. ${resultLanguage(data.locale)}`;
     const { loadSkillForCheck } = await import("./ai-skills.server");
     const skill = await loadSkillForCheck("privacy_text");
     const parsed = await callGatewayVerified({
@@ -648,7 +660,7 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
-    }, ["riskScore"]);
+    }, ["riskScore"], data.locale);
     type TextFinding = { quote: string; label: string; detail: string; severity: "low" | "medium" | "high" };
     const findings: TextFinding[] = Array.isArray(parsed.findings)
       ? parsed.findings.slice(0, 8).map((f: any) => ({
@@ -662,7 +674,7 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
       accuracy: parsed.accuracy,
       riskScore: clampScore(parsed.riskScore),
       level: str(parsed.level, "unknown"),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       findings: findings.filter((f) => f.quote),
       safeSigns: strArr(parsed.safeSigns),
       advice: strArr(parsed.advice),
@@ -674,7 +686,7 @@ Tối đa 8 findings. Viết tiếng Việt dễ hiểu.`;
 
 /** Kiểm tra số điện thoại: nhà mạng, vùng gọi đến, nguy cơ lừa đảo */
 export const analyzePhone = createServerFn({ method: "POST" })
-  .inputValidator((data: { phone: string; context?: string }) => {
+  .inputValidator((data: { phone: string; context?: string; locale?: ResultLocale }) => {
     const p = data?.phone;
     if (!p || typeof p !== "string" || p.replace(/\D/g, "").length < 6) {
       throw new Error("Hãy nhập số điện thoại cần kiểm tra");
@@ -682,6 +694,7 @@ export const analyzePhone = createServerFn({ method: "POST" })
     return {
       phone: p.trim().slice(0, 30),
       context: typeof data?.context === "string" ? data.context.trim().slice(0, 1500) : "",
+      locale: resultLocale(data.locale),
     };
   })
   .handler(async ({ data }) => {
@@ -697,7 +710,7 @@ ${SCAM_PHONE_PROMPT_BLOCK}
 
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","fakeScore":0-100,"type":"scam|spam|telesales|service|personal|unknown|legit","scamCategory":"id nhóm kịch bản hoặc khong_ro","origin":"nguồn gốc số: di động VN / cố định tỉnh nào / quốc tế nước nào / đầu số dịch vụ / không xác định","locationGuess":"quận + thành phố hoặc chỉ thành phố, hoặc 'Không xác định'","strangerNote":"1 câu: đây có phải dạng số lạ không quen thuộc với người Việt không","reportNote":"1 câu nói rõ không có dữ liệu tố cáo công khai cho số này và hướng dẫn tra/phản ánh qua 156 hoặc 5656","carrierNote":"1 câu về nhà mạng/loại số","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu đáng ngờ"],"goodSigns":["dấu hiệu bình thường"],"advice":["nên làm gì khi nhận cuộc gọi này"]}
-riskScore = nguy cơ lừa đảo. fakeScore = khả năng số giả/ảo/bị giả mạo caller ID. Viết tiếng Việt dễ hiểu cho học sinh.`;
+riskScore = nguy cơ lừa đảo. fakeScore = khả năng số giả/ảo/bị giả mạo caller ID. ${resultLanguage(data.locale)}`;
     const parsed = await callGatewayVerified(
       {
         messages: [
@@ -712,6 +725,7 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
         response_format: { type: "json_object" },
       },
       ["riskScore", "fakeScore"],
+      data.locale,
     );
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_PHONE_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
@@ -732,10 +746,10 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
       strangerNote: str(parsed.strangerNote, ""),
       reportNote: str(
         parsed.reportNote,
-        "Không có dữ liệu tố cáo công khai cho số này. Bạn có thể phản ánh số nghi lừa đảo qua tổng đài 156 hoặc 5656.",
+        fallback(data.locale, "Không có dữ liệu tố cáo công khai cho số này. Bạn có thể phản ánh số nghi lừa đảo qua tổng đài 156 hoặc 5656.", "No public complaint data is available for this number. In Vietnam, suspected scam numbers can be reported via 156 or 5656."),
       ),
       carrierNote: str(parsed.carrierNote, info.note),
-      summary: str(parsed.summary, "Chưa đủ dữ liệu để kết luận."),
+      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
       redFlags: strArr(parsed.redFlags, 8),
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),

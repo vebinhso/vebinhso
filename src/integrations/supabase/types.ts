@@ -32,6 +32,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_skills: {
+        Row: {
+          content: string
+          enabled: boolean
+          key: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          content: string
+          enabled?: boolean
+          key: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          content?: string
+          enabled?: boolean
+          key?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       character_outfit: {
         Row: {
           outfit: Json

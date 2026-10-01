@@ -156,6 +156,10 @@ export function saveGame(s: GameState) {
       roofs: STALE_ARRAYS.has(s.roofs) ? CACHE.roofs : s.roofs,
       floors: STALE_ARRAYS.has(s.floors) ? CACHE.floors : s.floors,
     };
+    // Bản đồ trước lần lưu này trở thành bản cũ.
+    for (const k of ["placed", "walls", "roofs", "floors"] as const) {
+      if (CACHE[k] !== s[k]) STALE_ARRAYS.add(CACHE[k]);
+    }
   }
   CACHE = { ...s };
   const u = getCurrentUser();
@@ -220,7 +224,6 @@ async function refreshFromDB(uid: string) {
   if (CACHE_UID !== uid) return;
   // Mọi bản sao trước thời điểm này là cũ: không được dùng để ghi đè bản đồ trên máy chủ.
   markStale(CACHE);
-  if (next.placed !== CACHE.placed) STALE_ARRAYS.delete(next.placed);
   CACHE = next;
   persistLocal(uid);
   HYDRATED_UID = uid;

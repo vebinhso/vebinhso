@@ -1,3 +1,5 @@
+import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
+import { equippedBySlot } from "@/lib/accessories";
 import { Hair3D } from "./Hair3D";
 import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -252,6 +254,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
   });
 
   // Character: 2 cells tall × 1 cell wide
+  const acc = equippedBySlot(o.accessories);
   return (
     <group ref={ref} position={[0, 0, 0]}>
       <mesh ref={legL} castShadow position={[-0.18, 0.35, 0]}>
@@ -281,17 +284,22 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
       <mesh ref={armL} castShadow position={[-0.42, 1.05, 0]}>
         <boxGeometry args={[0.18, 0.62, 0.22]} />
         <meshStandardMaterial color={o.shirt} />
+        {acc.wrist && <ArmAccessory3D id={acc.wrist} />}
       </mesh>
       <mesh ref={armR} castShadow position={[0.42, 1.05, 0]}>
         <boxGeometry args={[0.18, 0.62, 0.22]} />
         <meshStandardMaterial color={o.shirt} />
+        {acc.finger && <ArmAccessory3D id={acc.finger} />}
       </mesh>
       <mesh castShadow position={[0, 1.65, 0]}>
         <sphereGeometry args={[0.3, 20, 20]} />
         <meshStandardMaterial color={o.skin} />
       </mesh>
-      <Hair3D style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
-      {o.hat && (
+      {!acc.head && <Hair3D style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />}
+      {acc.beard && <HeadBodyAccessory3D id={acc.beard} hair={o.hair} />}
+      {acc.head && <HeadBodyAccessory3D id={acc.head} hair={o.hair} />}
+      {acc.neck && <HeadBodyAccessory3D id={acc.neck} hair={o.hair} />}
+      {o.hat && !acc.head && (
         <mesh castShadow position={[0, 1.98, 0]}>
           <coneGeometry args={[0.34, 0.32, 16]} />
           <meshStandardMaterial color={o.hat} />

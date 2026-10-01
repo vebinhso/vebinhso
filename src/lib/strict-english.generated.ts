@@ -77,6 +77,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Bạn bè": "Friends",
   "Bị cản": "Blocked",
   "Bộ loa": "Speakers",
+  "Loa karaoke": "Karaoke Speakers",
   "Cấp độ": "Level",
   "Ghế đá": "Stone Bench",
   "Giá cả": "Price",

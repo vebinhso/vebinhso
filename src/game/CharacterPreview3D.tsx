@@ -5,6 +5,7 @@ import { bodyOf, faceOf } from "@/lib/appearance";
 import { equippedBySlot } from "@/lib/accessories";
 import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
 import { Hair3D } from "./Hair3D";
+import { Shoes3D } from "./Shoes3D";
 import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { bottomOf, topOf } from "@/lib/clothes";
 

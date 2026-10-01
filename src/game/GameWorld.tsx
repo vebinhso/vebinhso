@@ -2,6 +2,7 @@ import { bodyOf, faceOf } from "@/lib/appearance";
 import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
 import { equippedBySlot } from "@/lib/accessories";
 import { Hair3D } from "./Hair3D";
+import { Shoes3D } from "./Shoes3D";
 import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, ContactShadows, Html, AdaptiveDpr, AdaptiveEvents } from "@react-three/drei";

@@ -1,9 +1,4 @@
-import { bodyOf, faceOf } from "@/lib/appearance";
-import { HeadBodyAccessory3D, ArmAccessory3D } from "./Accessory3D";
-import { equippedBySlot } from "@/lib/accessories";
-import { Hair3D } from "./Hair3D";
-import { Shoes3D } from "./Shoes3D";
-import { isHairStyle, DEFAULT_HAIR_STYLE } from "@/lib/hair";
+import { ChibiCharacter3D } from "./ChibiCharacter3D";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sky, Cloud, Clouds, ContactShadows, Html, AdaptiveDpr, AdaptiveEvents } from "@react-three/drei";
 import { Suspense, memo, useMemo, type ReactNode } from "react";
@@ -96,11 +91,11 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
   const { collision } = t;
   const lastReport = useRef(0);
   const ref = useRef<THREE.Group>(null!);
-  const armL = useRef<THREE.Mesh>(null!);
-  const armR = useRef<THREE.Mesh>(null!);
-  const legL = useRef<THREE.Mesh>(null!);
-  const legR = useRef<THREE.Mesh>(null!);
-  const body = useRef<THREE.Mesh>(null!);
+  const armL = useRef<THREE.Group>(null);
+  const armR = useRef<THREE.Group>(null);
+  const legL = useRef<THREE.Group>(null);
+  const legR = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Group>(null);
   const keys = useRef<Record<string, boolean>>({});
   const yVel = useRef(0);
   const grounded = useRef(true);
@@ -255,60 +250,9 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     }
   });
 
-  // Character: 2 cells tall × 1 cell wide
-  const acc = equippedBySlot(o.accessories);
-  const bShape = bodyOf(o.bodyShape);
   return (
     <group ref={ref} position={[0, 0, 0]}>
-      <mesh ref={legL} castShadow position={[-0.18, 0.35, 0]}>
-        <boxGeometry args={[0.22, 0.7, 0.22]} />
-        <meshStandardMaterial color={o.pants} />
-      </mesh>
-      <mesh ref={legR} castShadow position={[0.18, 0.35, 0]}>
-        <boxGeometry args={[0.22, 0.7, 0.22]} />
-        <meshStandardMaterial color={o.pants} />
-      </mesh>
-      <Shoes3D shoeStyle={o.shoeStyle} fallbackColor={o.shoes} />
-      <mesh ref={body} castShadow position={[0, 1.02, 0]} scale={[bShape.top / 32, 1, (bShape.waist + 32) / 64]}>
-        <boxGeometry args={[0.65, 0.65, 0.38]} />
-        <meshStandardMaterial color={o.shirt} />
-      </mesh>
-      <mesh position={[0, 0.72, 0]}>
-        <boxGeometry args={[0.68, 0.08, 0.4]} />
-        <meshStandardMaterial color={o.accent} />
-      </mesh>
-      <mesh ref={armL} castShadow position={[-0.42, 1.05, 0]}>
-        <boxGeometry args={[0.18, 0.62, 0.22]} />
-        <meshStandardMaterial color={o.shirt} />
-        {acc.wrist && <ArmAccessory3D id={acc.wrist} />}
-      </mesh>
-      <mesh ref={armR} castShadow position={[0.42, 1.05, 0]}>
-        <boxGeometry args={[0.18, 0.62, 0.22]} />
-        <meshStandardMaterial color={o.shirt} />
-        {acc.finger && <ArmAccessory3D id={acc.finger} />}
-      </mesh>
-      <mesh castShadow position={[0, 1.65, 0]} scale={faceOf(o.faceShape).s3 as unknown as [number, number, number]}>
-        <sphereGeometry args={[0.3, 20, 20]} />
-        <meshStandardMaterial color={o.skin} />
-      </mesh>
-      {!acc.head && <Hair3D style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />}
-      {acc.beard && <HeadBodyAccessory3D id={acc.beard} hair={o.hair} />}
-      {acc.head && <HeadBodyAccessory3D id={acc.head} hair={o.hair} />}
-      {acc.neck && <HeadBodyAccessory3D id={acc.neck} hair={o.hair} />}
-      {o.hat && !acc.head && (
-        <mesh castShadow position={[0, 1.98, 0]}>
-          <coneGeometry args={[0.34, 0.32, 16]} />
-          <meshStandardMaterial color={o.hat} />
-        </mesh>
-      )}
-      <mesh position={[-0.1, 1.68, 0.26]}>
-        <sphereGeometry args={[0.045, 10, 10]} />
-        <meshStandardMaterial color="#111" />
-      </mesh>
-      <mesh position={[0.1, 1.68, 0.26]}>
-        <sphereGeometry args={[0.045, 10, 10]} />
-        <meshStandardMaterial color="#111" />
-      </mesh>
+      <ChibiCharacter3D o={o} rigRefs={{ armL, armR, legL, legR, body }} />
     </group>
   );
 }

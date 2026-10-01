@@ -14,6 +14,8 @@ import { playerInput, setInputKey } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
 
+/** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
+export const fpState = { on: false, yaw: 0, pitch: 0 };
 const GRID = 20;
 const CELL = 1;
 // Đường đi 1 ô bao quanh mảnh đất 20x20 ⇒ (22² − 20²) = 84 ô đường
@@ -32,7 +34,9 @@ type Props = {
   onWallPaint?: (id: string) => void;
   /** Đặt vật dán lên tường tại điểm bấm (toạ độ thế giới) */
   /** Góc nhìn camera */
-  viewMode?: "free" | "top" | "front" | "wide";
+  viewMode?: "free" | "top" | "front" | "wide" | "eye";
+  /** Làm mờ phố xung quanh (chế độ chỉnh sửa nhà) */
+  dimTown?: boolean;
   onWallPlace?: (wallId: string, x: number, y: number, z: number) => void;
   wallPickA: string | null;
   roofMode: boolean;
@@ -214,7 +218,12 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
       }
     }
 
-    if (controlsRef.current) {
+    if (fpState.on) {
+      ref.current.visible = false;
+      camera.position.set(ref.current.position.x, ref.current.position.y + 1.55, ref.current.position.z);
+      camera.rotation.set(fpState.pitch, fpState.yaw, 0, "YXZ");
+    } else if (!ref.current.visible) ref.current.visible = true;
+    if (controlsRef.current && !fpState.on) {
       const t = new THREE.Vector3(ref.current.position.x, ref.current.position.y + 1.0, ref.current.position.z);
       controlsRef.current.target.lerp(t, 0.18);
       controlsRef.current.update();
@@ -430,7 +439,7 @@ function computeDoorCutouts(w: WallSegment, placed: PlacedItem[]): { t0: number;
   return merged;
 }
 
-function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint, onPlaceAt }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[]; onPaint?: () => void; onPlaceAt?: (x: number, y: number, z: number) => void }) {
+export function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint, onPlaceAt }: { w: WallSegment; color: string; highlight?: boolean; dim?: boolean; onRemove: () => void; placed: PlacedItem[]; onPaint?: () => void; onPlaceAt?: (x: number, y: number, z: number) => void }) {
   const dx = w.bx - w.ax;
   const dz = w.bz - w.az;
   const len = Math.hypot(dx, dz);
@@ -482,7 +491,7 @@ function WallMesh({ w, color, highlight, dim, onRemove, placed, onPaint, onPlace
   );
 }
 
-function RoofMesh({ r, dim, onRemove }: { r: RoofSegment; dim?: boolean; onRemove: () => void }) {
+export function RoofMesh({ r, dim, onRemove }: { r: RoofSegment; dim?: boolean; onRemove: () => void }) {
   const w = Math.abs(r.bx - r.ax);
   const d = Math.abs(r.bz - r.az);
   const cx = (r.ax + r.bx) / 2;
@@ -505,7 +514,7 @@ function RoofMesh({ r, dim, onRemove }: { r: RoofSegment; dim?: boolean; onRemov
   );
 }
 
-function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRemove: () => void }) {
+export function FloorMesh({ f, dim, onRemove }: { f: FloorSegment; dim?: boolean; onRemove: () => void }) {
   const w = Math.abs(f.bx - f.ax);
   const d = Math.abs(f.bz - f.az);
   const cx = (f.ax + f.bx) / 2;
@@ -825,7 +834,7 @@ function PlotAndPlacement({
   placed, walls, roofs, floors, wallColor, wallMode, onWallPaint, onWallPlace, wallPickA, roofMode, roofPicks,
   floorMode, floorPicks,
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
-  activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend,
+  activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend, dimTown,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -861,7 +870,7 @@ function PlotAndPlacement({
         <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
         <meshStandardMaterial color="#86c46c" />
       </mesh>
-      <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} />
+      <HoiAnTown friends={friendHouses} onVisitFriend={onVisitFriend} dim={!!dimTown} />
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
         <planeGeometry args={[GRID + PATH * 2, GRID + PATH * 2]} />
         <meshStandardMaterial color="#b8b0a4" />
@@ -1033,7 +1042,34 @@ function PlotAndPlacement({
 
 function CameraView({ controlsRef, mode }: { controlsRef: React.MutableRefObject<any>; mode: string }) {
   const { camera } = useThree();
+  const { gl } = useThree();
   useEffect(() => {
+    fpState.on = mode === "eye";
+    if (mode !== "eye") return;
+    const d = new THREE.Vector3(); camera.getWorldDirection(d);
+    fpState.yaw = Math.atan2(-d.x, -d.z); fpState.pitch = 0;
+    const el = gl.domElement;
+    let drag = false, lx = 0, ly = 0;
+    const down = (e: PointerEvent) => { drag = true; lx = e.clientX; ly = e.clientY; };
+    const move = (e: PointerEvent) => {
+      if (!drag) return;
+      fpState.yaw -= (e.clientX - lx) * 0.005;
+      fpState.pitch = Math.max(-1.2, Math.min(1.2, fpState.pitch - (e.clientY - ly) * 0.004));
+      lx = e.clientX; ly = e.clientY;
+    };
+    const up = () => { drag = false; };
+    el.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => {
+      fpState.on = false;
+      el.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+  }, [mode, camera, gl]);
+  useEffect(() => {
+    if (mode === "eye") return;
     const c = controlsRef.current;
     const t = c ? c.target as THREE.Vector3 : new THREE.Vector3();
     const off =
@@ -1129,6 +1165,7 @@ export default function GameWorld(props: Props) {
       <CameraView controlsRef={controlsRef} mode={props.viewMode ?? "free"} />
       <OrbitControls
         ref={controlsRef}
+        enabled={props.viewMode !== "eye"}
         enablePan={false}
         enableDamping
         dampingFactor={0.08}

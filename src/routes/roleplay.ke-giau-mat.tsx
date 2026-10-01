@@ -360,25 +360,25 @@ function FilmPage() {
         />
         <img
           src={FILM_POSTER}
-          alt="Poster phim tương tác Gợi nhớ từ Cá voi xanh"
+          alt={en ? "Interactive film poster" : "Poster phim tương tác Gợi nhớ từ Cá voi xanh"}
           className="absolute inset-0 w-full h-full object-cover object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
         />
         <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black via-black/80 to-transparent" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-6 sm:pb-10 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-sky-300 mb-2 drop-shadow-lg">
-            PHIM TƯƠNG TÁC · BÀI 2
+            {en ? "INTERACTIVE FILM · LESSON 2" : "PHIM TƯƠNG TÁC · BÀI 2"}
           </p>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 leading-tight tracking-wide drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {filmCopy(locale, FILM_TITLE)}
           </h1>
           <div className="max-w-xl w-full mb-5">
             <p className="text-xs sm:text-sm font-bold text-white/75">
-              Bạn là <b className="text-sky-300">M</b>, một học sinh luôn đạt thành tích cao trong lớp nhưng lại chịu áp
+              {en ? <>You are <b className="text-sky-300">M</b>, a top student who is under heavy pressure from your own expectations. One day, you are invited into a group chat where you can freely challenge yourself. From here, your journey begins.</> : <>Bạn là <b className="text-sky-300">M</b>, một học sinh luôn đạt thành tích cao trong lớp nhưng lại chịu áp
               lực bởi kì vọng của bản thân mình. Một ngày nọ, bạn được mời vào nhóm chat nơi bạn được thỏa sức thử thách
-              bản thân. Từ đây, hành trình của bạn sẽ bắt đầu
+              bản thân. Từ đây, hành trình của bạn sẽ bắt đầu</>}
             </p>
             <p className="mt-1 text-xs sm:text-sm font-bold text-white/75">
-              Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+              {en ? "Turn on your speakers or wear headphones for the best experience ♡!" : "Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!"}
             </p>
           </div>
 

@@ -371,23 +371,23 @@ function FilmPage() {
         />
         <img
           src={FILM_POSTER}
-          alt="Poster phim tương tác Gợi nhớ từ cá voi xanh"
+          alt={en ? "Interactive film poster" : "Poster phim tương tác Gợi nhớ từ cá voi xanh"}
           className="absolute inset-0 w-full h-full object-cover object-center drop-shadow-[0_8px_40px_rgba(0,0,0,0.8)]"
         />
         <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black via-black/80 to-transparent" />
         <div className="relative h-full w-full flex flex-col items-center justify-end text-center px-5 pb-6 sm:pb-10 overflow-y-auto">
           <p className="text-[11px] sm:text-xs font-black tracking-[0.35em] text-sky-300 mb-2 drop-shadow-lg">
-            PHIM TƯƠNG TÁC · BÀI 3
+            {en ? "INTERACTIVE FILM · LESSON 3" : "PHIM TƯƠNG TÁC · BÀI 3"}
           </p>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 leading-tight tracking-wide drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
             {filmCopy(locale, FILM_TITLE)}
           </h1>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-1">
-            Bạn vào vai <b className="text-sky-300">Bảo</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
-            quyền riêng tư của người khác.
+            {en ? <>You play <b className="text-sky-300">Bảo</b>. Every choice leaves a mark on yourself, your friends, and other people's privacy.</> : <>Bạn vào vai <b className="text-sky-300">Bảo</b>. Mỗi lựa chọn đều để lại dấu vết lên bản thân, bạn bè và
+            quyền riêng tư của người khác.</>}
           </p>
           <p className="max-w-xl text-xs sm:text-sm font-bold text-white/75 mb-5">
-            Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!
+            {en ? "Turn on your speakers or wear headphones for the best experience ♡!" : "Hãy bật loa hoặc đeo tai nghe để có trải nghiệm tốt nhất♡!"}
           </p>
 
           <button

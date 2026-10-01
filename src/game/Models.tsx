@@ -1117,6 +1117,63 @@ export function SoundbarSet() {
   );
 }
 
+// Small wooden bookshelf speaker pair with coaxial drivers (KEF-style)
+export function BookshelfSpeakers() {
+  const Cabinet = ({ x, z, angle = 0 }: { x: number; z: number; angle?: number }) => (
+    <group position={[x, 0, z]} rotation={[0, angle, 0]}>
+      {/* Walnut cabinet */}
+      <RoundedBox args={[0.62, 0.95, 0.72]} radius={0.02} smoothness={3} castShadow receiveShadow position={[0, 0.475, 0]}>
+        <MStd color="#6b4a2f" metalness={0.05} roughness={0.55} />
+      </RoundedBox>
+      {/* Wood grain streaks */}
+      {[-0.22, -0.11, 0, 0.11, 0.22].map((gx) => (
+        <mesh key={gx} position={[gx, 0.475, 0.363]}>
+          <boxGeometry args={[0.012, 0.9, 0.006]} />
+          <MStd color="#573a22" roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Dark front baffle ring */}
+      <mesh position={[0, 0.52, 0.365]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.02, 40]} />
+        <MStd color="#1c1c1f" roughness={0.4} metalness={0.2} />
+      </mesh>
+      {/* Ribbed surround */}
+      <mesh position={[0, 0.52, 0.378]}>
+        <torusGeometry args={[0.2, 0.028, 12, 40]} />
+        <MStd color="#2e2e33" roughness={0.5} />
+      </mesh>
+      {/* Coaxial cone */}
+      <mesh position={[0, 0.52, 0.38]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.185, 0.06, 40, 1, true]} />
+        <MStd color="#3a3a40" metalness={0.55} roughness={0.3} />
+      </mesh>
+      {/* Center tweeter dome with radial fins */}
+      <mesh position={[0, 0.52, 0.415]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.055, 0.055, 0.02, 24]} />
+        <MStd color="#17171a" metalness={0.6} roughness={0.25} />
+      </mesh>
+      {Array.from({ length: 8 }, (_, i) => (i * Math.PI) / 4).map((a) => (
+        <mesh key={a} position={[Math.cos(a) * 0.035, 0.52 + Math.sin(a) * 0.035, 0.428]}>
+          <boxGeometry args={[0.008, 0.03, 0.008]} />
+          <MStd color="#2c2c31" roughness={0.5} />
+        </mesh>
+      ))}
+      {/* Brand badge */}
+      <mesh position={[0, 0.86, 0.365]}>
+        <boxGeometry args={[0.16, 0.045, 0.012]} />
+        <MStd color="#3a2c1c" metalness={0.3} roughness={0.4} />
+      </mesh>
+    </group>
+  );
+
+  return (
+    <group>
+      <Cabinet x={-0.42} z={0} angle={0.06} />
+      <Cabinet x={0.42} z={0.08} angle={-0.06} />
+    </group>
+  );
+}
+
 export function Clock() {
   const ticks = Array.from({ length: 12 }, (_, i) => (i * Math.PI) / 6);
   return (
@@ -1903,6 +1960,7 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "ceilingfan": return <CeilingFan />;
     case "speaker": return <Speaker />;
     case "soundbar": return <SoundbarSet />;
+    case "bookshelf_speaker": return <BookshelfSpeakers />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;
     case "microwave": return <Microwave />;

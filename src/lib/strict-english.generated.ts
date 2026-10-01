@@ -81,6 +81,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Bộ loa": "Speakers",
   "Loa karaoke": "Karaoke Speakers",
   "Bộ loa TV": "TV Soundbar Set",
+  "Loa TV (loại nhỏ)": "Small TV Speakers",
   "Cấp độ": "Level",
   "Ghế đá": "Stone Bench",
   "Giá cả": "Price",

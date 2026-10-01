@@ -53,9 +53,25 @@ export async function signOut() {
 
 /** Email + password sign in. */
 export async function signInWithPassword(email: string, password: string) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  await hydrateFromSession();
+  const u = data.user ?? data.session?.user;
+  if (u) {
+    // Vào trang chính ngay: dựng tài khoản tạm từ phiên đăng nhập, hồ sơ tải nền.
+    const prev = CURRENT && CURRENT.id === u.id ? CURRENT : null;
+    setCurrentUserCache({
+      id: u.id,
+      username: prev?.username || (u.user_metadata as any)?.username || (u.email?.split("@")[0] ?? "player"),
+      email: u.email || "",
+      createdAt: prev?.createdAt || u.created_at || new Date().toISOString(),
+      avatarUrl: prev?.avatarUrl ?? null,
+    } as Account);
+    void hydrateFromSession().then(() => {
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("auth-change"));
+    }).catch(() => {});
+  } else {
+    await hydrateFromSession();
+  }
 }
 
 /** Email + password sign up with username metadata. */
@@ -81,9 +97,13 @@ export async function signUpWithPassword(opts: {
 }
 
 /** Hydrate cache from current session — call on auth state changes. */
+let hydrateSeq = 0;
 export async function hydrateFromSession(): Promise<Account | null> {
+  const seq = ++hydrateSeq;
   const { data } = await supabase.auth.getSession();
   const session = data.session;
+  // Một lần hydrate cũ (trước khi đăng nhập) không được xoá tài khoản vừa đăng nhập.
+  if (seq !== hydrateSeq) return CURRENT;
   if (!session?.user) { setCurrentUserCache(null); return null; }
 
   const u = session.user;
@@ -101,6 +121,7 @@ export async function hydrateFromSession(): Promise<Account | null> {
     createdAt: profile?.created_at || u.created_at || new Date().toISOString(),
     avatarUrl: (profile as any)?.avatar_url ?? null,
   };
+  if (seq !== hydrateSeq && CURRENT && CURRENT.id !== acc.id) return CURRENT;
   setCurrentUserCache(acc);
   try { recordLoginDay(acc.id); } catch {}
   return acc;

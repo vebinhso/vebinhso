@@ -426,12 +426,13 @@ function StudentsPanel({ classId }: { classId: string }) {
   if (rows.length === 0) return <p className="font-bold text-muted-foreground">Chưa có học sinh nào tham gia. Chia sẻ mã lớp cho học sinh!</p>;
   return (
     <>
-      <p className="text-xs font-bold text-muted-foreground mb-2">💡 Bấm vào tên học sinh để xem thống kê câu trả lời.</p>
+      <p className="text-xs font-bold text-muted-foreground mb-1">💡 Bấm vào tên học sinh để xem thống kê câu trả lời.</p>
+      <p className="text-xs font-bold text-orange-700 mb-2">Chỉ tick khi đã có phiếu đồng ý của phụ huynh.</p>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left border-b-2 border-orange-200">
             <tr className="font-black">
-              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th><th></th>
+              <th className="py-2">#</th><th>Tên</th><th>Username</th><th>Email</th><th>Tham gia</th><th>Phụ huynh đồng ý</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -442,6 +443,26 @@ function StudentsPanel({ classId }: { classId: string }) {
                 <td>{r.username}</td>
                 <td className="text-muted-foreground">{r.email}</td>
                 <td className="text-xs">{new Date(r.joined_at).toLocaleString("vi-VN")}</td>
+                <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Phụ huynh của ${r.display_name || r.username} đồng ý`}
+                    checked={!!r.parent_consent_ai}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={async (e) => {
+                      const value = e.target.checked;
+                      if (!value && !confirm("Bỏ đồng ý sẽ xóa nội dung đã lưu của học sinh này. Tiếp tục?")) return;
+                      setRows((rs) => rs.map((x) => x.user_id === r.user_id ? { ...x, parent_consent_ai: value } : x));
+                      try {
+                        await setParentConsent(classId, r.user_id, value);
+                        toast.success(value ? "Đã ghi nhận phụ huynh đồng ý" : "Đã bỏ đồng ý");
+                      } catch (err: any) {
+                        toast.error(err?.message || "Lỗi");
+                        getClassStudents(classId).then(setRows).catch(() => {});
+                      }
+                    }}
+                  />
+                </td>
                 <td className="text-right">
                   <button
                     onClick={async (e) => {

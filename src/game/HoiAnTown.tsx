@@ -233,26 +233,33 @@ function FriendHousePreview({ ownerId }: { ownerId: string }) {
   );
 }
 
-function FriendLabel({ friend, onClick }: { friend: FriendHouse; onClick?: () => void }) {
+/** Bảng standee nhỏ trước cửa nhà bạn (viền vàng, nền tím nhạt như bảng ngoài phố) */
+function FriendSign({ friend, onClick }: { friend: FriendHouse; onClick?: () => void }) {
   const en = useLocale() === "en";
   const name = friend.house_name || friend.display_name || friend.username;
   const building = friend.is_online && friend.in_house_owner === friend.user_id;
   return (
-    <Html position={[0, HH + 6, 0]} center distanceFactor={16} zIndexRange={[10, 0]}>
-      <button
-        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-        className="pointer-events-auto cursor-pointer flex flex-col items-center gap-0.5 select-none"
-      >
-        <div className="flex items-center gap-1 bg-white/95 px-2 py-0.5 rounded-full text-[11px] font-black shadow border-2 border-amber-500 max-w-[180px] text-slate-800">
-          <span>🏠</span>
-          <span className="truncate">{en ? `${name}'s house` : `Nhà của ${name}`}</span>
-          <span className={`w-2 h-2 rounded-full ${friend.is_online ? "bg-emerald-500" : "bg-gray-400"}`} />
-        </div>
-        <span className="text-[10px] font-bold bg-amber-500 text-white px-2 rounded-full shadow">
-          {building ? (en ? "🔨 Building" : "🔨 Đang xây") : (en ? "Tap to visit" : "Bấm để xem nhà")}
-        </span>
-      </button>
-    </Html>
+    <group position={[0.95, 0, HD / 2 + 1.05]}>
+      <mesh geometry={G.box} material={M.signLeg} position={[-0.42, 0.5, 0]} rotation={[0.16, 0, 0]} scale={[0.06, 1.1, 0.06]} />
+      <mesh geometry={G.box} material={M.signLeg} position={[0.42, 0.5, 0]} rotation={[-0.16, 0, 0]} scale={[0.06, 1.1, 0.06]} />
+      <mesh geometry={G.box} material={M.signGold} position={[0, 1.2, 0]} scale={[1.15, 1.5, 0.07]} />
+      <mesh geometry={G.box} material={M.signPanel} position={[0, 1.2, 0.045]} scale={[1.04, 1.39, 0.02]} />
+      <Html position={[0, 1.2, 0.07]} center distanceFactor={6} zIndexRange={[10, 0]}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+          className="pointer-events-auto cursor-pointer flex flex-col items-center gap-0.5 select-none w-[124px]"
+        >
+          <span className="flex items-center gap-1 text-[13px] font-black text-yellow-300 leading-tight" style={{ textShadow: "0 1px 2px rgba(90,30,120,0.55)" }}>
+            <span>🏠</span>
+            <span className="truncate">{en ? `${name}'s house` : `Nhà của ${name}`}</span>
+          </span>
+          <span className="flex items-center gap-1 text-[9px] font-bold text-purple-900/80 whitespace-nowrap">
+            <span className={`w-1.5 h-1.5 rounded-full ${friend.is_online ? "bg-emerald-600" : "bg-gray-500"}`} />
+            {building ? (en ? "🔨 Building" : "🔨 Đang xây") : (en ? "Tap to visit" : "Bấm để xem nhà")}
+          </span>
+        </button>
+      </Html>
+    </group>
   );
 }
 

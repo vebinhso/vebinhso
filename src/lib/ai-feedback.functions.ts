@@ -73,7 +73,10 @@ export const submitCheckFeedback = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const from = supabaseAdmin.from as unknown as (t: string) => any;
+    // Keep `from` bound to the client. Extracting the proxied method loses its
+    // internal client context and makes Supabase query building read `.rest`
+    // from undefined.
+    const from = (table: string) => (supabaseAdmin.from as unknown as (t: string) => any)(table);
     const since = new Date(Date.now() - 24 * 3600_000).toISOString();
     const { count, error: cErr } = await from("ai_check_feedback")
       .select("id", { count: "exact", head: true })

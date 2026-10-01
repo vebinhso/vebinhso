@@ -5,6 +5,7 @@ import { RoundedBox, Text } from "@react-three/drei";
 import type { CatalogItem } from "./catalog";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { getLocale } from "@/lib/locale";
+import * as X from "./ModelsExtra";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -1961,6 +1962,16 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "speaker": return <Speaker />;
     case "soundbar": return <SoundbarSet />;
     case "bookshelf_speaker": return <BookshelfSpeakers />;
+    case "coolingfan": return <X.CoolingFan />;
+    case "tvcab_walnut": return <X.WalnutTVCabinet />;
+    case "smarttv": return <X.SmartTV />;
+    case "standfan": return <X.StandingFan />;
+    case "sofa_black": return <X.BlackModularSofa />;
+    case "tvcab_oak": return <X.OakTVCabinet />;
+    case "storage_white": return <X.WhiteStorageCabinet />;
+    case "cafetable": return <X.CafeTable />;
+    case "holofan": return <X.HologramFan />;
+    case "octaclock": return <X.OctagonClock />;
     case "clock": return <Clock />;
     case "hood": return <Hood />;
     case "microwave": return <Microwave />;

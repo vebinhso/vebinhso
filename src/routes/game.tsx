@@ -1396,7 +1396,23 @@ function GamePage() {
           <button onClick={enterViewMode} className={`toy-button !text-[11px] !py-1 !px-2 ${playMode === "view" ? "toy-button-primary" : ""}`}>👀 {en ? "Explore" : "Xem nhà"}</button>
         </div>
         {playMode === "view" && (
-          <div className="glass-card px-2 py-1 text-[10px] font-bold w-28">{en ? "First-person view. Drag to look, WASD to walk." : "Góc nhìn nhân vật. Kéo chuột để nhìn, WASD để đi."}</div>
+          <>
+            {([
+              ["eye", "🚶", en ? "Character" : "Nhân vật"],
+              ["free", "🎥", en ? "Free" : "Tự do"],
+              ["top", "🗺️", en ? "Top" : "Từ trên"],
+              ["front", "🏮", en ? "Front" : "Trực diện"],
+              ["wide", "🏘️", en ? "Wide" : "Toàn cảnh"],
+            ] as const).map(([m, ic, lb]) => (
+              <button key={m} onClick={() => setExploreView(m)} title={lb}
+                className={`glass-card px-2 py-1 text-[11px] font-black flex flex-col items-center w-14 ${exploreView === m ? "ring-2 ring-primary" : ""}`}>
+                <span className="text-lg leading-none">{ic}</span>{lb}
+              </button>
+            ))}
+            {exploreView === "eye" && (
+              <div className="glass-card px-2 py-1 text-[10px] font-bold w-28">{en ? "First-person view. Drag to look, WASD to walk." : "Góc nhìn nhân vật. Kéo chuột để nhìn, WASD để đi."}</div>
+            )}
+          </>
         )}
         {playMode === "edit" && ([
           ["free", "🎥", en ? "Free" : "Tự do"],

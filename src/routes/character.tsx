@@ -12,6 +12,9 @@ import { HairPicker } from "@/components/HairPicker";
 import { HairBack, HairFront } from "@/components/HairSvg";
 import { DEFAULT_HAIR_STYLE, isHairStyle, type HairStyleId } from "@/lib/hair";
 import { useLocale } from "@/lib/locale";
+import { AccessoryPicker } from "@/components/AccessoryPicker";
+import { AccessorySvg } from "@/components/AccessorySvg";
+import { equippedBySlot } from "@/lib/accessories";
 
 export const Route = createFileRoute("/character")({ component: CharacterPage });
 
@@ -35,10 +38,12 @@ function Swatch({ label, color }: { label: string; color?: string }) {
 }
 
 function PreviewCharacter({ o }: { o: Outfit }) {
+  const acc = equippedBySlot(o.accessories);
+  const hs = isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE;
   return (
     <div className="flex items-end justify-center h-56 bg-gradient-to-b from-sky-200 to-emerald-200 rounded-2xl overflow-hidden">
       <svg viewBox="0 0 80 160" className="h-52">
-        <HairBack style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
+        {!acc.head && <HairBack style={hs} color={o.hair} />}
         {/* legs */}
         <rect x="28" y="100" width="10" height="40" rx="3" fill={o.pants} />
         <rect x="42" y="100" width="10" height="40" rx="3" fill={o.pants} />
@@ -55,16 +60,21 @@ function PreviewCharacter({ o }: { o: Outfit }) {
         {/* hands */}
         <circle cx="19" cy="105" r="5" fill={o.skin} />
         <circle cx="61" cy="105" r="5" fill={o.skin} />
+        {acc.neck && <AccessorySvg id={acc.neck} hair={o.hair} />}
+        {acc.wrist && <AccessorySvg id={acc.wrist} hair={o.hair} />}
+        {acc.finger && <AccessorySvg id={acc.finger} hair={o.hair} />}
+        {acc.head && <AccessorySvg id={acc.head} hair={o.hair} />}
         {/* head */}
         <circle cx="40" cy="42" r="18" fill={o.skin} />
         {/* hair */}
-        <HairFront style={isHairStyle(o.hairStyle) ? o.hairStyle : DEFAULT_HAIR_STYLE} color={o.hair} />
+        {!acc.head && <HairFront style={hs} color={o.hair} />}
         {/* hat */}
-        {o.hat && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
+        {o.hat && !acc.head && <path d="M20 30 Q40 14 60 30 L56 32 Q40 22 24 32 Z" fill={o.hat} />}
         {/* eyes */}
         <circle cx="34" cy="44" r="2" fill="#111" />
         <circle cx="46" cy="44" r="2" fill="#111" />
         <path d="M34 52 Q40 56 46 52" stroke="#111" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        {acc.beard && <AccessorySvg id={acc.beard} hair={o.hair} />}
       </svg>
     </div>
   );
@@ -199,6 +209,14 @@ function CharacterPage() {
               onPreview={(style, color) => setPreview({ style, color })}
               onApplyStyle={(style) => { commitHair({ hairStyle: style }); setPreview((p) => p ? { ...p, style } : null); }}
               onApplyColor={(color) => { commitHair({ hair: color }); setPreview((p) => p ? { ...p, color } : null); }}
+            />
+          ) : tab === "accessory" ? (
+            <AccessoryPicker
+              owned={outfit.accessoriesOwned}
+              equipped={outfit.accessories}
+              hair={outfit.hair}
+              skin={outfit.skin}
+              onChange={(accessoriesOwned, accessories) => commitHair({ accessoriesOwned, accessories })}
             />
           ) : (
           <>

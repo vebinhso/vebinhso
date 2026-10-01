@@ -8,6 +8,7 @@ import { getLocale } from "@/lib/locale";
 import * as X from "./ModelsExtra";
 import * as Y from "./ModelsExtra2";
 import * as Z from "./ModelsExtra3";
+import * as K from "./ModelsExtra4";
 
 function MStd({ color, metalness = 0.05, roughness = 0.75, emissive, emissiveIntensity = 0 }: any) {
   return (
@@ -1977,6 +1978,15 @@ export function ItemModel({ item, label, placedId }: { item: CatalogItem; label?
     case "art_parrot": return <Y.ParrotCanvas />;
     case "art_toucan": return <Y.ToucanCanvas />;
     case "plant_monstera": return <Z.MonsteraPot />;
+    case "fridge_french_black": return <K.FridgeFrenchBlack />;
+    case "fridge_sbs": return <K.FridgeSideBySide />;
+    case "fridge_steel_water": return <K.FridgeStainlessDispenser />;
+    case "fridge_mini_black": return <K.FridgeMiniBlack />;
+    case "fridge_cute_cream": return <K.FridgeCuteCream />;
+    case "sink_single_steel": return <K.SinkSingleSteel />;
+    case "sink_double_steel": return <K.SinkDoubleSteel />;
+    case "sink_black_smart": return <K.SinkBlackSmart />;
+    case "dining_oak_set": return <K.OakDiningSet />;
     case "plant_paradise": return <Z.BirdParadisePot />;
     case "plant_terracotta": return <Z.TerracottaPlant />;
     case "sign_house": return <Z.HouseSign />;

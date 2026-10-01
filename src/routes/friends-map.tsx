@@ -151,7 +151,7 @@ function FriendsMapPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-sky-100">
+    <main className="min-h-screen bg-background">
       <header className="p-3 sm:p-4 flex items-center gap-2 flex-wrap">
         <Link to="/game" className="toy-button toy-button-primary !text-sm">
           🏠 {en ? "My Home" : "Nhà của tôi"}
@@ -162,58 +162,27 @@ function FriendsMapPage() {
       </header>
 
       <div className="px-3 sm:px-4 pb-3 flex flex-wrap items-center gap-2">
-        <span className="text-sm font-bold text-emerald-700">
+        <span className="text-sm font-bold text-foreground">
           {housesQ.isLoading
             ? (en ? "Loading friends..." : "Đang tải bạn bè...")
             : houses.length === 0
             ? (en ? "No friends to display yet. Add friends from the home page first!" : "Chưa có bạn bè nào để hiển thị. Kết bạn ở trang chủ trước nhé!")
             : (en ? `Displaying ${houses.length} friend ${houses.length === 1 ? "home" : "homes"}.` : `Đang hiển thị ${houses.length} căn nhà bạn bè.`)}
         </span>
-        <span className="text-xs font-bold text-muted-foreground">· {en ? "My Home" : "Nhà của tôi"}:</span>
-        <div className="flex items-center gap-1">
-          {privacyOptions(en).map((o) => {
-            const cur = (mineQ.data as any)?.house_privacy === "private" ? "closed" : (mineQ.data as any)?.house_privacy;
-            const active = cur === o.id;
-            return (
-              <button
-                key={o.id}
-                title={o.hint}
-                onClick={async () => {
-                  await updateFn({ data: { privacy: o.id } });
-                  await qc.invalidateQueries({ queryKey: ["my-house"] });
-                  await qc.invalidateQueries({ queryKey: ["friend-houses"] });
-                }}
-                className={`px-2.5 py-1 rounded-full text-xs font-black border-2 transition ${
-                  active
-                    ? "bg-emerald-500 text-white border-emerald-600"
-                    : "bg-white/80 border-emerald-200 hover:bg-white"
-                }`}
-              >
-                {o.label}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="px-2.5 py-1 rounded-full text-xs font-black border-2 bg-white/80 border-orange-300 hover:bg-white"
-          >
-            ⚙️ {en ? "Details" : "Chi tiết"}
-          </button>
-        </div>
+        <button onClick={() => setSettingsOpen(true)} className="toy-button !py-1 !text-xs">🔐 {en ? "Home access" : "Quyền vào nhà"}</button>
       </div>
 
 
       <div
         ref={ref}
-        className="relative mx-3 sm:mx-4 mb-4 rounded-2xl overflow-hidden border-4 border-emerald-300 bg-emerald-50 shadow-inner"
+        className="relative mx-3 sm:mx-4 mb-4 rounded-2xl overflow-hidden border-4 border-border bg-muted shadow-inner"
         style={{ height: "min(75vh, 800px)" }}
       >
         {/* Simulated map background */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 30%, #bbf7d0 0, transparent 40%), radial-gradient(circle at 80% 60%, #bae6fd 0, transparent 45%), radial-gradient(circle at 55% 85%, #fef3c7 0, transparent 35%)",
+            backgroundImage: "linear-gradient(to bottom, var(--background), var(--muted))",
           }}
         />
         <div

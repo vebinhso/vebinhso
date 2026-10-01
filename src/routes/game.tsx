@@ -44,6 +44,7 @@ import { useLocale } from "@/lib/locale";
 import { mixPaint, isWhite, colorName } from "@/lib/paint-mix";
 import { PaintBucketIcon } from "@/components/PaintBucketIcon";
 import { Button } from "@/components/ui/button";
+import { HouseAccessSettings } from "@/components/HouseAccessSettings";
 import { RIVER_BOARD_POSITION, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "@/game/HoiAnRiver";
 
 export const Route = createFileRoute("/game")({
@@ -70,6 +71,7 @@ function GamePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [shopOpen, setShopOpen] = useState(false);
+  const [houseAccessOpen, setHouseAccessOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<typeof CATEGORIES[number]>("Vật liệu");
   const [shopQuery, setShopQuery] = useState("");
   const [buyQty, setBuyQty] = useState<Record<string, number>>({});
@@ -1272,14 +1274,15 @@ function GamePage() {
             <div className="text-[10px] sm:text-xs font-bold text-blue-700 truncate">Lv.{level} • ✅ {state.correctAnswers} • 🔥 {state.answerStreak}</div>
             <div className="text-[10px] sm:text-xs font-bold text-stone-700 truncate">🧱 {state.bricks} • 🪣 {state.concrete} • 🏠 {state.roofTiles} • 🟥 {state.roofTilesTon}</div>
             <div className="text-[10px] sm:text-xs font-black text-rose-700 truncate">🏮 {en ? "Lanterns" : "Hoa đăng"}: {lanternCount}</div>
-            <Link
-              to="/friends-map"
-              preload="render"
-              onPointerDown={() => { void friendHousesQ.refetch(); }}
-              className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-black text-emerald-800 active:scale-95 transition-transform duration-75 touch-manipulation"
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setHouseAccessOpen(true)}
+              className="mt-1 h-7 gap-1 px-2 text-[10px] font-black sm:text-xs"
             >
-              🗺️ {en ? "Friends map" : "Bản đồ bạn bè"}
-            </Link>
+              🔐 {en ? "Home access" : "Quyền vào nhà"}
+            </Button>
           </div>
         </div>
 
@@ -1422,6 +1425,8 @@ function GamePage() {
           )}
         </div>
       </div>
+
+      <HouseAccessSettings open={houseAccessOpen} onOpenChange={setHouseAccessOpen} />
 
 
       {/* Level progress */}

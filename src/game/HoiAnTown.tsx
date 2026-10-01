@@ -36,6 +36,9 @@ const M = {
   road: new THREE.MeshStandardMaterial({ color: ROAD, roughness: 1 }),
   walk: new THREE.MeshStandardMaterial({ color: SIDEWALK, roughness: 1 }),
   wire: new THREE.MeshBasicMaterial({ color: "#2b2b2b" }),
+  signGold: new THREE.MeshStandardMaterial({ color: "#d4af37", roughness: 0.35, metalness: 0.55 }),
+  signPanel: new THREE.MeshStandardMaterial({ color: "#c9a3e8", roughness: 0.5 }),
+  signLeg: new THREE.MeshStandardMaterial({ color: "#e8e8e8", roughness: 0.4, metalness: 0.5 }),
 };
 const wallMats = WALLS.map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95 }));
 const roofMats = ROOFS.map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 }));

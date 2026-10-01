@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/lib/auth";
 import { memo, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -451,6 +452,41 @@ function buildFriendSlots(count: number): FriendSlot[] {
   return candidates.slice(0, count);
 }
 
+const ALL_FRIEND_SLOTS = buildFriendSlots(999);
+
+function hashId(id: string) {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+/** Mỗi bạn giữ cố định một lô (lưu theo người xem); bạn mới chỉ lấy lô trống. */
+function assignFriendSlots(ids: string[]): Map<string, FriendSlot> {
+  const n = ALL_FRIEND_SLOTS.length;
+  let viewer = "anon";
+  try { viewer = getCurrentUser()?.id ?? "anon"; } catch { /* noop */ }
+  const key = "friend-slot-map:" + viewer;
+  let saved: Record<string, number> = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || "{}"); } catch { /* noop */ }
+  const used = new Set<number>();
+  const out = new Map<string, FriendSlot>();
+  for (const id of ids) {
+    const idx = saved[id];
+    if (typeof idx === "number" && idx >= 0 && idx < n && !used.has(idx)) { used.add(idx); out.set(id, ALL_FRIEND_SLOTS[idx]); }
+  }
+  let changed = false;
+  for (const id of [...ids].sort()) {
+    if (out.has(id)) continue;
+    const start = hashId(viewer + ":" + id) % n;
+    for (let k = 0; k < n; k++) {
+      const idx = (start + k) % n;
+      if (!used.has(idx)) { used.add(idx); saved[id] = idx; out.set(id, ALL_FRIEND_SLOTS[idx]); changed = true; break; }
+    }
+  }
+  if (changed) { try { localStorage.setItem(key, JSON.stringify(saved)); } catch { /* noop */ } }
+  return out;
+}
+
 function buildSlots(): Slot[] {
   const slots: Slot[] = [];
   let seed = 7;
@@ -506,7 +542,9 @@ export const HoiAnTown = memo(function HoiAnTown({
   const slots = useMemo(() => buildSlots(), []);
   const ordered = useMemo(() => [...slots].sort((a, b) => a.d2 - b.d2), [slots]);
   const fs = friends ?? [];
-  const activeFriendSlots = useMemo(() => buildFriendSlots(fs.length), [fs.length]);
+  const idsKey = fs.map((f) => f.user_id).join(",");
+  const slotMap = useMemo(() => assignFriendSlots(idsKey ? idsKey.split(",") : []), [idsKey]);
+  const activeFriendSlots = useMemo(() => Array.from(slotMap.values()), [slotMap]);
   // Chừa trọn mảnh đất 20×20 quanh mỗi nhà bạn để nhà phố không đè lên nhau.
   const shopSlots = ordered.filter((s) => !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
   const lanterns: [number, number][][] = [];
@@ -549,7 +587,7 @@ export const HoiAnTown = memo(function HoiAnTown({
       {/* Lối từ nhà mình ra đường chính */}
       <mesh geometry={G.box} material={M.walk} position={[0, 0.03, 12.5]} scale={[4, 0.04, 3]} />
       {!dim && !hideBuildings && fs.map((friend, i) => {
-        const slot = activeFriendSlots[i];
+        const slot = slotMap.get(friend.user_id);
         if (!slot) return null;
         return (
         <group key={friend.user_id} position={[slot.x, 0, slot.z]} rotation={[0, slot.rot, 0]}

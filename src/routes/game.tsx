@@ -21,6 +21,7 @@ import {
   type FloorSegment,
 } from "@/lib/game";
 import { CATALOG, CATEGORIES, getItem, catalogLabel, canStackOn, isFlatMat, STACK_SURFACES, STACK_TOPPERS, surfaceTopY } from "@/game/catalog";
+import { isDoorItem, isWindowItem } from "@/game/catalog";
 import { ItemThumb, ThumbnailBaker, matchItem } from "@/game/ItemThumbs";
 import { randomQuestion, type Question, loadQuestionsFromDB, hasLoadedQuestions, gradeAnswer, reportAnswerResult } from "@/game/questions";
 import { QuestionView } from "@/game/QuestionView";
@@ -74,7 +75,7 @@ function GamePage() {
     let nearest: { id: string; d2: number } | null = null;
     let lamp = false;
     for (const p of placed) {
-      if (p.itemId === "door" && (p.floor ?? 0) === 0) {
+      if (isDoorItem(p.itemId) && (p.floor ?? 0) === 0) {
         const it = getItem(p.itemId);
         if (!it) continue;
         const swap = p.rotation % 2 === 1;
@@ -252,7 +253,7 @@ function GamePage() {
 
   // Tắt gợi ý cửa khi người chơi chọn item khác hoặc đổi mode
   useEffect(() => {
-    if (selected !== "door") setDoorHint(false);
+    if (!isDoorItem(selected)) setDoorHint(false);
   }, [selected]);
 
   // Track history (snapshot previous state on every change, except undo)
@@ -383,11 +384,11 @@ function GamePage() {
     }
 
     // Cửa sổ: phải có ít nhất 1 tường để gắn
-    if (it.id === "window" && state.walls.length === 0) {
+    if (isWindowItem(it.id) && state.walls.length === 0) {
       flash(en ? "⚠️ Build a wall before attaching a window." : "⚠️ Hãy xây tường trước, rồi mới gắn cửa sổ.");
       return;
     }
-    if (it.id === "door") setDoorHint(true);
+    if (isDoorItem(it.id)) setDoorHint(true);
     setSelected(itemId);
     setPlaceQueue(times > 1 ? times : 0);
     if (times > 1) flash(en ? `🛒 Purchased ${times} × ${catalogLabel(it.name, true)} — tap the ground to place each item.` : `🛒 Đã mua ${times} × ${it.name} — bấm vào đất để đặt lần lượt.`);
@@ -433,9 +434,9 @@ function GamePage() {
     //  - Tìm điểm chiếu của tâm click lên từng đoạn tường, lấy đoạn gần nhất (≤ 0.8m).
     //  - Lưu (x, z) = tâm vật (+10 để vẫn nằm trong hệ lưới), kèm angleRad = góc tường
     //    để cửa nằm phẳng với tường (cùng độ dày 0.25m → khi đóng tạo thành 1 mặt phẳng).
-    if (it.id === "window" || it.id === "door") {
+    if (isWindowItem(it.id) || isDoorItem(it.id)) {
       if (state.walls.length === 0) {
-        flash(it.id === "door" ? (en ? "🚪 Build a wall before attaching a door." : "🚪 Hãy xây tường trước, rồi mới gắn cửa.") : (en ? "🪟 Build a wall before attaching a window." : "🪟 Hãy xây tường trước, rồi mới gắn cửa sổ."));
+        flash(isDoorItem(it.id) ? (en ? "🚪 Build a wall before attaching a door." : "🚪 Hãy xây tường trước, rồi mới gắn cửa.") : (en ? "🪟 Build a wall before attaching a window." : "🪟 Hãy xây tường trước, rồi mới gắn cửa sổ."));
         return;
       }
       const cx0 = x + fw / 2 - 10;
@@ -448,7 +449,7 @@ function GamePage() {
         if (len2 === 0) continue;
         // Với cửa chính, cần đảm bảo có đủ chiều dài tường (~1m) để khoét lỗ
         const len = Math.sqrt(len2);
-        const margin = it.id === "door" ? 0.5 / len : 0;
+        const margin = isDoorItem(it.id) ? 0.5 / len : 0;
         let t = ((cx0 - w.ax) * dx + (cz0 - w.az) * dz) / len2;
         t = Math.max(margin, Math.min(1 - margin, t));
         const px = w.ax + t * dx;
@@ -459,7 +460,7 @@ function GamePage() {
         }
       }
       if (!best || best.d2 > 0.8 * 0.8) {
-        flash(it.id === "door" ? (en ? "🚪 Place the door directly on a wall." : "🚪 Đặt cửa ngay trên 1 đoạn tường nhé.") : (en ? "🪟 Place the window directly on a wall." : "🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé."));
+        flash(isDoorItem(it.id) ? (en ? "🚪 Place the door directly on a wall." : "🚪 Đặt cửa ngay trên 1 đoạn tường nhé.") : (en ? "🪟 Place the window directly on a wall." : "🪟 Đặt cửa sổ ngay trên 1 đoạn tường nhé."));
         return;
       }
       if (state.money < it.price) return;
@@ -494,7 +495,7 @@ function GamePage() {
       const pi = getItem(p.itemId);
       if (!pi) return false;
       if (isRoof(pi.id) || isRoof(it.id)) return false;
-      if (pi.id === "window" || it.id === "window") return false;
+      if (isWindowItem(pi.id) || isWindowItem(it.id)) return false;
       // Thảm / bãi cỏ / gạch lát: cho phép đặt vật khác lên trên cùng vị trí
       if (isFlatMat(pi.id) || isFlatMat(it.id)) return false;
       const ps = p.rotation % 2 === 1;
@@ -1226,7 +1227,7 @@ function GamePage() {
       </div>
 
       {/* Gợi ý đặt cửa */}
-      {doorHint && selected === "door" && (
+      {doorHint && isDoorItem(selected) && (
         <div className="absolute bottom-16 [@media(pointer:coarse)]:bottom-36 left-1/2 -translate-x-1/2 bg-amber-100 border-2 border-amber-400 text-amber-900 px-5 py-2.5 rounded-2xl shadow-lg text-sm font-black pointer-events-none animate-bounce z-50">
           🚪 {en ? "Select the door and rotate it to 0°" : "Hãy bấm vào cửa và xoay về 0°"}
         </div>

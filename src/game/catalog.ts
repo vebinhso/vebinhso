@@ -42,6 +42,16 @@ export const CATALOG: CatalogItem[] = [
   { id: "roof_ton", name: "Gạch mái tôn (10 miếng)", category: "Vật liệu", price: 40, w: 1, d: 1, h: 0.15, color: "#b91c1c", icon: "🟥", kind: "rooftile", qty: 10, roofStyle: "ton" },
   { id: "window", name: "Cửa sổ (gắn tường)", category: "Vật liệu", price: 10, w: 1, d: 0.1, h: 1.5, color: "#bae6fd", icon: "🪟" },
   { id: "curtain", name: "Rèm cửa", category: "Vật liệu", price: 50, w: 2, d: 0.1, h: 4, color: "#fda4af", icon: "🪟" },
+  { id: "column_roman", name: "Cột La Mã trắng", category: "Vật liệu", price: 60, w: 1, d: 1, h: 3.9, color: "#f1f1ef", icon: "🏛️" },
+  { id: "door_wood_glass", name: "Cửa gỗ cổ điển ô kính", category: "Vật liệu", price: 70, w: 1.2, d: 0.25, h: 3, color: "#a8621f", icon: "🚪" },
+  { id: "door_oak_classic", name: "Cửa gỗ sồi tân cổ điển", category: "Vật liệu", price: 60, w: 1.2, d: 0.25, h: 3, color: "#e3c27d", icon: "🚪" },
+  { id: "door_french_white", name: "Cửa đôi kính kiểu Pháp", category: "Vật liệu", price: 110, w: 2, d: 0.25, h: 3, color: "#f4f5f6", icon: "🚪" },
+  { id: "door_white_panel", name: "Cửa trắng 2 ô panel", category: "Vật liệu", price: 45, w: 1.1, d: 0.25, h: 3, color: "#f2f3f4", icon: "🚪" },
+  { id: "door_black_glass", name: "Cửa kính khung nhôm đen", category: "Vật liệu", price: 80, w: 1.1, d: 0.25, h: 3, color: "#1d1e20", icon: "🚪" },
+  { id: "window_awning_wood", name: "Cửa sổ gỗ bật 3 cánh", category: "Vật liệu", price: 45, w: 2, d: 0.1, h: 1.5, color: "#a88b5f", icon: "🪟" },
+  { id: "window_casement_white", name: "Cửa sổ trắng 2 cánh", category: "Vật liệu", price: 40, w: 2, d: 0.1, h: 1.5, color: "#f3f4f5", icon: "🪟" },
+  { id: "curtain_gray_closed", name: "Rèm xếp ly xám (đóng)", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
+  { id: "curtain_gray_open", name: "Rèm xếp ly xám vén 2 bên", category: "Vật liệu", price: 60, w: 2.6, d: 0.2, h: 3.8, color: "#77797c", icon: "🪟" },
 
   // ===== Ngoại thất =====
   { id: "lamp", name: "Cột đèn", category: "Ngoại thất", price: 15, w: 1, d: 1, h: 3, color: "#fbbf24", icon: "💡", shape: "cylinder" },
@@ -92,6 +102,15 @@ export const CATALOG: CatalogItem[] = [
   // ===== Phòng bếp =====
   { id: "stove", name: "Bếp ga 2 bếp", category: "Phòng bếp", price: 80, w: 2, d: 1, h: 1, color: "#1f2937", icon: "🔥" },
   { id: "diningtable", name: "Bàn ăn 4 người", category: "Phòng bếp", price: 120, w: 4, d: 4, h: 1, color: "#a16207", icon: "🍽️" },
+  { id: "fridge_french_black", name: "Tủ lạnh 4 cửa đen nhám", category: "Phòng bếp", price: 380, w: 1.6, d: 1.1, h: 3.3, color: "#26272a", icon: "🧊" },
+  { id: "fridge_sbs", name: "Tủ lạnh side-by-side xám đen", category: "Phòng bếp", price: 400, w: 1.8, d: 1.1, h: 3.5, color: "#3a3634", icon: "🧊" },
+  { id: "fridge_steel_water", name: "Tủ lạnh inox có vòi lấy nước", category: "Phòng bếp", price: 340, w: 1.3, d: 1.1, h: 3.1, color: "#c6c8cb", icon: "🧊" },
+  { id: "fridge_mini_black", name: "Tủ lạnh mini đen bóng", category: "Phòng bếp", price: 120, w: 1, d: 1, h: 1.7, color: "#111111", icon: "🧊" },
+  { id: "fridge_cute_cream", name: "Tủ lạnh mini kem tay nắm vàng", category: "Phòng bếp", price: 150, w: 1, d: 1, h: 2.1, color: "#d9d4cf", icon: "🧊" },
+  { id: "sink_single_steel", name: "Bồn rửa inox 1 hố", category: "Phòng bếp", price: 140, w: 2, d: 1, h: 1.5, color: "#c9ccd0", icon: "🚰" },
+  { id: "sink_double_steel", name: "Bồn rửa inox 2 hố", category: "Phòng bếp", price: 160, w: 2, d: 1, h: 1.5, color: "#c9ccd0", icon: "🚰" },
+  { id: "sink_black_smart", name: "Bồn rửa đen đa năng", category: "Phòng bếp", price: 260, w: 2.4, d: 1, h: 1.8, color: "#2a2b2d", icon: "🚰" },
+  { id: "dining_oak_set", name: "Bộ bàn ăn tròn gỗ sồi 4 ghế", category: "Phòng bếp", price: 220, w: 3, d: 3, h: 1.6, color: "#d8b27a", icon: "🍽️" },
   { id: "fridge", name: "Tủ lạnh", category: "Phòng bếp", price: 140, w: 1, d: 1, h: 2.5, color: "#e5e7eb", icon: "🧊" },
   { id: "fridge3", name: "Tủ lạnh 3 cánh", category: "Phòng bếp", price: 250, w: 2, d: 1, h: 2.5, color: "#d1d5db", icon: "🧊" },
   { id: "cabinet", name: "Tủ bếp", category: "Phòng bếp", price: 105, w: 4, d: 1, h: 1, color: "#78350f", icon: "🗄️" },
@@ -273,3 +292,9 @@ export function surfaceTopY(id: string): number {
 export function topperBottomY(id: string): number {
   return TOPPER_BOTTOM_Y[id] ?? 0;
 }
+
+// Các món gắn tường kiểu cửa ra vào / cửa sổ (snap tường, khoét lỗ, mở/đóng)
+export const DOOR_IDS = new Set<string>(["door", "door_wood_glass", "door_oak_classic", "door_french_white", "door_white_panel", "door_black_glass"]);
+export const WINDOW_IDS = new Set<string>(["window", "window_awning_wood", "window_casement_white"]);
+export const isDoorItem = (id?: string | null) => !!id && DOOR_IDS.has(id);
+export const isWindowItem = (id?: string | null) => !!id && WINDOW_IDS.has(id);

@@ -325,6 +325,13 @@ function GamePage() {
     if (activePowers.includes(2)) startLoopSfx("tornado"); else stopLoopSfx("tornado");
   }, [activePowers]);
 
+  // Ghi chú pha màu: tự ẩn sau vài giây (không cần bấm OK).
+  const toastTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!mixNote) return;
+    const t = window.setTimeout(() => setMixNote(null), 6000);
+    return () => clearTimeout(t);
+  }, [mixNote]);
 
   if (!mounted || !user || !state) return <RouteLoading />;
 

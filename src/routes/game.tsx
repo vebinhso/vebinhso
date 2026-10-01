@@ -1466,9 +1466,19 @@ function GamePage() {
       })()}
 
 
-      {toast && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 glass-card px-5 py-3 font-black text-base animate-bounce pointer-events-none z-40">
-          {toast}
+      {(toast || mixNote) && (
+        <div className="absolute bottom-28 [@media(pointer:coarse)]:bottom-52 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-none w-max max-w-[92vw]">
+          {mixNote && (
+            <div className="glass-card px-4 py-2.5 flex items-start gap-2 text-xs md:text-sm font-bold max-w-[92vw] shadow-lg">
+              <span className="text-lg leading-none">🎨</span>
+              <span>{mixNote}</span>
+            </div>
+          )}
+          {toast && (
+            <div className="glass-card px-4 py-2 text-xs md:text-sm font-black max-w-[92vw] text-center shadow-lg">
+              {toast}
+            </div>
+          )}
         </div>
       )}
 
@@ -1585,15 +1595,6 @@ function GamePage() {
         </div>
       )}
 
-      {mixNote && (
-        <div className="absolute inset-0 bg-black/50 z-40 flex items-center justify-center p-4" onClick={() => setMixNote(null)}>
-          <div className="glass-card max-w-md w-full p-5 text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="text-3xl mb-2">🎨</div>
-            <p className="font-bold mb-4">{mixNote}</p>
-            <button onClick={() => setMixNote(null)} className="toy-button toy-button-primary !text-sm !py-2 !px-4">OK</button>
-          </div>
-        </div>
-      )}
 
       {/* Palette modal */}
       {paletteOpen && (

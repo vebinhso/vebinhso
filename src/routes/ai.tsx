@@ -477,7 +477,7 @@ function AiPage() {
     setImgResult(null);
     const r = await withProgress(
       ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang đối chiếu dấu hiệu AI...", "Đang chấm điểm..."],
-      () => runImage({ data: { imageUrl: preview } }),
+      () => runImage({ data: { imageUrl: preview, locale: en ? "en" : "vi" } }),
     );
     if (r) setImgResult(r);
   }
@@ -494,7 +494,7 @@ function AiPage() {
           report(5 + (done / total) * 35, `Đang trích khung hình ${done}/${total}...`);
         });
         report(45, "Đang gửi khung hình cho AI phân tích...");
-        return runVideo({ data: { frames } });
+        return runVideo({ data: { frames, locale: en ? "en" : "vi" } });
       },
     );
     if (r) setVideoResult(r);
@@ -503,7 +503,7 @@ function AiPage() {
     setLinkResult(null);
     const r = await withProgress(
       ["Đang đọc đường link...", "Đang kiểm tra tên miền...", "Đang dò dấu hiệu lừa đảo...", "Đang chấm điểm rủi ro..."],
-      () => runLink({ data: { url } }),
+      () => runLink({ data: { url, locale: en ? "en" : "vi" } }),
     );
     if (r) setLinkResult(r);
   }
@@ -511,7 +511,7 @@ function AiPage() {
     setTextResult(null);
     const r = await withProgress(
       ["Đang đọc văn bản...", "Đang phân tích văn phong...", "Đang so sánh mẫu văn AI...", "Đang chấm điểm..."],
-      () => runText({ data: { text } }),
+      () => runText({ data: { text, locale: en ? "en" : "vi" } }),
     );
     if (r) setTextResult(r);
   }
@@ -519,7 +519,7 @@ function AiPage() {
     setEmailResult(null);
     const r = await withProgress(
       ["Đang đọc email...", "Đang kiểm tra người gửi...", "Đang dò dấu hiệu phishing...", "Đang chấm điểm..."],
-      () => runEmail({ data: { content: email } }),
+      () => runEmail({ data: { content: email, locale: en ? "en" : "vi" } }),
     );
     if (r) setEmailResult(r);
   }
@@ -527,7 +527,7 @@ function AiPage() {
     setPhoneResult(null);
     const r = await withProgress(
       ["Đang chuẩn hoá số...", "Đang tra cứu nhà mạng...", "Đang xác định vùng gọi...", "Đang chấm điểm rủi ro..."],
-      () => runPhone({ data: { phone, context: phoneCtx } }),
+      () => runPhone({ data: { phone, context: phoneCtx, locale: en ? "en" : "vi" } }),
     );
     if (r) setPhoneResult(r);
   }
@@ -535,7 +535,7 @@ function AiPage() {
     setNewsResult(null);
     const r = await withProgress(
       ["Đang đọc bản tin...", "Đang kiểm tra nguồn tin...", "Đang đối chiếu dấu hiệu tin giả...", "Đang chấm điểm..."],
-      () => runNews({ data: { content: news } }),
+      () => runNews({ data: { content: news, locale: en ? "en" : "vi" } }),
     );
     if (r) setNewsResult(r);
   }
@@ -549,7 +549,7 @@ function AiPage() {
       }
       const r = await withProgress(
         ["Đang tải ảnh lên...", "Đang soi chi tiết ảnh...", "Đang tìm thông tin nhạy cảm...", "Đang chấm rủi ro..."],
-        () => runPrivacyMedia({ data: { images: riskImages } }),
+        () => runPrivacyMedia({ data: { images: riskImages, locale: en ? "en" : "vi" } }),
       );
       if (r) setRiskMediaResult(r);
       return;
@@ -566,7 +566,7 @@ function AiPage() {
         });
         setRiskImages(frames);
         report(45, "Đang gửi khung hình cho AI phân tích...");
-        return runPrivacyMedia({ data: { images: frames } });
+        return runPrivacyMedia({ data: { images: frames, locale: en ? "en" : "vi" } });
       },
     );
     if (r) setRiskMediaResult(r);
@@ -576,7 +576,7 @@ function AiPage() {
     setRiskTextResult(null);
     const r = await withProgress(
       ["Đang đọc văn bản...", "Đang tìm thông tin cá nhân...", "Đang đánh giá nguy cơ...", "Đang chấm rủi ro..."],
-      () => runPrivacyText({ data: { text: riskText } }),
+      () => runPrivacyText({ data: { text: riskText, locale: en ? "en" : "vi" } }),
     );
     if (r) setRiskTextResult(r);
   }
@@ -838,16 +838,16 @@ function AiPage() {
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(videoResult.aiScore)}`}>
                     {(en ? VERDICT_EN : VERDICT_VI)[videoResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
-                  <Gauge value={videoResult.aiScore} label="Mức độ do AI tạo / dựng" />
-                  <Gauge value={videoResult.deepfakeScore} label="Nguy cơ deepfake (hoán đổi gương mặt)" />
-                  <Gauge value={videoResult.editedScore} label="Mức độ đã cắt ghép / chỉnh sửa" />
-                  <Gauge value={videoResult.confidence} label="Độ tin cậy của kết luận" />
+                  <Gauge value={videoResult.aiScore} label={en ? "AI-generated / synthetic score" : "Mức độ do AI tạo / dựng"} />
+                  <Gauge value={videoResult.deepfakeScore} label={en ? "Deepfake risk (face swap)" : "Nguy cơ deepfake (hoán đổi gương mặt)"} />
+                  <Gauge value={videoResult.editedScore} label={en ? "Editing / manipulation score" : "Mức độ đã cắt ghép / chỉnh sửa"} />
+                  <Gauge value={videoResult.confidence} label={en ? "Conclusion confidence" : "Độ tin cậy của kết luận"} />
                   <p className="text-xs sm:text-sm font-bold">{videoResult.summary}</p>
-                  <SignList title="Dấu hiệu của AI" items={videoResult.aiSigns} tone="bad" />
-                  <SignList title="Dấu hiệu video thật" items={videoResult.realSigns} tone="good" />
-                  <SignList title="Cách kiểm chứng" items={videoResult.tips} tone="info" />
+                  <SignList title={en ? "Signs of AI generation" : "Dấu hiệu của AI"} items={videoResult.aiSigns} tone="bad" />
+                  <SignList title={en ? "Signs of authentic video" : "Dấu hiệu video thật"} items={videoResult.realSigns} tone="good" />
+                  <SignList title={en ? "How to verify" : "Cách kiểm chứng"} items={videoResult.tips} tone="info" />
                   <p className="text-[10px] font-bold text-foreground">
-                    * Hệ thống soi 4 khung hình đại diện — kết quả mang tính tham khảo.
+                    * {en ? "The system examines four representative frames; results are for reference only." : "Hệ thống soi 4 khung hình đại diện — kết quả mang tính tham khảo."}
                   </p>
                 </div>
               )}
@@ -919,29 +919,29 @@ function AiPage() {
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(imgResult.aiScore)}`}>
                     {(en ? VERDICT_EN : VERDICT_VI)[imgResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
-                  <Gauge value={imgResult.aiScore} label="Mức độ do AI tạo" />
-                  <Gauge value={imgResult.editedScore} label="Mức độ đã chỉnh sửa / ghép (Photoshop)" />
-                  <Gauge value={imgResult.confidence} label="Độ tin cậy của kết luận" />
+                  <Gauge value={imgResult.aiScore} label={en ? "AI-generated score" : "Mức độ do AI tạo"} />
+                  <Gauge value={imgResult.editedScore} label={en ? "Editing / compositing score (Photoshop)" : "Mức độ đã chỉnh sửa / ghép (Photoshop)"} />
+                  <Gauge value={imgResult.confidence} label={en ? "Conclusion confidence" : "Độ tin cậy của kết luận"} />
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
-                      🧩 Độ khó nhận biết: {imgResult.difficulty}
+                      🧩 {en ? "Detection difficulty" : "Độ khó nhận biết"}: {en ? ({ "Dễ": "Easy", "Trung bình": "Medium", "Khó": "Hard" }[imgResult.difficulty] ?? imgResult.difficulty) : imgResult.difficulty}
                     </span>
                     {imgResult.aiCategoryLabel && (
                       <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
-                        🤖 Nhóm ảnh AI: {imgResult.aiCategoryLabel}
+                        🤖 {en ? "AI image category" : "Nhóm ảnh AI"}: {imgResult.aiCategoryLabel}
                       </span>
                     )}
                     {imgResult.editCategoryLabel && (
                       <span className="rounded-full bg-amber-100 text-amber-900 px-2 py-1 text-[11px] font-black">
-                        ✂️ Nhóm chỉnh sửa: {imgResult.editCategoryLabel}
+                        ✂️ {en ? "Editing category" : "Nhóm chỉnh sửa"}: {imgResult.editCategoryLabel}
                       </span>
                     )}
                   </div>
                   <p className="text-xs sm:text-sm font-bold">{imgResult.summary}</p>
-                  <SignList title="Dấu hiệu của AI" items={imgResult.aiSigns} tone="bad" />
-                  <SignList title="Dấu hiệu chỉnh sửa Photoshop" items={imgResult.editSigns} tone="bad" />
-                  <SignList title="Dấu hiệu ảnh thật" items={imgResult.realSigns} tone="good" />
-                  <SignList title="Nên làm gì tiếp" items={imgResult.tips} tone="info" />
+                  <SignList title={en ? "Signs of AI generation" : "Dấu hiệu của AI"} items={imgResult.aiSigns} tone="bad" />
+                  <SignList title={en ? "Signs of Photoshop editing" : "Dấu hiệu chỉnh sửa Photoshop"} items={imgResult.editSigns} tone="bad" />
+                  <SignList title={en ? "Signs of an authentic image" : "Dấu hiệu ảnh thật"} items={imgResult.realSigns} tone="good" />
+                  <SignList title={en ? "What to do next" : "Nên làm gì tiếp"} items={imgResult.tips} tone="info" />
                 </div>
               )}
             </div>
@@ -995,13 +995,13 @@ function AiPage() {
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(linkResult.riskScore)}`}>
                     {(en ? LEVEL_EN : LEVEL_VI)[linkResult.level] ?? (en ? "Unknown" : "Chưa xác định")} · {linkResult.category}
                   </p>
-                  <Gauge value={linkResult.riskScore} label="Mức độ rủi ro" />
+                  <Gauge value={linkResult.riskScore} label={en ? "Risk score" : "Mức độ rủi ro"} />
                   <p className="text-xs sm:text-sm font-bold">{linkResult.summary}</p>
-                  <SignList title="Dấu hiệu nguy hiểm" items={linkResult.redFlags} tone="bad" />
-                  <SignList title="Dấu hiệu an toàn" items={linkResult.goodSigns} tone="good" />
-                  <SignList title="Lời khuyên" items={linkResult.advice} tone="info" />
+                  <SignList title={en ? "Danger signs" : "Dấu hiệu nguy hiểm"} items={linkResult.redFlags} tone="bad" />
+                  <SignList title={en ? "Safety signs" : "Dấu hiệu an toàn"} items={linkResult.goodSigns} tone="good" />
+                  <SignList title={en ? "Advice" : "Lời khuyên"} items={linkResult.advice} tone="info" />
                   <p className="text-[10px] font-bold text-foreground">
-                    * Kết quả mang tính tham khảo — tuyệt đối không nhập mật khẩu/OTP vào link lạ.
+                    * {en ? "Results are for reference only. Never enter a password or OTP on an unfamiliar link." : "Kết quả mang tính tham khảo — tuyệt đối không nhập mật khẩu/OTP vào link lạ."}
                   </p>
                 </div>
               )}
@@ -1091,29 +1091,29 @@ function AiPage() {
                   <p className={`text-center font-black text-sm sm:text-lg ${scoreText(textResult.aiScore)}`}>
                     {(en ? VERDICT_EN : VERDICT_VI)[textResult.verdict] ?? (en ? "Uncertain" : "Chưa chắc chắn")}
                   </p>
-                  <Gauge value={textResult.aiScore} label="Mức độ do AI viết" />
-                  <Gauge value={textResult.misinfoRisk} label="Nguy cơ lừa đảo / thông tin sai lệch" />
-                  <Gauge value={textResult.confidence} label="Độ tin cậy của kết luận" />
+                  <Gauge value={textResult.aiScore} label={en ? "AI-written score" : "Mức độ do AI viết"} />
+                  <Gauge value={textResult.misinfoRisk} label={en ? "Scam / misinformation risk" : "Nguy cơ lừa đảo / thông tin sai lệch"} />
+                  <Gauge value={textResult.confidence} label={en ? "Conclusion confidence" : "Độ tin cậy của kết luận"} />
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
-                      🧩 Độ khó nhận biết: {textResult.difficulty}
+                      🧩 {en ? "Detection difficulty" : "Độ khó nhận biết"}: {en ? ({ "Dễ": "Easy", "Trung bình": "Medium", "Khó": "Hard" }[textResult.difficulty] ?? textResult.difficulty) : textResult.difficulty}
                     </span>
                     {textResult.scamCategoryLabel && (
                       <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
-                        🎣 Kịch bản lừa đảo: {textResult.scamCategoryLabel}
+                        🎣 {en ? "Scam pattern" : "Kịch bản lừa đảo"}: {textResult.scamCategoryLabel}
                       </span>
                     )}
                     {textResult.platform && (
                       <span className="rounded-full bg-sky-100 text-sky-800 px-2 py-1 text-[11px] font-black">
-                        📱 Thường gặp trên: {textResult.platform}
+                        📱 {en ? "Commonly seen on" : "Thường gặp trên"}: {textResult.platform}
                       </span>
                     )}
                   </div>
                   <p className="text-xs sm:text-sm font-bold">{textResult.summary}</p>
-                  <SignList title="Dấu hiệu lừa đảo" items={textResult.scamSigns} tone="bad" />
-                  <SignList title="Dấu hiệu của AI" items={textResult.aiSigns} tone="bad" />
-                  <SignList title="Dấu hiệu do người viết" items={textResult.humanSigns} tone="good" />
-                  <SignList title="Cách kiểm chứng" items={textResult.tips} tone="info" />
+                  <SignList title={en ? "Scam warning signs" : "Dấu hiệu lừa đảo"} items={textResult.scamSigns} tone="bad" />
+                  <SignList title={en ? "Signs of AI writing" : "Dấu hiệu của AI"} items={textResult.aiSigns} tone="bad" />
+                  <SignList title={en ? "Signs of human writing" : "Dấu hiệu do người viết"} items={textResult.humanSigns} tone="good" />
+                  <SignList title={en ? "How to verify" : "Cách kiểm chứng"} items={textResult.tips} tone="info" />
                 </div>
               )}
             </div>
@@ -1146,26 +1146,26 @@ function AiPage() {
                   </p>
                   {emailResult.impersonating && (
                     <p className="text-center text-xs sm:text-sm font-black text-red-600">
-                      ⚠️ Có dấu hiệu giả mạo: {emailResult.impersonating}
+                      ⚠️ {en ? "Possible impersonation" : "Có dấu hiệu giả mạo"}: {emailResult.impersonating}
                     </p>
                   )}
-                  <Gauge value={emailResult.riskScore} label="Mức độ giả mạo / lừa đảo" />
+                  <Gauge value={emailResult.riskScore} label={en ? "Impersonation / scam risk" : "Mức độ giả mạo / lừa đảo"} />
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
-                      🧩 Độ khó nhận biết: {emailResult.difficulty}
+                      🧩 {en ? "Detection difficulty" : "Độ khó nhận biết"}: {en ? ({ "Dễ": "Easy", "Trung bình": "Medium", "Khó": "Hard" }[emailResult.difficulty] ?? emailResult.difficulty) : emailResult.difficulty}
                     </span>
                     {emailResult.scamCategoryLabel && (
                       <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-1 text-[11px] font-black">
-                        🎣 Kịch bản: {emailResult.scamCategoryLabel}
+                        🎣 {en ? "Scam pattern" : "Kịch bản"}: {emailResult.scamCategoryLabel}
                       </span>
                     )}
                   </div>
                   <p className="text-xs sm:text-sm font-bold">{emailResult.summary}</p>
-                  <SignList title="Dấu hiệu giả mạo" items={emailResult.redFlags} tone="bad" />
-                  <SignList title="Dấu hiệu đáng tin" items={emailResult.goodSigns} tone="good" />
-                  <SignList title="Nên làm gì" items={emailResult.advice} tone="info" />
+                  <SignList title={en ? "Impersonation signs" : "Dấu hiệu giả mạo"} items={emailResult.redFlags} tone="bad" />
+                  <SignList title={en ? "Trustworthy signs" : "Dấu hiệu đáng tin"} items={emailResult.goodSigns} tone="good" />
+                  <SignList title={en ? "What to do" : "Nên làm gì"} items={emailResult.advice} tone="info" />
                   <p className="text-[10px] font-bold text-foreground">
-                    * Không bao giờ trả lời email lạ bằng mật khẩu, mã OTP hay số thẻ ngân hàng.
+                    * {en ? "Never reply to an unfamiliar email with a password, OTP, or bank card number." : "Không bao giờ trả lời email lạ bằng mật khẩu, mã OTP hay số thẻ ngân hàng."}
                   </p>
                 </div>
               )}

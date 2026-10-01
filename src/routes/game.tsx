@@ -1604,16 +1604,18 @@ function GamePage() {
           });
         };
         // Tìm surface đang nằm dưới topper (footprint chồng lấn + cùng tầng)
-        const isTopper = STACK_TOPPERS.has(ed.itemId);
+        const isWallMounted = typeof ed.angleRad === "number" && !isWindowItem(ed.itemId) && !isDoorItem(ed.itemId);
         const edSwap = ed.rotation % 2 === 1;
         const edW = edSwap ? it.d : it.w;
         const edD = edSwap ? it.w : it.d;
         const edCX = typeof ed.angleRad === "number" ? ed.x : ed.x + edW / 2;
         const edCZ = typeof ed.angleRad === "number" ? ed.z : ed.z + edD / 2;
-        const surfaceUnder = isTopper ? state.placed.find((p) => {
+        // Vật gần nhất bên dưới/cạnh (footprint chồng lấn hoặc trong ~1m) — bất kỳ loại đồ nào
+        const topOf = (p: PlacedItem) => (p.stackY ?? 0) + (STACK_SURFACES.has(p.itemId) ? surfaceTopY(p.itemId) : (getItem(p.itemId)?.h ?? 0));
+        const candidates = isWallMounted ? [] : state.placed.filter((p) => {
           if (p.id === ed.id) return false;
           if ((p.floor ?? 0) !== (ed.floor ?? 0)) return false;
-          if (!STACK_SURFACES.has(p.itemId) || !canStackOn(ed.itemId, p.itemId)) return false;
+          if (isRoof(p.itemId) || isWindowItem(p.itemId) || isDoorItem(p.itemId) || isFlatMat(p.itemId)) return false;
           const pi = getItem(p.itemId);
           if (!pi) return false;
           const ps = p.rotation % 2 === 1;
@@ -1621,18 +1623,37 @@ function GamePage() {
           const pd = ps ? pi.w : pi.d;
           const pCX = typeof p.angleRad === "number" ? p.x : p.x + pw / 2;
           const pCZ = typeof p.angleRad === "number" ? p.z : p.z + pd / 2;
-          return Math.abs(edCX - pCX) <= pw / 2 && Math.abs(edCZ - pCZ) <= pd / 2;
-        }) : null;
+          return Math.abs(edCX - pCX) <= pw / 2 + 1 && Math.abs(edCZ - pCZ) <= pd / 2 + 1;
+        });
+        const surfaceUnder = candidates.length
+          ? candidates.reduce((a, b) => {
+              const da = Math.hypot(a.x - ed.x, a.z - ed.z), db = Math.hypot(b.x - ed.x, b.z - ed.z);
+              return db < da ? b : a;
+            })
+          : null;
         const surfaceItem = surfaceUnder ? getItem(surfaceUnder.itemId) : null;
         const snapOnto = () => {
           if (!surfaceUnder || !surfaceItem) return;
-          const newStackY = (surfaceUnder.stackY ?? 0) + surfaceTopY(surfaceUnder.itemId);
+          const newStackY = topOf(surfaceUnder);
+          if (newStackY + it.h > WALL_HEIGHT * 1.6) { flash(en ? "⚠️ Stack is too high." : "⚠️ Chồng quá cao rồi."); return; }
+          const si = surfaceItem;
+          const ss = surfaceUnder.rotation % 2 === 1;
+          const sw = ss ? si.d : si.w, sd = ss ? si.w : si.d;
+          const sCX = typeof surfaceUnder.angleRad === "number" ? surfaceUnder.x : surfaceUnder.x + sw / 2;
+          const sCZ = typeof surfaceUnder.angleRad === "number" ? surfaceUnder.z : surfaceUnder.z + sd / 2;
+          const nx = typeof ed.angleRad === "number" ? sCX : sCX - edW / 2;
+          const nz = typeof ed.angleRad === "number" ? sCZ : sCZ - edD / 2;
           setState({
             ...state,
-            placed: state.placed.map((p) => (p.id === editingId ? { ...p, stackY: newStackY } : p)),
+            placed: state.placed.map((p) => (p.id === editingId ? { ...p, x: nx, z: nz, stackY: newStackY } : p)),
           });
           flash(en ? `✅ Placed on ${catalogLabel(surfaceItem.name, true)}` : `✅ Đã đặt lên ${surfaceItem.name}`);
         };
+        const setEdY = (y: number) => setState({
+          ...state,
+          placed: state.placed.map((p) => (p.id === editingId ? { ...p, stackY: y } : p)),
+        });
+        const maxWallY = Math.max(0, WALL_HEIGHT - it.h - 0.02);
         return (
           <div className="absolute bottom-20 [@media(pointer:coarse)]:bottom-48 left-1/2 -translate-x-1/2 glass-card px-4 py-3 pointer-events-auto z-40 min-w-[280px] max-w-[92vw]">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1645,13 +1666,33 @@ function GamePage() {
               >🗑 {en ? "Remove" : "Xoá"}</button>
               <button onClick={() => { setEditingId(null); setMoveMode(false); }} className="toy-button !text-xs !py-1 !px-3">{en ? "Done" : "Xong"}</button>
             </div>
-            {surfaceItem && (
-              <div className="mb-2">
-                <button
-                  onClick={snapOnto}
-                  className="toy-button toy-button-green !text-xs !py-1 !px-3 w-full"
-                  title={en ? "Align the item base with the top surface" : "Bù trừ chân đế để đáy vật sát nóc"}
-                >📦 {en ? "Place on" : "Đặt vật trên"} {catalogLabel(surfaceItem.name, en)}</button>
+            {!isWallMounted && (surfaceItem || (ed.stackY ?? 0) > 0) && (
+              <div className="mb-2 flex gap-2">
+                {surfaceItem && (
+                  <button
+                    onClick={snapOnto}
+                    className="toy-button toy-button-green !text-xs !py-1 !px-3 flex-1"
+                    title={en ? "Stack this item on top of the nearby item" : "Chồng vật này lên trên đồ vật gần đó"}
+                  >📦 {en ? "Place on" : "Đặt lên"} {catalogLabel(surfaceItem.name, en)}</button>
+                )}
+                {(ed.stackY ?? 0) > 0 && (
+                  <button onClick={() => setEdY(0)} className="toy-button !text-xs !py-1 !px-3">
+                    ⬇️ {en ? "To floor" : "Xuống sàn"}
+                  </button>
+                )}
+              </div>
+            )}
+            {isWallMounted && (
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold w-12 shrink-0">{en ? "Height" : "Độ cao"}:</span>
+                <span className="text-[10px] font-bold">{en ? "Floor" : "Sàn"}</span>
+                <input
+                  type="range" min={0} max={maxWallY} step={0.05}
+                  value={Math.min(maxWallY, ed.stackY ?? 0)}
+                  onChange={(e) => setEdY(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-[10px] font-bold">{en ? "Ceiling" : "Trần"}</span>
               </div>
             )}
             <div className="flex items-center gap-2 mb-2 flex-wrap">

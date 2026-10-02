@@ -100,7 +100,7 @@ export function SkillsPanel() {
           </button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">Thay đổi có hiệu lực trong AI Centre sau khoảng 1 phút.</p>
+      <p className="text-xs text-muted-foreground">Skill có hiệu lực trong AI Centre sau tối đa 1 phút.</p>
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/60 text-left">

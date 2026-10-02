@@ -54,7 +54,7 @@ Kịch bản dùng hình minh hoạ 2D tỷ lệ 16:9, thoại **tiếng Việt*
 Skill là tệp Markdown có frontmatter, lưu trong bảng `ai_skills`, được ghép vào prompt của 7 bài kiểm tra. Việc ghép nào dùng skill nào nằm ở bảng `ai_check_skill`, nên quản trị viên đổi mà không cần sửa code; bật/tắt có hiệu lực trong vòng 1 phút.
 
 ### Các khu khác
-Trang chủ `/`, đăng nhập `/login`, tạo & thay đổi nhân vật `/character` (tóc, ngoại hình, áo, quần, giày, phụ kiện), cửa hàng `/shop`, túi đồ `/inventory`, nhiệm vụ `/missions`, quyền năng `/pets`, xếp hạng `/ranking`, trò chuyện `/chat`, sự kiện `/events`, đấu 1vs1 (`DuelRoom`), hướng dẫn `/tutorial`, trang quản trị `/admin`.
+Trang chủ `/`, đăng nhập `/login`, tạo & thay đổi nhân vật `/character` (tóc, ngoại hình, áo, quần, giày, phụ kiện), cửa hàng `/shop`, túi đồ `/inventory`, tiện ích `/missions`, quyền năng `/pets`, xếp hạng `/ranking`, trò chuyện `/chat`, sự kiện `/events`, đấu 1vs1 (`DuelRoom`), hướng dẫn `/tutorial`, trang quản trị `/admin`.
 
 ---
 
@@ -132,7 +132,7 @@ public/             # tệp tĩnh (mô hình .glb, .png…)
 - `__root.tsx` — khung chung: đầu trang, chuyển ngôn ngữ VI/EN, cài đặt, âm thanh, thông báo.
 - `index.tsx` — trang chủ (hồ sơ, xu, cấp độ, cửa hàng, xếp hạng, hướng dẫn, khảo sát, lời mời kết bạn).
 - `game.tsx`, `magic.tsx` — hai thế giới 3D; `friends-map.tsx`, `visit.$ownerId.tsx` — nhà bạn bè.
-- `ai.tsx` — Trung tâm kiểm tra nguy hiểm số; `experience.tsx` — trang giới thiệu nhanh.
+- `ai.tsx` — Trung tâm kiểm tra nguy hiểm số; `experience.tsx` — trang Trải nghiệm (Explore) dẫn vào các khu chơi.
 - `roleplay.*.tsx` — trang chọn bài và 5 bài nhập vai.
 - `classroom.tsx` — khu lớp học; `admin.tsx` — trang quản trị (13 tab: tổng quan, người chơi, quản trị viên, giáo viên, câu hỏi, cấp độ, giá cả, phần thưởng, nội dung, khu vực, vật phẩm map, Skill AI, nhật ký).
 - `character.tsx`, `shop.tsx`, `inventory.tsx`, `missions.tsx`, `pets.tsx`, `ranking.tsx`, `chat.tsx`, `events.tsx`, `tutorial.tsx` — các khu còn lại.
@@ -148,7 +148,7 @@ public/             # tệp tĩnh (mô hình .glb, .png…)
 - `teacher.ts`, `classroom-posts.ts`, `class-annotations.ts` — lớp học, bài đăng, chú thích.
 - `film-*.ts` — lời thoại và dữ liệu 5 kịch bản; `caption-engine.ts` — phụ đề; `roleplay-rewards.ts` — thưởng.
 - `character.ts`, `hair.ts`, `clothes.ts`, `accessories.ts`, `appearance.ts`, `paint-mix.ts` — nhân vật và phối màu.
-- `game.ts`, `catalog` liên quan trong `src/game`, `powers.ts`, `worldPickups.ts`, `world-toggles.ts` — luật chơi.
+- `game.ts`, `powers.ts`, `worldPickups.ts`, `world-toggles.ts` — luật chơi, quyền năng, vật phẩm rơi trên map.
 - `locale.ts`, `roleplay-ui-en.ts`, `strict-english.generated.ts` — tiếng Việt/Anh; `session.ts`, `auth.ts`, `claims.ts` — phiên và vai trò.
 - `*.test.ts` — bài kiểm thử (Vitest).
 

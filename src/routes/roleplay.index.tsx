@@ -44,6 +44,7 @@ type Lesson = {
   ready: boolean;
   to?: string;
   poster?: string;
+  englishAudio: "dub" | "subtitles";
 };
 
 const LESSONS: Lesson[] = [
@@ -59,6 +60,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/scam-police",
     poster: lesson1Poster.url,
+    englishAudio: "dub",
   },
   {
     id: "ke-giau-mat",
@@ -72,6 +74,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/ke-giau-mat",
     poster: FILM2_POSTER,
+    englishAudio: "dub",
   },
   {
     id: "cyberbully",
@@ -85,6 +88,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/mot-cu-bam",
     poster: FILM3_POSTER,
+    englishAudio: "dub",
   },
   {
     id: "iphone-email",
@@ -98,6 +102,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/iphone-email",
     poster: FILM4_POSTER,
+    englishAudio: "dub",
   },
   {
     id: "ba-ve-lien-ke",
@@ -111,6 +116,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/ba-ve-lien-ke",
     poster: FILM5_POSTER,
+    englishAudio: "dub",
   },
 
 
@@ -125,6 +131,7 @@ const LESSONS: Lesson[] = [
     tag: "Năng lực số",
     gradient: "from-cyan-500 to-blue-700",
     ready: false,
+    englishAudio: "subtitles",
   },
 ];
 
@@ -229,6 +236,11 @@ function RoleplayPage() {
                       >
                         {en ? l.descEn : l.desc}
                       </ExpandableText>
+                      <p className="mt-2 text-[11px] font-black text-primary">
+                        🎧 {l.englishAudio === "dub"
+                          ? (en ? "English dubbing available" : "Có lồng tiếng Anh")
+                          : (en ? "English subtitles available" : "Có phụ đề tiếng Anh")}
+                      </p>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-black px-2 py-1 rounded-full bg-muted">{en ? (l.tag === "An toàn số" ? "Digital safety" : "Digital competence") : l.tag}</span>

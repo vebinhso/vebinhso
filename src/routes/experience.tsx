@@ -61,7 +61,7 @@ function ExperiencePage() {
               className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-cyan-500 to-blue-700 text-white whitespace-normal !leading-tight"
             >
               <span className="text-2xl sm:text-3xl">🤖</span>
-              <span>{en ? "AI CENTER" : "THAM GIA AI"}</span>
+              <span>{en ? "SECURITY CHECK" : "THAM GIA AI"}</span>
               <span className="text-[10px] sm:text-xs font-bold opacity-90">{en ? "AI safety tools" : "Khu vực AI"}</span>
             </Link>
           </div>

@@ -231,19 +231,11 @@ function FilmPage() {
           });
           return;
         }
-        let b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
-        if (!b64) {
-          const pending = pendingRef.current.get(`${locale}:${node.id}`);
-          b64 = pending
-            ? await pending
-            : ((await tts({ data: { text, locale: "vi", ...voiceArgs(node) } })) as { audio: string }).audio;
-          if (b64) cacheRef.current.set(`${locale}:${node.id}`, b64);
-        }
-
+        const b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
         if (cancelled || muted) return;
         window.clearTimeout(lateStart);
         if (!b64) {
-          // Không có giọng AI (hết tín dụng / lỗi) → dùng giọng đọc của trình duyệt
+          // Không chờ tải trong cảnh: đọc ngay nguyên văn thoại Việt bằng giọng trình duyệt.
           speakBrowser();
           return;
         }

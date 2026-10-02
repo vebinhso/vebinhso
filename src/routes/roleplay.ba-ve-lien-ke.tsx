@@ -606,7 +606,9 @@ function FilmPage() {
                     onClick={() =>
                       done && speechDone
                         ? node.next && go(node.next)
-                        : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
+                        : done
+                          ? undefined
+                          : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
                     }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >

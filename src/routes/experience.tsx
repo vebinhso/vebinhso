@@ -12,10 +12,10 @@ export const Route = createFileRoute("/experience")({
       { title: "Trải nghiệm — Vệ Binh Số" },
       {
         name: "description",
-        content: "Chọn trải nghiệm: chơi trò chơi bản đồ hoặc tham gia khu vực AI của Vệ Binh Số.",
+        content: "Chọn trải nghiệm: chơi trò chơi bản đồ hoặc tham gia Trung tâm kiểm tra nguy hiểm số của Vệ Binh Số.",
       },
       { property: "og:title", content: "Trải nghiệm — Vệ Binh Số" },
-      { property: "og:description", content: "Chọn trò chơi hoặc khu vực AI để bắt đầu trải nghiệm." },
+      { property: "og:description", content: "Chọn trò chơi hoặc Trung tâm kiểm tra nguy hiểm số để bắt đầu trải nghiệm." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -61,8 +61,8 @@ function ExperiencePage() {
               className="toy-button w-full !text-sm sm:!text-lg md:!text-xl py-3 sm:py-4 md:py-6 flex flex-col items-center gap-1 bg-gradient-to-br from-cyan-500 to-blue-700 text-white whitespace-normal !leading-tight"
             >
               <span className="text-2xl sm:text-3xl">🤖</span>
-              <span>{en ? "SECURITY CHECK" : "THAM GIA AI"}</span>
-              <span className="text-[10px] sm:text-xs font-bold opacity-90">{en ? "AI safety tools" : "Khu vực AI"}</span>
+              <span>{en ? "SECURITY CHECK" : "TRUNG TÂM KIỂM TRA NGUY HIỂM SỐ"}</span>
+              <span className="text-[10px] sm:text-xs font-bold opacity-90">{en ? "AI safety tools" : "Công cụ kiểm tra an toàn số"}</span>
             </Link>
           </div>
         </div>

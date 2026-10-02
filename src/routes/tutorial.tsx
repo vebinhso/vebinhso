@@ -31,7 +31,7 @@ const SECTIONS: Section[] = [
     steps: [
       step("Đăng nhập lần đầu", "First sign-in", "Đăng nhập xong, bạn sẽ được đưa đến trang tạo nhân vật nếu tài khoản chưa có trang phục đã lưu. Các lần đăng nhập sau sẽ vào thẳng trang chính.", "After signing in, you will create a character only if the account has no saved outfit. Later sign-ins go straight to the home page."),
       step("Tạo và lưu nhân vật", "Create and save your character", "Chọn ngoại hình, tóc và trang phục rồi bấm Lưu. Hãy lưu trước khi vào bản đồ; diện mạo được gắn với tài khoản để dùng trên thiết bị khác.", "Choose appearance, hair, and clothes, then select Save. Your look is linked to your account for use on other devices."),
-      step("Chọn khu vực", "Choose an activity", "Bấm Trải nghiệm để mở Security check, hoặc Chơi ngay để chọn Bản đồ nhà, Lâu đài Ma thuật hay Nhập vai tình huống.", "Select Explore to open Security check, or Play now to choose Home Map, Magic Castle, or Interactive Stories."),
+      step("Chọn khu vực", "Choose an activity", "Bấm Trải nghiệm để mở Trung tâm kiểm tra nguy hiểm số, hoặc Chơi ngay để chọn Bản đồ nhà, Lâu đài Ma thuật hay Nhập vai tình huống.", "Select Explore to open Security check, or Play now to choose Home Map, Magic Castle, or Interactive Stories."),
       step("Ngôn ngữ, âm thanh và va chạm", "Language, sound, and collision", "Mở ⚙️ để đổi Việt/Anh, bật tắt âm thanh, chỉnh âm lượng và chọn nhân vật bị cản bởi đồ vật hay có thể đi xuyên qua.", "Open ⚙️ to switch Vietnamese/English, adjust sound, and choose whether furniture blocks your character."),
     ],
   },
@@ -126,7 +126,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: c("Trung tâm AI / Security check", "Security check"), icon: "🛡️",
+    title: c("Trung tâm kiểm tra nguy hiểm số", "Security check"), icon: "🛡️",
     steps: [
       step("Kiểm tra thật – giả", "Authenticity checks", "Chọn loại cần kiểm tra: tin tức, ảnh/video, liên kết/email, văn bản hoặc số điện thoại. Dán nội dung hay tải tệp rồi chạy kiểm tra.", "Choose news, image/video, link/email, text, or phone number. Paste content or upload a file, then run the check."),
       step("Đọc kết quả", "Read the result", "Xem tỷ lệ rủi ro, kết luận, lập luận, dấu hiệu và cách tự kiểm chứng. Đây là gợi ý hỗ trợ, không thay thế việc kiểm tra từ nguồn đáng tin cậy.", "Review the risk score, conclusion, reasoning, signals, and verification steps. Results support judgment but do not replace trusted sources."),

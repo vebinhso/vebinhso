@@ -4,8 +4,11 @@ import { localize, useLocale } from "@/lib/locale";
 import { FEEDBACK_REASONS, pickScores, type FeedbackReason } from "@/lib/ai-feedback";
 import type { FeedbackKind } from "@/lib/ai-skills";
 import { getMyFeedbackPermissions, submitCheckFeedback } from "@/lib/ai-feedback.functions";
+import { createParentConsentLink } from "@/lib/ai-feedback.functions";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Perms = { role: "student" | "teacher" | "admin"; canAttach: boolean };
+type Perms = { role: "student" | "teacher" | "admin"; canAttach: boolean; consentSource: "class" | "parent_link" | "staff" | null; hasPendingRequest: boolean };
 let permsCache: Promise<Perms> | null = null;
 
 type Props = { kind: FeedbackKind; result: any; input?: string };
@@ -15,11 +18,15 @@ export function CheckFeedback({ kind, result, input }: Props) {
   const t = (vi: string, en: string) => localize(locale, vi, en);
   const fetchPerms = useServerFn(getMyFeedbackPermissions);
   const submit = useServerFn(submitCheckFeedback);
+  const makeConsentLink = useServerFn(createParentConsentLink);
   const [perms, setPerms] = useState<Perms | null>(null);
   const [stage, setStage] = useState<"idle" | "reasons" | "sending" | "done">("idle");
   const [optIn, setOptIn] = useState(false);
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [consentOpen, setConsentOpen] = useState(false);
+  const [consentLink, setConsentLink] = useState("");
+  const [linkBusy, setLinkBusy] = useState(false);
 
   useEffect(() => {
     if (!permsCache) {
@@ -54,6 +61,7 @@ export function CheckFeedback({ kind, result, input }: Props) {
           note: isStaff ? note : null,
           attachedContent: hasInput && optIn ? input! : null,
           studentOptIn: !!isStudent && optIn,
+          signalKey: kind === "link" || kind === "phone" ? input ?? null : null,
         },
       });
       setStage("done");
@@ -104,9 +112,15 @@ export function CheckFeedback({ kind, result, input }: Props) {
         </label>
       )}
       {isStudent && hasInput && perms && !perms.canAttach && (
-        <p className="text-[11px] font-bold text-muted-foreground">
-          {t("Muốn gửi kèm nội dung, phụ huynh cần đồng ý qua thầy cô.", "To attach content, a parent must give consent through your teacher.")}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold text-muted-foreground">
+            {t("Muốn gửi kèm nội dung, em cần xin phép phụ huynh.", "To attach content, ask a parent or guardian for permission.")}
+          </p>
+          <Button type="button" size="sm" variant="outline" onClick={() => setConsentOpen(true)}>
+            {t("Xin phép phụ huynh", "Ask a parent")}
+          </Button>
+          {perms.hasPendingRequest && <span className="text-[11px] font-black text-primary">{t("Đang chờ phản hồi", "Waiting for a response")}</span>}
+        </div>
       )}
       {isStaff && (
         <>
@@ -125,6 +139,34 @@ export function CheckFeedback({ kind, result, input }: Props) {
         </>
       )}
       {err && <p className="text-xs font-bold text-destructive">{err}</p>}
+      <Dialog open={consentOpen} onOpenChange={setConsentOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>{t("Xin phép phụ huynh", "Parent permission")}</DialogTitle></DialogHeader>
+          <p className="text-sm font-bold">{t(
+            "Gửi liên kết này qua Zalo cho cha, mẹ hoặc người giám hộ. Liên kết có hiệu lực 7 ngày.",
+            "Send this link to a parent or guardian. It remains valid for 7 days.",
+          )}</p>
+          {!consentLink ? (
+            <Button type="button" disabled={linkBusy} onClick={async () => {
+              setLinkBusy(true); setErr(null);
+              try { setConsentLink((await makeConsentLink()).url); }
+              catch (e) { setErr((e as Error).message); }
+              finally { setLinkBusy(false); }
+            }}>{linkBusy ? t("Đang tạo…", "Creating…") : t("Tạo liên kết", "Create link")}</Button>
+          ) : (
+            <>
+              <input readOnly value={consentLink} className="w-full rounded-md border bg-muted p-2 text-xs font-bold" />
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" onClick={() => void navigator.clipboard.writeText(consentLink)}>{t("Sao chép", "Copy")}</Button>
+                <Button type="button" variant="outline" onClick={() => {
+                  if (navigator.share) void navigator.share({ title: "Vệ Binh Số", url: consentLink });
+                  else void navigator.clipboard.writeText(consentLink);
+                }}>{t("Chia sẻ", "Share")}</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -102,15 +102,15 @@ function FilmPage() {
   useEffect(() => {
     const n = FILM[FILM_START];
     if (!n || pendingRef.current.get(`${locale}:${n.id}`)) return;
-    if (!en && n.audio) {
+    if (n.audio) {
       const pre = new Audio();
       pre.preload = "auto";
       pre.src = n.audio;
       pre.load();
     }
-    const p = !en && n.audio
+    const p = n.audio
       ? Promise.resolve("")
-      : tts({ data: { text: filmCopy(locale, n.text) ?? n.text, locale, ...voiceArgs(n) } })
+      : tts({ data: { text: n.text, locale: "vi", ...voiceArgs(n) } })
       .then((r) => {
         const a = (r as { audio: string }).audio;
         cacheRef.current.set(`${locale}:${n.id}`, a);
@@ -165,9 +165,10 @@ function FilmPage() {
     let cancelled = false;
     stopAudio();
 
-    const text = filmCopy(locale, node.text) ?? node.text;
+    const text = node.text;
+    const captionText = filmCopy(locale, node.text) ?? node.text;
     const cap = createCaptionEngine(
-      text,
+      captionText,
       (s: string) => setTyped(s),
       () => setDone(true),
     );
@@ -194,7 +195,7 @@ function FilmPage() {
         return;
       }
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = en ? "en-US" : "vi-VN";
+      u.lang = "vi-VN";
       u.rate = meta.rate;
       u.pitch = meta.pitch;
       u.onend = () => {
@@ -214,7 +215,7 @@ function FilmPage() {
     const play = async () => {
       try {
         // Giọng đọc thu sẵn cho cảnh này → dùng nguyên bản, không qua AI
-        if (!en && node.audio) {
+        if (node.audio) {
           window.clearTimeout(lateStart);
           const rec = new Audio(node.audio);
           rec.preload = "auto";
@@ -235,7 +236,7 @@ function FilmPage() {
           const pending = pendingRef.current.get(`${locale}:${node.id}`);
           b64 = pending
             ? await pending
-            : ((await tts({ data: { text, locale, ...voiceArgs(node) } })) as { audio: string }).audio;
+            : ((await tts({ data: { text, locale: "vi", ...voiceArgs(node) } })) as { audio: string }).audio;
           if (b64) cacheRef.current.set(`${locale}:${node.id}`, b64);
         }
 
@@ -287,7 +288,7 @@ function FilmPage() {
 
     upcoming.forEach((n) => {
       if (!cacheRef.current.get(`${locale}:${n.id}`) && !pendingRef.current.get(`${locale}:${n.id}`)) {
-        const p = tts({ data: { text: filmCopy(locale, n.text) ?? n.text, locale, ...voiceArgs(n) } })
+        const p = tts({ data: { text: n.text, locale: "vi", ...voiceArgs(n) } })
           .then((r) => {
             const a = (r as { audio: string }).audio;
             cacheRef.current.set(`${locale}:${n.id}`, a);
@@ -321,13 +322,6 @@ function FilmPage() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId, started, muted]);
-
-  // Chốt an toàn: nếu giọng đọc lỗi/không kết thúc, vẫn cho phim chạy tiếp
-  useEffect(() => {
-    if (!done || speechDone) return;
-    const id = window.setTimeout(() => setSpeechDone(true), 5000);
-    return () => window.clearTimeout(id);
-  }, [done, speechDone]);
 
   useEffect(() => () => stopAudio(), [stopAudio]);
 
@@ -619,7 +613,7 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  done &&
+                  speechDone &&
                   node.choices.map((c) => (
                     <button
                       key={c.next + c.label}
@@ -637,10 +631,10 @@ function FilmPage() {
                   ))
                 ) : (
                   <button
-                    onClick={() => (done ? node.next && go(node.next) : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true)))}
+                    onClick={() => (done && speechDone ? node.next && go(node.next) : done ? undefined : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true)))}
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
-                    {done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
+                    {done && !speechDone ? (en ? "🔊 Speaking…" : "🔊 Đang đọc…") : done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
                   </button>
                 )}
               </div>

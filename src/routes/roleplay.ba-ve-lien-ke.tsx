@@ -572,7 +572,7 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  done && (
+                  speechDone && (
                     <>
                       <div className="flex items-center justify-between">
                         <p className="text-[11px] font-black tracking-widest text-white/70">{en ? "WHAT SHOULD THE FRIENDS DO?" : "3 BẠN NÊN LÀM GÌ?"}</p>

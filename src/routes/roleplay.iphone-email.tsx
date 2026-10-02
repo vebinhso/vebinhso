@@ -188,7 +188,9 @@ function FilmPage() {
       }
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "vi-VN";
-      u.rate = meta.rate;
+      const vietnameseVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLowerCase().startsWith("vi"));
+      if (vietnameseVoice) u.voice = vietnameseVoice;
+      u.rate = Math.min(meta.rate, 0.92);
       u.pitch = meta.pitch;
       u.onend = () => {
         if (cancelled) return;
@@ -252,6 +254,7 @@ function FilmPage() {
         const p = tts({
           data: {
             text: n.text,
+            locale: "vi",
             voice: SPEAKER_META[n.speaker].voice,
             instructions: SPEAKER_META[n.speaker].instructions,
             speed: SPEAKER_META[n.speaker].speed,
@@ -947,7 +950,7 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  speechDone && (
+                  (
                     <>
                       <div className="flex items-center justify-between">
                         <p className="text-[11px] font-black tracking-widest text-white/70">L NÊN LÀM GÌ?</p>
@@ -979,15 +982,11 @@ function FilmPage() {
                 ) : (
                   <button
                     onClick={() =>
-                      done && speechDone
-                        ? node.next && go(node.next)
-                        : done
-                          ? undefined
-                          : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
+                      node.next && go(node.next)
                     }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
-                    {done && !speechDone ? (en ? "🔊 Speaking…" : "🔊 Đang đọc…") : done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
+                    {speechDone ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏭ Skip to next scene" : "⏭ Chuyển cảnh")}
                   </button>
                 )}
               </div>

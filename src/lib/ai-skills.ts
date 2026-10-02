@@ -10,6 +10,16 @@ export const SKILL_KEYS = [
 ] as const;
 export type SkillKey = (typeof SKILL_KEYS)[number];
 
+export const SKILL_FOR_CHECK = {
+  news: "vbs-bao-gia",
+  image: "vbs-hinh-anh-ai",
+  video: "vbs-video-ai",
+  link: "vbs-link-email-gia",
+  email: "vbs-link-email-gia",
+  text: "vbs-van-ban-ai",
+  phone: "vbs-so-dien-thoai-gia",
+} as const satisfies Record<Exclude<CheckKind, "privacy_media" | "privacy_text">, SkillKey>;
+
 export const CHECK_KINDS = [
   "news", "image", "video", "link", "email", "text", "phone", "privacy_media", "privacy_text",
 ] as const;

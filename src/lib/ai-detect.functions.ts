@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { withSkill } from "@/lib/ai-skills";
+import { SKILL_FOR_CHECK, withSkill } from "@/lib/ai-skills";
 import { AI_CATEGORY_LABELS, FORENSIC_PROMPT_BLOCK } from "@/lib/image-forensics";
 import { PHISHING_CATEGORY_LABELS, PHISHING_PROMPT_BLOCK } from "@/lib/phishing-dataset";
 import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
@@ -124,8 +124,8 @@ export const analyzeImage = createServerFn({ method: "POST" })
     return { imageUrl: url, locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("image");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.image);
     const sys = `Bạn là chuyên gia pháp y ảnh số. Bạn phải trả lời HAI câu hỏi tách biệt:
 (1) Ảnh có phải do AI sinh ra không? (2) Ảnh thật có bị chỉnh sửa thủ công kiểu Photoshop (ghép/xoá/thêm vật thể, sửa chữ số) không?
 Phân tích kỹ: bàn tay/ngón tay, răng, mắt, chữ viết trong ảnh, hoa văn lặp, ánh sáng & bóng đổ, kết cấu da, nền méo, viền cắt ghép, khác biệt độ nét/tông màu giữa các vùng, artefact nén, watermark.
@@ -185,8 +185,8 @@ export const analyzeLink = createServerFn({ method: "POST" })
     return { url: u.trim().slice(0, 500), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("link");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.link);
     const sys = `Bạn là hệ thống kiểm tra an toàn đường link (giống Kaspersky / VirusTotal) cho học sinh Việt Nam. Phân tích URL dựa trên: tên miền lạ, đuôi miền rủi ro (.tk .xyz .top .cc), giả mạo thương hiệu (typosquatting: faceb00k, shopee-vn-khuyenmai), dùng link rút gọn, IP thay cho tên miền, quá nhiều subdomain, tham số đáng ngờ, từ khoá lừa đảo (trung thưởng, nap the, kiem tien, otp, xac minh tai khoan), không dùng HTTPS.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","category":"phishing|malware|scam|adult|gambling|shortener|unknown|clean","summary":"1-2 câu tiếng Việt","redFlags":["dấu hiệu nguy hiểm"],"goodSigns":["dấu hiệu an toàn"],"advice":["nên làm gì"]}
@@ -222,8 +222,8 @@ export const analyzeText = createServerFn({ method: "POST" })
     return { text: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("text");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.text);
     const sys = `Bạn là chuyên gia phát hiện văn bản do AI viết VÀ phát hiện tin nhắn lừa đảo trên mạng xã hội Việt Nam (Threads, Facebook/Messenger, Zalo, Instagram, TikTok, Telegram, SMS).
 Chấm ĐỘC LẬP hai việc:
 1) Văn bản do AI viết hay người viết: độ đều của câu, cụm từ sáo rỗng, liệt kê máy móc, thiếu chi tiết cá nhân, giọng trung tính quá mức.
@@ -275,8 +275,8 @@ export const analyzeEmail = createServerFn({ method: "POST" })
     return { content: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("email");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.email);
     const sys = `Bạn là hệ thống phát hiện email giả mạo (phishing / spoofing / BEC) cho học sinh Việt Nam. Người dùng có thể chỉ dán ĐỊA CHỈ EMAIL, hoặc dán cả NỘI DUNG email (tiêu đề, người gửi, thân thư, link đính kèm).
 Hãy phân tích: tên miền người gửi có giống thương hiệu thật không (typosquatting: g00gle, faceb0ok-support, shopee-vn.info), dùng gmail/outlook miễn phí nhưng tự xưng là ngân hàng/công ty, tên hiển thị khác địa chỉ thật, tên miền mới lạ, ký tự lạ/Unicode giả, giọng văn hối thúc – doạ khoá tài khoản, yêu cầu OTP/mật khẩu/số thẻ, link không khớp thương hiệu, tệp đính kèm nguy hiểm (.exe .zip .html), lỗi chính tả, lời chào chung chung ("Kính gửi quý khách").
 
@@ -433,8 +433,8 @@ export const analyzeNews = createServerFn({ method: "POST" })
     return { content: t.trim().slice(0, 6000), locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("news");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.news);
     const headlines = await fetchLatestNews(data.content);
     const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const feedBlock = headlines.length
@@ -510,8 +510,8 @@ export const analyzeVideo = createServerFn({ method: "POST" })
     return { frames: picked, note: typeof data?.note === "string" ? data.note.slice(0, 500) : "", locale: resultLocale(data.locale) };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("video");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.video);
     const sys = `Bạn là chuyên gia pháp y video số, phát hiện video do AI tạo (Sora, Veo, Kling, Runway), deepfake hoán đổi gương mặt, lồng tiếng AI, hoặc video thật nhưng CHỨA nội dung do AI dựng.
 Người dùng gửi nhiều KHUNG HÌNH liên tiếp trích từ một video. Hãy so sánh các khung hình: khuôn mặt có biến dạng/nhấp nháy giữa các khung không, viền mặt – tóc – tai có nhoè hay không khớp, mắt/răng bất thường, tay và ngón tay, chữ trong khung bị loạn, hậu cảnh trôi/biến hình, ánh sáng và bóng đổ không nhất quán, kết cấu da quá mượt, chuyển động vật lý phi thực tế, watermark của công cụ AI.
 Trả về CHÍNH XÁC một JSON (không markdown):
@@ -698,8 +698,8 @@ export const analyzePhone = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("phone");
+    const { loadSkill } = await import("./ai-skills.server");
+    const skill = await loadSkill(SKILL_FOR_CHECK.phone);
     const { lookupPhone } = await import("./phone-vn");
     const info = lookupPhone(data.phone);
     const sys = `Bạn là hệ thống cảnh báo số điện thoại lừa đảo cho học sinh Việt Nam.

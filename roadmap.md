@@ -9,3 +9,4 @@
 - [x] Reduce blocking loads and show visible loading feedback
 - [ ] Validate desktop/mobile, loading, and AI voice
 - [x] Auto-open Actions and Build panels on laptop in both VI/EN
+- [ ] Add a visible English dub/subtitle availability line to each roleplay scenario listing

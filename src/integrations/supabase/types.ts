@@ -37,6 +37,7 @@ export type Database = {
           attached_content: string | null
           check_kind: string
           consent_basis: string | null
+          consent_source: string | null
           content_expires_at: string | null
           created_at: string
           id: string
@@ -54,6 +55,7 @@ export type Database = {
           attached_content?: string | null
           check_kind: string
           consent_basis?: string | null
+          consent_source?: string | null
           content_expires_at?: string | null
           created_at?: string
           id?: string
@@ -71,6 +73,7 @@ export type Database = {
           attached_content?: string | null
           check_kind?: string
           consent_basis?: string | null
+          consent_source?: string | null
           content_expires_at?: string | null
           created_at?: string
           id?: string
@@ -111,6 +114,78 @@ export type Database = {
             referencedColumns: ["key"]
           },
         ]
+      }
+      ai_signal_domains: {
+        Row: {
+          checks_count: number
+          domain: string
+          first_seen_at: string
+          high_count: number
+          last_seen_at: string
+          low_count: number
+          mid_count: number
+          thumbs_down: number
+          thumbs_up: number
+        }
+        Insert: {
+          checks_count?: number
+          domain: string
+          first_seen_at?: string
+          high_count?: number
+          last_seen_at?: string
+          low_count?: number
+          mid_count?: number
+          thumbs_down?: number
+          thumbs_up?: number
+        }
+        Update: {
+          checks_count?: number
+          domain?: string
+          first_seen_at?: string
+          high_count?: number
+          last_seen_at?: string
+          low_count?: number
+          mid_count?: number
+          thumbs_down?: number
+          thumbs_up?: number
+        }
+        Relationships: []
+      }
+      ai_signal_phone_prefixes: {
+        Row: {
+          checks_count: number
+          first_seen_at: string
+          high_count: number
+          last_seen_at: string
+          low_count: number
+          mid_count: number
+          prefix: string
+          thumbs_down: number
+          thumbs_up: number
+        }
+        Insert: {
+          checks_count?: number
+          first_seen_at?: string
+          high_count?: number
+          last_seen_at?: string
+          low_count?: number
+          mid_count?: number
+          prefix: string
+          thumbs_down?: number
+          thumbs_up?: number
+        }
+        Update: {
+          checks_count?: number
+          first_seen_at?: string
+          high_count?: number
+          last_seen_at?: string
+          low_count?: number
+          mid_count?: number
+          prefix?: string
+          thumbs_down?: number
+          thumbs_up?: number
+        }
+        Relationships: []
       }
       ai_skill_versions: {
         Row: {
@@ -837,6 +912,42 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_consents: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          parent_name: string | null
+          responded_at: string | null
+          revoked_at: string | null
+          status: string
+          student_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          parent_name?: string | null
+          responded_at?: string | null
+          revoked_at?: string | null
+          status?: string
+          student_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          parent_name?: string | null
+          responded_at?: string | null
+          revoked_at?: string | null
+          status?: string
+          student_id?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           created_at: string
@@ -1303,6 +1414,14 @@ export type Database = {
         }
       }
       approve_teacher: { Args: { uid: string }; Returns: string }
+      bump_signal_check: {
+        Args: { _bucket: string; _key: string; _table: string }
+        Returns: undefined
+      }
+      bump_signal_rating: {
+        Args: { _key: string; _rating: number; _table: string }
+        Returns: undefined
+      }
       can_coop_build: { Args: { owner: string }; Returns: boolean }
       can_read_classroom_file: {
         Args: { _owner_folder: string }
@@ -1468,6 +1587,10 @@ export type Database = {
       }
       request_teacher: {
         Args: { school: string; subject: string }
+        Returns: undefined
+      }
+      revoke_all_parent_consent: {
+        Args: { _student_id: string }
         Returns: undefined
       }
       set_active_class: { Args: { _class_id: string }; Returns: undefined }

@@ -10,3 +10,4 @@
 - [ ] Validate desktop/mobile, loading, and AI voice
 - [x] Auto-open Actions and Build panels on laptop in both VI/EN
 - [x] Add a visible English dub/subtitle availability line to each roleplay scenario listing
+- [x] Refresh the bilingual player guide with all current gameplay, building, learning, social, and safety features

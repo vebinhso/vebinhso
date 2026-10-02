@@ -503,7 +503,7 @@ function AiPage() {
     setLinkResult(null);
     const r = await withProgress(
       [(en ? "Reading link..." : "Đang đọc đường link..."), (en ? "Checking domain..." : "Đang kiểm tra tên miền..."), (en ? "Scanning for scam signs..." : "Đang dò dấu hiệu lừa đảo..."), (en ? "Calculating risk..." : "Đang chấm điểm rủi ro...")],
-      () => runLink({ data: { url, locale: en ? "en" : "vi" } }),
+      () => runLink({ data: { url, locale: en ? "en" : "vi", source: "user" } }),
     );
     if (r) setLinkResult(r);
   }
@@ -527,7 +527,7 @@ function AiPage() {
     setPhoneResult(null);
     const r = await withProgress(
       [(en ? "Normalizing number..." : "Đang chuẩn hoá số..."), (en ? "Looking up carrier..." : "Đang tra cứu nhà mạng..."), (en ? "Identifying call origin..." : "Đang xác định vùng gọi..."), (en ? "Calculating risk..." : "Đang chấm điểm rủi ro...")],
-      () => runPhone({ data: { phone, context: phoneCtx, locale: en ? "en" : "vi" } }),
+      () => runPhone({ data: { phone, context: phoneCtx, locale: en ? "en" : "vi", source: "user" } }),
     );
     if (r) setPhoneResult(r);
   }
@@ -647,7 +647,7 @@ function AiPage() {
         <div className="glass-card w-full max-w-3xl p-4 sm:p-6">
           <div className="text-center mb-4">
             <div className="text-4xl sm:text-5xl mb-1">🤖</div>
-            <h1 className="text-lg sm:text-2xl font-black">{en ? "AI CENTER" : "TRUNG TÂM AI"}</h1>
+            <h1 className="text-lg sm:text-2xl font-black">{en ? "SECURITY CHECK" : "TRUNG TÂM AI"}</h1>
             <p className="text-xs sm:text-sm font-bold text-foreground">
               {en ? "Check authenticity and detect privacy risks before posting online." : "Kiểm tra thật – giả, và soi rủi ro lộ thông tin trước khi đăng lên mạng."}
             </p>

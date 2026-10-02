@@ -6,9 +6,26 @@ import { CHECK_LABELS_VI, parseSkillMarkdown, type CheckKind } from "@/lib/ai-sk
 import {
   listSkills, upsertSkillMarkdown, setSkillEnabled, listCheckSkills, listSkillVersions,
   type SkillRow, type CheckSkillRow, type SkillVersionRow,
+  listAnonymousSignals, type AnonymousSignalRow,
 } from "@/lib/ai-skills-admin";
 import { CheckSkillMapping, FeedbackBlocks } from "@/components/SkillFeedbackBlocks";
 import { pushAdminLog } from "@/lib/admin";
+
+function signalsCsv(rows: AnonymousSignalRow[]) {
+  return ["key,checks,high,mid,low,thumbs_up,thumbs_down,last_seen", ...rows.map((r) => [r.key, r.checks_count, r.high_count, r.mid_count, r.low_count, r.thumbs_up, r.thumbs_down, r.last_seen_at].map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","))].join("\n");
+}
+
+function downloadSignals(name: string, rows: AnonymousSignalRow[]) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([signalsCsv(rows)], { type: "text/csv;charset=utf-8" }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function SignalTable({ title, rows, filename }: { title: string; rows: AnonymousSignalRow[]; filename: string }) {
+  return <div className="space-y-2"><div className="flex items-center justify-between gap-2"><h4 className="font-black">{title}</h4><button className="toy-button !px-3 !py-1 !text-xs" onClick={() => downloadSignals(filename, rows)}>Tải CSV</button></div><div className="max-h-80 overflow-auto rounded-lg border"><table className="w-full text-xs"><thead className="sticky top-0 bg-muted"><tr><th className="p-2 text-left">Giá trị</th><th>Lượt</th><th>Cao</th><th>Vừa</th><th>Thấp</th><th>👍</th><th>👎</th></tr></thead><tbody>{rows.map((r) => <tr key={r.key} className="border-t"><td className="p-2 font-mono">{r.key}</td><td className="text-center">{r.checks_count}</td><td className="text-center">{r.high_count}</td><td className="text-center">{r.mid_count}</td><td className="text-center">{r.low_count}</td><td className="text-center">{r.thumbs_up}</td><td className="text-center">{r.thumbs_down}</td></tr>)}</tbody></table></div></div>;
+}
 
 function usedFor(key: string, mapping: CheckSkillRow[]): string {
   return mapping
@@ -26,6 +43,7 @@ export function SkillsPanel() {
   const [mapping, setMapping] = useState<CheckSkillRow[]>([]);
   const [versions, setVersions] = useState<SkillVersionRow[]>([]);
   const [versionPick, setVersionPick] = useState<number | null>(null);
+  const [signals, setSignals] = useState<{ domains: AnonymousSignalRow[]; phones: AnonymousSignalRow[]; consentCounts: Record<string, number> } | null>(null);
 
   const reloadMapping = async () => {
     try { setMapping(await listCheckSkills()); }
@@ -51,6 +69,7 @@ export function SkillsPanel() {
     }
   };
   useEffect(() => { void reload(); }, []);
+  useEffect(() => { listAnonymousSignals().then(setSignals).catch((e) => toast.error(`Không tải được dữ liệu ẩn danh: ${(e as Error).message}`)); }, []);
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -100,7 +119,7 @@ export function SkillsPanel() {
           </button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">Skill có hiệu lực trong AI Centre sau tối đa 1 phút.</p>
+      <p className="text-xs text-muted-foreground">Skill có hiệu lực trong Security check sau tối đa 1 phút.</p>
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/60 text-left">
@@ -134,6 +153,10 @@ export function SkillsPanel() {
         </table>
       </div>
       <CheckSkillMapping skills={rows} mapping={mapping} onChanged={() => void reloadMapping()} />
+      <section className="space-y-3 rounded-xl border bg-card p-3">
+        <div><h3 className="text-lg font-black">Dữ liệu ẩn danh</h3><p className="text-xs text-muted-foreground">Chỉ lưu tên miền, đầu số và mức rủi ro tổng hợp; không lưu đường link, số điện thoại hay nội dung người dùng.</p></div>
+        {signals ? <><div className="grid gap-2 sm:grid-cols-3"><div className="rounded-lg bg-muted p-3 font-black">Qua lớp: {signals.consentCounts.class ?? 0}</div><div className="rounded-lg bg-muted p-3 font-black">Qua liên kết: {signals.consentCounts.parent_link ?? 0}</div><div className="rounded-lg bg-muted p-3 font-black">Giáo viên/admin: {signals.consentCounts.staff ?? 0}</div></div><div className="grid gap-4 lg:grid-cols-2"><SignalTable title="50 tên miền được kiểm tra nhiều nhất" rows={signals.domains} filename="ten-mien-an-danh.csv" /><SignalTable title="30 đầu số được kiểm tra nhiều nhất" rows={signals.phones} filename="dau-so-an-danh.csv" /></div></> : <p className="text-sm font-bold">Đang tải…</p>}
+      </section>
       <FeedbackBlocks />
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">

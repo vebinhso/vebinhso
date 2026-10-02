@@ -459,7 +459,7 @@ export const STRICT_ENGLISH_UI: Record<string, string> = {
   "Nhập tên lớp": "Enter Class Name",
   "Nồi cơm điện": "Rice Cooker",
   "Phiên online": "Online Session",
-  "TRUNG TÂM AI": "AI CENTER",
+  "TRUNG TÂM AI": "SECURITY CHECK",
   "Thẻ Lốc Xoáy": "Tornado Card",
   "Tiện ích UI.": "UI Utilities.",
   "Trang chủ /.": "Home /.",

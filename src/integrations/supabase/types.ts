@@ -115,6 +115,196 @@ export type Database = {
           },
         ]
       }
+      ai_eval_cases: {
+        Row: {
+          check_kind: string
+          content: string
+          context: string | null
+          created_at: string
+          grp: string | null
+          id: string
+          label: string
+          set_id: string
+          source: string | null
+        }
+        Insert: {
+          check_kind: string
+          content: string
+          context?: string | null
+          created_at?: string
+          grp?: string | null
+          id?: string
+          label: string
+          set_id: string
+          source?: string | null
+        }
+        Update: {
+          check_kind?: string
+          content?: string
+          context?: string | null
+          created_at?: string
+          grp?: string | null
+          id?: string
+          label?: string
+          set_id?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_eval_cases_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "ai_eval_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_eval_results: {
+        Row: {
+          attempt: number
+          band: string | null
+          case_id: string
+          check_kind: string
+          correct: boolean | null
+          created_at: string
+          detail: Json
+          duration_ms: number | null
+          error: string | null
+          id: string
+          label: string
+          margin: number | null
+          predicted: string | null
+          risk_score: number | null
+          run_id: string
+          skill_key: string | null
+          skill_version: number | null
+        }
+        Insert: {
+          attempt?: number
+          band?: string | null
+          case_id: string
+          check_kind: string
+          correct?: boolean | null
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          label: string
+          margin?: number | null
+          predicted?: string | null
+          risk_score?: number | null
+          run_id: string
+          skill_key?: string | null
+          skill_version?: number | null
+        }
+        Update: {
+          attempt?: number
+          band?: string | null
+          case_id?: string
+          check_kind?: string
+          correct?: boolean | null
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          error?: string | null
+          id?: string
+          label?: string
+          margin?: number | null
+          predicted?: string | null
+          risk_score?: number | null
+          run_id?: string
+          skill_key?: string | null
+          skill_version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_eval_results_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "ai_eval_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_eval_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "ai_eval_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_eval_runs: {
+        Row: {
+          attempts: number
+          created_at: string
+          created_by: string | null
+          finished_at: string | null
+          id: string
+          label: string
+          metrics: Json | null
+          set_id: string
+          skill_snapshot: Json
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          label: string
+          metrics?: Json | null
+          set_id: string
+          skill_snapshot?: Json
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          label?: string
+          metrics?: Json | null
+          set_id?: string
+          skill_snapshot?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_eval_runs_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "ai_eval_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_eval_sets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       ai_signal_domains: {
         Row: {
           checks_count: number

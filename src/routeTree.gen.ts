@@ -36,6 +36,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as PhuHuynhDongYRouteImport } from './routes/phu-huynh.dong-y'
 import { Route as RoleplayIndexRouteImport } from './routes/roleplay.index'
 import { Route as RoleplayBaVeLienKeRouteImport } from './routes/roleplay.ba-ve-lien-ke'
 import { Route as RoleplayIphoneEmailRouteImport } from './routes/roleplay.iphone-email'
@@ -183,6 +184,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhuHuynhDongYRoute = PhuHuynhDongYRouteImport.update({
+  id: '/phu-huynh/dong-y',
+  path: '/phu-huynh/dong-y',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoleplayIndexRoute = RoleplayIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/phu-huynh/dong-y': typeof PhuHuynhDongYRoute
   '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
@@ -295,6 +302,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/phu-huynh/dong-y': typeof PhuHuynhDongYRoute
   '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/phu-huynh/dong-y': typeof PhuHuynhDongYRoute
   '/roleplay/ba-ve-lien-ke': typeof RoleplayBaVeLienKeRoute
   '/roleplay/iphone-email': typeof RoleplayIphoneEmailRoute
   '/roleplay/ke-giau-mat': typeof RoleplayKeGiauMatRoute
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/phu-huynh/dong-y'
     | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/phu-huynh/dong-y'
     | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/auth/callback'
+    | '/phu-huynh/dong-y'
     | '/roleplay/ba-ve-lien-ke'
     | '/roleplay/iphone-email'
     | '/roleplay/ke-giau-mat'
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  PhuHuynhDongYRoute: typeof PhuHuynhDongYRoute
   VisitOwnerIdRoute: typeof VisitOwnerIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -684,6 +697,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/phu-huynh/dong-y': {
+      id: '/phu-huynh/dong-y'
+      path: '/phu-huynh/dong-y'
+      fullPath: '/phu-huynh/dong-y'
+      preLoaderRoute: typeof PhuHuynhDongYRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roleplay/': {
       id: '/roleplay/'
       path: '/'
@@ -801,6 +821,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  PhuHuynhDongYRoute: PhuHuynhDongYRoute,
   VisitOwnerIdRoute: VisitOwnerIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,

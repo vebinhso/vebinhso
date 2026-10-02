@@ -15,7 +15,7 @@ export const Route = createFileRoute("/experience")({
         content: "Chọn trải nghiệm: chơi trò chơi bản đồ hoặc tham gia Trung tâm kiểm tra nguy hiểm số của Vệ Binh Số.",
       },
       { property: "og:title", content: "Trải nghiệm — Vệ Binh Số" },
-      { property: "og:description", content: "Chọn trò chơi hoặc khu vực AI để bắt đầu trải nghiệm." },
+      { property: "og:description", content: "Chọn trò chơi hoặc Trung tâm kiểm tra nguy hiểm số để bắt đầu trải nghiệm." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

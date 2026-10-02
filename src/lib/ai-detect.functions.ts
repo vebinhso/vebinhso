@@ -179,10 +179,10 @@ aiScore = mức độ do AI tạo. editedScore = mức độ chỉnh sửa thủ
 
 /** Kiểm tra đường link có độc hại / lừa đảo không */
 export const analyzeLink = createServerFn({ method: "POST" })
-  .inputValidator((data: { url: string; locale?: ResultLocale }) => {
+  .inputValidator((data: { url: string; locale?: ResultLocale; source?: "user" | "eval" }) => {
     const u = data?.url;
     if (!u || typeof u !== "string" || u.trim().length < 3) throw new Error("Thiếu đường link");
-    return { url: u.trim().slice(0, 500), locale: resultLocale(data.locale) };
+    return { url: u.trim().slice(0, 500), locale: resultLocale(data.locale), source: data.source === "eval" ? "eval" as const : "user" as const };
   })
   .handler(async ({ data }) => {
     const { loadSkill } = await import("./ai-skills.server");
@@ -198,7 +198,7 @@ ${resultLanguage(data.locale)} Nếu không chắc, nói rõ là không chắc v
       ],
       response_format: { type: "json_object" },
     }, ["riskScore"], data.locale);
-    return {
+    const result = {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
       accuracy: parsed.accuracy,
@@ -210,6 +210,17 @@ ${resultLanguage(data.locale)} Nếu không chắc, nói rõ là không chắc v
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
     };
+    if (data.source !== "eval") {
+      try {
+        const [{ registrableDomain, levelBucket }, { supabaseAdmin }] = await Promise.all([
+          import("./ai-signals"),
+          import("@/integrations/supabase/client.server"),
+        ]);
+        const key = registrableDomain(data.url);
+        if (key) await supabaseAdmin.rpc("bump_signal_check", { _table: "domain", _key: key, _bucket: levelBucket(result.riskScore) });
+      } catch { /* Analysis must still succeed when anonymous statistics are unavailable. */ }
+    }
+    return result;
   });
 
 /** Kiểm tra đoạn văn bản có phải do AI viết không */
@@ -686,7 +697,7 @@ Tối đa 8 findings. ${resultLanguage(data.locale)}`;
 
 /** Kiểm tra số điện thoại: nhà mạng, vùng gọi đến, nguy cơ lừa đảo */
 export const analyzePhone = createServerFn({ method: "POST" })
-  .inputValidator((data: { phone: string; context?: string; locale?: ResultLocale }) => {
+  .inputValidator((data: { phone: string; context?: string; locale?: ResultLocale; source?: "user" | "eval" }) => {
     const p = data?.phone;
     if (!p || typeof p !== "string" || p.replace(/\D/g, "").length < 6) {
       throw new Error("Hãy nhập số điện thoại cần kiểm tra");
@@ -695,6 +706,7 @@ export const analyzePhone = createServerFn({ method: "POST" })
       phone: p.trim().slice(0, 30),
       context: typeof data?.context === "string" ? data.context.trim().slice(0, 1500) : "",
       locale: resultLocale(data.locale),
+      source: data.source === "eval" ? "eval" as const : "user" as const,
     };
   })
   .handler(async ({ data }) => {
@@ -729,7 +741,7 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
     );
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_PHONE_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
-    return {
+    const result = {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
       accuracy: parsed.accuracy,
@@ -754,4 +766,15 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
       goodSigns: strArr(parsed.goodSigns),
       advice: strArr(parsed.advice),
     };
+    if (data.source !== "eval") {
+      try {
+        const [{ phonePrefix, levelBucket }, { supabaseAdmin }] = await Promise.all([
+          import("./ai-signals"),
+          import("@/integrations/supabase/client.server"),
+        ]);
+        const key = phonePrefix(data.phone);
+        if (key) await supabaseAdmin.rpc("bump_signal_check", { _table: "phone", _key: key, _bucket: levelBucket(result.riskScore) });
+      } catch { /* Analysis must still succeed when anonymous statistics are unavailable. */ }
+    }
+    return result;
   });

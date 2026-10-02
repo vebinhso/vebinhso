@@ -109,7 +109,8 @@ function FilmPage() {
     if (!n || pendingRef.current.get(`${locale}:${n.id}`)) return;
     const p = tts({
       data: {
-        text: filmCopy(locale, n.text) ?? n.text,
+        text: n.text,
+        locale: "vi",
         voice: SPEAKER_META[n.speaker].voice,
         instructions: SPEAKER_META[n.speaker].instructions,
         speed: SPEAKER_META[n.speaker].speed,
@@ -127,24 +128,8 @@ function FilmPage() {
     pendingRef.current.set(`${locale}:${n.id}`, p);
   }, [locale, tts]);
 
-  // Bấm BẮT ĐẦU: chờ giọng đọc + hình cảnh đầu sẵn sàng (tối đa 4s) rồi mới vào phim
-  const beginFilm = useCallback(async () => {
-    setPreparing(true);
-    const n = FILM[FILM_START];
-    const waits: Promise<unknown>[] = [];
-    const pending = pendingRef.current.get(`${locale}:${n.id}`);
-    if (pending) waits.push(pending);
-    if (n.image) {
-      waits.push(
-        new Promise<void>((res) => {
-          const im = new Image();
-          im.onload = () => res();
-          im.onerror = () => res();
-          im.src = n.image;
-        }),
-      );
-    }
-    await Promise.race([Promise.all(waits), new Promise((res) => window.setTimeout(res, 1500))]);
+  // Vào cảnh ngay sau thao tác của người chơi; giọng Việt đã được tải sẵn ở màn hình poster.
+  const beginFilm = useCallback(() => {
     setPreparing(false);
     setStarted(true);
   }, []);
@@ -174,9 +159,10 @@ function FilmPage() {
     let cancelled = false;
     stopAudio();
 
-    const text = filmCopy(locale, node.text) ?? node.text;
+    const text = node.text;
+    const captionText = filmCopy(locale, node.text) ?? node.text;
     const cap = createCaptionEngine(
-      text,
+      captionText,
       (s: string) => setTyped(s),
       () => setDone(true),
     );
@@ -201,7 +187,7 @@ function FilmPage() {
         return;
       }
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = en ? "en-US" : "vi-VN";
+      u.lang = "vi-VN";
       u.rate = meta.rate;
       u.pitch = meta.pitch;
       u.onend = () => {
@@ -220,23 +206,11 @@ function FilmPage() {
 
     const play = async () => {
       try {
-        let b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
-        if (!b64) {
-          const pending = pendingRef.current.get(`${locale}:${node.id}`);
-          b64 = pending
-            ? await pending
-            : (
-                (await tts({
-                  data: { text, locale, voice: meta.voice, instructions: meta.instructions, speed: meta.speed },
-                })) as { audio: string }
-              ).audio;
-          if (b64) cacheRef.current.set(`${locale}:${node.id}`, b64);
-        }
-
+        const b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
         if (cancelled || muted) return;
         window.clearTimeout(lateStart);
         if (!b64) {
-          // Không có giọng AI (hết tín dụng / lỗi) → giọng đọc trình duyệt
+          // Không để khoảng lặng trong cảnh: đọc ngay thoại Việt bằng giọng trình duyệt.
           speakBrowser();
           return;
         }
@@ -277,7 +251,7 @@ function FilmPage() {
       if (!cacheRef.current.get(`${locale}:${n.id}`) && !pendingRef.current.get(`${locale}:${n.id}`)) {
         const p = tts({
           data: {
-            text: filmCopy(locale, n.text) ?? n.text,
+            text: n.text,
             voice: SPEAKER_META[n.speaker].voice,
             instructions: SPEAKER_META[n.speaker].instructions,
             speed: SPEAKER_META[n.speaker].speed,
@@ -314,11 +288,6 @@ function FilmPage() {
     };
   }, [en, locale, meta, muted, node, started, stopAudio, tts]);
 
-  useEffect(() => {
-    if (!done || speechDone) return;
-    const id = window.setTimeout(() => setSpeechDone(true), 5000);
-    return () => window.clearTimeout(id);
-  }, [done, speechDone]);
 
   useEffect(() => () => stopAudio(), [stopAudio]);
 
@@ -978,7 +947,7 @@ function FilmPage() {
 
               <div className="mt-2 space-y-2">
                 {node.choices ? (
-                  done && (
+                  speechDone && (
                     <>
                       <div className="flex items-center justify-between">
                         <p className="text-[11px] font-black tracking-widest text-white/70">L NÊN LÀM GÌ?</p>
@@ -1010,13 +979,15 @@ function FilmPage() {
                 ) : (
                   <button
                     onClick={() =>
-                      done
+                      done && speechDone
                         ? node.next && go(node.next)
-                        : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
+                        : done
+                          ? undefined
+                          : (capRef.current?.finishNow(), setTyped(filmCopy(locale, node.text) ?? node.text), setDone(true))
                     }
                     className="w-full rounded-xl px-4 py-2.5 font-black text-sm bg-white/90 text-black"
                   >
-                    {done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
+                    {done && !speechDone ? (en ? "🔊 Speaking…" : "🔊 Đang đọc…") : done ? (en ? "▶ Continue" : "▶ Tiếp tục") : (en ? "⏩ Show full caption" : "⏩ Bỏ qua hiệu ứng chữ")}
                   </button>
                 )}
               </div>

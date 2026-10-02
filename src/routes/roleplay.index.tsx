@@ -44,7 +44,7 @@ type Lesson = {
   ready: boolean;
   to?: string;
   poster?: string;
-  englishAudio: "dub" | "subtitles";
+  englishAudio: "subtitles";
 };
 
 const LESSONS: Lesson[] = [
@@ -60,7 +60,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/scam-police",
     poster: lesson1Poster.url,
-    englishAudio: "dub",
+    englishAudio: "subtitles",
   },
   {
     id: "ke-giau-mat",
@@ -74,7 +74,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/ke-giau-mat",
     poster: FILM2_POSTER,
-    englishAudio: "dub",
+    englishAudio: "subtitles",
   },
   {
     id: "cyberbully",
@@ -88,7 +88,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/mot-cu-bam",
     poster: FILM3_POSTER,
-    englishAudio: "dub",
+    englishAudio: "subtitles",
   },
   {
     id: "iphone-email",
@@ -102,7 +102,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/iphone-email",
     poster: FILM4_POSTER,
-    englishAudio: "dub",
+    englishAudio: "subtitles",
   },
   {
     id: "ba-ve-lien-ke",
@@ -116,7 +116,7 @@ const LESSONS: Lesson[] = [
     ready: true,
     to: "/roleplay/ba-ve-lien-ke",
     poster: FILM5_POSTER,
-    englishAudio: "dub",
+    englishAudio: "subtitles",
   },
 
 
@@ -237,9 +237,7 @@ function RoleplayPage() {
                         {en ? l.descEn : l.desc}
                       </ExpandableText>
                       <p className="mt-2 text-[11px] font-black text-primary">
-                        🎧 {l.englishAudio === "dub"
-                          ? (en ? "English dubbing available" : "Có lồng tiếng Anh")
-                          : (en ? "English subtitles available" : "Có phụ đề tiếng Anh")}
+                        🎧 {en ? "English subtitles ready" : "Phụ đề tiếng Anh sẵn sàng"}
                       </p>
                     </div>
                     <div className="flex items-center justify-between gap-2">

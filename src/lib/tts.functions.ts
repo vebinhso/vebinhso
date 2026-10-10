@@ -34,7 +34,9 @@ export const speakLine = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           model: "google/gemini-3.1-flash-tts-preview",
-          contents: [{ role: "user", parts: [{ text: `${data.locale === "en" ? "Speak naturally in clear English" : "Đọc tự nhiên bằng tiếng Việt"}${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}` }] }],
+          contents: [{ role: "user", parts: [{ text: data.locale === "en"
+            ? `Speak naturally in clear English${data.instructions ? `, with this direction: ${data.instructions}` : ""}: ${data.text}`
+            : `Hãy đọc to bằng tiếng Việt chuẩn, giọng người Việt bản xứ, phát âm rõ ràng từng chữ, đúng dấu thanh, tốc độ vừa phải, không pha giọng nước ngoài. Chỉ đọc ĐÚNG NGUYÊN VĂN phần lời thoại, không thêm, bỏ hay dịch chữ nào, không đọc phần hướng dẫn.${data.instructions ? `\nHướng dẫn diễn xuất (không đọc): ${data.instructions}` : ""}\nLời thoại: ${data.text}` }] }],
           generationConfig: {
             responseModalities: ["AUDIO"],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },

@@ -176,7 +176,12 @@ function FilmPage() {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "vi-VN";
       const vietnameseVoice = window.speechSynthesis.getVoices().find((voice) => voice.lang.toLowerCase().startsWith("vi"));
-      if (vietnameseVoice) u.voice = vietnameseVoice;
+      if (!vietnameseVoice) {
+        // Không có giọng Việt trên máy: không đọc bằng giọng nước ngoài, chỉ chạy phụ đề.
+        cap.startTimer(() => setSpeechDone(true));
+        return;
+      }
+      u.voice = vietnameseVoice;
       u.rate = Math.min(meta.rate, 0.92);
       u.pitch = meta.pitch;
       u.onend = () => {

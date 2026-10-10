@@ -10,7 +10,6 @@ import {
 } from "@/lib/ai-skills-admin";
 import { CheckSkillMapping, FeedbackBlocks } from "@/components/SkillFeedbackBlocks";
 import { pushAdminLog } from "@/lib/admin";
-import { EvalPanel } from "@/components/EvalPanel";
 
 function signalsCsv(rows: AnonymousSignalRow[]) {
   return ["key,checks,high,mid,low,thumbs_up,thumbs_down,last_seen", ...rows.map((r) => [r.key, r.checks_count, r.high_count, r.mid_count, r.low_count, r.thumbs_up, r.thumbs_down, r.last_seen_at].map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","))].join("\n");
@@ -159,7 +158,6 @@ export function SkillsPanel() {
         {signals ? <><div className="grid gap-2 sm:grid-cols-3"><div className="rounded-lg bg-muted p-3 font-black">Qua lớp: {signals.consentCounts.class ?? 0}</div><div className="rounded-lg bg-muted p-3 font-black">Qua liên kết: {signals.consentCounts.parent_link ?? 0}</div><div className="rounded-lg bg-muted p-3 font-black">Giáo viên/admin: {signals.consentCounts.staff ?? 0}</div></div><div className="grid gap-4 lg:grid-cols-2"><SignalTable title="50 tên miền được kiểm tra nhiều nhất" rows={signals.domains} filename="ten-mien-an-danh.csv" /><SignalTable title="30 đầu số được kiểm tra nhiều nhất" rows={signals.phones} filename="dau-so-an-danh.csv" /></div></> : <p className="text-sm font-bold">Đang tải…</p>}
       </section>
       <FeedbackBlocks />
-      <EvalPanel />
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>

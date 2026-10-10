@@ -10,4 +10,3 @@
 - Aggregate link and phone safety signals store only normalized domains or prefixes and coarse risk buckets, never raw user input.
 - Render the playable and dressing-room avatar through one shared chibi character assembly, so body proportions, garment silhouettes and patterns stay identical everywhere.
 - Determine first-time character setup from the account-scoped character_outfit row, never device storage, so returning users skip setup on every device.
-- Skill evaluation runs call the exact production analyze* server functions from the admin client (source "eval") and store results only in admin-only ai_eval_* tables, with scoring computed server-side from shared src/lib/ai-eval.ts, so metrics reflect what students get.

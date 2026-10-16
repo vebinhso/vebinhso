@@ -143,15 +143,21 @@ function RoleplayPage() {
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const u = getCurrentUser();
-    if (!u) {
-      navigate({ to: "/login" });
-      return;
-    }
-    setUser(u);
-    const map: Record<string, boolean> = {};
-    for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
-    setClaimed(map);
+    let alive = true;
+    const apply = (u: Account) => {
+      setUser(u);
+      const map: Record<string, boolean> = {};
+      for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
+      setClaimed(map);
+    };
+    const cached = getCurrentUser();
+    if (cached) { apply(cached); return; }
+    resolveCurrentUser().then((u) => {
+      if (!alive) return;
+      if (u) apply(u);
+      else window.location.assign("/login");
+    });
+    return () => { alive = false; };
   }, [navigate]);
 
   // Show the lesson list immediately; warm posters in the background.

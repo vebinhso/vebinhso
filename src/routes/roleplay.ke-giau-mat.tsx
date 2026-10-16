@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, resolveCurrentUser } from "@/lib/auth";
 import { speakLine } from "@/lib/tts.functions";
 import { createCaptionEngine, type CaptionEngine } from "@/lib/caption-engine";
 import { useLocale } from "@/lib/locale";
@@ -94,7 +94,7 @@ function FilmPage() {
   const visual = node.video ? { src: node.video, type: "video" as const } : { src: node.image, type: "image" as const };
 
   useEffect(() => {
-    if (!getCurrentUser()) navigate({ to: "/login" });
+    if (!getCurrentUser()) void resolveCurrentUser().then((u) => { if (!u) navigate({ to: "/login" }); });
   }, [navigate]);
 
   useEffect(() => {

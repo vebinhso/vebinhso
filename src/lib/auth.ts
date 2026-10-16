@@ -39,6 +39,19 @@ export function getCurrentUser(): Account | null {
   return CURRENT;
 }
 
+/** Cached user, or wait for the session to restore (max ~4s) before giving up. */
+export async function resolveCurrentUser(timeoutMs = 4000): Promise<Account | null> {
+  if (CURRENT) return CURRENT;
+  try {
+    return await Promise.race([
+      hydrateFromSession(),
+      new Promise<Account | null>((r) => setTimeout(() => r(CURRENT), timeoutMs)),
+    ]);
+  } catch {
+    return CURRENT;
+  }
+}
+
 export function setCurrentUserCache(a: Account | null) {
   CURRENT = a;
   persist();

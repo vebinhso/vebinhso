@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ExpandableText } from "@/components/ExpandableText";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
-import { getCurrentUser, type Account } from "@/lib/auth";
+import { getCurrentUser, resolveCurrentUser, type Account } from "@/lib/auth";
 import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";
@@ -143,15 +143,21 @@ function RoleplayPage() {
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const u = getCurrentUser();
-    if (!u) {
-      navigate({ to: "/login" });
-      return;
-    }
-    setUser(u);
-    const map: Record<string, boolean> = {};
-    for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
-    setClaimed(map);
+    let alive = true;
+    const apply = (u: Account) => {
+      setUser(u);
+      const map: Record<string, boolean> = {};
+      for (const l of LESSONS) if (l.ready) map[l.id] = hasClaimed("start", l.id);
+      setClaimed(map);
+    };
+    const cached = getCurrentUser();
+    if (cached) { apply(cached); return; }
+    resolveCurrentUser().then((u) => {
+      if (!alive) return;
+      if (u) apply(u);
+      else window.location.assign("/login");
+    });
+    return () => { alive = false; };
   }, [navigate]);
 
   // Show the lesson list immediately; warm posters in the background.

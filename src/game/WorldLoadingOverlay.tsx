@@ -13,17 +13,23 @@ export function WorldLoadingOverlay({ label }: { label?: string }) {
   const [hidden, setHidden] = useState(false);
   const [finished, setFinished] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const w = window as unknown as { __worldReady?: boolean };
+    w.__worldReady = false;
+    const on = () => setReady(true);
+    window.addEventListener("world-ready", on);
+    return () => window.removeEventListener("world-ready", on);
+  }, []);
 
   // Nếu một tài nguyên lỗi hoặc mạng chậm, không được kẹt màn hình tải mãi.
   useEffect(() => {
-    const id = window.setTimeout(() => setTimedOut(true), 4000);
+    const id = window.setTimeout(() => setTimedOut(true), 20000);
     return () => window.clearTimeout(id);
   }, []);
 
-  const done =
-    timedOut ||
-    (errors?.length ?? 0) > 0 ||
-    (!active && (total === 0 || loaded >= total));
+  const assetsDone = (errors?.length ?? 0) > 0 || (!active && (total === 0 || loaded >= total));
+  const done = timedOut || (assetsDone && ready);
 
   useEffect(() => {
     if (!done) return;
@@ -33,7 +39,7 @@ export function WorldLoadingOverlay({ label }: { label?: string }) {
   }, [done]);
 
   if (hidden) return null;
-  const pct = finished ? 100 : total === 0 ? 30 : Math.min(99, Math.max(5, Math.floor((loaded / Math.max(1,total)) * 100)));
+  const pct = finished ? 100 : !assetsDone ? (total === 0 ? 30 : 0) || Math.floor((loaded / Math.max(1,total)) * 90) : ready ? 99 : 92; void 0; const _unused = total === 0 ? 30 : Math.min(99, Math.max(5, Math.floor((loaded / Math.max(1,total)) * 100)));
 
 
   return (

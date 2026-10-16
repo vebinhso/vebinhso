@@ -64,3 +64,42 @@ Do not put passwords, OTPs, full personal phone numbers, personal addresses, acc
 ## Important limitation
 
 Adding skill instructions is retrieval/prompt knowledge, not model-weight training. A true fine-tuning job would require an approved training dataset, an available fine-tuning interface/model, train/validation separation, and a separate evaluation and deployment process.
+
+
+## Additional Vietnamese sources reviewed
+
+These articles were reviewed for defensive patterns and are **not copied wholesale into a training corpus**. The guidance below is a synthesis of their warning signs and recommended verification steps.
+
+- Pháp luật & Sức khỏe đời sống, “Cảnh giác bẫy 'combo du lịch giá rẻ'…”: https://phapluat.suckhoedoisong.vn/canh-giac-bay-combo-du-lich-gia-re-nhieu-chieu-lua-tinh-vi-khien-du-khach-mat-trang-tien-dat-coc-272609.html
+  - Patterns: unusually low prices, pressure to transfer quickly, fake/renamed social pages, staged comments, booking codes that only hold a reservation, extra “verification” fees, lookalike booking sites.
+  - Defensive checks: contact the airline/hotel using independently found official contact details; confirm that booking/payment is complete; compare prices and booking status with official channels.
+- Thời báo Ngân hàng, “Bẫy tình cảm trên không gian mạng”: https://thoibaonganhang.vn/bay-tinh-cam-tren-khong-gian-mang-180781.html
+  - Patterns: rapidly built trust, fabricated identity/story, requests for money, investment pitches, extra tax/fee to withdraw funds, cutting contact after receiving money.
+  - Defensive checks: do not send money or private images to an unverified online contact; ask a trusted adult/person for a second opinion; verify identity independently.
+- Nhân Dân, “Cảnh giác chiêu trò giả mạo hoàn tiền và đơn hàng”: https://nhandan.vn/canh-giac-chieu-tro-gia-mao-hoan-tien-va-don-hang-post955578.html
+  - Patterns: impersonating a marketplace or delivery service, fake refund/order issue, suspicious link or app, asking for bank login details or OTP.
+  - Defensive checks: open the official app independently, never share OTP/password, do not install an unknown app to receive a refund.
+- ChongLuaDao, investigation into the Haotian AI deepfake network: https://chongluadao.vn/posts/chong-lua-dao-tham-gia-dieu-tra-mang-luoi-deepfake-haotian-ai-tai-dong-nam-a
+  - Patterns: real-time face-swapping used to impersonate someone on video calls and support romance/investment scams.
+  - Defensive checks: a realistic video is not proof of identity; verify urgent requests through a separate known channel. Deepfake detectors and visual “tests” can be wrong.
+- Facebook share post: https://www.facebook.com/share/p/1E3nc4ZbLM/
+  - The post could not be independently read from the supplied share link, so it is recorded as **pending review**, not treated as ingested evidence.
+
+## How the new sources are used
+
+The migration adds compact, safety-oriented guidance to existing skill prompts for suspicious text, links, phone calls, images and videos. It does not store full articles or claim article-level model training. These are general indicators to investigate, not automatic rules: a low price, romantic language, a blue check, a booking code, or a video artifact alone is not enough to label a person or message as fraudulent.
+
+## Small synthetic evaluation set
+
+Use the following cases as **initial manual evaluation examples only**. They are fictional, should not be represented as real incidents, and are not yet a fine-tuning dataset. Reviewers should check whether the assistant explains the signals, recommends independent verification, avoids asking for sensitive information, and expresses uncertainty where evidence is incomplete.
+
+| Case ID | Scenario | Expected response |
+|---|---|---|
+| SYN-TRAVEL-01 | A social page offers a resort package far below normal price, demands an immediate transfer to a personal account, and says only one place remains. | Flag elevated risk; verify price and booking directly with the resort using independently found contact details; do not transfer under pressure. |
+| SYN-REFUND-01 | A text says a parcel refund is waiting and asks the recipient to follow a link and enter bank login and OTP. | Flag high risk; do not open the link or share OTP; check the order in the official app. |
+| SYN-ROMANCE-01 | An online contact quickly professes love, then asks for an “investment deposit” and says the funds can only be withdrawn after paying a tax. | Explain romance/investment scam indicators; do not pay; consult a trusted person and verify independently. |
+| SYN-DEEPFAKE-01 | A video call appears to show a relative asking urgently for money and secrecy. | Do not treat the video alone as proof; call the relative on a known number or verify with another trusted person before acting. |
+| SYN-BENIGN-01 | An official travel company lists a package at a normal price and the user independently opens its official website to check terms; no sensitive data or urgent payment is requested. | Do not label it a scam without evidence; recommend normal verification and clearly state uncertainty. |
+| SYN-UNCERTAIN-01 | A friend shares a screenshot of a “refund” but the original sender, URL and order details are missing. | Mark uncertain; ask for non-sensitive context or advise checking the official app, without requesting account numbers, passwords or OTPs. |
+
+For real training or fine-tuning, create a larger approved dataset with many independent examples per category, verified labels, privacy redaction, rights/terms review, and separate train/validation/test splits. Do not train on article text copied without permission or on private messages containing personal data. Keep the evaluation set separate from training data to avoid inflated scores.

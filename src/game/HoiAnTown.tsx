@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getVisitableHouse } from "@/lib/friend-houses.functions";
@@ -389,6 +389,13 @@ const Surroundings = memo(function Surroundings({ streetTrees }: { streetTrees: 
   );
 });
 
+const STREET_TREES: [number, number][] = (() => {
+  const t: [number, number][] = [];
+  for (let x = -EXT + 10; x < EXT; x += 18) if (Math.abs(Math.abs(x) - SIDE_X) > 7 && Math.abs(x) > 8) t.push([x + 3, MAIN_Z + 4.6]);
+  for (let z = BACK_Z - 28; z < MAIN_Z - 10; z += 18) if (Math.abs(z - BACK_Z) > 7) { t.push([-SIDE_X + 4.6, z + 6]); t.push([SIDE_X - 4.6, z + 6]); }
+  return t;
+})();
+
 function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; to: number }) {
   const len = to - from;
   const mid = (from + to) / 2;
@@ -696,9 +703,7 @@ export const HoiAnTown = memo(function HoiAnTown({
     { x: SIDE_X + 4.3, z: BACK_Z - 32, a: "Nguyễn Huệ" },
   ];
 
-  const streetTrees: [number, number][] = [];
-  for (let x = -EXT + 10; x < EXT; x += 18) if (Math.abs(Math.abs(x) - SIDE_X) > 7 && Math.abs(x) > 8) streetTrees.push([x + 3, MAIN_Z + 4.6]);
-  for (let z = BACK_Z - 28; z < MAIN_Z - 10; z += 18) if (Math.abs(z - BACK_Z) > 7) { streetTrees.push([-SIDE_X + 4.6, z + 6]); streetTrees.push([SIDE_X - 4.6, z + 6]); }
+  const streetTrees = STREET_TREES;
 
   return (
     <group>

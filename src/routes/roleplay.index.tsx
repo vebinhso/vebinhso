@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ExpandableText } from "@/components/ExpandableText";
 import { GameLayout } from "@/components/GameLayout";
 import { useEffect, useState } from "react";
-import { getCurrentUser, type Account } from "@/lib/auth";
+import { getCurrentUser, resolveCurrentUser, type Account } from "@/lib/auth";
 import lesson1Poster from "@/assets/lesson1-poster.png.asset.json";
 import { FILM_POSTER as FILM2_POSTER } from "@/lib/film-scam-police-2";
 import { FILM_POSTER as FILM3_POSTER } from "@/lib/film-3";

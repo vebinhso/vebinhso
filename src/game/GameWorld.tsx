@@ -14,7 +14,7 @@ import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey, clearInput, installInputGuards, isTypingTarget } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
-import { RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
+import { RIVER_CENTER_Z, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
 export const fpState = { on: false, yaw: 0, pitch: 0, teleport: false };
@@ -139,7 +139,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     // Giật lag: kẹp bước thời gian để nhân vật không văng xa.
     const dt = Math.min(rawDt, 0.05);
     const k = playerInput;
-    const speed = 6;
+    const swimNow = activeFloor === 0 && ref.current.position.z < RIVER_NEAR_BANK_Z - 1.8;
+    const speed = swimNow ? 3.2 : 6;
     const camDir = new THREE.Vector3();
     camera.getWorldDirection(camDir);
     camDir.y = 0; camDir.normalize();
@@ -211,12 +212,22 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     if (legL.current) { legL.current.rotation.x = kneeling ? -1.25 : -swing; legL.current.position.y = kneeling ? 0.3 : 0.58; legL.current.position.z = kneeling ? 0.18 : 0; }
     if (legR.current) { legR.current.rotation.x = kneeling ? -1.25 : swing; legR.current.position.y = kneeling ? 0.3 : 0.58; legR.current.position.z = kneeling ? 0.18 : 0; }
     if (body.current) { body.current.position.y = kneeling ? -0.24 : 0; body.current.rotation.x = kneeling ? 0.18 : 0; }
+    if (swimNow && !kneeling) {
+      const t = walkPhase.current;
+      const stroke = Math.sin(t * 0.8) * 1.4;
+      if (armL.current) armL.current.rotation.x = -2.4 + stroke;
+      if (armR.current) armR.current.rotation.x = -2.4 - stroke;
+      if (legL.current) { legL.current.rotation.x = 0.5 + Math.sin(t * 1.6) * 0.45; legL.current.position.y = 0.58; legL.current.position.z = 0; }
+      if (legR.current) { legR.current.rotation.x = 0.5 - Math.sin(t * 1.6) * 0.45; legR.current.position.y = 0.58; legR.current.position.z = 0; }
+      if (body.current) { body.current.position.y = 0.15 + Math.sin(performance.now() / 300) * 0.05; body.current.rotation.x = 1.05; }
+    }
     if (kneeling) ref.current.rotation.y = Math.atan2(riverPoseState.targetX - ref.current.position.x, riverPoseState.targetZ - ref.current.position.z);
 
-    if (k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
+    const groundY = swimNow ? floorY - 0.75 : floorY;
+    if (!swimNow && k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
     yVel.current -= 18 * dt;
     ref.current.position.y += yVel.current * dt;
-    if (ref.current.position.y <= floorY) { ref.current.position.y = floorY; yVel.current = 0; grounded.current = true; }
+    if (ref.current.position.y <= groundY) { ref.current.position.y = groundY; yVel.current = 0; grounded.current = true; }
 
     // Vào chế độ Xem nhà: đưa nhân vật ra trước cửa nhà mình, nhìn vào nhà
     if (fpState.teleport) { ref.current.position.x = 0; ref.current.position.z = 13; fpState.teleport = false; }
@@ -224,7 +235,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     const plotHalf = 20 / 2 - 0.4;
     const limit = activeFloor > 0 ? plotHalf : WORLD / 2 - 0.5;
     ref.current.position.x = THREE.MathUtils.clamp(ref.current.position.x, -limit, limit);
-    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, activeFloor === 0 ? RIVER_NEAR_BANK_Z + 2 : -limit, limit);
+    ref.current.position.z = THREE.MathUtils.clamp(ref.current.position.z, activeFloor === 0 ? RIVER_CENTER_Z - 9 : -limit, limit);
 
     // Va chạm pickup (chỉ ở tầng trệt)
     if (activeFloor === 0 && pickups && onPickup) {

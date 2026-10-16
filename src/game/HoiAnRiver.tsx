@@ -232,6 +232,35 @@ function RiverRipples() {
   );
 }
 
+const DOCK_WOOD = new THREE.MeshStandardMaterial({ color: "#7a4e2d", roughness: 0.9 });
+const DOCK_POST = new THREE.MeshStandardMaterial({ color: "#4a2f1a", roughness: 0.95 });
+const DOCK_GLOW = new THREE.MeshStandardMaterial({ color: "#fbbf24", emissive: "#f59e0b", emissiveIntensity: 1.4 });
+/** Bến thả đèn ở mỗi chỗ phố ra sông (x = trục đường). */
+export const LANTERN_DOCK_XS = [-60, -30, 4, 30, 60] as const;
+function LanternDock({ x, onRelease }: { x: number; onRelease?: (x: number, z: number) => void }) {
+  const tipZ = RIVER_NEAR_BANK_Z - 6;
+  const release = (e: { stopPropagation: () => void }) => { e.stopPropagation(); onRelease?.(x, tipZ - 1.2); };
+  return (
+    <group position={[x, 0, 0]} onClick={release}>
+      <mesh geometry={BOX} material={DOCK_WOOD} position={[0, 0.32, RIVER_NEAR_BANK_Z - 3]} scale={[2.6, 0.14, 6.5]} />
+      {[-1.15, 1.15].flatMap((dx) => [-0.6, -3, -5.8].map((dz) => (
+        <mesh key={`${dx}${dz}`} geometry={BOX} material={DOCK_POST} position={[dx, 0.1, RIVER_NEAR_BANK_Z + dz]} scale={[0.22, 1, 0.22]} />
+      )))}
+      {[-1.15, 1.15].map((dx) => (
+        <group key={dx} position={[dx, 0, tipZ + 0.2]}>
+          <mesh geometry={BOX} material={DOCK_POST} position={[0, 1.1, 0]} scale={[0.12, 1.6, 0.12]} />
+          <mesh material={DOCK_GLOW} position={[0, 1.95, 0]}><sphereGeometry args={[0.22, 12, 10]} /></mesh>
+          <pointLight position={[0, 1.95, 0]} color="#fbbf24" intensity={2} distance={6} />
+        </group>
+      ))}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, tipZ - 1.2]}>
+        <ringGeometry args={[0.7, 0.95, 28]} />
+        <primitive object={DOCK_GLOW} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
 export const HoiAnRiver = memo(function HoiAnRiver({
   releasedLanterns,
   onStartQuiz,
@@ -255,6 +284,7 @@ export const HoiAnRiver = memo(function HoiAnRiver({
       <RiverRipples />
       <AmbientLanterns />
       <QuizBoard onStartQuiz={onStartQuiz} />
+      {LANTERN_DOCK_XS.map((x) => <LanternDock key={x} x={x} onRelease={onReleaseLantern} />)}
       <RowBoat position={[-26, 0.15, RIVER_CENTER_Z - 1]} rotation={Math.PI / 2.15} scale={1.1} />
       <RowBoat position={[25, 0.15, RIVER_CENTER_Z + 2.5]} rotation={Math.PI / 2.5} scale={0.9} />
       {Array.from({ length: 25 }).map((_, i) => <FarHouse key={i} x={-94 + i * 7.8} seed={i + 3} />)}

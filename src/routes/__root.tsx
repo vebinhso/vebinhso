@@ -11,7 +11,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useAuthSync } from "@/hooks/use-auth-sync";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { startSessionTracker } from "@/lib/session";
 import { setBgm, unlockAudioOnUserGesture, playSfx } from "@/lib/audio";
 import { SettingsPanel } from "@/components/SettingsPanel";
@@ -50,6 +50,20 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   const locale = useLocale();
+  const msg = String((error as Error)?.message ?? error ?? "");
+  const isNetwork = (typeof navigator !== "undefined" && !navigator.onLine) || /failed to fetch|networkerror|network request failed|load failed|fetch dynamically imported module|importing a module script failed|err_internet|err_network/i.test(msg);
+  if (isNetwork) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <div className="text-5xl">📡</div>
+          <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">{locale === "en" ? "No Internet Connection" : "Lỗi mạng"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{locale === "en" ? "Please check your connection and try again." : "Không có kết nối mạng. Hãy kiểm tra Wi‑Fi/4G rồi thử lại."}</p>
+          <button onClick={() => window.location.reload()} className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">{locale === "en" ? "Try again" : "Thử lại"}</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -157,6 +171,7 @@ function RootComponent() {
         <SettingsPanel inline />
       </div>
       <SavedToast />
+      <OfflineBanner en={en} />
       <Toaster position="top-center" richColors closeButton />
       <Outlet />
     </QueryClientProvider>
@@ -200,3 +215,20 @@ function AudioBridge() {
   return null;
 }
 
+
+function OfflineBanner({ en }: { en: boolean }) {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    const update = () => setOffline(!navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+  }, []);
+  if (!offline) return null;
+  return (
+    <div role="alert" className="fixed inset-x-0 top-0 z-[100] bg-destructive px-4 py-2 text-center text-sm font-semibold text-destructive-foreground shadow-lg">
+      📡 {en ? "No Internet Connection" : "Lỗi mạng – không có kết nối Internet"}
+    </div>
+  );
+}

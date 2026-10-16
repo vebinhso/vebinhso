@@ -39,7 +39,11 @@ export function WorldLoadingOverlay({ label }: { label?: string }) {
   }, [done]);
 
   if (hidden) return null;
-  const pct = finished ? 100 : !assetsDone ? (total === 0 ? 30 : 0) || Math.floor((loaded / Math.max(1,total)) * 90) : ready ? 99 : 92; void 0; const _unused = total === 0 ? 30 : Math.min(99, Math.max(5, Math.floor((loaded / Math.max(1,total)) * 100)));
+  const pct = finished
+    ? 100
+    : !assetsDone
+      ? total === 0 ? 30 : Math.max(5, Math.floor((loaded / total) * 85))
+      : ready ? 99 : 92;
 
 
   return (

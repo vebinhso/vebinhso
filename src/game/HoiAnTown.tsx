@@ -389,12 +389,17 @@ const Surroundings = memo(function Surroundings({ streetTrees }: { streetTrees: 
   );
 });
 
-const STREET_TREES: [number, number][] = (() => {
+let STREET_TREES_CACHE: [number, number][] | null = null;
+function getStreetTrees(): [number, number][] {
+  if (STREET_TREES_CACHE) return STREET_TREES_CACHE;
+  STREET_TREES_CACHE = (() => {
   const t: [number, number][] = [];
   for (let x = -EXT + 10; x < EXT; x += 18) if (Math.abs(Math.abs(x) - SIDE_X) > 7 && Math.abs(x) > 8) t.push([x + 3, MAIN_Z + 4.6]);
   for (let z = BACK_Z - 28; z < MAIN_Z - 10; z += 18) if (Math.abs(z - BACK_Z) > 7) { t.push([-SIDE_X + 4.6, z + 6]); t.push([SIDE_X - 4.6, z + 6]); }
   return t;
-})();
+  })();
+  return STREET_TREES_CACHE;
+}
 
 function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; to: number }) {
   const len = to - from;
@@ -703,7 +708,7 @@ export const HoiAnTown = memo(function HoiAnTown({
     { x: SIDE_X + 4.3, z: BACK_Z - 32, a: "Nguyễn Huệ" },
   ];
 
-  const streetTrees = STREET_TREES;
+  const streetTrees = getStreetTrees();
 
   return (
     <group>

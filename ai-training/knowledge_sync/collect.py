@@ -18,7 +18,8 @@ OUT = ROOT / "output"
 MAX_BYTES = 1_000_000
 MAX_ITEMS = 40
 MAX_AGE_DAYS = 30
-TERMS = ("lừa đảo", "giả mạo", "chiếm đoạt", "phishing", "mạo danh", "đánh cắp tài khoản")
+TERMS = ("lừa đảo", "giả mạo", "phishing", "mạo danh", "đánh cắp tài khoản")
+DIGITAL_TERMS = ("trực tuyến", "trên mạng", "qua mạng", "mạng xã hội", "zalo", "facebook", "telegram", "tiktok", "internet", "website", "đường link", "tin nhắn", "email", "otp", "tài khoản ngân hàng", "app giả", "ứng dụng giả", "mã qr", "chuyển khoản")
 EXCLUDE = ("tử vong", "tự tử", "xâm hại tình dục")
 PHONE = re.compile(r"(?<!\d)(?:\+?84|0)(?:[ .-]?\d){9,10}(?!\d)")
 EMAIL = re.compile(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}")
@@ -90,7 +91,7 @@ def collect():
                     rejected.append({"source": source["name"], "reason": "invalid_article_url"})
                     continue
                 joined = (title + " " + summary).lower()
-                if not title or not any(word in joined for word in TERMS) or any(word in joined for word in EXCLUDE):
+                if not title or not any(word in joined for word in TERMS) or not any(word in joined for word in DIGITAL_TERMS) or any(word in joined for word in EXCLUDE):
                     continue
                 # Only a headline-level signal: never a verified scam example or a training label.
                 key = hashlib.sha256((source["name"] + "|" + title.lower()).encode()).hexdigest()[:16]

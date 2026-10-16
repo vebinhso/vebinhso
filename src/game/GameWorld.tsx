@@ -1144,6 +1144,7 @@ export default function GameWorld(props: Props) {
           </Clouds>
         )}
       </Suspense>
+      <WorldReadySignal />
       <Character controlsRef={controlsRef} activeFloor={props.activeFloor} pickups={props.pickups} collectedIds={props.collectedIds} onPickup={props.onPickup} walls={props.walls} placed={props.placed} onPlayerPos={props.onPlayerPos} />
       <PlotAndPlacement {...props} />
       {props.pickups && props.pickups.length > 0 && (
@@ -1167,4 +1168,22 @@ export default function GameWorld(props: Props) {
       />
     </Canvas>
   );
+}
+
+/** Báo "bản đồ sẵn sàng" khi đã biên dịch shader và khung hình chạy đều (hết khựng lúc đầu). */
+function WorldReadySignal() {
+  const { gl, scene, camera } = useThree();
+  const st = useMemo(() => ({ frames: 0, smooth: 0, sent: false, compiled: false }), []);
+  useFrame((_, delta) => {
+    if (st.sent) return;
+    if (!st.compiled) { st.compiled = true; try { gl.compile(scene, camera); } catch { /* bỏ qua */ } }
+    st.frames++;
+    st.smooth = delta < 0.05 ? st.smooth + 1 : 0;
+    if (st.smooth >= 15 || st.frames >= 240) {
+      st.sent = true;
+      (window as unknown as { __worldReady?: boolean }).__worldReady = true;
+      window.dispatchEvent(new Event("world-ready"));
+    }
+  });
+  return null;
 }

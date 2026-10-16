@@ -314,6 +314,81 @@ function FriendMapLabel({ friend, onClick }: { friend: FriendHouse; onClick?: ()
 }
 
 /** Đoạn đường xám + vỉa hè 2 bên. dir "x": chạy theo trục x tại z=c; "z": theo trục z tại x=c */
+const CURB_MAT = new THREE.MeshStandardMaterial({ color: "#d8d2c4", roughness: 0.9 });
+
+function rand(seed: number) { const x = Math.sin(seed * 127.1) * 43758.5453; return x - Math.floor(x); }
+
+/** Cây xanh ven đường + nhà và rừng phía xa (instanced để nhẹ). */
+const Surroundings = memo(function Surroundings({ streetTrees }: { streetTrees: [number, number][] }) {
+  const data = useMemo(() => {
+    const houses: { x: number; z: number; w: number; d: number; h: number; r: number; c: number }[] = [];
+    const trees: { x: number; z: number; s: number; c: number }[] = streetTrees.map(([x, z], i) => ({ x, z, s: 0.9 + rand(i + 1) * 0.4, c: i % 3 }));
+    let k = 0;
+    // Vành nhà phía xa: ngoài phố (|x|>EXT+10 hoặc z>MAIN_Z+24), chừa sông phía bắc.
+    for (let x = -190; x <= 190; x += 11) for (let z = -52; z <= 190; z += 11) {
+      k++;
+      const inside = Math.abs(x) < EXT + 12 && z < MAIN_Z + 26;
+      if (inside) continue;
+      const dist = Math.max(Math.abs(x) - EXT, z - MAIN_Z);
+      const rr = rand(k * 3.1);
+      if (dist > 70 || rr < 0.28) {
+        // rừng / vườn
+        for (let t = 0; t < 2; t++) trees.push({ x: x + (rand(k + t * 9) - 0.5) * 9, z: z + (rand(k * 7 + t) - 0.5) * 9, s: 1.3 + rand(k + t) * 1.4, c: (k + t) % 3 });
+      } else {
+        houses.push({ x: x + (rand(k) - 0.5) * 3, z: z + (rand(k * 2) - 0.5) * 3, w: 5 + rand(k * 5) * 3, d: 5 + rand(k * 6) * 2, h: 3.2 + rand(k * 8) * 2.4, r: Math.floor(rand(k * 4) * 4) * (Math.PI / 2), c: k % WALLS.length });
+        if (rand(k * 11) < 0.5) trees.push({ x: x + 4.5, z: z + 4.5, s: 0.9 + rand(k) * 0.6, c: k % 3 });
+      }
+    }
+    // Dải cây hai bên bờ sông xa
+    for (let x = -190; x <= 190; x += 6) trees.push({ x, z: -90 - rand(x) * 6, s: 1.4 + rand(x + 3), c: Math.abs(x) % 3 });
+    return { houses, trees };
+  }, [streetTrees]);
+
+  const wallRef = useRef<THREE.InstancedMesh>(null);
+  const roofRef = useRef<THREE.InstancedMesh>(null);
+  const trunkRef = useRef<THREE.InstancedMesh>(null);
+  const crownRef = useRef<THREE.InstancedMesh>(null);
+  useEffect(() => {
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), col = new THREE.Color();
+    data.houses.forEach((h, i) => {
+      q.setFromEuler(e.set(0, h.r, 0));
+      m.compose(new THREE.Vector3(h.x, h.h / 2, h.z), q, new THREE.Vector3(h.w, h.h, h.d));
+      wallRef.current?.setMatrixAt(i, m); wallRef.current?.setColorAt(i, col.set(WALLS[h.c]));
+      m.compose(new THREE.Vector3(h.x, h.h + 0.9, h.z), q.setFromEuler(e.set(0, h.r + Math.PI / 4, 0)), new THREE.Vector3(h.w * 0.82, 1.8, h.d * 0.82));
+      roofRef.current?.setMatrixAt(i, m); roofRef.current?.setColorAt(i, col.set(ROOFS[i % ROOFS.length]));
+    });
+    const greens = ["#3f7d3a", "#2f6b34", "#5a9443"];
+    data.trees.forEach((t, i) => {
+      m.compose(new THREE.Vector3(t.x, 0.9 * t.s, t.z), q.identity(), new THREE.Vector3(t.s, 1.8 * t.s, t.s));
+      trunkRef.current?.setMatrixAt(i, m);
+      m.compose(new THREE.Vector3(t.x, 2.6 * t.s, t.z), q.identity(), new THREE.Vector3(1.9 * t.s, 1.6 * t.s, 1.9 * t.s));
+      crownRef.current?.setMatrixAt(i, m); crownRef.current?.setColorAt(i, col.set(greens[t.c]));
+    });
+    for (const r of [wallRef, roofRef, trunkRef, crownRef]) { if (r.current) { r.current.instanceMatrix.needsUpdate = true; if (r.current.instanceColor) r.current.instanceColor.needsUpdate = true; } }
+  }, [data]);
+
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 60]} receiveShadow>
+        <planeGeometry args={[420, 320]} />
+        <meshStandardMaterial color="#6f9a4c" roughness={1} />
+      </mesh>
+      <instancedMesh ref={wallRef} args={[undefined, undefined, data.houses.length]}>
+        <boxGeometry args={[1, 1, 1]} /><meshStandardMaterial roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={roofRef} args={[undefined, undefined, data.houses.length]}>
+        <coneGeometry args={[0.72, 1, 4]} /><meshStandardMaterial roughness={0.85} />
+      </instancedMesh>
+      <instancedMesh ref={trunkRef} args={[undefined, undefined, data.trees.length]}>
+        <cylinderGeometry args={[0.12, 0.18, 1, 6]} /><meshStandardMaterial color="#5b3b22" roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={crownRef} args={[undefined, undefined, data.trees.length]}>
+        <icosahedronGeometry args={[1, 0]} /><meshStandardMaterial roughness={0.9} flatShading />
+      </instancedMesh>
+    </group>
+  );
+});
+
 function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; to: number }) {
   const len = to - from;
   const mid = (from + to) / 2;
@@ -322,8 +397,11 @@ function Road({ dir, c, from, to }: { dir: "x" | "z"; c: number; from: number; t
   return (
     <group>
       <mesh geometry={G.box} material={M.road} position={pos(0, 0.0)} scale={sc(6)} />
-      <mesh geometry={G.box} material={M.walk} position={pos(-3.9, 0.06)} scale={sc(1.8)} />
-      <mesh geometry={G.box} material={M.walk} position={pos(3.9, 0.06)} scale={sc(1.8)} />
+      {/* Vỉa hè lát đá, cao hơn mặt đường một bậc + bó vỉa */}
+      <mesh geometry={G.box} material={M.walk} position={pos(-3.95, 0.11)} scale={sc(1.9).map((v, i) => (i === 1 ? 0.22 : v)) as [number, number, number]} />
+      <mesh geometry={G.box} material={M.walk} position={pos(3.95, 0.11)} scale={sc(1.9).map((v, i) => (i === 1 ? 0.22 : v)) as [number, number, number]} />
+      <mesh geometry={G.box} material={CURB_MAT} position={pos(-3.05, 0.12)} scale={sc(0.16).map((v, i) => (i === 1 ? 0.26 : v)) as [number, number, number]} />
+      <mesh geometry={G.box} material={CURB_MAT} position={pos(3.05, 0.12)} scale={sc(0.16).map((v, i) => (i === 1 ? 0.26 : v)) as [number, number, number]} />
     </group>
   );
 }
@@ -618,6 +696,10 @@ export const HoiAnTown = memo(function HoiAnTown({
     { x: SIDE_X + 4.3, z: BACK_Z - 32, a: "Nguyễn Huệ" },
   ];
 
+  const streetTrees: [number, number][] = [];
+  for (let x = -EXT + 10; x < EXT; x += 18) if (Math.abs(Math.abs(x) - SIDE_X) > 7 && Math.abs(x) > 8) streetTrees.push([x + 3, MAIN_Z + 4.6]);
+  for (let z = BACK_Z - 28; z < MAIN_Z - 10; z += 18) if (Math.abs(z - BACK_Z) > 7) { streetTrees.push([-SIDE_X + 4.6, z + 6]); streetTrees.push([SIDE_X - 4.6, z + 6]); }
+
   return (
     <group>
       {!dim && poles.map(([x, z], i) => <PowerPole key={"p" + i} x={x} z={z} />)}
@@ -626,6 +708,7 @@ export const HoiAnTown = memo(function HoiAnTown({
         <group key={"sp" + k + i}><PowerPole x={x} z={z} />{i > 0 && <PowerWires a={arr[i - 1]} b={[x, z]} />}</group>
       )))}
       {!dim && signs.map((s, i) => <StreetSign key={"s" + i} {...s} />)}
+      {!dim && <Surroundings streetTrees={streetTrees} />}
       <Road dir="x" c={MAIN_Z} from={-EXT - 4} to={EXT + 4} />
       <Road dir="x" c={BACK_Z} from={-SIDE_X} to={SIDE_X} />
       <Road dir="z" c={-SIDE_X} from={BACK_Z - 34} to={MAIN_Z - 3} />

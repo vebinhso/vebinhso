@@ -15,6 +15,13 @@
       "when": 1791658317555,
       "tag": "0001_deprecate_ai_eval",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792137326604,
+      "tag": "0002_shared_neighborhood_garden",
+      "breakpoints": true
     }
   ]
 }

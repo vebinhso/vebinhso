@@ -1,5 +1,11 @@
 # Bilingual rollout
 
+## Neighborhood activities
+- [ ] Fix overlapping ground surfaces that flicker
+- [ ] Add left-side amusement park, quiz tickets and playable rides
+- [ ] Add shared right-side garden, seed shop and consumable watering
+- [ ] Verify signed-in gameplay and shared garden persistence
+
 - [x] Add persistent VI/EN language foundation
 - [x] Add bilingual question database fields
 - [x] Add bilingual admin and teacher editors

@@ -1,5 +1,6 @@
 // Shop catalog đầy đủ theo file CSV "BẢNG QUY ĐỔI" + "CHI TIẾT XÂY DỰNG"
 import { STRICT_ENGLISH_UI } from "@/lib/strict-english.generated";
+import { gardenGoods } from "@/lib/neighborhood";
 // Đơn vị: 1 grid cell = 1m. w x d (mặt phẳng), h (chiều cao)
 export type CatalogItem = {
   id: string;
@@ -170,8 +171,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "patternpot_m", name: "Chậu trung hoạ tiết", category: "Ban công", price: 55, w: 1, d: 1, h: 1, color: "#9f1239", icon: "🌹", shape: "cylinder" },
   { id: "patternpot_l", name: "Chậu cao hoạ tiết", category: "Ban công", price: 90, w: 1, d: 1, h: 1.5, color: "#7f1d1d", icon: "🌺", shape: "cylinder" },
   { id: "seed_cactus", name: "Hạt giống xương rồng", category: "Ban công", price: 8, w: 1, d: 1, h: 0.2, color: "#84cc16", icon: "🌵" },
-  { id: "seed_paper", name: "Hạt giống hoa giấy", category: "Ban công", price: 12, w: 1, d: 1, h: 0.2, color: "#f472b6", icon: "🌸" },
-  { id: "seed_rose", name: "Hạt giống hoa hồng", category: "Ban công", price: 18, w: 1, d: 1, h: 0.2, color: "#e11d48", icon: "🌹" },
+  ...gardenGoods.map(g => ({ id: g.id, name: g.vi, category: "Sân vườn" as const, price: g.price, w: 1, d: 1, h: 0.2, color: "#498246", icon: g.icon })),
   { id: "seed_fern", name: "Hạt giống dương xỉ", category: "Ban công", price: 14, w: 1, d: 1, h: 0.2, color: "#16a34a", icon: "🌿" },
   { id: "seed_mystery", name: "Hạt giống bí ẩn", category: "Ban công", price: 50, w: 1, d: 1, h: 0.2, color: "#a855f7", icon: "✨" },
   { id: "balconychair", name: "Ghế ban công", category: "Ban công", price: 40, w: 1, d: 2, h: 1, color: "#facc15", icon: "🪑" },
@@ -229,6 +229,8 @@ export function getItem(id: string) {
 
 /** English labels for every catalog item/category, sourced from the audited UI dictionary. */
 export function catalogLabel(value: string, english: boolean) {
+  const gardenGood = gardenGoods.find(g => g.vi === value);
+  if (gardenGood) return english ? gardenGood.en : gardenGood.vi;
   return english ? (STRICT_ENGLISH_UI[value] ?? value) : value;
 }
 

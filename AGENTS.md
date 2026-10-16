@@ -10,3 +10,7 @@
 - Aggregate link and phone safety signals store only normalized domains or prefixes and coarse risk buckets, never raw user input.
 - Render the playable and dressing-room avatar through one shared chibi character assembly, so body proportions, garment silhouettes and patterns stay identical everywhere.
 - Determine first-time character setup from the account-scoped character_outfit row, never device storage, so returning users skip setup on every device.
+- Keep park/garden scenery in NeighborhoodZones and its modal state in useNeighborhoodActivities; frame-only ride poses bridge into the character without per-frame React updates.
+- Own the continuous terrain in PlotAndPlacement alone and separate roads/plots vertically with a restricted camera depth range, to prevent distant z-fighting.
+- Garden actions use authenticated transactional database functions, friend-scoped RLS and Realtime; growth derives from watered timestamps at Vietnamese day boundaries instead of scheduled writes.
+- Persist cumulative garden spending with game saves and reconcile older spending snapshots in a trigger, so delayed client saves cannot refund garden purchases.

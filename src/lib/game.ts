@@ -58,6 +58,7 @@ export type GameState = {
   roofs: RoofSegment[];
   floors: FloorSegment[];
   paint: number;
+  gardenSpent?: number;
 };
 
 const DEFAULT: GameState = {
@@ -181,6 +182,7 @@ async function refreshFromDB(uid: string) {
   let restoreLocal = false;
   if (gs.data) {
     next.money = gs.data.money ?? 0;
+    next.gardenSpent = gs.data.garden_spent ?? 0;
     next.netWorth = gs.data.net_worth ?? 0;
     next.correctAnswers = gs.data.correct_answers ?? 0;
     next.totalAnswered = gs.data.total_answered ?? 0;
@@ -255,6 +257,7 @@ async function flushToDB(uid: string) {
   await supabase.from("game_state").upsert({
     user_id: uid,
     money: CACHE.money,
+    garden_spent: CACHE.gardenSpent ?? 0,
     net_worth: CACHE.netWorth,
     correct_answers: CACHE.correctAnswers,
     total_answered: CACHE.totalAnswered,
@@ -283,6 +286,17 @@ export function resetGameCacheForLogout() {
   CACHE_UID = null;
   HYDRATED_UID = null;
   PENDING_FLUSH = false;
+}
+
+/** Serialize purchases behind pending saves so a delayed scalar save cannot refund them. */
+export async function flushGameBeforeGardenPurchase(): Promise<void> {
+  const u = getCurrentUser();
+  if (!u) throw new Error("Sign in required");
+  if (HYDRATED_UID !== u.id) await refreshFromDB(u.id);
+  if (HYDRATED_UID !== u.id) throw new Error("Game is still loading");
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  flushChain = flushChain.then(() => flushToDB(u.id));
+  await flushChain;
 }
 
 // Levels

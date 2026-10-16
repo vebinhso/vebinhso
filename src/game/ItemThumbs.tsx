@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ItemModel } from "./Models";
 import { CATALOG, type CatalogItem } from "./catalog";
+import { gardenGoods } from "@/lib/neighborhood";
 
 const cache = new Map<string, string>();
 const failed = new Set<string>();
@@ -23,7 +24,7 @@ const SKIP_KINDS = new Set(["brick", "concrete", "rooftile", "palette", "paint"]
 
 export function ItemThumb({ item, className = "" }: { item: CatalogItem; className?: string }) {
   useSyncExternalStore(subscribe, () => version, () => 0);
-  const skip = SKIP_KINDS.has(item.kind ?? "place");
+  const skip = SKIP_KINDS.has(item.kind ?? "place") || gardenGoods.some(g => g.id === item.id);
   useEffect(() => { if (!skip) request(item.id); }, [item.id, skip]);
   const src = cache.get(item.id);
   if (src) return <img src={src} alt={item.name} loading="lazy" draggable={false} className={`object-contain ${className}`} />;

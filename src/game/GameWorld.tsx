@@ -14,6 +14,8 @@ import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey, clearInput, installInputGuards, isTypingTarget } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
+import { NeighborhoodZones, type ZoneProps } from "./NeighborhoodZones";
+import { ridePose } from "@/lib/neighborhood";
 import { LANTERN_DOCK_XS, RIVER_CENTER_Z, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
@@ -77,6 +79,7 @@ type Props = {
   showFriendLabels?: boolean;
   /** Giữ cảnh phố nhưng ẩn mọi căn nhà xung quanh khi xem một nhà riêng lẻ. */
   isolatedHouseView?: boolean;
+  neighborhood?: ZoneProps;
 };
 
 // Item ids đặc đặc — chặn nhân vật khi bật chế độ "Bị cản".
@@ -138,8 +141,15 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     if (!ref.current) return;
     // Giật lag: kẹp bước thời gian để nhân vật không văng xa.
     const dt = Math.min(rawDt, 0.05);
+    if (ridePose.active) {
+      ref.current.position.set(ridePose.x, ridePose.y, ridePose.z);
+      ref.current.visible = false;
+      clearInput();
+      return;
+    }
     const k = playerInput;
-    const onDock = ref.current.position.z > RIVER_NEAR_BANK_Z - 6.3 && LANTERN_DOCK_XS.some((dx) => Math.abs(ref.current!.position.x - dx) < 1.3);
+    const playerX = ref.current.position.x;
+    const onDock = ref.current.position.z > RIVER_NEAR_BANK_Z - 6.3 && LANTERN_DOCK_XS.some((dx) => Math.abs(playerX - dx) < 1.3);
     const swimNow = activeFloor === 0 && !onDock && ref.current.position.z < RIVER_NEAR_BANK_Z - 1.8;
     const speed = swimNow ? 3.2 : 6;
     const camDir = new THREE.Vector3();
@@ -817,7 +827,7 @@ function PlotAndPlacement({
   selectedItemId, rotation, onPlace, onRemove, onPillarClick, onWallRemove, onRoofRemove, onFloorRemove,
   activeFloor, onItemClick, editingId, signLabels, friendHouses, onVisitFriend, dimTown,
   releasedLanterns, onStartRiverQuiz, onReleaseLantern, showFriendLabels,
-  isolatedHouseView,
+  isolatedHouseView, neighborhood,
 }: Omit<Props, "onRotate">) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
   const selected = selectedItemId ? getItem(selectedItemId) : null;
@@ -849,10 +859,12 @@ function PlotAndPlacement({
 
   return (
     <group>
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[Math.max(400, WORLD + 80), Math.max(400, WORLD + 80)]} />
-        <meshStandardMaterial color="#b8b5af" />
+      {/* One terrain owner: roads and plots sit distinctly above this, not another giant plane. */}
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 60]}>
+        <planeGeometry args={[420, 320]} />
+        <meshStandardMaterial color="#6f9a4c" roughness={1} />
       </mesh>
+      {!dimTown && !isolatedHouseView && <NeighborhoodZones {...neighborhood} />}
       <HoiAnTown
         friends={friendHouses}
         onVisitFriend={onVisitFriend}
@@ -878,7 +890,7 @@ function PlotAndPlacement({
         <planeGeometry args={[GRID, GRID]} />
         <meshStandardMaterial color="#9bca6f" transparent opacity={activeFloor === 0 ? 1 : 0.25} />
       </mesh>
-      <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, floorY + 0.02, 0]} />
+      {dimTown && <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, floorY + 0.07, 0]} />}
 
       {/* Rào cản 4 cạnh trên các tầng cao để nhân vật không bị té */}
       {activeFloor > 0 && (
@@ -1107,7 +1119,7 @@ export default function GameWorld(props: Props) {
   return (
     <Canvas
       shadows={isLowEnd ? false : true}
-      camera={{ position: [0, 18, 28], fov: 55 }}
+      camera={{ position: [0, 18, 28], fov: 55, near: 0.3, far: 450 }}
       dpr={[1, maxDpr]}
       performance={{ min: 0.4 }}
       gl={{ antialias: !isLowEnd, powerPreference: "high-performance", toneMappingExposure: 1.28 }}
@@ -1158,7 +1170,7 @@ export default function GameWorld(props: Props) {
       <CameraView controlsRef={controlsRef} mode={props.viewMode ?? "free"} />
       <OrbitControls
         ref={controlsRef}
-        enabled={props.viewMode !== "eye"}
+        enabled={props.viewMode !== "eye" && !props.neighborhood?.ride}
         enablePan={false}
         enableDamping
         dampingFactor={0.08}

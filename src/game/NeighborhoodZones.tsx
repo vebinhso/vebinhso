@@ -28,7 +28,6 @@ const path = new THREE.CatmullRomCurve3([
   new THREE.Vector3(23, 4, 0), new THREE.Vector3(16, 6, 10), new THREE.Vector3(0, 2, 12),
 ], true, "centripetal");
 const railGeo = new THREE.TubeGeometry(path, 180, 0.19, 6, true);
-const axis = new THREE.Vector3(0, 1, 0);
 export type ZoneProps = { plants?: GardenPlant[]; ride?: { kind: RideKind; id: number } | null; onRideEnd?: () => void; onOpenPark?: () => void; onOpenGarden?: (slot?: number) => void };
 
 function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
@@ -39,7 +38,7 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
   const elapsed = useRef(0);
   const lastId = useRef(-1);
   const supports = useMemo(() => Array.from({ length: 26 }, (_, i) => path.getPointAt(i / 26)), []);
-  const temp = useMemo(() => ({ p: new THREE.Vector3(), ahead: new THREE.Vector3(), eye: new THREE.Vector3(), q: new THREE.Quaternion() }), []);
+  const temp = useMemo(() => ({ p: new THREE.Vector3(), ahead: new THREE.Vector3(), eye: new THREE.Vector3(), offset: new THREE.Vector3(), q: new THREE.Quaternion() }), []);
   useFrame(({ camera }, rawDelta) => {
     const dt = Math.min(rawDelta, 0.05);
     if (ride?.id !== lastId.current) { elapsed.current = 0; lastId.current = ride?.id ?? -1; }
@@ -53,8 +52,8 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
     if (!ride) return;
     if (phase >= 1) { ridePose.active = false; onRideEnd?.(); return; }
     if (ride.kind === "coaster") {
-      temp.eye.copy(temp.p).add(new THREE.Vector3(PARK_ORIGIN[0], 2.3, PARK_ORIGIN[1]));
-      temp.ahead.add(new THREE.Vector3(PARK_ORIGIN[0], 2.1, PARK_ORIGIN[1]));
+      temp.eye.copy(temp.p).add(temp.offset.set(PARK_ORIGIN[0], 2.3, PARK_ORIGIN[1]));
+      temp.ahead.add(temp.offset.set(PARK_ORIGIN[0], 2.1, PARK_ORIGIN[1]));
     } else if (ride.kind === "wheel") {
       const a = elapsed.current * 0.21 - Math.PI / 2;
       temp.eye.set(PARK_ORIGIN[0] - 15 + Math.cos(a) * 9, 11 + Math.sin(a) * 9, PARK_ORIGIN[1] + 2);
@@ -73,7 +72,7 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
     <mesh geometry={railGeo} material={mats.support} position={[0, -0.42, 0]} />
     {supports.map((p, i) => <Block key={i} p={[p.x, p.y / 2, p.z]} s={[0.28, p.y, 0.28]} />)}
     <Suspense fallback={null}><group ref={car}><Model url={cartAsset.url} scale={3} /></group></Suspense>
-    <group position={[-15, 11, 2]}>
+    <group position={[-15, 11, 2]} rotation={[0, Math.PI / 5, 0]}>
       {[-1, 1].map(sign => <group key={sign} rotation={[0, 0, sign * 0.29]}><Block p={[sign * 1.3, -5.5, -0.8]} s={[0.7, 13, 0.7]} /></group>)}
       <group ref={wheel}>
         <mesh material={mats.wheel}><torusGeometry args={[9, 0.22, 6, 64]} /></mesh>
@@ -111,7 +110,7 @@ function Garden({ plants = [], onOpenGarden }: ZoneProps) {
       return <group key={slot} position={[x, 0.15, z]} onClick={e => { e.stopPropagation(); onOpenGarden?.(slot); }}>
         <Block p={[0, 0, 0]} s={[3.8, 0.18, 3.8]} mat="soil" />
         <Suspense fallback={null}>{plant && <group scale={growth}>
-          <Model url={plant.species === "seed_mango" ? treeAsset.url : plant.species === "seed_sunflower" ? flowerAsset.url : roseAsset.url} scale={plant.species === "seed_mango" ? 3 : 2.8} />
+          <Model url={plant.species === "seed_mango" ? treeAsset.url : plant.species === "seed_sunflower" ? flowerAsset.url : roseAsset.url} scale={plant.species === "seed_mango" ? 3 : 5} />
           {plant.species === "seed_mango" && plant.growth >= plant.grow_days && [-1, 0, 1].map(i => <mesh key={i} position={[i * 0.6, 2.7, 0.7]} material={mats.wheel}><sphereGeometry args={[0.17, 6, 6]} /></mesh>)}
         </group>}</Suspense>
       </group>;

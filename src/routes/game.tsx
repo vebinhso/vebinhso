@@ -46,6 +46,8 @@ import { PaintBucketIcon } from "@/components/PaintBucketIcon";
 import { Button } from "@/components/ui/button";
 import { HouseAccessSettings } from "@/components/HouseAccessSettings";
 import { RIVER_BOARD_POSITION, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "@/game/HoiAnRiver";
+import { useNeighborhoodActivities } from "@/game/useNeighborhoodActivities";
+import { gardenGoods } from "@/lib/neighborhood";
 
 export const Route = createFileRoute("/game")({
   head: () => ({
@@ -83,6 +85,10 @@ function GamePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [activePowers, setActivePowers] = useState<number[]>([]);
   const [questionsReady, setQuestionsReady] = useState(hasLoadedQuestions());
+  const applyGardenBalance = useCallback((money: number, spent: number) => {
+    setState(prev => prev ? { ...prev, money, gardenSpent: spent } : prev);
+  }, []);
+  const activities = useNeighborhoodActivities(user?.id, questionsReady, applyGardenBalance);
   const wt = useWorldToggles();
   // Chỉ lưu KẾT QUẢ ở gần (cửa/đèn) thay vì toạ độ → nhân vật di chuyển không làm cả trang render lại
   const [nearby, setNearby] = useState<{ doorId: string | null; lamp: boolean; riverBoard: boolean; riverBank: boolean }>({ doorId: null, lamp: false, riverBoard: false, riverBank: false });
@@ -387,6 +393,8 @@ function GamePage() {
   };
 
   const buyAndSelect = (itemId: string, bulkTimes: number = 1) => {
+    const gardenGood = gardenGoods.find(g => g.id === itemId);
+    if (gardenGood) { void activities.purchase(gardenGood.id, Math.max(1, Math.min(99, Math.floor(bulkTimes)))); return; }
     const it = getItem(itemId);
     if (!it || !state) return;
     const times = Math.max(1, Math.floor(bulkTimes));
@@ -1146,6 +1154,7 @@ function GamePage() {
         }
       >
         <GameWorld
+          neighborhood={activities.zoneProps}
           placed={state.placed}
           walls={state.walls}
           roofs={state.roofs}
@@ -1223,7 +1232,8 @@ function GamePage() {
       <WorldLoadingOverlay />
 
       <WeatherOverlay powers={activePowers} />
-      <TouchControls />
+      {!activities.activeRide && <TouchControls />}
+      {activities.panelUi}
 
       {visitConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setVisitConfirm(null)}>
@@ -1816,6 +1826,7 @@ function GamePage() {
                    kind === "concrete" ? (en ? "BUY CONCRETE" : "MUA BÊ TÔNG") :
                    kind === "rooftile" ? (en ? "BUY ROOFING" : "MUA GẠCH MÁI") :
                    kind === "palette" ? (en ? "OPEN PALETTE" : "MỞ PALETTE") :
+                   gardenGoods.some(g => g.id === it.id) ? (en ? "BUY FOR GARDEN" : "MUA CHO VƯỜN") :
                    (en ? "BUY & PLACE" : "MUA & ĐẶT");
                 const setQ = (n: number) => setBuyQty((prev) => ({ ...prev, [it.id]: Math.max(1, Math.min(99, n)) }));
                 return (

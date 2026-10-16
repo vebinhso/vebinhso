@@ -20,7 +20,8 @@ export function useAuthSync() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       if (!session) {
         setCurrentUserCache(null);
         resetGameCacheForLogout();
@@ -31,8 +32,11 @@ export function useAuthSync() {
             .catch(() => {});
         }, 0);
       }
-      router.invalidate();
-      queryClient.invalidateQueries();
+      // Defer fetches until the auth callback releases its session lock.
+      setTimeout(() => {
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      }, 0);
     });
     // Initial hydrate
     hydrateFromSession()

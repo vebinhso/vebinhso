@@ -989,6 +989,7 @@ export type Database = {
           bricks: number
           concrete: number
           correct_answers: number
+          garden_spent: number
           level: number
           money: number
           net_worth: number
@@ -1009,6 +1010,7 @@ export type Database = {
           bricks?: number
           concrete?: number
           correct_answers?: number
+          garden_spent?: number
           level?: number
           money?: number
           net_worth?: number
@@ -1029,6 +1031,7 @@ export type Database = {
           bricks?: number
           concrete?: number
           correct_answers?: number
+          garden_spent?: number
           level?: number
           money?: number
           net_worth?: number
@@ -1042,6 +1045,54 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wall_color?: string
+        }
+        Relationships: []
+      }
+      garden_inventory: {
+        Row: {
+          item_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          item_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          item_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      garden_plants: {
+        Row: {
+          grow_days: number
+          id: string
+          owner_id: string
+          planted_at: string
+          slot: number
+          species: string
+          watered_at: string | null
+        }
+        Insert: {
+          grow_days?: number
+          id?: string
+          owner_id: string
+          planted_at?: string
+          slot: number
+          species: string
+          watered_at?: string | null
+        }
+        Update: {
+          grow_days?: number
+          id?: string
+          owner_id?: string
+          planted_at?: string
+          slot?: number
+          species?: string
+          watered_at?: string | null
         }
         Relationships: []
       }
@@ -1642,6 +1693,10 @@ export type Database = {
         Returns: undefined
       }
       delete_class: { Args: { _class_id: string }; Returns: undefined }
+      garden_can_share: { Args: { target: string }; Returns: boolean }
+      garden_plant: { Args: { cell: number; item: string }; Returns: string }
+      garden_purchase: { Args: { amount: number; item: string }; Returns: Json }
+      garden_water: { Args: { plant: string }; Returns: undefined }
       get_class_roster: {
         Args: { _class_id: string }
         Returns: {

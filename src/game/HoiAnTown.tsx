@@ -369,10 +369,6 @@ const Surroundings = memo(function Surroundings({ streetTrees }: { streetTrees: 
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 60]} receiveShadow>
-        <planeGeometry args={[420, 320]} />
-        <meshStandardMaterial color="#6f9a4c" roughness={1} />
-      </mesh>
       <instancedMesh ref={wallRef} args={[undefined, undefined, data.houses.length]}>
         <boxGeometry args={[1, 1, 1]} /><meshStandardMaterial roughness={0.95} />
       </instancedMesh>
@@ -682,7 +678,7 @@ export const HoiAnTown = memo(function HoiAnTown({
   }, [idsKey, scoreKey]);
   const activeFriendSlots = useMemo(() => [...Array.from(slotMap.values()), ...orphans], [slotMap, orphans]);
   // Chừa trọn mảnh đất 20×20 quanh mỗi nhà bạn để nhà phố không đè lên nhau.
-  const shopSlots = ordered.filter((s) => !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
+  const shopSlots = ordered.filter((s) => !(Math.abs(Math.abs(s.x) - 70) < 30 && Math.abs(s.z + 4) < 20) && !activeFriendSlots.some((friendSlot) => Math.abs(s.x - friendSlot.x) < 13.5 && Math.abs(s.z - friendSlot.z) < 13.5));
   const lanterns: [number, number][][] = [];
   for (let x = -EXT + 6; x < EXT; x += 10) lanterns.push([[x, MAIN_Z - 4.6], [x + 3, MAIN_Z + 4.6]]);
   for (let z = BACK_Z - 26; z < MAIN_Z - 8; z += 12) {

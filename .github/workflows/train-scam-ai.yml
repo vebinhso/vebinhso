@@ -1,0 +1,38 @@
+name: Train scam AI (experiment)
+
+on:
+  push:
+    branches:
+      - experiment/scam-ai-training
+    paths:
+      - 'ai-training/**'
+      - '.github/workflows/train-scam-ai.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out experiment branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ai-training/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r ai-training/requirements.txt
+      - name: Train and evaluate
+        run: python ai-training/train.py
+      - name: Upload model and metrics (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: scam-ai-demo-results
+          path: ai-training/output/
+          if-no-files-found: error
+          retention-days: 14

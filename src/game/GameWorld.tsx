@@ -14,7 +14,7 @@ import type { FriendHouse } from "@/lib/friend-houses.functions";
 import { playerInput, setInputKey, clearInput, installInputGuards, isTypingTarget } from "@/lib/player-input";
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
-import { RIVER_CENTER_Z, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
+import { LANTERN_DOCK_XS, RIVER_CENTER_Z, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
 export const fpState = { on: false, yaw: 0, pitch: 0, teleport: false };
@@ -139,7 +139,8 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     // Giật lag: kẹp bước thời gian để nhân vật không văng xa.
     const dt = Math.min(rawDt, 0.05);
     const k = playerInput;
-    const swimNow = activeFloor === 0 && ref.current.position.z < RIVER_NEAR_BANK_Z - 1.8;
+    const onDock = ref.current.position.z > RIVER_NEAR_BANK_Z - 6.3 && LANTERN_DOCK_XS.some((dx) => Math.abs(ref.current!.position.x - dx) < 1.3);
+    const swimNow = activeFloor === 0 && !onDock && ref.current.position.z < RIVER_NEAR_BANK_Z - 1.8;
     const speed = swimNow ? 3.2 : 6;
     const camDir = new THREE.Vector3();
     camera.getWorldDirection(camDir);
@@ -223,7 +224,7 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
     }
     if (kneeling) ref.current.rotation.y = Math.atan2(riverPoseState.targetX - ref.current.position.x, riverPoseState.targetZ - ref.current.position.z);
 
-    const groundY = swimNow ? floorY - 0.75 : floorY;
+    const groundY = swimNow ? floorY - 0.75 : onDock && activeFloor === 0 && ref.current.position.z < RIVER_NEAR_BANK_Z - 1.5 ? floorY + 0.39 : floorY;
     if (!swimNow && k[" "] && grounded.current) { yVel.current = 7; grounded.current = false; }
     yVel.current -= 18 * dt;
     ref.current.position.y += yVel.current * dt;

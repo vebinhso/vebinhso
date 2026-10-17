@@ -116,6 +116,25 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
     except httpx.HTTPError:
         raise HTTPException(status_code=502, detail="AI provider unavailable")
     if response.status_code != 200:
+        # Log only the upstream status and safe, allowlisted error category.
+        # Never log the response body, request content, credentials or student data.
+        import logging
+        upstream_status = response.status_code
+        category = {
+            400: "invalid_request",
+            401: "provider_authentication",
+            403: "provider_permission",
+            404: "model_or_endpoint_not_found",
+            408: "provider_timeout",
+            429: "provider_rate_limit",
+            500: "provider_internal_error",
+            502: "provider_gateway_error",
+            503: "provider_unavailable",
+            504: "provider_timeout",
+        }.get(upstream_status, "other_provider_error")
+        logging.getLogger("uvicorn.error").warning(
+            "Gemini upstream rejected request: status=%d category=%s", upstream_status, category
+        )
         raise HTTPException(status_code=502, detail="AI provider rejected the request")
     try:
         result = response.json()

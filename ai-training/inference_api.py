@@ -24,11 +24,13 @@ RATE_LIMIT_PER_MINUTE = 30
 async def lifespan(app):
     global _model
     path = os.getenv("SCAM_MODEL_PATH")
-    if not path or not Path(path).is_file():
-        raise RuntimeError("SCAM_MODEL_PATH must point to a trusted local model artifact")
+    # Text/vision API can run independently of the optional local scam classifier.
+    if path and not Path(path).is_file():
+        raise RuntimeError("Configured SCAM_MODEL_PATH does not exist")
     if not os.getenv("SCAM_API_TOKEN"):
         raise RuntimeError("SCAM_API_TOKEN is required")
-    _model = joblib.load(path)  # Only load artifacts built by our trusted pipeline.
+    if path:
+        _model = joblib.load(path)  # Only load artifacts built by our trusted pipeline.
     yield
     _model = None
 
@@ -36,7 +38,8 @@ app = FastAPI(title="Vệ Binh Số scam classification prototype", docs_url=Non
 
 @app.get("/health")
 def health():
-    return {"status": "ready" if _model is not None else "unavailable", "model_loaded": _model is not None}
+    provider_ready = bool(os.getenv("AI_PROVIDER_API_KEY") and os.getenv("AI_PROVIDER_MODEL"))
+    return {"status": "ready" if (_model is not None or provider_ready) else "unavailable", "model_loaded": _model is not None, "provider_configured": provider_ready}
 
 
 class Request(BaseModel):
@@ -57,6 +60,8 @@ def classify(body: Request, authorization: str | None = Header(default=None)):
         if len(_requests) >= RATE_LIMIT_PER_MINUTE:
             raise HTTPException(status_code=429, detail="Rate limit exceeded", headers={"Retry-After": "60"})
         _requests.append(now)
+    if _model is None:
+        raise HTTPException(status_code=503, detail="Local classifier is not configured")
     probability = float(_model.predict_proba([body.text])[0][list(_model.classes_).index(1)])
     # Deliberately conservative and not calibrated; do not show probability as certainty.
     if probability >= 0.8:

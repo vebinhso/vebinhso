@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { flushGameBeforeGardenPurchase } from "@/lib/game";
 import { readGarden, buyGardenItem, plantGardenSeed, waterGardenPlant } from "@/lib/garden.functions";
-import { gardenGoods, rideNames, ridePose, type GardenGoodId, type RideKind } from "@/lib/neighborhood";
+import { gardenGoods, rideNames, ridePose, neighborhoodTravel, type GardenGoodId, type RideKind } from "@/lib/neighborhood";
 import { clearInput } from "@/lib/player-input";
 import { randomQuestion, gradeAnswer, reportAnswerResult, type Question } from "./questions";
 import { QuestionView } from "./QuestionView";
@@ -59,8 +59,8 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
     applyBalance(result.money, result.garden_spent);
     setNotice(en ? "Added to garden inventory." : "Đã thêm vào kho vườn chung.");
   });
-  const openPark = useCallback(() => { clearInput(); setPanel("park"); setNotice(""); }, []);
-  const openGarden = useCallback((cell?: number) => { clearInput(); setSlot(cell); setPanel("garden"); setNotice(""); }, []);
+  const openPark = useCallback(() => { neighborhoodTravel.destination = "park"; clearInput(); setPanel("park"); setNotice(""); }, []);
+  const openGarden = useCallback((cell?: number) => { neighborhoodTravel.destination = "garden"; clearInput(); setSlot(cell); setPanel("garden"); setNotice(""); }, []);
   const endRide = useCallback(() => { ridePose.active = false; setRide(null); setPanel("park"); clearInput(); }, []);
   const answer = async (picked: number[]) => {
     if (!quiz || lock.current) return;

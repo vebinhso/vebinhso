@@ -34,6 +34,11 @@ async def lifespan(app):
 
 app = FastAPI(title="Vệ Binh Số scam classification prototype", docs_url=None, redoc_url=None, lifespan=lifespan)
 
+@app.get("/health")
+def health():
+    return {"status": "ready" if _model is not None else "unavailable", "model_loaded": _model is not None}
+
+
 class Request(BaseModel):
     text: str = Field(min_length=10, max_length=3000)
 

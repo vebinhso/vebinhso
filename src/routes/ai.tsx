@@ -19,6 +19,7 @@ import {
   analyzeVideo,
   analyzePrivacyMedia,
   analyzePrivacyText,
+  analyzePublicPrivacyUrl,
   analyzePhone,
 } from "@/lib/ai-detect.functions";
 
@@ -309,7 +310,7 @@ function AiPage() {
   const [tab, setTab] = useState<Tab>("news");
 
   const [mediaMode, setMediaMode] = useState<"image" | "video">("image");
-  const [riskMode, setRiskMode] = useState<"image" | "video" | "text">("image");
+  const [riskMode, setRiskMode] = useState<"image" | "video" | "text" | "public_url">("image");
   const [phishMode, setPhishMode] = useState<"link" | "email">("link");
   const [riskSection, setRiskSection] = useState<"classic" | "social">("classic");
 
@@ -322,6 +323,7 @@ function AiPage() {
   const runVideo = useServerFn(analyzeVideo);
   const runPrivacyMedia = useServerFn(analyzePrivacyMedia);
   const runPrivacyText = useServerFn(analyzePrivacyText);
+  const runPublicPrivacyUrl = useServerFn(analyzePublicPrivacyUrl);
   const runPhone = useServerFn(analyzePhone);
 
   const [loading, setLoading] = useState(false);
@@ -399,6 +401,10 @@ function AiPage() {
   const [riskVideoFile, setRiskVideoFile] = useState<File | null>(null);
   const [riskVideoUrl, setRiskVideoUrl] = useState("");
   const [riskText, setRiskText] = useState("");
+  const [publicUrl, setPublicUrl] = useState("");
+  const [publicExcerpt, setPublicExcerpt] = useState("");
+  const [publicConsent, setPublicConsent] = useState(false);
+  const [publicResult, setPublicResult] = useState<Awaited<ReturnType<typeof analyzePublicPrivacyUrl>> | null>(null);
   const [riskMediaResult, setRiskMediaResult] = useState<Awaited<ReturnType<typeof analyzePrivacyMedia>> | null>(null);
   const [riskTextResult, setRiskTextResult] = useState<Awaited<ReturnType<typeof analyzePrivacyText>> | null>(null);
 
@@ -584,6 +590,12 @@ function AiPage() {
       () => runPrivacyText({ data: { text: riskText, locale: en ? "en" : "vi" } }),
     );
     if (r) setRiskTextResult(r);
+  }
+
+  async function doPublicUrl() {
+    setPublicResult(null);
+    const r = await withProgress([en ? "Reviewing supplied content..." : "Đang phân tích nội dung công khai...", en ? "Checking exposure risks..." : "Đang kiểm tra nguy cơ lộ thông tin..."], () => runPublicPrivacyUrl({ data: { url: publicUrl, excerpt: publicExcerpt, consent: publicConsent, locale: en ? "en" : "vi" } }));
+    if (r) setPublicResult(r);
   }
 
   function pickRiskFile(f: File) {
@@ -1329,6 +1341,7 @@ function AiPage() {
                   { id: "image", label: en ? "🖼️ Photo" : "🖼️ Ảnh" },
                   { id: "video", label: "🎬 Video" },
                   { id: "text", label: en ? "📝 Text" : "📝 Văn bản" },
+                  { id: "public_url", label: en ? "🔗 Public URL" : "🔗 URL công khai" },
                 ] as const).map((m) => (
                   <button
                     key={m.id}
@@ -1352,7 +1365,16 @@ function AiPage() {
                   : "🛡️ Dán ảnh, video hoặc văn bản — hệ thống chấm % rủi ro bị lộ thông tin cá nhân nếu đăng công khai, và chỉ mũi tên đúng vào chỗ nguy hiểm."}
               </p>
 
-              {riskMode !== "text" ? (
+              {riskMode === "public_url" ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-bold">{en ? "Review a public post you own or have permission to check. We do not search for people or fetch the page." : "Kiểm tra bài đăng công khai của bạn hoặc nội dung bạn được phép kiểm tra. Hệ thống không tìm kiếm danh tính hay tự truy cập trang."}</p>
+                  <input type="url" value={publicUrl} onChange={(e) => setPublicUrl(e.target.value)} placeholder="https://..." className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm" />
+                  <textarea value={publicExcerpt} onChange={(e) => setPublicExcerpt(e.target.value)} rows={5} placeholder={en ? "Paste the public post text here..." : "Dán nội dung công khai cần phân tích..."} className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm" />
+                  <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={publicConsent} onChange={(e) => setPublicConsent(e.target.checked)} />{en ? "I own or have permission to review this content and agree to its analysis." : "Tôi sở hữu hoặc được phép kiểm tra nội dung này và đồng ý gửi nội dung để phân tích."}</label>
+                  <button onClick={doPublicUrl} disabled={loading || !publicConsent || !publicUrl.startsWith("https://") || publicExcerpt.trim().length < 10} className="toy-button toy-button-primary w-full disabled:opacity-50">{en ? "Check privacy risks" : "Kiểm tra nguy cơ lộ thông tin"}</button>
+                  {publicResult && <div className="rounded-xl border p-3 space-y-2"><Gauge value={publicResult.riskScore} label={en ? "Exposure risk" : "Nguy cơ lộ thông tin"} /><p className="text-sm font-bold">{publicResult.summary}</p><p className="text-xs text-muted-foreground">{publicResult.note}</p>{publicResult.findings.map((f, i) => <p key={i} className="text-xs"><strong>{f.label}:</strong> {f.detail}</p>)}{publicResult.advice.map((a, i) => <p key={i} className="text-xs">• {a}</p>)}</div>}
+                </div>
+              ) : riskMode !== "text" ? (
                 <>
                   <div
                     onClick={() => riskFileRef.current?.click()}

@@ -74,7 +74,7 @@ export function CheckFeedback({ kind, result, input }: Props) {
   if (stage === "done") {
     return (
       <div className="mt-3 rounded-xl border-2 border-border bg-background/70 p-3 text-sm font-black">
-        {t("Cảm ơn em!", "Thanks!")}
+        {t("Cảm ơn bạn!", "Thank you!")}
       </div>
     );
   }

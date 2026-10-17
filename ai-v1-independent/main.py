@@ -68,6 +68,37 @@ async def call_gemini(messages, json_mode):
     except (KeyError, IndexError, TypeError):
         raise HTTPException(502, "Gemini returned no usable content")
 
+@app.get("/admin/gemini-models")
+async def diagnostic_models(request: Request):
+    """Protected model discovery. Never returns or logs credentials."""
+    token = os.getenv("SCAM_API_TOKEN")
+    if not token or not secrets.compare_digest(request.headers.get("authorization", ""), f"Bearer {token}"):
+        raise HTTPException(401, "Unauthorized")
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise HTTPException(503, "GEMINI_API_KEY is not configured")
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0)) as client:
+            response = await client.get(
+                "https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"x-goog-api-key": key},
+                params={"pageSize": 100},
+            )
+    except httpx.RequestError:
+        logger.warning("Gemini model discovery network error")
+        raise HTTPException(502, "Cannot reach Gemini model listing")
+    if response.status_code != 200:
+        logger.warning("Gemini model discovery rejected: upstream_status=%s", response.status_code)
+        return {"upstream_status": response.status_code, "models": [], "note": "Check Gemini API project access and quota"}
+    payload = response.json()
+    models = [
+        {"name": item.get("name"), "methods": item.get("supportedGenerationMethods", [])}
+        for item in payload.get("models", [])
+        if "generateContent" in item.get("supportedGenerationMethods", [])
+    ]
+    logger.info("Gemini model discovery succeeded: generate_content_models=%d", len(models))
+    return {"upstream_status": 200, "models": models, "has_more": bool(payload.get("nextPageToken"))}
+
 @app.post("/v1/analyze")
 async def analyze(request: Request):
     token = os.getenv("SCAM_API_TOKEN")

@@ -518,15 +518,9 @@ function buildFriendSlots(count: number): FriendSlot[] {
     for (const x of xs) {
       // Chừa khu đất 20×20 của người chơi và lối vào phía trước.
       if (Math.abs(x) < 15 && z > -15 && z < 15) continue;
-      const dx = Math.abs(x - SIDE_X);
-      const dl = Math.abs(x + SIDE_X);
-      const rot = z >= MAIN_Z
-        ? Math.PI
-        : z <= BACK_Z
-          ? 0
-          : dl < dx
-            ? Math.PI / 2
-            : -Math.PI / 2;
+      // Giữ nguyên góc thiết kế gốc của mọi căn nhà; không xoay cả căn theo lô.
+      // Vị trí lô vẫn giữ nguyên để không thay đổi bố cục khu phố.
+      const rot = 0;
       candidates.push({ x, z, rot });
     }
   }

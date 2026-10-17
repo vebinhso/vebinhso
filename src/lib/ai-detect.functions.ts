@@ -14,6 +14,10 @@ const resultLanguage = (locale: ResultLocale) => locale === "en"
 const fallback = (locale: ResultLocale, vi: string, en: string) => locale === "en" ? en : vi;
 
 async function callGateway(body: unknown) {
+  // Fail closed: never spend Lovable credits when the migration flag is disabled.
+  if (process.env["LOVABLE_AI_ENABLED"] !== "true") {
+    throw new Error("Bản kiểm tra AI cũ đã tạm ngừng. Vui lòng sử dụng AI V2 trên Render.");
+  }
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("AI chưa được cấu hình");
   const res = await fetch(GATEWAY, {

@@ -211,20 +211,16 @@ ${SCAM_MESSAGE_PROMPT_BLOCK}
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"scamCategory":"id nhóm lừa đảo hoặc khong_ro","platform":"nền tảng có khả năng nhất hoặc rỗng","difficulty":"Dễ|Trung bình|Khó","scamSigns":["dấu hiệu lừa đảo"],"tips":["cách kiểm chứng và nên làm gì"]}
 misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. ${resultLanguage(data.locale)}`;
-    // Retrieve independent V2 evidence before Gemini reasons, not afterward.
-    // A classifier is advisory evidence, never proof that a message is safe.
-    const { checkScamMl } = await import("./scam-ml.server");
-    const mlAdvisory = await checkScamMl(data.text);
-    const v2Context = mlAdvisory
-      ? `\nKẾT QUẢ THAM KHẢO TỪ AI V2: ${mlAdvisory.status} (mô hình ${mlAdvisory.model_version}). Đây chỉ là tín hiệu phân loại, KHÔNG phải kết luận hay xác suất đúng/sai. Hãy đánh giá độc lập dựa trên bằng chứng trong tin nhắn; nếu V2 không phát hiện dấu hiệu rõ ràng, KHÔNG khẳng định an toàn.`
-      : "\nAI V2 không khả dụng hoặc không có dữ liệu; không được suy diễn là an toàn.";
     const parsed = await callGatewayVerified({
       messages: [
-        { role: "system", content: withSkill(sys + v2Context, skill) },
+        { role: "system", content: withSkill(sys, skill) },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "misinfoRisk"], data.locale);
+    // V2 is an independent cross-check AFTER Gemini; never override Gemini's verdict.
+    const { checkScamMl } = await import("./scam-ml.server");
+    const mlAdvisory = await checkScamMl(data.text);
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
@@ -711,45 +707,6 @@ Tối đa 8 findings. ${resultLanguage(data.locale)}`;
       safeVersion: str(parsed.safeVersion, ""),
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
-    };
-  });
-
-/** Privacy-safe review of a user-supplied public URL and pasted public excerpt.
- * Does NOT crawl people, scrape search engines, or claim that a URL was fetched.
- * The excerpt is required so private information is not sent to a search engine.
- */
-export const analyzePublicPrivacyUrl = createServerFn({ method: "POST" })
-  .inputValidator((data: { url: string; excerpt: string; consent: boolean; locale?: ResultLocale }) => {
-    if (data?.consent !== true) throw new Error("Cần xác nhận bạn có quyền kiểm tra nội dung này.");
-    let url: URL;
-    try { url = new URL(data.url); } catch { throw new Error("Đường dẫn không hợp lệ."); }
-    if (url.protocol !== "https:" || url.username || url.password || url.port || url.hostname === "localhost" || /^(?:\\d{1,3}\\.){3}\\d{1,3}$/.test(url.hostname) || !url.hostname.includes(".")) {
-      throw new Error("Chỉ chấp nhận URL HTTPS công khai hợp lệ.");
-    }
-    if (typeof data.excerpt !== "string" || data.excerpt.trim().length < 10 || data.excerpt.length > 6000) {
-      throw new Error("Hãy dán nội dung công khai cần kiểm tra (10–6000 ký tự).");
-    }
-    return { url: url.origin + url.pathname, excerpt: data.excerpt.trim(), locale: resultLocale(data.locale) };
-  })
-  .handler(async ({ data }) => {
-    const { loadSkillForCheck } = await import("./ai-skills.server");
-    const skill = await loadSkillForCheck("privacy_text");
-    const parsed = await callGateway({
-      messages: [
-        { role: "system", content: withSkill(`Bạn đánh giá rủi ro lộ thông tin cá nhân trong đoạn nội dung công khai do chính người dùng cung cấp. URL chỉ là ngữ cảnh, CHƯA được truy cập hoặc xác minh. Không suy diễn rằng đã tìm thấy trang, không tìm kiếm người khác, không trích xuất thêm danh tính. Trả JSON {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"...","findings":[{"quote":"trích nguyên văn","label":"...","detail":"...","severity":"low|medium|high"}],"advice":["..."]}. ${resultLanguage(data.locale)}`, skill) },
-        { role: "user", content: `URL người dùng khai báo: ${data.url}\\nNội dung người dùng dán (chưa xác minh từ website):\\n${data.excerpt}` },
-      ],
-      response_format: { type: "json_object" },
-    });
-    return {
-      url: data.url, pageFetched: false, verifiedOnline: false,
-      riskScore: clampScore(parsed.riskScore), level: str(parsed.level, "unknown"),
-      summary: str(parsed.summary, "Đây chỉ là đánh giá nội dung được cung cấp."),
-      findings: Array.isArray(parsed.findings) ? parsed.findings.slice(0, 8).map((f: any) => ({
-        quote: str(f?.quote, ""), label: str(f?.label, ""), detail: str(f?.detail, ""), severity: sev(f?.severity),
-      })).filter((f: { quote: string }) => data.excerpt.includes(f.quote)) : [],
-      advice: strArr(parsed.advice),
-      note: "Chưa truy cập hoặc xác minh trang web; chỉ phân tích đoạn nội dung do người dùng cung cấp.",
     };
   });
 

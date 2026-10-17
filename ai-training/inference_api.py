@@ -71,3 +71,48 @@ def classify(body: Request, authorization: str | None = Header(default=None)):
         "review_required": True,
         "note": "This automated classification is not proof that a message is safe or fraudulent."
     }
+
+# Optional general-purpose vision/text provider for all nine AI Centre checks.
+# Credentials remain on Render; the website calls this endpoint only server-side.
+class AnalyzeRequest(BaseModel):
+    messages: list[dict] = Field(min_length=1, max_length=12)
+    response_format: dict | None = None
+
+@app.post("/v1/analyze")
+async def analyze(body: AnalyzeRequest, authorization: str | None = Header(default=None)):
+    import hmac
+    import httpx
+    from urllib.parse import urlparse
+    token = os.environ["SCAM_API_TOKEN"]
+    if not authorization or not hmac.compare_digest(authorization, "Bearer " + token):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    key = os.getenv("AI_PROVIDER_API_KEY")
+    endpoint = os.getenv("AI_PROVIDER_URL", "https://api.openai.com/v1/chat/completions")
+    model = os.getenv("AI_PROVIDER_MODEL")
+    if not key or not model:
+        raise HTTPException(status_code=503, detail="Independent AI provider is not configured")
+    parsed = urlparse(endpoint)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.hostname.endswith("lovable.dev"):
+        raise HTTPException(status_code=503, detail="Invalid AI provider endpoint")
+    # Bound inputs, especially embedded image/video frames.
+    payload = body.model_dump(exclude_none=True)
+    if len(__import__("json").dumps(payload)) > 15_000_000:
+        raise HTTPException(status_code=413, detail="Input too large")
+    payload["model"] = model
+    try:
+        async with httpx.AsyncClient(timeout=90, follow_redirects=False) as client:
+            response = await client.post(endpoint, json=payload, headers={
+                "Authorization": "Bearer " + key, "Content-Type": "application/json"
+            })
+    except httpx.HTTPError:
+        raise HTTPException(status_code=502, detail="AI provider unavailable")
+    if response.status_code != 200:
+        raise HTTPException(status_code=502, detail="AI provider rejected the request")
+    try:
+        result = response.json()
+        content = result["choices"][0]["message"]["content"]
+        if not isinstance(content, str):
+            raise ValueError("Missing text response")
+        return {"choices": [{"message": {"content": content}}]}
+    except (ValueError, KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="Invalid AI provider response")

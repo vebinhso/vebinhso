@@ -131,10 +131,11 @@ export function CheckFeedback({ kind, result, input }: Props) {
             <label className="flex items-start gap-2 text-xs font-bold">
               <input type="checkbox" className="mt-0.5" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
               <span>{t(
-                "Tôi đã chắc chắn với khẳng định của mình và đồng ý đính kèm nội dung đã kiểm tra (thông tin cá nhân được tự che)",
-                "I am confident in my statement and agree to attach the checked content (personal details are redacted)",
+                "Tôi đã chắc chắn với khẳng định của mình",
+                "I am confident in my statement",
               )}</span>
             </label>
+            <p className="text-[11px] text-muted-foreground">{t("Lưu ý: Chọn ô này cũng đồng ý đính kèm nội dung đã kiểm tra sau khi tự che thông tin cá nhân.", "Note: Checking this box also agrees to attach the checked content after personal details are redacted.")}</p>
           )}
         </>
       )}

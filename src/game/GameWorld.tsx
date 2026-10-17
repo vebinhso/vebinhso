@@ -862,7 +862,7 @@ function PlotAndPlacement({
       {/* One terrain owner: roads and plots sit distinctly above this, not another giant plane. */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 60]}>
         <planeGeometry args={[420, 320]} />
-        <meshStandardMaterial color="#6f9a4c" roughness={1} />
+        <meshStandardMaterial color="#a6a5a1" roughness={1} />
       </mesh>
       {!dimTown && !isolatedHouseView && <NeighborhoodZones {...neighborhood} />}
       <HoiAnTown

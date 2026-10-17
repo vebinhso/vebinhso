@@ -1,0 +1,30 @@
+name: Test scam inference API (experiment)
+
+on:
+  push:
+    branches:
+      - experiment/scam-ai-training
+    paths:
+      - 'ai-training/inference_api.py'
+      - 'ai-training/test_inference_api.py'
+      - 'ai-training/requirements-api.txt'
+      - '.github/workflows/test-scam-inference.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install API test dependencies
+        run: python -m pip install -r ai-training/requirements-api.txt
+      - name: Run isolated API unit tests (no private data or model required)
+        working-directory: ai-training
+        run: python -m unittest -v test_inference_api

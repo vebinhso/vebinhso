@@ -1,0 +1,35 @@
+name: Collect scam knowledge (experiment)
+
+on:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/scam-ai-training
+    paths:
+      - 'ai-training/knowledge_sync/**'
+      - '.github/workflows/collect-scam-knowledge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/experiment/scam-ai-training'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch RSS and filter into unverified candidates
+        run: python ai-training/knowledge_sync/collect.py
+      - name: Upload reviewable candidate artifact only
+        uses: actions/upload-artifact@v4
+        with:
+          name: scam-knowledge-candidates
+          path: ai-training/knowledge_sync/output/candidates.json
+          retention-days: 14
+          if-no-files-found: error

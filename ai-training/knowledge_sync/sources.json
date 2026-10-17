@@ -1,0 +1,14 @@
+{
+  "feeds": [
+    {
+      "name": "VnExpress Pháp luật",
+      "domain": "vnexpress.net",
+      "url": "https://vnexpress.net/rss/phap-luat.rss"
+    },
+    {
+      "name": "Tuổi Trẻ Pháp luật",
+      "domain": "tuoitre.vn",
+      "url": "https://tuoitre.vn/rss/phap-luat-104.rss"
+    }
+  ]
+}

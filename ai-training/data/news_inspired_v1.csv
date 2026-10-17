@@ -1,0 +1,19 @@
+label,text,source_type,source_url,scenario
+scam,"Bưu kiện của bạn đang gặp sự cố. Hãy vào trang xác minh được gửi trong tin nhắn để cập nhật thông tin thanh toán.",news_inspired,https://vnexpress.net/ro-tin-nhan-lua-dao-mao-danh-bo-cong-an-vnpost-5110362.html,parcel_impersonation
+scam,"Bạn có khoản phạt giao thông chưa thanh toán. Nộp tiền qua đường dẫn trong tin nhắn trong vòng 48 giờ.",news_inspired,https://vnexpress.net/ro-tin-nhan-lua-dao-mao-danh-bo-cong-an-vnpost-5110362.html,authority_impersonation
+scam,"Tuyển cộng tác viên đánh giá phim tại nhà. Muốn mở nhiệm vụ thưởng cao cần chuyển tiền kích hoạt.",news_inspired,https://congan.com.vn/vu-an/canh-giac/gia-mao-nhan-vien-rap-phim-tuyen-cong-tac-vien-online_163631.html,task_scam
+scam,"Tài khoản làm nhiệm vụ đang bị treo. Nạp thêm tiền để mở khóa và nhận lại hoa hồng.",news_inspired,https://congan.com.vn/vu-an/canh-giac/gia-mao-nhan-vien-rap-phim-tuyen-cong-tac-vien-online_163631.html,task_scam
+scam,"Tôi là người giao hàng. Bạn chuyển nhầm phí vào tài khoản thành viên nên cần liên hệ hỗ trợ để hủy đăng ký thu phí tự động.",news_inspired,https://vnexpress.net/trinh-bao-mat-400-trieu-dong-sau-khi-thanh-toan-16-000-dong-phi-ship-hang-4879608.html,fake_shipper
+scam,"Bộ phận hỗ trợ giao hàng yêu cầu cung cấp mật khẩu và mã OTP để hoàn tất hoàn tiền.",news_inspired,https://vnexpress.net/trinh-bao-mat-400-trieu-dong-sau-khi-thanh-toan-16-000-dong-phi-ship-hang-4879608.html,otp_theft
+scam,"Bạn được nhận quà tri ân. Điền thông tin thẻ và mã OTP vào biểu mẫu nhận quà.",news_inspired,https://mic.gov.vn/canh-bao-lua-dao-mao-danh-benh-vien-keu-goi-tu-thien-gia-dip-tet-nguyen-dan-at-ty-2025-197250127121717234.htm,fake_gift
+scam,"Tài khoản ngân hàng nhận lì xì đang chờ xác minh. Gửi mật khẩu để nhận thưởng.",news_inspired,https://mic.gov.vn/canh-bao-lua-dao-mao-danh-benh-vien-keu-goi-tu-thien-gia-dip-tet-nguyen-dan-at-ty-2025-197250127121717234.htm,fake_gift
+not_scam,"Thông báo từ lớp: ngày mai học sinh mang sách giáo khoa và bài tập đã làm.",synthetic_control,,school
+not_scam,"Đơn hàng của bạn đã giao thành công. Bạn có thể xem hóa đơn trong ứng dụng đã sử dụng để đặt hàng.",synthetic_control,,delivery
+not_scam,"Ngân hàng nhắc khách hàng không cung cấp mã OTP cho bất kỳ ai kể cả nhân viên hỗ trợ.",synthetic_control,,bank_warning
+not_scam,"Bạn có thể tự mở ứng dụng ngân hàng chính thức để kiểm tra biến động số dư.",synthetic_control,,bank_info
+not_scam,"Câu lạc bộ tuyển thành viên mới và không thu phí tham gia. Đăng ký trực tiếp tại phòng sinh hoạt.",synthetic_control,,club
+not_scam,"Giáo viên thông báo lịch nhận tài liệu ôn tập miễn phí tại thư viện trường.",synthetic_control,,school
+not_scam,"Nếu nhận tin nhắn yêu cầu nạp tiền để làm nhiệm vụ hãy kiểm tra lại với cơ quan chức năng.",synthetic_control,,safety_warning
+not_scam,"Trung tâm hỗ trợ hướng dẫn bạn không nhập mật khẩu vào đường dẫn nhận từ người lạ.",synthetic_control,,safety_warning
+not_scam,"Đơn vị vận chuyển thông báo chỉ thanh toán phí giao hàng theo đơn đã đặt trong ứng dụng.",synthetic_control,,delivery
+not_scam,"Thông báo học bổng: học sinh xem thể lệ tại bảng tin chính thức của nhà trường, không yêu cầu đóng phí.",synthetic_control,,scholarship

@@ -1,0 +1,7 @@
+# Prototype inference API dependencies (separate from training requirements)
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+httpx>=0.27,<1
+pydantic>=2,<3
+joblib>=1.3,<2
+scikit-learn>=1.4,<2

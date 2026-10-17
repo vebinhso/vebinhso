@@ -11,6 +11,35 @@ import httpx
 app = FastAPI(title="Ve Binh So AI V1 Independent")
 logger = logging.getLogger("uvicorn.error")
 
+@app.on_event("startup")
+async def log_gemini_model_availability():
+    """One-time, privacy-safe discovery at startup; never log API keys."""
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        logger.warning("Gemini startup check: API key not configured")
+        return
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0)) as client:
+            response = await client.get(
+                "https://generativelanguage.googleapis.com/v1beta/models",
+                headers={"x-goog-api-key": key},
+                params={"pageSize": 100},
+            )
+        if response.status_code != 200:
+            logger.warning("Gemini startup check: upstream_status=%s", response.status_code)
+            return
+        data = response.json()
+        supported = [
+            item.get("name", "")
+            for item in data.get("models", [])
+            if "generateContent" in item.get("supportedGenerationMethods", [])
+        ]
+        logger.info("Gemini startup check: upstream_status=200 generate_content_models=%s", json.dumps(supported[:30]))
+        if data.get("nextPageToken"):
+            logger.info("Gemini startup check: more models available on next page")
+    except (httpx.RequestError, ValueError, TypeError):
+        logger.warning("Gemini startup check: network or response error")
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "ai-v1-independent", "provider_configured": bool(os.getenv("GEMINI_API_KEY"))}

@@ -1261,8 +1261,20 @@ function AiPage() {
                   <p className={`text-center font-black text-sm sm:text-lg ${newsResult.verified ? scoreText(newsResult.fakeScore) : "text-amber-700"}`}>
                     {newsResult.verified ? ((en ? NEWS_VERDICT_EN : NEWS_VERDICT_VI)[newsResult.verdict] ?? (en ? "Verified" : "Đã kiểm chứng")) : (en ? "NOT YET VERIFIED · insufficient evidence" : "CHƯA KIỂM CHỨNG ĐƯỢC · chưa đủ bằng chứng")}
                   </p>
-                   <Gauge value={newsResult.fakeScore} label={en ? "Fake / misleading score" : "Mức độ là tin giả / sai lệch"} />
-                   <Gauge value={newsResult.tabloidScore} label={en ? "Tabloid / rumor score" : "Mức độ lá cải / tin đồn truyền miệng"} />
+                   {Array.isArray(newsResult.rubric) && (
+                     <div className="rounded-xl border-2 border-border p-3 space-y-2">
+                       <p className="font-black text-sm">{en ? "News risk rubric" : "Đánh giá rủi ro tin tức theo 5 tiêu chí"}</p>
+                       <p className="font-black text-lg">{newsResult.rubricPercent === null ? (en ? "Insufficient evidence" : "Chưa đủ dữ liệu") : `${newsResult.rubricPercent}% · ${newsResult.rubricPoints}/${newsResult.rubricAssessedMax} ${en ? "assessed points" : "điểm đã đánh giá"}`}</p>
+                       <p className="font-bold text-xs">{newsResult.rubricBand === "high_trust" ? "Ít dấu hiệu rủi ro" : newsResult.rubricBand === "suspect" ? "Nghi vấn / cần kiểm tra thêm" : newsResult.rubricBand === "sensational" ? "Nhiều dấu hiệu giật gân" : newsResult.rubricBand === "high_risk" ? "Rủi ro thông tin rất cao" : "Chưa đủ bằng chứng để chấm điểm"}</p>
+                       {newsResult.rubric.map((item: {key:string;label:string;max:number;score:number|null;assessed:boolean;reason:string}) => (
+                         <div key={item.key}>
+                           <p className="text-xs font-bold">{item.label}: {item.assessed ? `${item.score}/${item.max}` : "Chưa đánh giá"}</p>
+                           <p className="text-[11px]">{item.reason}</p>
+                         </div>
+                       ))}
+                       <p className="text-[11px]">{en ? "Editorial risk index, not the probability a claim is false. Missing criteria are excluded." : "Chỉ số rủi ro nội dung, không phải xác suất tin giả. Tiêu chí thiếu dữ liệu không tính vào mẫu số."}</p>
+                     </div>
+                   )}
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
 
                   {newsResult.matchedNews.length > 0 && (

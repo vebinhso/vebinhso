@@ -224,7 +224,7 @@ function DefaultHouse() {
   );
 }
 
-const PREVIEW_SCALE = 1; // nhà bạn bè cùng kích thước nhà mình (mảnh đất 20x20)
+const PREVIEW_SCALE = 0.72; // thu nhỏ đồng nhất để nhà và đồ trang trí không lấn đường
 
 /** Hiện giao diện thật của nhà bạn (thu nhỏ); chưa trang trí → nhà mặc định */
 function FriendHousePreview({ ownerId }: { ownerId: string }) {
@@ -237,7 +237,7 @@ function FriendHousePreview({ ownerId }: { ownerId: string }) {
   });
   const h = q.data;
   const empty = !h || (h.placed.length === 0 && h.walls.length === 0 && h.roofs.length === 0 && h.floors.length === 0);
-  if (empty) return <group scale={1.8}><DefaultHouse /></group>;
+  if (empty) return <group scale={1.3}><DefaultHouse /></group>;
   const half = 10;
   return (
     <group scale={PREVIEW_SCALE} position={[0, 0, 0]}>
@@ -520,7 +520,8 @@ function buildFriendSlots(count: number): FriendSlot[] {
       if (Math.abs(x) < 15 && z > -15 && z < 15) continue;
       // Giữ nguyên góc thiết kế gốc của mọi căn nhà; không xoay cả căn theo lô.
       // Vị trí lô vẫn giữ nguyên để không thay đổi bố cục khu phố.
-      const rot = 0;
+      // Cửa mặc định hướng +Z. Nhà phía bên kia đường chính phải quay 180° về phía đường.
+      const rot = z >= MAIN_Z ? Math.PI : 0;
       candidates.push({ x, z, rot });
     }
   }
@@ -729,7 +730,7 @@ export const HoiAnTown = memo(function HoiAnTown({
       })}
       {!dim && !hideBuildings && orphans.map((s) => (
         <group key={`orphan-${s.x}-${s.z}`} position={[s.x, 0, s.z]} rotation={[0, s.rot, 0]}>
-          <group scale={1.8}><DefaultHouse /></group>
+          <group scale={1.3}><DefaultHouse /></group>
         </group>
       ))}
       {!dim && !hideBuildings && shopSlots.map((s, i) => {

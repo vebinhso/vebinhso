@@ -1094,6 +1094,24 @@ function AiPage() {
                   <Gauge value={textResult.aiScore} label={en ? "AI-written score" : "Mức độ do AI viết"} />
                   <Gauge value={textResult.misinfoRisk} label={en ? "Scam / misinformation risk" : "Nguy cơ lừa đảo / thông tin sai lệch"} />
                   <Gauge value={textResult.confidence} label={en ? "Conclusion confidence" : "Độ tin cậy của kết luận"} />
+                  <section className="rounded-xl border border-dashed border-violet-300 bg-violet-50/60 p-3 text-sm text-slate-800" aria-label={en ? "Experimental AI V2" : "AI V2 thử nghiệm"}>
+                    <p className="font-black">{en ? "AI V2 – Experimental scam check" : "AI V2 – Kiểm tra lừa đảo (thử nghiệm)"}</p>
+                    {textResult.mlAdvisory ? (
+                      <>
+                        <p className="mt-1 font-semibold">
+                          {textResult.mlAdvisory.status === "risk_indicated"
+                            ? (en ? "Potential scam indicators detected" : "Phát hiện dấu hiệu có thể là lừa đảo")
+                            : textResult.mlAdvisory.status === "no_clear_sign"
+                              ? (en ? "No clear scam indicators detected" : "Chưa phát hiện dấu hiệu lừa đảo rõ ràng")
+                              : (en ? "Not enough evidence to classify" : "Chưa đủ thông tin để phân loại")}
+                        </p>
+                        <p className="mt-1 text-xs">{en ? "Model version" : "Phiên bản mô hình"}: {textResult.mlAdvisory.model_version}</p>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-xs">{en ? "AI V2 is disabled or unavailable. The existing analysis still works." : "AI V2 đang tắt hoặc chưa kết nối được. Kết quả phân tích hiện tại vẫn hoạt động độc lập."}</p>
+                    )}
+                    <p className="mt-2 text-xs">{en ? "Research prototype only. This is not proof that a message is safe or fraudulent. Verify independently; do not enter personal data." : "Mô hình nghiên cứu đang thử nghiệm, chưa đủ độ chính xác để khẳng định tin nhắn an toàn hay lừa đảo. Hãy tự kiểm chứng và không nhập thông tin cá nhân."}</p>
+                  </section>
                   <div className="flex flex-wrap gap-2">
                     <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-black">
                       🧩 {en ? "Detection difficulty" : "Độ khó nhận biết"}: {en ? ({ "Dễ": "Easy", "Trung bình": "Medium", "Khó": "Hard" }[textResult.difficulty] ?? textResult.difficulty) : textResult.difficulty}

@@ -423,7 +423,7 @@ export const analyzeNews = createServerFn({ method: "POST" })
     try {
       const claim = await callGateway({
         messages: [
-          { role: "system", content: "Trích xuất nội dung cần kiểm chứng và từ khóa tìm báo chính xác. Không kết luận đúng/sai. Trả JSON: {\\"query\\":\\"từ khóa cụ thể tối đa 120 ký tự\\"}." },
+          { role: "system", content: `Trích xuất nội dung cần kiểm chứng và từ khóa tìm báo chính xác. Không kết luận đúng/sai. Trả JSON: {"query":"từ khóa cụ thể tối đa 120 ký tự"}.` },
           { role: "user", content: data.content },
         ],
         response_format: { type: "json_object" },

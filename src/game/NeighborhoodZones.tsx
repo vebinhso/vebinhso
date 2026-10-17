@@ -10,7 +10,7 @@ import treeAsset from "@/assets/neighborhood/tree.glb.asset.json";
 import roseAsset from "@/assets/neighborhood/rose.glb.asset.json";
 import flowerAsset from "@/assets/neighborhood/flower.glb.asset.json";
 
-const palette = { path: "#b8b2a6", rail: "#dc4f45", support: "#558b9b", wheel: "#e9b644", cabin: "#36a6a5", soil: "#79533d", leaf: "#498246", cream: "#fff1d0", pink: "#d35c8f" };
+const palette = { path: "#b8b2a6", rail: "#dc4f45", support: "#558b9b", wheel: "#e9b644", cabin: "#36a6a5", soil: "#79533d", leaf: "#498246", cream: "#fff1d0", pink: "#d35c8f", wall: "#e7b447", roof: "#514a45", door: "#3d332d", trim: "#f5e1aa" };
 const box = new THREE.BoxGeometry(1, 1, 1);
 const mats = Object.fromEntries(Object.entries(palette).map(([k, color]) => [k, new THREE.MeshStandardMaterial({ color, roughness: 0.72 })]));
 function Block({ p, s, mat = "support" }: { p: [number, number, number]; s: [number, number, number]; mat?: string }) {
@@ -30,6 +30,21 @@ const path = new THREE.CatmullRomCurve3([
 const railGeo = new THREE.TubeGeometry(path, 180, 0.19, 6, true);
 export type ZoneProps = { plants?: GardenPlant[]; ride?: { kind: RideKind; id: number } | null; onRideEnd?: () => void; onOpenPark?: () => void; onOpenGarden?: (slot?: number) => void };
 
+function ZoneHouse({ title, onClick, position }: { title: string; onClick?: () => void; position: [number, number, number] }) {
+  return <group position={position} onClick={e => { e.stopPropagation(); onClick?.(); }}>
+    <Block p={[0, 2.8, 0]} s={[15, 5.6, 9]} mat="wall" />
+    <Block p={[0, 5.85, 0]} s={[16.4, 0.65, 10.4]} mat="roof" />
+    {Array.from({length: 12}, (_, i) => <Block key={i} p={[-7.2 + i * 1.3, 6.25, 0]} s={[0.28, 0.22, 10.2]} mat="trim" />)}
+    <Block p={[0, 1.75, 4.56]} s={[3.2, 3.5, 0.22]} mat="door" />
+    {[-5.1, 5.1].map(x => <group key={x}>
+      <Block p={[x, 2.75, 4.57]} s={[2.8, 3.1, 0.25]} mat="door" />
+      <Block p={[x, 2.75, 4.74]} s={[0.13, 3.1, 0.15]} mat="trim" />
+    </group>)}
+    <Html position={[0, 8.3, 0]} center distanceFactor={45} zIndexRange={[15, 0]}>
+      <Button className="font-bold whitespace-nowrap" onClick={onClick}>{title}</Button>
+    </Html>
+  </group>;
+}
 function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
   const en = useLocale() === "en";
   const car = useRef<THREE.Group>(null);
@@ -68,6 +83,8 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
   });
   return <group position={[PARK_ORIGIN[0], 0, PARK_ORIGIN[1]]}>
     <Block p={[0, 0.07, -1]} s={[56, 0.12, 38]} mat="path" />
+    <ZoneHouse position={[0, 0.3, 0]} title={en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"} onClick={onOpenPark} />
+    {ride && <group>
     <mesh geometry={railGeo} material={mats.rail} />
     <mesh geometry={railGeo} material={mats.support} position={[0, -0.42, 0]} />
     {supports.map((p, i) => <Block key={i} p={[p.x, p.y / 2, p.z]} s={[0.28, p.y, 0.28]} />)}
@@ -92,6 +109,7 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
         <Block p={[0, 1.9, -0.65]} s={[1.5, 1, 0.2]} mat="cream" />
       </group>; })}</group>
     </group>
+    </group>
     <Block p={[0, 1.2, 17]} s={[4.8, 2.4, 0.6]} mat="cabin" />
     <Html position={[0, 3.4, 17]} center distanceFactor={45} zIndexRange={[15, 0]}>
       <Button className="font-bold" onClick={onOpenPark} aria-label={en ? "Amusement park control board" : "Bảng điều khiển khu vui chơi"}>🎢 {en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"}</Button>
@@ -102,7 +120,8 @@ function Garden({ plants = [], onOpenGarden }: ZoneProps) {
   const en = useLocale() === "en";
   const bySlot = useMemo(() => new Map(plants.map(p => [p.slot, p])), [plants]);
   return <group>
-    <Block p={[GARDEN_ORIGIN[0], 0.06, GARDEN_ORIGIN[1] - 2]} s={[47, 0.1, 34]} mat="leaf" />
+    <Block p={[GARDEN_ORIGIN[0], 0.06, GARDEN_ORIGIN[1] - 2]} s={[47, 0.1, 34]} mat="path" />
+    <ZoneHouse position={[GARDEN_ORIGIN[0], 0.3, GARDEN_ORIGIN[1] - 24]} title={en ? "GROWING AREA" : "KHU TRỒNG TRỌT"} onClick={() => onOpenGarden?.()} />
     <Block p={[GARDEN_ORIGIN[0], 0.14, 12]} s={[47, 0.16, 3]} mat="path" />
     {Array.from({ length: 40 }, (_, slot) => {
       const [x, z] = gardenSlotPosition(slot), plant = bySlot.get(slot);
@@ -115,7 +134,7 @@ function Garden({ plants = [], onOpenGarden }: ZoneProps) {
         </group>}</Suspense>
       </group>;
     })}
-    <Html position={[70, 3.2, 13]} center distanceFactor={45} zIndexRange={[15, 0]}><Button onClick={() => onOpenGarden?.()} className="font-bold" aria-label={en ? "Open shared garden" : "Mở vườn chung"}>🌱 {en ? "SHARED GARDEN" : "VƯỜN CHUNG"}</Button></Html>
+    <Html position={[70, 3.2, 13]} center distanceFactor={45} zIndexRange={[15, 0]}><Button onClick={() => onOpenGarden?.()} className="font-bold" aria-label={en ? "Open shared garden" : "Mở vườn chung"}>🌱 {en ? "GROWING AREA" : "KHU TRỒNG TRỌT"}</Button></Html>
   </group>;
 }
 export const NeighborhoodZones = memo(function NeighborhoodZones(props: ZoneProps) {

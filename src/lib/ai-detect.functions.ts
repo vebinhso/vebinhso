@@ -452,7 +452,7 @@ Nhiệm vụ:
 Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách. Chỉ đánh dấu verified khi tiêu đề và nội dung được cung cấp thực sự hỗ trợ nhận định cần kiểm tra; một bài chỉ giống từ khóa không đủ. Nếu chỉ có tiêu đề, nêu giới hạn chưa đọc nội dung đầy đủ.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
-fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. ${resultLanguage(data.locale)}`;
+Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpose. Mỗi thuộc tính là {"assessed":boolean,"score":number|null,"reason":"bằng chứng"}. Chấm điểm theo các tiêu chí: source tối đa 25 (0 nguồn và tác giả rõ, 15 nguồn tổng hợp không chuyên môn, 25 nguồn mạo danh/không xác định); headline tối đa 25 (0 trung lập, 15 tiêu đề sai lệch nội dung, 25 giật gân nghiêm trọng); evidence tối đa 20 (0 dẫn chứng rõ, 10 số liệu thiếu nguồn, 20 chỉ lời đồn); media tối đa 15 (0 ảnh đúng nguồn và bối cảnh, 15 ảnh/video sai bối cảnh có bằng chứng); purpose tối đa 15 (0 trung lập, 15 kích động hoặc quảng cáo trá hình có bằng chứng). Chỉ chấm khi có bằng chứng; nếu không có nội dung bài đầy đủ, không có ảnh, không xác định được tác giả hoặc mục đích thì assessed=false và score=null. Không coi đuôi miền .co hoặc .xyz là bằng chứng tin giả. Tổng là chỉ số rủi ro nội dung, không phải xác suất tin giả. fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. ${resultLanguage(data.locale)}`;
 
     const parsed = await callGatewayVerified({
       messages: [
@@ -467,6 +467,29 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
     // A model's self-reported verification is not independently established.
     // RSS headlines alone cannot substantiate a factual claim. Do not show
     // verified status unless a future verifier fetches and checks article text.
+    const rubricSpecs = [
+      { key: "source", label: "Nguồn tin & tác giả", max: 25 },
+      { key: "headline", label: "Tiêu đề & cảm xúc", max: 25 },
+      { key: "evidence", label: "Bằng chứng & dẫn chứng", max: 20 },
+      { key: "media", label: "Hình ảnh & video", max: 15 },
+      { key: "purpose", label: "Mục đích bài viết", max: 15 },
+    ] as const;
+    const rawRubric: Record<string, any> = parsed.rubric && typeof parsed.rubric === "object" ? parsed.rubric : {};
+    const rubric = rubricSpecs.map(({ key, label, max }) => {
+      const item = rawRubric[key] || {};
+      const assessed = item.assessed === true && typeof item.score === "number"
+        && Number.isFinite(item.score) && item.score >= 0 && item.score <= max;
+      return {
+        key, label, max, assessed,
+        score: assessed ? Math.round(item.score) : null,
+        reason: str(item.reason, "Chưa đủ dữ liệu để đánh giá."),
+      };
+    });
+    const rubricAssessedMax = rubric.reduce((n, item) => n + (item.assessed ? item.max : 0), 0);
+    const rubricPoints = rubric.reduce((n, item) => n + (item.score ?? 0), 0);
+    const rubricPercent = rubricAssessedMax ? Math.round(rubricPoints * 100 / rubricAssessedMax) : null;
+    const rubricBand = rubricPercent === null ? "unknown" : rubricPercent <= 20 ? "high_trust"
+      : rubricPercent <= 50 ? "suspect" : rubricPercent <= 75 ? "sensational" : "high_risk";
     const verifiedBy: string[] = [];
     const verified = false;
     return {
@@ -481,6 +504,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       ),
       verified,
       verifiedBy,
+      rubric, rubricPoints, rubricAssessedMax, rubricPercent, rubricBand,
       fakeScore: clampScore(parsed.fakeScore),
       tabloidScore: clampScore(parsed.tabloidScore),
       level: str(parsed.level, "unknown"),

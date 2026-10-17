@@ -1262,7 +1262,11 @@ function AiPage() {
                     {newsResult.verified ? ((en ? NEWS_VERDICT_EN : NEWS_VERDICT_VI)[newsResult.verdict] ?? (en ? "Verified" : "Đã kiểm chứng")) : (en ? "NOT YET VERIFIED · insufficient evidence" : "CHƯA KIỂM CHỨNG ĐƯỢC · chưa đủ bằng chứng")}
                   </p>
                    {Array.isArray(newsResult.rubric) && (
-                     <div className="space-y-2">\n                       {newsResult.rubricPercent !== null && <Gauge value={newsResult.rubricPercent} label={en ? "News risk level" : "Mức độ rủi ro nội dung tin tức"} />}\n                       <details className="rounded-xl border-2 border-border p-3">\n                         <summary className="cursor-pointer text-xs font-bold text-primary">{en ? "More about the assessment" : "Thêm thông tin về đánh giá"}</summary>\n                         <div className="mt-3 space-y-2">
+                     <div className="space-y-2">
+                       {newsResult.rubricPercent !== null && <Gauge value={newsResult.rubricPercent} label={en ? "News risk level" : "Mức độ rủi ro nội dung tin tức"} />}
+                       <details className="rounded-xl border-2 border-border p-3">
+                         <summary className="cursor-pointer text-xs font-bold text-primary">{en ? "More about the assessment" : "Thêm thông tin về đánh giá"}</summary>
+                         <div className="mt-3 space-y-2">
                        <p className="font-black text-sm">{en ? "News risk rubric" : "Đánh giá rủi ro tin tức theo 5 tiêu chí"}</p>
                        <p className="font-black text-lg">{newsResult.rubricPercent === null ? (en ? "Insufficient evidence" : "Chưa đủ dữ liệu") : `${newsResult.rubricPercent}% · ${newsResult.rubricPoints}/${newsResult.rubricAssessedMax} ${en ? "assessed points" : "điểm đã đánh giá"}`}</p>
                        <p className="font-bold text-xs">{newsResult.rubricBand === "high_trust" ? "Ít dấu hiệu rủi ro" : newsResult.rubricBand === "suspect" ? "Nghi vấn / cần kiểm tra thêm" : newsResult.rubricBand === "sensational" ? "Nhiều dấu hiệu giật gân" : newsResult.rubricBand === "high_risk" ? "Rủi ro thông tin rất cao" : "Chưa đủ bằng chứng để chấm điểm"}</p>
@@ -1273,7 +1277,9 @@ function AiPage() {
                          </div>
                        ))}
                        <p className="text-[11px]">{en ? "Editorial risk index, not the probability a claim is false. Missing criteria are excluded." : "Chỉ số rủi ro nội dung, không phải xác suất tin giả. Tiêu chí thiếu dữ liệu không tính vào mẫu số."}</p>
-                         </div>\n                       </details>\n                     </div>
+                         </div>
+                       </details>
+                     </div>
                    )}
                   <p className="text-xs sm:text-sm font-bold">{newsResult.summary}</p>
 

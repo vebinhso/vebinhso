@@ -22,6 +22,10 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
   const [notice, setNotice] = useState("");
   const [tickets, setTickets] = useState(0);
   const [quiz, setQuiz] = useState<Question | null>(null);
+  const [parkEntered, setParkEntered] = useState(false);
+  const [entryPrompt, setEntryPrompt] = useState(false);
+  const [selectedRide, setSelectedRide] = useState<RideKind | null>(null);
+  const [rideReady, setRideReady] = useState(false);
   const [ride, setRide] = useState<{ kind: RideKind; id: number } | null>(null);
   const readFn = useServerFn(readGarden), buyFn = useServerFn(buyGardenItem), plantFn = useServerFn(plantGardenSeed), waterFn = useServerFn(waterGardenPlant);
   const garden = useQuery({ queryKey: ["shared-garden", userId], queryFn: () => readFn(), enabled: !!userId, staleTime: 15000, retry: 1 });
@@ -59,9 +63,12 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
     applyBalance(result.money, result.garden_spent);
     setNotice(en ? "Added to garden inventory." : "Đã thêm vào kho vườn chung.");
   });
-  const openPark = useCallback(() => { neighborhoodTravel.destination = "park"; clearInput(); setPanel("park"); setNotice(""); }, []);
+  const openPark = useCallback(() => { clearInput(); setEntryPrompt(true); setNotice(""); }, []);
+  const enterPark = () => { neighborhoodTravel.destination = "park"; setParkEntered(true); setEntryPrompt(false); setPanel(null); clearInput(); };
+  const chooseRide = (kind: RideKind) => { setSelectedRide(kind); setRideReady(false); setQuiz(randomQuestion()); setPanel("park"); clearInput(); };
+  const beginRide = () => { if (!selectedRide || !rideReady) return; setPanel(null); setRide({ kind: selectedRide, id: Date.now() }); setRideReady(false); clearInput(); };
   const openGarden = useCallback((cell?: number) => { neighborhoodTravel.destination = "garden"; clearInput(); setSlot(cell); setPanel("garden"); setNotice(""); }, []);
-  const endRide = useCallback(() => { ridePose.active = false; setRide(null); setPanel("park"); clearInput(); }, []);
+  const endRide = useCallback(() => { ridePose.active = false; setRide(null); setPanel(null); clearInput(); }, []);
   const answer = async (picked: number[]) => {
     if (!quiz || lock.current) return;
     lock.current = true; setBusy(true);
@@ -70,22 +77,24 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
       const expected = result.correctIndexes;
       const correct = expected.length > 1 ? picked.length === expected.length && picked.every(i => expected.includes(i)) : result.isCorrect;
       reportAnswerResult(quiz, correct);
-      if (correct) { changeTickets(tickets + 1); setQuiz(null); setNotice(en ? "Correct! +1 ride ticket." : "Chính xác! +1 lượt chơi."); }
+      if (correct) { setRideReady(true); setQuiz(null); setNotice(en ? "Correct! You can start the ride." : "Chính xác! Bạn có thể bắt đầu trò chơi."); }
       else { setNotice(en ? "Not correct yet. Try another question." : "Chưa đúng. Thử câu tiếp theo nhé."); setQuiz(randomQuestion()); }
     } catch { setNotice(en ? "Cannot check answer. Try again." : "Chưa kiểm tra được đáp án. Thử lại nhé."); }
     finally { lock.current = false; setBusy(false); }
   };
   const selectedPlant = garden.data?.plants.find(p => p.slot === slot);
   const selectedGood = selectedPlant ? gardenGoods.find(g => g.id === selectedPlant.species) : null;
-  const close = () => { if (busy) return; setPanel(null); setQuiz(null); clearInput(); };
+  const close = () => { if (busy) return; setPanel(null); setQuiz(null); setSelectedRide(null); clearInput(); };
   const panelUi = <>
+    {entryPrompt && <div className="fixed inset-0 z-[80] bg-black/40 flex items-center justify-center p-4"><section role="dialog" aria-modal="true" className="bg-card text-card-foreground rounded-xl p-6 max-w-sm w-full shadow-xl"><h2 className="font-bold text-xl mb-4">{en ? "Enter the amusement park?" : "Bạn muốn vào khu trò chơi?"}</h2><div className="flex gap-3 justify-end"><Button variant="outline" onClick={() => setEntryPrompt(false)}>{en ? "Cancel" : "Không"}</Button><Button onClick={enterPark}>{en ? "Enter" : "Vào chơi"}</Button></div></section></div>}
+    {parkEntered && !ride && !panel && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-2"><Button variant="secondary" onClick={() => { setParkEntered(false); clearInput(); }}><X />{en ? "Exit park" : "Thoát khu vui chơi"}</Button><Button onClick={() => chooseRide("coaster")}>{en ? "Roller coaster" : "Tàu lượn"}</Button><Button onClick={() => chooseRide("wheel")}>{en ? "Ferris wheel" : "Vòng quay"}</Button><Button onClick={() => chooseRide("carousel")}>{en ? "Carousel" : "Đu quay"}</Button></div>}
     {ride && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"><Button onClick={endRide} variant="secondary"><X />{en ? "Leave ride" : "Rời trò chơi"}</Button></div>}
     {panel && <div className="fixed inset-0 z-[70] bg-foreground/25 flex items-center justify-center p-3" onClick={close}>
       <section role="dialog" aria-modal="true" aria-label={panel === "park" ? (en ? "Amusement park" : "Khu vui chơi") : (en ? "Shared garden" : "Vườn chung")} className="bg-card text-card-foreground border border-border rounded-lg shadow-xl w-full max-w-xl max-h-[88dvh] overflow-y-auto p-4 sm:p-6" onClick={e => e.stopPropagation()}>
         <header className="flex items-center justify-between gap-3 mb-4"><h2 className="text-xl font-black">{panel === "park" ? (en ? "🎢 AMUSEMENT PARK" : "🎢 KHU VUI CHƠI") : (en ? "🌱 SHARED GARDEN" : "🌱 VƯỜN CHUNG")}</h2><Button variant="ghost" size="icon" title={en ? "Close" : "Đóng"} aria-label={en ? "Close activity" : "Đóng hoạt động"} onClick={close} disabled={busy}><X /></Button></header>
         {panel === "park" ? <>
-          <div className="flex items-center justify-between gap-2 mb-4"><span className="font-bold flex items-center gap-2"><Ticket />{tickets} {en ? "tickets" : "lượt chơi"}</span><Button disabled={busy || !questionsReady} onClick={() => { setQuiz(randomQuestion()); setNotice(""); }}><Ticket />{en ? "Answer for a ticket" : "Trả lời nhận lượt chơi"}</Button></div>
-          {quiz ? <QuestionView question={quiz} onAnswer={answer} disabled={busy} compact /> : <div className="grid gap-3">{(Object.keys(rideNames) as RideKind[]).map(kind => <Button key={kind} variant="secondary" className="h-12 justify-between" disabled={!tickets || busy} onClick={() => { changeTickets(tickets - 1); setPanel(null); setRide({ kind, id: Date.now() }); clearInput(); }}><span>{rideNames[kind][en ? "en" : "vi"]}</span><span>1 🎟️</span></Button>)}</div>}
+          <p className="mb-3 font-semibold">{selectedRide ? rideNames[selectedRide][en ? "en" : "vi"] : ""}</p>
+          {quiz ? <QuestionView question={quiz} onAnswer={answer} disabled={busy} compact /> : rideReady ? <Button onClick={beginRide}>{en ? "Start ride" : "Bắt đầu"}</Button> : <Button onClick={() => selectedRide && chooseRide(selectedRide)}>{en ? "Try question" : "Trả lời câu hỏi"}</Button>}
         </> : <>
           {garden.isPending && <p>{en ? "Loading garden…" : "Đang tải vườn…"}</p>}
           {garden.isError && <div role="alert" className="text-destructive mb-3">{en ? "Cannot load garden. Check your connection." : "Không tải được vườn. Kiểm tra kết nối mạng."}<Button onClick={() => garden.refetch()} variant="outline">{en ? "Retry" : "Thử lại"}</Button></div>}
@@ -103,5 +112,5 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
       </section>
     </div>}
   </>;
-  return { zoneProps: { plants: garden.data?.plants, ride, onRideEnd: endRide, onOpenPark: openPark, onOpenGarden: openGarden }, panelUi, purchase, activeRide: !!ride };
+  return { zoneProps: { plants: garden.data?.plants, ride, onRideEnd: endRide, onOpenPark: openPark, parkEntered, onSelectRide: chooseRide, onOpenGarden: openGarden }, panelUi, purchase, activeRide: !!ride };
 }

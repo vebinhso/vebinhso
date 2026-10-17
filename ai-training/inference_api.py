@@ -132,8 +132,22 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
             503: "provider_unavailable",
             504: "provider_timeout",
         }.get(upstream_status, "other_provider_error")
+        # Extract only an allowlisted machine-readable error status.
+        # Never log provider messages or the raw response body.
+        provider_error_status = "unknown"
+        try:
+            error_obj = response.json().get("error", {})
+            candidate = error_obj.get("status", "")
+            allowed = {"NOT_FOUND", "INVALID_ARGUMENT", "PERMISSION_DENIED",
+                       "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "UNAVAILABLE",
+                       "FAILED_PRECONDITION", "INTERNAL"}
+            if isinstance(candidate, str) and candidate in allowed:
+                provider_error_status = candidate
+        except (ValueError, AttributeError, TypeError):
+            pass
         logging.getLogger("uvicorn.error").warning(
-            "Gemini upstream rejected request: status=%d category=%s", upstream_status, category
+            "Gemini upstream rejected request: status=%d category=%s provider_status=%s",
+            upstream_status, category, provider_error_status
         )
         raise HTTPException(status_code=502, detail="AI provider rejected the request")
     try:

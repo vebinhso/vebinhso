@@ -19,7 +19,8 @@ export async function checkScamMl(text: string): Promise<ScamMlResult | null> {
   }
   if (text.length < 10 || text.length > 3000) return null;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 2500);
+  // Free-tier Render services may need a cold start; keep the main analysis independent.
+  const timeout = setTimeout(() => controller.abort(), 8000);
   try {
     const response = await fetch(url.toString(), {
       method: "POST",

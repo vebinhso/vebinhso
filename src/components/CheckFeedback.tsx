@@ -128,6 +128,7 @@ export function CheckFeedback({ kind, result, input }: Props) {
             placeholder={t("Ghi chú (không bắt buộc)", "Note (optional)")}
             className="w-full rounded-lg border-2 border-border bg-background p-2 text-xs font-bold" />
           {hasInput && (
+            <div>
             <label className="flex items-start gap-2 text-xs font-bold">
               <input type="checkbox" className="mt-0.5" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
               <span>{t(
@@ -136,6 +137,7 @@ export function CheckFeedback({ kind, result, input }: Props) {
               )}</span>
             </label>
             <p className="text-[11px] text-muted-foreground">{t("Lưu ý: Chọn ô này cũng đồng ý đính kèm nội dung đã kiểm tra sau khi tự che thông tin cá nhân.", "Note: Checking this box also agrees to attach the checked content after personal details are redacted.")}</p>
+            </div>
           )}
         </>
       )}

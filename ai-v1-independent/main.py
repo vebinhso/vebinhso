@@ -36,19 +36,27 @@ async def call_gemini(messages, json_mode):
     contents = [{"role": "model" if m.get("role") == "assistant" else "user",
                  "parts": to_gemini_parts(m.get("content", ""))}
                 for m in messages if m.get("role") != "system"]
-    body = {"contents": contents, "generationConfig": {"temperature": 0.2}}
+    body = {"contents": contents, "generationConfig": {"temperature": 0.2, "maxOutputTokens": 3072}}
     if system:
         body["systemInstruction"] = {"parts": [{"text": system}]}
     if json_mode:
         body["generationConfig"]["responseMimeType"] = "application/json"
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    async with httpx.AsyncClient(timeout=75) as client:
-        response = await client.post(
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    if model.startswith("gemini-2.5-"):
+        body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
+            response = await client.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
             headers={"x-goog-api-key": key}, json=body)
+    except httpx.TimeoutException:
+        raise HTTPException(504, "Gemini timed out; please try again")
+    except httpx.RequestError:
+        raise HTTPException(502, "Cannot connect to Gemini")
     if response.status_code != 200:
-        raise HTTPException(429 if response.status_code == 429 else 502,
-                            "Gemini provider unavailable")
+        code = response.status_code
+        detail = {400: "Gemini rejected the request or model configuration", 401: "Gemini API key rejected", 403: "Gemini API key lacks permission", 404: "Gemini model not found", 429: "Gemini free quota or rate limit reached"}.get(code, "Gemini provider unavailable")
+        raise HTTPException(429 if code == 429 else 503 if code in (401, 403, 404) else 502, detail)
     data = response.json()
     try:
         return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])

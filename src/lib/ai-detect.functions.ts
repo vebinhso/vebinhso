@@ -211,17 +211,20 @@ ${SCAM_MESSAGE_PROMPT_BLOCK}
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"scamCategory":"id nhóm lừa đảo hoặc khong_ro","platform":"nền tảng có khả năng nhất hoặc rỗng","difficulty":"Dễ|Trung bình|Khó","scamSigns":["dấu hiệu lừa đảo"],"tips":["cách kiểm chứng và nên làm gì"]}
 misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. ${resultLanguage(data.locale)}`;
+    // Retrieve independent V2 evidence before Gemini reasons, not afterward.
+    // A classifier is advisory evidence, never proof that a message is safe.
+    const { checkScamMl } = await import("./scam-ml.server");
+    const mlAdvisory = await checkScamMl(data.text);
+    const v2Context = mlAdvisory
+      ? `\nKẾT QUẢ THAM KHẢO TỪ AI V2: ${mlAdvisory.status} (mô hình ${mlAdvisory.model_version}). Đây chỉ là tín hiệu phân loại, KHÔNG phải kết luận hay xác suất đúng/sai. Hãy đánh giá độc lập dựa trên bằng chứng trong tin nhắn; nếu V2 không phát hiện dấu hiệu rõ ràng, KHÔNG khẳng định an toàn.`
+      : "\nAI V2 không khả dụng hoặc không có dữ liệu; không được suy diễn là an toàn.";
     const parsed = await callGatewayVerified({
       messages: [
-        { role: "system", content: withSkill(sys, skill) },
+        { role: "system", content: withSkill(sys + v2Context, skill) },
         { role: "user", content: data.text },
       ],
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "misinfoRisk"], data.locale);
-    // Optional research classifier: independent advisory only; never override the main AI result.
-    // Disabled unless server operator explicitly configures SCAM_ML_ENABLED=true.
-    const { checkScamMl } = await import("./scam-ml.server");
-    const mlAdvisory = await checkScamMl(data.text);
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {

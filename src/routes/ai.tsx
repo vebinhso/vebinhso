@@ -170,7 +170,7 @@ function AccuracyNote({
       </div>
       <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">{accuracy.note}</p>
       <p className="mt-1 text-[11px] font-bold text-foreground/80">
-        {en ? "Cross-check sources" : "Nguồn đối chiếu"}: {accuracy.models.join(" + ")} · {en ? "Allowed threshold" : "Ngưỡng cho phép"}: ±5% · {en ? "Verify again with Google and established news sources." : "Nên kiểm chứng lại bằng Google và báo chính thống."}
+
       </p>
     </div>
   );

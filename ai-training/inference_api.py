@@ -27,8 +27,7 @@ async def lifespan(app):
     # Text/vision API can run independently of the optional local scam classifier.
     if path and not Path(path).is_file():
         raise RuntimeError("Configured SCAM_MODEL_PATH does not exist")
-    if not os.getenv("SCAM_API_TOKEN"):
-        raise RuntimeError("SCAM_API_TOKEN is required")
+    # Keep health checks available during configuration; authenticated routes fail closed.
     if path:
         _model = joblib.load(path)  # Only load artifacts built by our trusted pipeline.
     yield
@@ -48,7 +47,9 @@ class Request(BaseModel):
 @app.post("/classify")
 def classify(body: Request, authorization: str | None = Header(default=None)):
     import hmac
-    token = os.environ["SCAM_API_TOKEN"]
+    token = os.getenv("SCAM_API_TOKEN")
+    if not token:
+        raise HTTPException(status_code=503, detail="API authentication is not configured")
     if not authorization or not hmac.compare_digest(authorization, "Bearer " + token):
         raise HTTPException(status_code=401, detail="Unauthorized")
     # Fixed-window global cap, independent of spoofable X-Forwarded-For headers.

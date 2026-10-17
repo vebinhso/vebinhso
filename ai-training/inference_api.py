@@ -108,11 +108,27 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
     if len(__import__("json").dumps(payload)) > 15_000_000:
         raise HTTPException(status_code=413, detail="Input too large")
     payload["model"] = model
+    # Retry a documented Gemini model on 404 (model unavailable for this key).
+    # Keep the provider host fixed; never send content to another provider.
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    candidate_models = [model]
+    if parsed.hostname == "generativelanguage.googleapis.com":
+        for candidate in ("gemini-2.5-flash", "gemini-2.0-flash"):
+            if candidate not in candidate_models:
+                candidate_models.append(candidate)
     try:
         async with httpx.AsyncClient(timeout=90, follow_redirects=False) as client:
-            response = await client.post(endpoint, json=payload, headers={
-                "Authorization": "Bearer " + key, "Content-Type": "application/json"
-            })
+            response = None
+            for candidate in candidate_models:
+                payload["model"] = candidate
+                response = await client.post(endpoint, json=payload, headers={
+                    "Authorization": "Bearer " + key, "Content-Type": "application/json"
+                })
+                if response.status_code != 404:
+                    if candidate != model and response.status_code == 200:
+                        logger.info("Gemini model fallback succeeded: model=%s", candidate)
+                    break
     except httpx.HTTPError:
         raise HTTPException(status_code=502, detail="AI provider unavailable")
     if response.status_code != 200:

@@ -5,7 +5,7 @@ import { PHISHING_CATEGORY_LABELS, PHISHING_PROMPT_BLOCK } from "@/lib/phishing-
 import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
 import { SCAM_PHONE_CATEGORY_LABELS, SCAM_PHONE_PROMPT_BLOCK } from "@/lib/scam-phones";
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+// V1 checks use an independent backend; no Lovable AI Gateway credits.
 type ResultLocale = "vi" | "en";
 const resultLocale = (value: unknown): ResultLocale => value === "en" ? "en" : "vi";
 const resultLanguage = (locale: ResultLocale) => locale === "en"
@@ -15,8 +15,8 @@ const fallback = (locale: ResultLocale, vi: string, en: string) => locale === "e
 
 async function callGateway(body: unknown) {
   // Runs on the TanStack server only. Never expose the Render token to browsers.
-  const endpoint = process.env["SCAM_API_URL"] || process.env["AI_RENDER_URL"];
-  const token = process.env["SCAM_API_TOKEN"];
+  const endpoint = process.env["AI_V1_API_URL"];
+  const token = process.env["AI_V1_API_TOKEN"];
   if (!endpoint || !token) throw new Error("Render AI chưa được cấu hình trên máy chủ website.");
   const url = new URL("/v1/analyze", endpoint);
   if (url.protocol !== "https:") throw new Error("Render AI URL phải dùng HTTPS.");

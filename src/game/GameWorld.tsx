@@ -15,7 +15,7 @@ import { playerInput, setInputKey, clearInput, installInputGuards, isTypingTarge
 import { useWorldToggles } from "@/lib/world-toggles";
 import { HoiAnTown } from "./HoiAnTown";
 import { NeighborhoodZones, type ZoneProps } from "./NeighborhoodZones";
-import { ridePose } from "@/lib/neighborhood";
+import { ridePose, neighborhoodTravel, PARK_ORIGIN, GARDEN_ORIGIN } from "@/lib/neighborhood";
 import { LANTERN_DOCK_XS, RIVER_CENTER_Z, RIVER_NEAR_BANK_Z, riverPoseState, type ReleasedLantern } from "./HoiAnRiver";
 
 /** Trạng thái góc nhìn mắt nhân vật (chế độ Xem nhà) */
@@ -147,6 +147,13 @@ function Character({ controlsRef, activeFloor, pickups, collectedIds, onPickup, 
       clearInput();
       return;
     }
+    if (neighborhoodTravel.destination) {
+      const target = neighborhoodTravel.destination === "park" ? PARK_ORIGIN : GARDEN_ORIGIN;
+      ref.current.position.set(target[0], floorY, target[1] + 13);
+      neighborhoodTravel.destination = null;
+      clearInput();
+    }
+    ref.current.visible = true;
     const k = playerInput;
     const playerX = ref.current.position.x;
     const onDock = ref.current.position.z > RIVER_NEAR_BANK_Z - 6.3 && LANTERN_DOCK_XS.some((dx) => Math.abs(playerX - dx) < 1.3);

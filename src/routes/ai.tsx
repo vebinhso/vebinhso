@@ -13,6 +13,7 @@ import {
   analyzeImage,
   analyzeLink,
   analyzeText,
+  analyzeScamV2,
   analyzeEmail,
   analyzeNews,
   analyzeVideo,
@@ -315,6 +316,7 @@ function AiPage() {
   const runImage = useServerFn(analyzeImage);
   const runLink = useServerFn(analyzeLink);
   const runText = useServerFn(analyzeText);
+  const runScamV2 = useServerFn(analyzeScamV2);
   const runEmail = useServerFn(analyzeEmail);
   const runNews = useServerFn(analyzeNews);
   const runVideo = useServerFn(analyzeVideo);
@@ -385,6 +387,9 @@ function AiPage() {
 
   const [text, setText] = useState("");
   const [textResult, setTextResult] = useState<Awaited<ReturnType<typeof analyzeText>> | null>(null);
+  const [scamV2Result, setScamV2Result] = useState<Awaited<ReturnType<typeof analyzeScamV2>> | null>(null);
+  const [scamV2Loading, setScamV2Loading] = useState(false);
+  const [scamV2Error, setScamV2Error] = useState<string | null>(null);
 
   const [email, setEmail] = useState("");
   const [emailResult, setEmailResult] = useState<Awaited<ReturnType<typeof analyzeEmail>> | null>(null);
@@ -1085,6 +1090,40 @@ function AiPage() {
               >
                 {loading ? `⏳ ${en ? "Analyzing" : "Đang phân tích"} ${Math.round(progress)}%` : (en ? "🔍 Check text" : "🔍 Kiểm tra văn bản")}
               </button>
+
+              <button
+                type="button"
+                disabled={scamV2Loading || text.trim().length < 20 || text.length > 3000}
+                onClick={async () => {
+                  setScamV2Loading(true);
+                  setScamV2Error(null);
+                  setScamV2Result(null);
+                  try {
+                    setScamV2Result(await runScamV2({ data: { text } }));
+                  } catch {
+                    setScamV2Error(en ? "Could not reach AI V2. Please try again." : "Chưa kết nối được AI V2. Vui lòng thử lại.");
+                  } finally {
+                    setScamV2Loading(false);
+                  }
+                }}
+                className="toy-button w-full !text-xs sm:!text-sm disabled:opacity-50"
+              >
+                {scamV2Loading ? (en ? "Checking AI V2..." : "Đang kiểm tra AI V2...") : (en ? "Check scams with AI V2 (no Lovable AI credits)" : "Kiểm tra lừa đảo bằng AI V2 (không dùng credit Lovable)")}
+              </button>
+              {scamV2Error && <p role="alert" className="text-sm text-red-600">{scamV2Error}</p>}
+              {scamV2Result && (
+                <div role="status" className="rounded-xl border border-violet-300 p-3 text-sm">
+                  <p className="font-bold">{en ? "Experimental AI V2 result" : "Kết quả AI V2 thử nghiệm"}</p>
+                  <p>{!scamV2Result.available
+                    ? (en ? "AI V2 is currently unavailable. No safety conclusion can be made." : "AI V2 hiện chưa khả dụng. Không thể kết luận tin nhắn an toàn.")
+                    : scamV2Result.advisory?.status === "risk_indicated"
+                      ? (en ? "Potential scam signs detected." : "Phát hiện dấu hiệu có thể là lừa đảo.")
+                      : scamV2Result.advisory?.status === "no_clear_sign"
+                        ? (en ? "No clear scam signs detected; this does not guarantee safety." : "Chưa phát hiện dấu hiệu rõ ràng; không có nghĩa là tin nhắn chắc chắn an toàn.")
+                        : (en ? "Not enough evidence to classify." : "Chưa đủ thông tin để phân loại.")}</p>
+                  <p className="mt-1 text-xs">{en ? "Experimental model: verify independently." : "Mô hình thử nghiệm: cần tự kiểm chứng, không coi kết quả là kết luận chắc chắn."}</p>
+                </div>
+              )}
 
               {textResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">

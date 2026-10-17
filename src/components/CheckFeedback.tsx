@@ -136,7 +136,7 @@ export function CheckFeedback({ kind, result, input }: Props) {
                 "I am confident in my statement",
               )}</span>
             </label>
-            <p className="text-[11px] text-muted-foreground">{t("Lưu ý: Chọn ô này cũng đồng ý đính kèm nội dung đã kiểm tra sau khi tự che thông tin cá nhân.", "Note: Checking this box also agrees to attach the checked content after personal details are redacted.")}</p>
+
             </div>
           )}
         </>

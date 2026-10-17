@@ -5,6 +5,8 @@ import secrets
 import logging
 import time
 import uuid
+import asyncio
+import random
 from fastapi import FastAPI, Request, HTTPException
 import httpx
 
@@ -74,40 +76,74 @@ async def call_gemini(messages, json_mode):
         body["systemInstruction"] = {"parts": [{"text": system}]}
     if json_mode:
         body["generationConfig"]["responseMimeType"] = "application/json"
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
-    if model.startswith("gemini-2.5-"):
-        body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
-    try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
-            response = await client.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            headers={"x-goog-api-key": key}, json=body)
-    except httpx.TimeoutException:
-        raise HTTPException(504, "Gemini timed out; please try again")
-    except httpx.RequestError:
-        raise HTTPException(502, "Cannot connect to Gemini")
-    if response.status_code != 200:
-        code = response.status_code
-        # Log only Google's error classification and a short sanitized message.
-        # Never log request bodies, API keys, tokens, or arbitrary upstream payloads.
-        try:
-            upstream_error = response.json().get("error", {})
-            upstream_reason = str(upstream_error.get("status", "unknown"))[:60]
-            upstream_message = str(upstream_error.get("message", ""))
-            import re
-            upstream_message = re.sub(r"AIza[0-9A-Za-z_-]+", "[REDACTED_KEY]", upstream_message)
-            upstream_message = re.sub(r"https?://\\S+", "[REDACTED_URL]", upstream_message)
-            upstream_message = upstream_message.replace("\\n", " ")[:280]
-        except (ValueError, TypeError, AttributeError):
-            upstream_reason, upstream_message = "unknown", "non-json upstream error"
-        logger.warning("Gemini request rejected: upstream_status=%s model=%s reason=%s detail=%s", code, model, upstream_reason, upstream_message)
-        detail = {400: "Gemini rejected the request or model configuration", 401: "Gemini API key rejected", 403: "Gemini API key lacks permission", 404: "Gemini model not found", 429: "Gemini free quota or rate limit reached"}.get(code, "Gemini provider unavailable")
-        raise HTTPException(429 if code == 429 else 503 if code in (401, 403, 404) else 502, detail)
-    data = response.json()
-    try:
-        return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
-    except (KeyError, IndexError, TypeError):
-        raise HTTPException(502, "Gemini returned no usable content")
+    configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    # Only use models explicitly selected for this project. Fallbacks must be
+    # separately validated for availability and free-tier eligibility.
+    fallbacks = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "").split(",") if m.strip()]
+    models = list(dict.fromkeys([configured] + fallbacks))[:3]
+    last_error = None
+    async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
+        for model_index, model in enumerate(models):
+            model_body = json.loads(json.dumps(body))
+            if model.startswith("gemini-2.5-"):
+                model_body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
+            for attempt in range(3):
+                try:
+                    response = await client.post(
+                        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                        headers={"x-goog-api-key": key}, json=model_body,
+                    )
+                except httpx.TimeoutException:
+                    last_error = HTTPException(504, "Gemini timed out; please try again")
+                    if attempt < 2:
+                        await asyncio.sleep(1.0 + attempt * 1.5)
+                        continue
+                    break
+                except httpx.RequestError:
+                    last_error = HTTPException(502, "Cannot connect to Gemini")
+                    if attempt < 2:
+                        await asyncio.sleep(1.0 + attempt * 1.5)
+                        continue
+                    break
+                if response.status_code == 200:
+                    data = response.json()
+                    try:
+                        result = "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+                    except (KeyError, IndexError, TypeError):
+                        raise HTTPException(502, "Gemini returned no usable content")
+                    if not result.strip():
+                        raise HTTPException(502, "Gemini returned empty content")
+                    return result
+                code = response.status_code
+                try:
+                    upstream_error = response.json().get("error", {})
+                    reason = str(upstream_error.get("status", "unknown"))[:60]
+                except (ValueError, TypeError, AttributeError):
+                    reason = "unknown"
+                logger.warning(
+                    "Gemini upstream error: status=%s model=%s reason=%s attempt=%s",
+                    code, model, reason, attempt + 1,
+                )
+                if code == 429:
+                    # Never amplify rate-limit/quota errors with retries/fallbacks.
+                    raise HTTPException(429, "Gemini free quota or rate limit reached")
+                if code in (401, 403):
+                    raise HTTPException(503, "Gemini API access denied; check project permissions")
+                if code == 400:
+                    raise HTTPException(502, "Gemini rejected request or model configuration")
+                if code == 404:
+                    last_error = HTTPException(503, "Gemini model not available")
+                    break
+                if code in (500, 502, 503, 504):
+                    last_error = HTTPException(503, "Gemini is temporarily busy; please try again")
+                    if attempt < 2:
+                        await asyncio.sleep((1.0 + attempt * 1.5) + random.uniform(0, 0.3))
+                        continue
+                    break
+                raise HTTPException(502, "Gemini provider returned an unexpected error")
+            if model_index + 1 < len(models):
+                logger.warning("Gemini fallback: trying next configured model")
+    raise last_error or HTTPException(503, "Gemini provider unavailable")
 
 @app.get("/admin/gemini-models")
 async def diagnostic_models(request: Request):

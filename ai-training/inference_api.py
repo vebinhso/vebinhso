@@ -108,27 +108,61 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
     if len(__import__("json").dumps(payload)) > 15_000_000:
         raise HTTPException(status_code=413, detail="Input too large")
     payload["model"] = model
-    # Retry a documented Gemini model on 404 (model unavailable for this key).
-    # Keep the provider host fixed; never send content to another provider.
+    # Gemini native generateContent avoids OpenAI compatibility endpoint/model mismatches.
     import logging
     logger = logging.getLogger("uvicorn.error")
-    candidate_models = [model]
-    if parsed.hostname == "generativelanguage.googleapis.com":
-        for candidate in ("gemini-2.5-flash", "gemini-2.0-flash"):
-            if candidate not in candidate_models:
-                candidate_models.append(candidate)
+    is_gemini = parsed.hostname == "generativelanguage.googleapis.com"
     try:
         async with httpx.AsyncClient(timeout=90, follow_redirects=False) as client:
-            response = None
-            for candidate in candidate_models:
-                payload["model"] = candidate
+            if is_gemini:
+                from urllib.parse import quote
+                candidates = [model]
+                for candidate in ("gemini-2.5-flash", "gemini-2.5-flash-lite"):
+                    if candidate not in candidates:
+                        candidates.append(candidate)
+                # Discover models accessible to this key, without logging model list or key.
+                listing = await client.get(
+                    "https://generativelanguage.googleapis.com/v1beta/models",
+                    headers={"x-goog-api-key": key},
+                )
+                if listing.status_code == 200:
+                    models = listing.json().get("models", [])
+                    available = [
+                        item["name"].removeprefix("models/")
+                        for item in models
+                        if isinstance(item, dict)
+                        and isinstance(item.get("name"), str)
+                        and "generateContent" in item.get("supportedGenerationMethods", [])
+                    ]
+                    candidates = [c for c in candidates if c in available]
+                    candidates += [c for c in available if c not in candidates and c.startswith("gemini-2.5-flash")]
+                    if not candidates and available:
+                        candidates = [available[0]]
+                logger.info("Gemini model discovery: status=%d candidate_count=%d", listing.status_code, len(candidates))
+                contents = []
+                for message in body.messages:
+                    content = message.get("content", "")
+                    if not isinstance(content, str):
+                        raise HTTPException(status_code=400, detail="Unsupported message format")
+                    role = "model" if message.get("role") == "assistant" else "user"
+                    contents.append({"role": role, "parts": [{"text": content}]})
+                native_payload = {"contents": contents}
+                if body.response_format and body.response_format.get("type") == "json_object":
+                    native_payload["generationConfig"] = {"responseMimeType": "application/json"}
+                response = None
+                for candidate in candidates[:6]:
+                    native_url = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(candidate, safe="") + ":generateContent"
+                    response = await client.post(
+                        native_url, json=native_payload, headers={"x-goog-api-key": key, "Content-Type": "application/json"}
+                    )
+                    if response.status_code != 404:
+                        break
+                if response is None:
+                    raise HTTPException(status_code=502, detail="No supported Gemini model found")
+            else:
                 response = await client.post(endpoint, json=payload, headers={
                     "Authorization": "Bearer " + key, "Content-Type": "application/json"
                 })
-                if response.status_code != 404:
-                    if candidate != model and response.status_code == 200:
-                        logger.info("Gemini model fallback succeeded: model=%s", candidate)
-                    break
     except httpx.HTTPError:
         raise HTTPException(status_code=502, detail="AI provider unavailable")
     if response.status_code != 200:
@@ -168,8 +202,12 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
         raise HTTPException(status_code=502, detail="AI provider rejected the request")
     try:
         result = response.json()
-        content = result["choices"][0]["message"]["content"]
-        if not isinstance(content, str):
+        if is_gemini:
+            parts = result["candidates"][0]["content"]["parts"]
+            content = "".join(p.get("text", "") for p in parts if isinstance(p, dict))
+        else:
+            content = result["choices"][0]["message"]["content"]
+        if not isinstance(content, str) or not content:
             raise ValueError("Missing text response")
         return {"choices": [{"message": {"content": content}}]}
     except (ValueError, KeyError, IndexError, TypeError):

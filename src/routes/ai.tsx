@@ -1084,11 +1084,23 @@ function AiPage() {
                 className="w-full rounded-xl border-2 border-border px-3 py-2 text-xs sm:text-sm font-bold"
               />
               <button
-                onClick={doText}
-                disabled={loading || text.trim().length < 20}
+                onClick={async () => {
+                  setTextResult(null);
+                  setScamV2Result(null);
+                  setScamV2Error(null);
+                  setScamV2Loading(true);
+                  try {
+                    setScamV2Result(await runScamV2({ data: { text } }));
+                  } catch {
+                    setScamV2Error(en ? "Could not reach AI V2. Please try again." : "Chưa kết nối được AI V2. Vui lòng thử lại.");
+                  } finally {
+                    setScamV2Loading(false);
+                  }
+                }}
+                disabled={scamV2Loading || text.trim().length < 20 || text.length > 3000}
                 className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
               >
-                {loading ? `⏳ ${en ? "Analyzing" : "Đang phân tích"} ${Math.round(progress)}%` : (en ? "🔍 Check text" : "🔍 Kiểm tra văn bản")}
+                {scamV2Loading ? (en ? "Checking AI V2..." : "Đang kiểm tra AI V2...") : (en ? "🔍 Check scam signs (AI V2)" : "🔍 Kiểm tra dấu hiệu lừa đảo (AI V2)")}
               </button>
 
               <button

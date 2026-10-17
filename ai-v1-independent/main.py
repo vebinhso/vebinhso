@@ -79,7 +79,7 @@ async def call_gemini(messages, json_mode):
     configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
     # Only use models explicitly selected for this project. Fallbacks must be
     # separately validated for availability and free-tier eligibility.
-    fallbacks = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "").split(",") if m.strip()]
+    fallbacks = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.6-flash").split(",") if m.strip()]
     models = list(dict.fromkeys([configured] + fallbacks))[:3]
     last_error = None
     async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
@@ -125,8 +125,10 @@ async def call_gemini(messages, json_mode):
                     code, model, reason, attempt + 1,
                 )
                 if code == 429:
-                    # Never amplify rate-limit/quota errors with retries/fallbacks.
-                    raise HTTPException(429, "Gemini free quota or rate limit reached")
+                    # Do not retry the exhausted model. A different, explicitly
+                    # configured model may have its own remaining free quota.
+                    last_error = HTTPException(429, "Gemini free quota or rate limit reached")
+                    break
                 if code in (401, 403):
                     raise HTTPException(503, "Gemini API access denied; check project permissions")
                 if code == 400:
@@ -141,8 +143,10 @@ async def call_gemini(messages, json_mode):
                         continue
                     break
                 raise HTTPException(502, "Gemini provider returned an unexpected error")
-            if model_index + 1 < len(models):
+            if model_index + 1 < len(models) and last_error and last_error.status_code in (429, 503, 504, 502):
                 logger.warning("Gemini fallback: trying next configured model")
+            else:
+                break
     raise last_error or HTTPException(503, "Gemini provider unavailable")
 
 @app.get("/admin/gemini-models")

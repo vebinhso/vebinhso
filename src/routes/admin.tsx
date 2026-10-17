@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GameLayout } from "@/components/GameLayout";
 import { SkillsPanel } from "@/components/SkillsPanel";
+import { FeedbackBlocks } from "@/components/SkillFeedbackBlocks";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser, type Account } from "@/lib/auth";
 import {
@@ -74,6 +75,7 @@ type Tab =
   | "maps"
   | "pickups"
   | "skills"
+  | "feedback"
   | "logs";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -89,6 +91,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "maps", label: "Khu vực", icon: "🗺️" },
   { id: "pickups", label: "Vật phẩm map", icon: "🪙" },
   { id: "skills", label: "Skill AI", icon: "🧠" },
+  { id: "feedback", label: "Nhận xét AI", icon: "💬" },
   { id: "logs", label: "Nhật ký", icon: "📜" },
 ];
 

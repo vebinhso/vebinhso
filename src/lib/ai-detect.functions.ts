@@ -252,6 +252,10 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = 
       ],
       response_format: { type: "json_object" },
     }, ["aiScore", "confidence", "misinfoRisk"], data.locale);
+    // Optional research classifier: independent advisory only; never override the main AI result.
+    // Disabled unless server operator explicitly configures SCAM_ML_ENABLED=true.
+    const { checkScamMl } = await import("./scam-ml.server");
+    const mlAdvisory = await checkScamMl(data.text);
     const rawCat = str(parsed.scamCategory, "khong_ro").trim();
     const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
     return {
@@ -271,6 +275,7 @@ misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = 
       difficulty: ["Dễ", "Trung bình", "Khó"].includes(str(parsed.difficulty, ""))
         ? str(parsed.difficulty, "")
         : "Trung bình",
+      mlAdvisory,
       scamSigns: strArr(parsed.scamSigns, 8),
       tips: strArr(parsed.tips),
     };

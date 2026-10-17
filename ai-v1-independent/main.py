@@ -77,10 +77,22 @@ async def call_gemini(messages, json_mode):
     if json_mode:
         body["generationConfig"]["responseMimeType"] = "application/json"
     configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
-    # Only use models explicitly selected for this project. Fallbacks must be
-    # separately validated for availability and free-tier eligibility.
+    # Prefer configured models. Discover additional eligible Flash models
+    # from the provider; never guess model IDs or use paid-only models.
     fallbacks = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.6-flash").split(",") if m.strip()]
-    models = list(dict.fromkeys([configured] + fallbacks))[:3]
+    models = list(dict.fromkeys([configured] + fallbacks))
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=4.0)) as discovery:
+            listing = await discovery.get("https://generativelanguage.googleapis.com/v1beta/models", headers={"x-goog-api-key": key}, params={"pageSize": 100})
+        if listing.status_code == 200:
+            available = [m.get("name", "").removeprefix("models/") for m in listing.json().get("models", []) if "generateContent" in m.get("supportedGenerationMethods", [])]
+            # The allowlist must be set only after checking the free-tier quota
+            # in AI Studio. Listing an API model does not prove it is free.
+            eligible = [m.strip() for m in os.getenv("GEMINI_FREE_FALLBACK_ALLOWLIST", "").split(",") if m.strip()]
+            models.extend(m for m in eligible if m in available)
+    except (httpx.RequestError, ValueError, TypeError):
+        logger.warning("Gemini fallback discovery unavailable; using configured models")
+    models = list(dict.fromkeys(models))[:8]
     last_error = None
     async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
         for model_index, model in enumerate(models):

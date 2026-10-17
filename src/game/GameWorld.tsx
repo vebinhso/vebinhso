@@ -888,7 +888,7 @@ function PlotAndPlacement({
         onClick={handleClick}
       >
         <planeGeometry args={[GRID, GRID]} />
-        <meshStandardMaterial color="#9bca6f" transparent opacity={activeFloor === 0 ? 1 : 0.25} />
+        <meshStandardMaterial color="#a6a5a1" transparent opacity={activeFloor === 0 ? 1 : 0.25} />
       </mesh>
       {dimTown && <gridHelper args={[GRID, GRID, "#3a5a2a", "#5e8a3f"]} position={[0, floorY + 0.07, 0]} />}
 

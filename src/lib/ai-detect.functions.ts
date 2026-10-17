@@ -417,10 +417,28 @@ export const analyzeNews = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
     const skill = await loadSkillForCheck("news");
-    const headlines = await fetchLatestNews(data.content);
+    // First ask Gemini to identify the factual claim and focused search terms.
+    // Do not treat this first pass as a verdict.
+    let searchText = data.content;
+    try {
+      const claim = await callGateway({
+        messages: [
+          { role: "system", content: "Trích xuất nội dung cần kiểm chứng và từ khóa tìm báo chính xác. Không kết luận đúng/sai. Trả JSON: {\\"query\\":\\"từ khóa cụ thể tối đa 120 ký tự\\"}." },
+          { role: "user", content: data.content },
+        ],
+        response_format: { type: "json_object" },
+      });
+      if (typeof claim.query === "string" && claim.query.trim().length >= 5) {
+        searchText = claim.query.trim().slice(0, 120);
+      }
+    } catch {
+      // A provider failure must not turn into a fabricated fact-check.
+      searchText = data.content;
+    }
+    const headlines = await fetchLatestNews(searchText);
     const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const feedBlock = headlines.length
-      ? headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}${h.date ? ` (${h.date})` : ""}`).join("\n")
+      ? headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}${h.date ? ` (${h.date})` : ""} | URL: ${h.link}`).join("\n")
       : "(Không tìm được tin liên quan trên Google Tin tức và các báo lớn trong hôm nay)";
 
     const sys = `Bạn là chuyên gia kiểm chứng tin tức (fact-check) cho học sinh Việt Nam. Hôm nay là ${today}.
@@ -428,10 +446,10 @@ Người dùng có thể DÁN một tin, hoặc ĐẶT CÂU HỎI kiểu "có th
 Nhiệm vụ:
 1) TRẢ LỜI TRỰC TIẾP câu hỏi/nội dung của người dùng bằng 1-3 câu ("answer").
 2) KIỂM CHỨNG: thông tin này đã được kiểm chứng ở đâu chưa? Nếu trong danh sách tin có báo chính thống đưa tin trùng khớp → verified = true, liệt kê tên báo trong "verifiedBy" và tiêu đề trùng khớp trong "matchedNews".
-   Nếu KHÔNG có nguồn nào xác nhận → verified = false, verdict = "unverified", và answer PHẢI nói rõ: "Đây là thông tin CHƯA được kiểm chứng, chưa có báo chính thống nào xác nhận — không nên tin hay chia sẻ."
+   Nếu KHÔNG tìm thấy bằng chứng phù hợp trong danh sách → verified = false, verdict = "unverified"; nói "Chưa tìm được nguồn xác nhận trong các nguồn đã tra cứu" (không khẳng định mọi báo đều chưa đưa tin).
 3) TIN GIẢ: tiêu đề giật gân, nguồn mơ hồ, không tác giả/thời gian, số liệu không kiểm chứng, kêu gọi chia sẻ gấp, thuyết âm mưu, mạo danh báo chính thống, lừa đảo tài chính/sức khoẻ.
 4) TIN LÁ CẢI / TRUYỀN MIỆNG: tin vỉa hè, đồn thổi, "nghe nói", "bạn của bạn tôi kể", drama showbiz câu view, giật tít câu click, chỉ lan trên mạng xã hội/nhóm chat.
-Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách.
+Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách. Chỉ đánh dấu verified khi tiêu đề và nội dung được cung cấp thực sự hỗ trợ nhận định cần kiểm tra; một bài chỉ giống từ khóa không đủ. Nếu chỉ có tiêu đề, nêu giới hạn chưa đọc nội dung đầy đủ.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
 fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. ${resultLanguage(data.locale)}`;
@@ -446,8 +464,11 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       ],
       response_format: { type: "json_object" },
     }, ["fakeScore", "tabloidScore"], data.locale);
-    const verifiedBy = strArr(parsed.verifiedBy, 5);
-    const verified = parsed.verified === true && verifiedBy.length > 0;
+    // A model's self-reported verification is not independently established.
+    // RSS headlines alone cannot substantiate a factual claim. Do not show
+    // verified status unless a future verifier fetches and checks article text.
+    const verifiedBy: string[] = [];
+    const verified = false;
     return {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
@@ -466,7 +487,7 @@ fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá
       verdict: verified ? str(parsed.verdict, "likely_true") : "unverified",
       category: str(parsed.category, fallback(data.locale, "chưa rõ", "unclear")),
       summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
-      matchedNews: strArr(parsed.matchedNews, 4),
+      matchedNews: [], // Similar headlines are not independently verified evidence.
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
       checkSteps: strArr(parsed.checkSteps),

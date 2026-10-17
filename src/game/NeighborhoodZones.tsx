@@ -28,12 +28,12 @@ const path = new THREE.CatmullRomCurve3([
   new THREE.Vector3(23, 4, 0), new THREE.Vector3(16, 6, 10), new THREE.Vector3(0, 2, 12),
 ], true, "centripetal");
 const railGeo = new THREE.TubeGeometry(path, 180, 0.19, 6, true);
-export type ZoneProps = { plants?: GardenPlant[]; ride?: { kind: RideKind; id: number } | null; onRideEnd?: () => void; onOpenPark?: () => void; onOpenGarden?: (slot?: number) => void };
+export type ZoneProps = { plants?: GardenPlant[]; ride?: { kind: RideKind; id: number } | null; onRideEnd?: () => void; onOpenPark?: () => void; parkEntered?: boolean; onSelectRide?: (kind: RideKind) => void; onOpenGarden?: (slot?: number) => void };
 
 function ZoneHouse({ title, onClick, position }: { title: string; onClick?: () => void; position: [number, number, number] }) {
   return <group position={position} onClick={e => { e.stopPropagation(); onClick?.(); }}>
-    <Block p={[0, 2.8, 0]} s={[15, 5.6, 9]} mat="wall" />
-    <Block p={[0, 5.85, 0]} s={[16.4, 0.65, 10.4]} mat="roof" />
+    <Block p={[0, 2.8, 0]} s={[18, 5.6, 11]} mat="wall" />
+    <Block p={[0, 5.85, 0]} s={[19.4, 0.65, 12.4]} mat="roof" />
     {Array.from({length: 12}, (_, i) => <Block key={i} p={[-7.2 + i * 1.3, 6.25, 0]} s={[0.28, 0.22, 10.2]} mat="trim" />)}
     <Block p={[0, 1.75, 4.56]} s={[3.2, 3.5, 0.22]} mat="door" />
     {[-5.1, 5.1].map(x => <group key={x}>
@@ -45,7 +45,7 @@ function ZoneHouse({ title, onClick, position }: { title: string; onClick?: () =
     </Html>
   </group>;
 }
-function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
+function Park({ ride, onRideEnd, onOpenPark, parkEntered, onSelectRide }: ZoneProps) {
   const en = useLocale() === "en";
   const car = useRef<THREE.Group>(null);
   const wheel = useRef<THREE.Group>(null);
@@ -83,13 +83,13 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
   });
   return <group position={[PARK_ORIGIN[0], 0, PARK_ORIGIN[1]]}>
     <Block p={[0, 0.07, -1]} s={[56, 0.12, 38]} mat="path" />
-    <ZoneHouse position={[0, 0.3, 0]} title={en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"} onClick={onOpenPark} />
-    {ride && <group>
-    <mesh geometry={railGeo} material={mats.rail} />
+    {!parkEntered && <ZoneHouse position={[0, 0.3, 0]} title={en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"} onClick={onOpenPark} />}
+    {parkEntered && <group>
+    <mesh geometry={railGeo} material={mats.rail} onClick={e => { e.stopPropagation(); onSelectRide?.("coaster"); }} />
     <mesh geometry={railGeo} material={mats.support} position={[0, -0.42, 0]} />
     {supports.map((p, i) => <Block key={i} p={[p.x, p.y / 2, p.z]} s={[0.28, p.y, 0.28]} />)}
     <Suspense fallback={null}><group ref={car}><Model url={cartAsset.url} scale={3} /></group></Suspense>
-    <group position={[-15, 11, 2]} rotation={[0, Math.PI / 5, 0]}>
+    <group onClick={e => { e.stopPropagation(); onSelectRide?.("wheel"); }} position={[-15, 11, 2]} rotation={[0, Math.PI / 5, 0]}>
       {[-1, 1].map(sign => <group key={sign} rotation={[0, 0, sign * 0.29]}><Block p={[sign * 1.3, -5.5, -0.8]} s={[0.7, 13, 0.7]} /></group>)}
       <group ref={wheel}>
         <mesh material={mats.wheel}><torusGeometry args={[9, 0.22, 6, 64]} /></mesh>
@@ -99,7 +99,7 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
         </group>; })}
       </group>
     </group>
-    <group position={[12, 0.2, 4]}>
+    <group onClick={e => { e.stopPropagation(); onSelectRide?.("carousel"); }} position={[12, 0.2, 4]}>
       <mesh material={mats.cream}><cylinderGeometry args={[7, 7, 0.3, 32]} /></mesh>
       <Block p={[0, 3, 0]} s={[0.8, 6, 0.8]} mat="wheel" />
       <mesh position={[0, 6, 0]} material={mats.pink}><coneGeometry args={[7.8, 2.4, 16]} /></mesh>
@@ -110,10 +110,10 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
       </group>; })}</group>
     </group>
     </group>}
-    <Block p={[0, 1.2, 17]} s={[4.8, 2.4, 0.6]} mat="cabin" />
-    <Html position={[0, 3.4, 17]} center distanceFactor={45} zIndexRange={[15, 0]}>
+    {!parkEntered && <Block p={[0, 1.2, 17]} s={[4.8, 2.4, 0.6]} mat="cabin" />}
+    {!parkEntered && <Html position={[0, 3.4, 17]} center distanceFactor={45} zIndexRange={[15, 0]}>
       <Button className="font-bold" onClick={onOpenPark} aria-label={en ? "Amusement park control board" : "Bảng điều khiển khu vui chơi"}>🎢 {en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"}</Button>
-    </Html>
+    </Html>}
   </group>;
 }
 function Garden({ plants = [], onOpenGarden }: ZoneProps) {

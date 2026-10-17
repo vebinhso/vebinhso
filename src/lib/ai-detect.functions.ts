@@ -24,12 +24,15 @@ async function callGateway(body: unknown) {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(95000),
+    signal: AbortSignal.timeout(45000),
   });
   if (!res.ok) {
-    if (res.status === 503) throw new Error("Render AI chưa có nhà cung cấp mô hình độc lập.");
-    if (res.status === 429) throw new Error("AI đang quá tải, vui lòng thử lại.");
-    throw new Error(`Render AI trả về lỗi ${res.status}.`);
+    if (res.status === 401) throw new Error("Token kết nối website và Render AI V1 không khớp.");
+    if (res.status === 429) throw new Error("Gemini đã đạt giới hạn lượt dùng miễn phí. Vui lòng thử lại sau.");
+    if (res.status === 503) throw new Error("Gemini chưa được cấp quyền hoặc cấu hình mô hình/API key chưa đúng trên Render AI V1.");
+    if (res.status === 504) throw new Error("Gemini phản hồi quá chậm. Vui lòng thử lại sau.");
+    if (res.status === 502) throw new Error("Gemini không xử lý được yêu cầu. Hãy kiểm tra quyền API key và nhật ký Render AI V1.");
+    throw new Error(`Render AI V1 trả về lỗi ${res.status}.`);
   }
   const j = await res.json();
   try { return JSON.parse(j?.choices?.[0]?.message?.content ?? "{}"); }

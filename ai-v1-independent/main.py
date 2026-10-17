@@ -2,14 +2,18 @@
 import os
 import json
 import secrets
+import logging
+import time
+import uuid
 from fastapi import FastAPI, Request, HTTPException
 import httpx
 
 app = FastAPI(title="Ve Binh So AI V1 Independent")
+logger = logging.getLogger("uvicorn.error")
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "ai-v1-independent", "provider_configured": bool(os.getenv("GEMINI_API_KEY") or os.getenv("GROQ_API_KEY"))}
+    return {"status": "ok", "service": "ai-v1-independent", "provider_configured": bool(os.getenv("GEMINI_API_KEY"))}
 
 def to_gemini_parts(content):
     if isinstance(content, str):
@@ -55,6 +59,7 @@ async def call_gemini(messages, json_mode):
         raise HTTPException(502, "Cannot connect to Gemini")
     if response.status_code != 200:
         code = response.status_code
+        logger.warning("Gemini request rejected: upstream_status=%s model=%s", code, model)
         detail = {400: "Gemini rejected the request or model configuration", 401: "Gemini API key rejected", 403: "Gemini API key lacks permission", 404: "Gemini model not found", 429: "Gemini free quota or rate limit reached"}.get(code, "Gemini provider unavailable")
         raise HTTPException(429 if code == 429 else 503 if code in (401, 403, 404) else 502, detail)
     data = response.json()
@@ -70,15 +75,27 @@ async def analyze(request: Request):
         raise HTTPException(401, "Unauthorized")
     if int(request.headers.get("content-length", "0")) > 9_000_000:
         raise HTTPException(413, "Payload too large")
-    body = await request.json()
+    started = time.monotonic()
+    request_id = uuid.uuid4().hex[:12]
+    try:
+        body = await request.json()
+    except (ValueError, TypeError):
+        raise HTTPException(400, "Invalid JSON request")
+    if not isinstance(body, dict):
+        raise HTTPException(422, "Request must be an object")
     messages = body.get("messages")
     if not isinstance(messages, list) or not messages or len(messages) > 30:
         raise HTTPException(422, "Invalid messages")
     json_mode = body.get("response_format", {}).get("type") == "json_object"
-    result = await call_gemini(messages, json_mode)
+    try:
+        result = await call_gemini(messages, json_mode)
+    except HTTPException as exc:
+        logger.warning("V1 request failed: request_id=%s status=%s duration_ms=%d", request_id, exc.status_code, int((time.monotonic()-started)*1000))
+        raise
     if json_mode:
         try:
             json.loads(result)
         except ValueError:
             raise HTTPException(502, "Provider returned invalid JSON")
+    logger.info("V1 request completed: request_id=%s duration_ms=%d", request_id, int((time.monotonic()-started)*1000))
     return {"choices": [{"message": {"role": "assistant", "content": result}}]}

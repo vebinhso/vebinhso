@@ -88,7 +88,19 @@ async def call_gemini(messages, json_mode):
         raise HTTPException(502, "Cannot connect to Gemini")
     if response.status_code != 200:
         code = response.status_code
-        logger.warning("Gemini request rejected: upstream_status=%s model=%s", code, model)
+        # Log only Google's error classification and a short sanitized message.
+        # Never log request bodies, API keys, tokens, or arbitrary upstream payloads.
+        try:
+            upstream_error = response.json().get("error", {})
+            upstream_reason = str(upstream_error.get("status", "unknown"))[:60]
+            upstream_message = str(upstream_error.get("message", ""))
+            import re
+            upstream_message = re.sub(r"AIza[0-9A-Za-z_-]+", "[REDACTED_KEY]", upstream_message)
+            upstream_message = re.sub(r"https?://\\S+", "[REDACTED_URL]", upstream_message)
+            upstream_message = upstream_message.replace("\\n", " ")[:280]
+        except (ValueError, TypeError, AttributeError):
+            upstream_reason, upstream_message = "unknown", "non-json upstream error"
+        logger.warning("Gemini request rejected: upstream_status=%s model=%s reason=%s detail=%s", code, model, upstream_reason, upstream_message)
         detail = {400: "Gemini rejected the request or model configuration", 401: "Gemini API key rejected", 403: "Gemini API key lacks permission", 404: "Gemini model not found", 429: "Gemini free quota or rate limit reached"}.get(code, "Gemini provider unavailable")
         raise HTTPException(429 if code == 429 else 503 if code in (401, 403, 404) else 502, detail)
     data = response.json()

@@ -23,3 +23,5 @@ export const ridePose = { active: false, x: 0, y: 0, z: 0, yaw: 0 };
 export function gardenSlotPosition(slot: number): [number, number] {
   return [GARDEN_ORIGIN[0] - 17.5 + (slot % GARDEN_COLS) * 5, GARDEN_ORIGIN[1] - 12 + Math.floor(slot / GARDEN_COLS) * 5];
 }
+// Điểm đến khi người chơi chọn một khu hoạt động trên bản đồ.
+export const neighborhoodTravel = { destination: null as "park" | "garden" | null };

@@ -714,6 +714,45 @@ Tối đa 8 findings. ${resultLanguage(data.locale)}`;
     };
   });
 
+/** Privacy-safe review of a user-supplied public URL and pasted public excerpt.
+ * Does NOT crawl people, scrape search engines, or claim that a URL was fetched.
+ * The excerpt is required so private information is not sent to a search engine.
+ */
+export const analyzePublicPrivacyUrl = createServerFn({ method: "POST" })
+  .inputValidator((data: { url: string; excerpt: string; consent: boolean; locale?: ResultLocale }) => {
+    if (data?.consent !== true) throw new Error("Cần xác nhận bạn có quyền kiểm tra nội dung này.");
+    let url: URL;
+    try { url = new URL(data.url); } catch { throw new Error("Đường dẫn không hợp lệ."); }
+    if (url.protocol !== "https:" || url.username || url.password || url.port || url.hostname === "localhost" || /^(?:\\d{1,3}\\.){3}\\d{1,3}$/.test(url.hostname) || !url.hostname.includes(".")) {
+      throw new Error("Chỉ chấp nhận URL HTTPS công khai hợp lệ.");
+    }
+    if (typeof data.excerpt !== "string" || data.excerpt.trim().length < 10 || data.excerpt.length > 6000) {
+      throw new Error("Hãy dán nội dung công khai cần kiểm tra (10–6000 ký tự).");
+    }
+    return { url: url.origin + url.pathname, excerpt: data.excerpt.trim(), locale: resultLocale(data.locale) };
+  })
+  .handler(async ({ data }) => {
+    const { loadSkillForCheck } = await import("./ai-skills.server");
+    const skill = await loadSkillForCheck("privacy_text");
+    const parsed = await callGateway({
+      messages: [
+        { role: "system", content: withSkill(`Bạn đánh giá rủi ro lộ thông tin cá nhân trong đoạn nội dung công khai do chính người dùng cung cấp. URL chỉ là ngữ cảnh, CHƯA được truy cập hoặc xác minh. Không suy diễn rằng đã tìm thấy trang, không tìm kiếm người khác, không trích xuất thêm danh tính. Trả JSON {"riskScore":0-100,"level":"safe|low|medium|high|dangerous","summary":"...","findings":[{"quote":"trích nguyên văn","label":"...","detail":"...","severity":"low|medium|high"}],"advice":["..."]}. ${resultLanguage(data.locale)}`, skill) },
+        { role: "user", content: `URL người dùng khai báo: ${data.url}\\nNội dung người dùng dán (chưa xác minh từ website):\\n${data.excerpt}` },
+      ],
+      response_format: { type: "json_object" },
+    });
+    return {
+      url: data.url, pageFetched: false, verifiedOnline: false,
+      riskScore: clampScore(parsed.riskScore), level: str(parsed.level, "unknown"),
+      summary: str(parsed.summary, "Đây chỉ là đánh giá nội dung được cung cấp."),
+      findings: Array.isArray(parsed.findings) ? parsed.findings.slice(0, 8).map((f: any) => ({
+        quote: str(f?.quote, ""), label: str(f?.label, ""), detail: str(f?.detail, ""), severity: sev(f?.severity),
+      })).filter((f: { quote: string }) => data.excerpt.includes(f.quote)) : [],
+      advice: strArr(parsed.advice),
+      note: "Chưa truy cập hoặc xác minh trang web; chỉ phân tích đoạn nội dung do người dùng cung cấp.",
+    };
+  });
+
 /** Kiểm tra số điện thoại: nhà mạng, vùng gọi đến, nguy cơ lừa đảo */
 export const analyzePhone = createServerFn({ method: "POST" })
   .inputValidator((data: { phone: string; context?: string; locale?: ResultLocale; source?: "user" | "eval" }) => {

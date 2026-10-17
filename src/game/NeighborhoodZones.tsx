@@ -109,7 +109,7 @@ function Park({ ride, onRideEnd, onOpenPark }: ZoneProps) {
         <Block p={[0, 1.9, -0.65]} s={[1.5, 1, 0.2]} mat="cream" />
       </group>; })}</group>
     </group>
-    </group>
+    </group>}
     <Block p={[0, 1.2, 17]} s={[4.8, 2.4, 0.6]} mat="cabin" />
     <Html position={[0, 3.4, 17]} center distanceFactor={45} zIndexRange={[15, 0]}>
       <Button className="font-bold" onClick={onOpenPark} aria-label={en ? "Amusement park control board" : "Bảng điều khiển khu vui chơi"}>🎢 {en ? "AMUSEMENT PARK" : "KHU VUI CHƠI"}</Button>

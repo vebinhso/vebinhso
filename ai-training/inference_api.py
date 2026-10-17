@@ -89,7 +89,9 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
     import hmac
     import httpx
     from urllib.parse import urlparse
-    token = os.environ["SCAM_API_TOKEN"]
+    token = os.getenv("SCAM_API_TOKEN")
+    if not token:
+        raise HTTPException(status_code=503, detail="API authentication is not configured")
     if not authorization or not hmac.compare_digest(authorization, "Bearer " + token):
         raise HTTPException(status_code=401, detail="Unauthorized")
     key = os.getenv("AI_PROVIDER_API_KEY")
@@ -100,6 +102,7 @@ async def analyze(body: AnalyzeRequest, authorization: str | None = Header(defau
     parsed = urlparse(endpoint)
     if parsed.scheme != "https" or not parsed.hostname or parsed.hostname.endswith("lovable.dev"):
         raise HTTPException(status_code=503, detail="Invalid AI provider endpoint")
+    # Do not let the caller choose a different upstream host or model.
     # Bound inputs, especially embedded image/video frames.
     payload = body.model_dump(exclude_none=True)
     if len(__import__("json").dumps(payload)) > 15_000_000:

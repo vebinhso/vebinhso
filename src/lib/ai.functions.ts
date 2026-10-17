@@ -8,29 +8,21 @@ export const generateOutfit = createServerFn({ method: "POST" })
     return { description: data.description.slice(0, 500) };
   })
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("AI not configured");
-
-    const sys = `Bạn là nhà thiết kế nhân vật game cartoon. Dựa trên mô tả trang phục của người chơi, trả về CHÍNH XÁC một JSON object (không markdown, không giải thích) với các khoá hex màu cho nhân vật game 3D:
-{"skin":"#hex","hair":"#hex","shirt":"#hex","pants":"#hex","shoes":"#hex","hat":"#hex|null","accent":"#hex"}
-Chọn màu tươi sáng, hài hoà, đúng tinh thần mô tả. Trả về JSON thuần.`;
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const endpoint = process.env["SCAM_API_URL"] || process.env["AI_RENDER_URL"];
+    const token = process.env["SCAM_API_TOKEN"];
+    if (!endpoint || !token) throw new Error("Render AI chưa được cấu hình");
+    const sys = `Bạn là nhà thiết kế nhân vật game cartoon. Dựa trên mô tả trang phục, trả về JSON thuần gồm các khóa skin,hair,shirt,pants,shoes,hat,accent; mỗi màu dạng #RRGGBB.`;
+    const url = new URL("/v1/analyze", endpoint);
+    if (url.protocol !== "https:") throw new Error("Render AI phải dùng HTTPS");
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: sys },
-          { role: "user", content: data.description },
-        ],
+        messages: [{ role: "system", content: sys }, { role: "user", content: data.description }],
         response_format: { type: "json_object" },
       }),
+      signal: AbortSignal.timeout(95000),
     });
-
     if (!res.ok) {
       const t = await res.text();
       throw new Error(`AI error ${res.status}: ${t.slice(0, 200)}`);

@@ -161,6 +161,55 @@ async def call_gemini(messages, json_mode):
                 break
     raise last_error or HTTPException(503, "Gemini provider unavailable")
 
+async def call_groq(messages, json_mode):
+    """Text-only independent fallback; do not send images to text-only models."""
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        raise HTTPException(503, "No Groq fallback configured")
+    if any(not isinstance(m.get("content"), str) for m in messages):
+        raise HTTPException(503, "Groq text fallback does not support image inputs")
+    model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b").strip()
+    payload = {
+        "model": model,
+        "messages": [{"role": m.get("role", "user"), "content": m["content"]} for m in messages],
+        "temperature": 0.2,
+        "max_completion_tokens": 3072,
+    }
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}"},
+                json=payload,
+            )
+    except httpx.RequestError:
+        raise HTTPException(502, "Backup AI connection unavailable")
+    if response.status_code != 200:
+        logger.warning("Groq fallback error: status=%s model=%s", response.status_code, model)
+        raise HTTPException(503, "Backup AI unavailable")
+    try:
+        result = response.json()["choices"][0]["message"]["content"]
+        if not isinstance(result, str) or not result.strip():
+            raise ValueError("empty response")
+        if json_mode:
+            json.loads(result)
+        return result
+    except (KeyError, IndexError, TypeError, ValueError):
+        raise HTTPException(502, "Backup AI returned unusable content")
+
+
+async def call_ai(messages, json_mode):
+    try:
+        return await call_gemini(messages, json_mode)
+    except HTTPException as exc:
+        if exc.status_code not in (429, 502, 503, 504) or not os.getenv("GROQ_API_KEY"):
+            raise
+        logger.warning("Primary AI unavailable: switching to independent text fallback")
+        return await call_groq(messages, json_mode)
+
+
 @app.get("/admin/gemini-models")
 async def diagnostic_models(request: Request):
     """Protected model discovery. Never returns or logs credentials."""
@@ -212,7 +261,7 @@ async def analyze(request: Request):
         raise HTTPException(422, "Invalid messages")
     json_mode = body.get("response_format", {}).get("type") == "json_object"
     try:
-        result = await call_gemini(messages, json_mode)
+        result = await call_ai(messages, json_mode)
     except HTTPException as exc:
         logger.warning("V1 request failed: request_id=%s status=%s duration_ms=%d", request_id, exc.status_code, int((time.monotonic()-started)*1000))
         raise

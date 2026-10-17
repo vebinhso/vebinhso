@@ -783,3 +783,17 @@ ${data.context ? `Người dùng mô tả cuộc gọi/tin nhắn: ${data.contex
     }
     return result;
   });
+
+/** Independent AI V2 check: does not call Lovable's AI gateway. */
+export const analyzeScamV2 = createServerFn({ method: "POST" })
+  .inputValidator((data: { text: string }) => {
+    if (typeof data?.text !== "string" || data.text.trim().length < 20 || data.text.length > 3000) {
+      throw new Error("Vui lòng nhập từ 20 đến 3000 ký tự.");
+    }
+    return { text: data.text.trim() };
+  })
+  .handler(async ({ data }) => {
+    const { checkScamMl } = await import("./scam-ml.server");
+    const advisory = await checkScamMl(data.text);
+    return { advisory, available: advisory !== null };
+  });

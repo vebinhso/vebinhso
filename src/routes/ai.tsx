@@ -1092,42 +1092,23 @@ function AiPage() {
                   try {
                     setScamV2Result(await runScamV2({ data: { text } }));
                   } catch {
-                    setScamV2Error(en ? "Could not reach AI V2. Please try again." : "Chưa kết nối được AI V2. Vui lòng thử lại.");
+                    setScamV2Error(en ? "Could not complete the check. Please try again." : "Chưa thể hoàn tất kiểm tra. Vui lòng thử lại.");
                   } finally {
                     setScamV2Loading(false);
                   }
                 }}
                 disabled={scamV2Loading || text.trim().length < 20 || text.length > 3000}
-                className="toy-button toy-button-primary w-full !text-xs sm:!text-sm disabled:opacity-50"
+                className="toy-button w-full !text-xs sm:!text-sm disabled:opacity-50 !bg-gradient-to-r !from-amber-400 !to-orange-500 !text-white"
               >
-                {scamV2Loading ? (en ? "Checking AI V2..." : "Đang kiểm tra AI V2...") : (en ? "🔍 Check scam signs (AI V2)" : "🔍 Kiểm tra dấu hiệu lừa đảo (AI V2)")}
+                {scamV2Loading ? (en ? "Checking..." : "Đang kiểm tra...") : (en ? "🔍 Check scam signs" : "🔍 Kiểm tra dấu hiệu lừa đảo")}
               </button>
 
-              <button
-                type="button"
-                disabled={scamV2Loading || text.trim().length < 20 || text.length > 3000}
-                onClick={async () => {
-                  setScamV2Loading(true);
-                  setScamV2Error(null);
-                  setScamV2Result(null);
-                  try {
-                    setScamV2Result(await runScamV2({ data: { text } }));
-                  } catch {
-                    setScamV2Error(en ? "Could not reach AI V2. Please try again." : "Chưa kết nối được AI V2. Vui lòng thử lại.");
-                  } finally {
-                    setScamV2Loading(false);
-                  }
-                }}
-                className="toy-button w-full !text-xs sm:!text-sm disabled:opacity-50"
-              >
-                {scamV2Loading ? (en ? "Checking AI V2..." : "Đang kiểm tra AI V2...") : (en ? "Check scams with AI V2 (no Lovable AI credits)" : "Kiểm tra lừa đảo bằng AI V2 (không dùng credit Lovable)")}
-              </button>
               {scamV2Error && <p role="alert" className="text-sm text-red-600">{scamV2Error}</p>}
               {scamV2Result && (
                 <div role="status" className="rounded-xl border border-violet-300 p-3 text-sm">
-                  <p className="font-bold">{en ? "Experimental AI V2 result" : "Kết quả AI V2 thử nghiệm"}</p>
+                  <p className="font-bold">{en ? "Scam check result" : "Kết quả kiểm tra dấu hiệu lừa đảo"}</p>
                   <p>{!scamV2Result.available
-                    ? (en ? "AI V2 is currently unavailable. No safety conclusion can be made." : "AI V2 hiện chưa khả dụng. Không thể kết luận tin nhắn an toàn.")
+                    ? (en ? "The analysis is currently unavailable. No safety conclusion can be made." : "Hiện chưa thể phân tích. Không thể kết luận tin nhắn an toàn.")
                     : scamV2Result.advisory?.status === "risk_indicated"
                       ? (en ? "Potential scam signs detected." : "Phát hiện dấu hiệu có thể là lừa đảo.")
                       : scamV2Result.advisory?.status === "no_clear_sign"

@@ -416,25 +416,33 @@ export const analyzeNews = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
     const skill = await loadSkillForCheck("news");
-    // First ask Gemini to identify the factual claim and focused search terms.
-    // Do not treat this first pass as a verdict.
-    let searchText = data.content;
+    // Extract independent entities, claim and alternate search phrases.
+    // Search each phrase separately and combine de-duplicated headlines.
+    let searchQueries = [data.content.slice(0, 120)];
+    let claimText = data.content.slice(0, 500);
     try {
       const claim = await callGateway({
         messages: [
-          { role: "system", content: `Trích xuất nội dung cần kiểm chứng và từ khóa tìm báo chính xác. Không kết luận đúng/sai. Trả JSON: {"query":"từ khóa cụ thể tối đa 120 ký tự"}.` },
+          { role: "system", content: `Trích xuất nhận định cần kiểm chứng và các cụm từ tìm kiếm KHÁC NHAU nhưng cùng chủ đề. Ghép tên riêng + sự kiện + địa điểm/thời gian khi có. Không thêm sự kiện hoặc dữ kiện không có trong văn bản. Không kết luận đúng/sai. Trả JSON: {"claim":"nhận định chính","keywords":["từ khóa chính"],"queries":["cụm tìm kiếm 1","cụm tìm kiếm 2","cụm tìm kiếm 3"]}. Mỗi query tối đa 120 ký tự.` },
           { role: "user", content: data.content },
         ],
         response_format: { type: "json_object" },
       });
-      if (typeof claim.query === "string" && claim.query.trim().length >= 5) {
-        searchText = claim.query.trim().slice(0, 120);
-      }
+      if (typeof claim.claim === "string" && claim.claim.trim()) claimText = claim.claim.trim().slice(0, 500);
+      const queries = Array.isArray(claim.queries) ? claim.queries : [];
+      const valid = queries.filter((q: unknown): q is string => typeof q === "string" && q.trim().length >= 5 && q.length <= 120);
+      if (valid.length) searchQueries = [...new Set(valid.map((q: string) => q.trim()))].slice(0, 3);
     } catch {
-      // A provider failure must not turn into a fabricated fact-check.
-      searchText = data.content;
+      // Keep a single query when keyword extraction is unavailable.
     }
-    const headlines = await fetchLatestNews(searchText);
+    const batches = await Promise.all(searchQueries.map((q) => fetchLatestNews(q)));
+    const seen = new Set<string>();
+    const headlines = batches.flat().filter((h) => {
+      const key = h.link || `${h.source}:${h.title.toLocaleLowerCase("vi")}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 36);
     const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const feedBlock = headlines.length
       ? headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}${h.date ? ` (${h.date})` : ""} | URL: ${h.link}`).join("\n")
@@ -458,7 +466,7 @@ Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpo
         { role: "system", content: withSkill(sys, skill) },
         {
           role: "user",
-          content: `NGƯỜI DÙNG HỎI / TIN CẦN KIỂM TRA:\n${data.content}\n\nTIN MỚI NHẤT HÔM NAY (${today}) TỪ GOOGLE TIN TỨC & BÁO LỚN:\n${feedBlock}`,
+          content: `NGƯỜI DÙNG HỎI / TIN CẦN KIỂM TRA:\n${data.content}\n\nNHẬN ĐỊNH CẦN KIỂM CHỨNG:\n${claimText}\n\nCỤM TỪ ĐÃ GHÉP ĐỂ TRA CỨU:\n${searchQueries.join(" | ")}\n\nTIN MỚI NHẤT HÔM NAY (${today}) TỪ GOOGLE TIN TỨC & BÁO LỚN:\n${feedBlock}`,
         },
       ],
       response_format: { type: "json_object" },

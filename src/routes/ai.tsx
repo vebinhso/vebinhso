@@ -408,6 +408,9 @@ function AiPage() {
 
   const [news, setNews] = useState("");
   const [newsResult, setNewsResult] = useState<Awaited<ReturnType<typeof analyzeNews>> | null>(null);
+  const [newsFollowup, setNewsFollowup] = useState("");
+  const [newsFollowupBusy, setNewsFollowupBusy] = useState(false);
+  const [newsFollowupAnswer, setNewsFollowupAnswer] = useState("");
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -538,6 +541,7 @@ function AiPage() {
   }
   async function doNews() {
     setNewsResult(null);
+    setNewsFollowupAnswer("");
     const r = await withProgress(
       [(en ? "Reading the claim..." : "Đang đọc bản tin..."), (en ? "Checking news sources..." : "Đang kiểm tra nguồn tin..."), (en ? "Checking misinformation indicators..." : "Đang đối chiếu dấu hiệu tin giả..."), (en ? "Calculating scores..." : "Đang chấm điểm...")],
       () => runNews({ data: { content: news, locale: en ? "en" : "vi" } }),
@@ -1242,6 +1246,23 @@ function AiPage() {
                 {loading ? `⏳ ${en ? "Verifying" : "Đang kiểm chứng"} ${Math.round(progress)}%` : (en ? "📰 Ask & verify news" : "📰 Hỏi & kiểm chứng tin")}
               </button>
 
+              {newsResult && (
+                <div className="mb-3 rounded-xl border border-violet-300 p-3 space-y-2">
+                  <p className="font-black text-sm">{en ? "💬 Ask a follow-up about this fact-check" : "💬 Chatbox phụ: hỏi thêm về kết quả kiểm chứng"}</p>
+                  <p className="text-xs text-muted-foreground">{en ? "The assistant will check related headlines again; it cannot guarantee full-article verification." : "AI sẽ tra cứu lại các tiêu đề liên quan, không coi đó là bằng chứng đã đọc toàn bộ bài báo."}</p>
+                  <textarea rows={2} value={newsFollowup} onChange={(e) => setNewsFollowup(e.target.value)} placeholder={en ? "What about prototypes or testing?" : "Ví dụ: Có đang thử nghiệm nguyên mẫu không?"} className="w-full rounded-xl border px-3 py-2 text-sm" />
+                  <button className="toy-button toy-button-primary w-full disabled:opacity-50" disabled={newsFollowupBusy || newsFollowup.trim().length < 5} onClick={async () => {
+                    setNewsFollowupBusy(true);
+                    setNewsFollowupAnswer("");
+                    try {
+                      const follow = await runNews({ data: { content: `Nhận định ban đầu: ${news.slice(0, 1500)}. Câu hỏi tiếp theo cần kiểm chứng: ${newsFollowup.slice(0, 500)}`, locale: en ? "en" : "vi" } });
+                      setNewsFollowupAnswer(follow.answer + (follow.summary ? "\\n" + follow.summary : ""));
+                    } catch { setNewsFollowupAnswer(en ? "Unable to check right now." : "Chưa thể kiểm chứng câu hỏi này lúc này."); }
+                    finally { setNewsFollowupBusy(false); }
+                  }}>{newsFollowupBusy ? (en ? "Checking..." : "Đang kiểm chứng...") : (en ? "Ask Gemini" : "Hỏi Gemini")}</button>
+                  {newsFollowupAnswer && <p role="status" className="whitespace-pre-wrap text-sm">{newsFollowupAnswer}</p>}
+                </div>
+              )}
               {newsResult && (
                 <div className="space-y-3 rounded-2xl border-2 border-border p-3">
                   <div

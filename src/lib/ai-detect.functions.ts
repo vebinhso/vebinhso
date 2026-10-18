@@ -456,7 +456,7 @@ Nhiệm vụ:
    Nếu KHÔNG tìm thấy bằng chứng phù hợp trong danh sách → verified = false, verdict = "unverified"; nói "Chưa tìm được nguồn xác nhận trong các nguồn đã tra cứu" (không khẳng định mọi báo đều chưa đưa tin).
 3) TIN GIẢ: tiêu đề giật gân, nguồn mơ hồ, không tác giả/thời gian, số liệu không kiểm chứng, kêu gọi chia sẻ gấp, thuyết âm mưu, mạo danh báo chính thống, lừa đảo tài chính/sức khoẻ.
 4) TIN LÁ CẢI / TRUYỀN MIỆNG: tin vỉa hè, đồn thổi, "nghe nói", "bạn của bạn tôi kể", drama showbiz câu view, giật tít câu click, chỉ lan trên mạng xã hội/nhóm chat.
-Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách. Chỉ đánh dấu verified khi tiêu đề và nội dung được cung cấp thực sự hỗ trợ nhận định cần kiểm tra; một bài chỉ giống từ khóa không đủ. Nếu chỉ có tiêu đề, nêu giới hạn chưa đọc nội dung đầy đủ.
+Tuyệt đối KHÔNG bịa tên báo hay bài viết không có trong danh sách. Chỉ đánh dấu verified khi tiêu đề và nội dung được cung cấp thực sự hỗ trợ nhận định cần kiểm tra; một bài chỉ giống từ khóa không đủ. Nếu chỉ có tiêu đề, nêu giới hạn chưa đọc nội dung đầy đủ. Phân biệt nghiên cứu/thử nghiệm, nguyên mẫu, sản phẩm thương mại và sản phẩm sử dụng đại trà. Nếu nhận định chỉ đúng một phần, nói rõ phần nào có cơ sở và phần nào chưa có chứng cứ; có thể đánh giá misleading thay vì mặc định unverified. KHÔNG gắn verified=true chỉ từ tiêu đề RSS.
 Trả về CHÍNH XÁC một JSON (không markdown):
 {"answer":"câu trả lời trực tiếp 1-3 câu","verified":true|false,"verifiedBy":["tên báo đã kiểm chứng"],"fakeScore":0-100,"tabloidScore":0-100,"level":"safe|low|medium|high|dangerous","verdict":"likely_true|unverified|misleading|likely_fake|fake","category":"tin giả|tin sai lệch|tin lá cải|tin đồn truyền miệng|giật tít|quảng cáo trá hình|lừa đảo|tin đáng tin|chưa rõ","summary":"1-2 câu tiếng Việt","matchedNews":["tiêu đề trong danh sách có liên quan (tối đa 4), ghi rõ tên báo"],"redFlags":["dấu hiệu tin giả / lá cải"],"goodSigns":["dấu hiệu đáng tin"],"checkSteps":["cách tự kiểm chứng"]}
 Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpose. Mỗi thuộc tính là {"assessed":boolean,"score":number|null,"reason":"bằng chứng"}. Chấm điểm theo các tiêu chí: source tối đa 25 (0 nguồn và tác giả rõ, 15 nguồn tổng hợp không chuyên môn, 25 nguồn mạo danh/không xác định); headline tối đa 25 (0 trung lập, 15 tiêu đề sai lệch nội dung, 25 giật gân nghiêm trọng); evidence tối đa 20 (0 dẫn chứng rõ, 10 số liệu thiếu nguồn, 20 chỉ lời đồn); media tối đa 15 (0 ảnh đúng nguồn và bối cảnh, 15 ảnh/video sai bối cảnh có bằng chứng); purpose tối đa 15 (0 trung lập, 15 kích động hoặc quảng cáo trá hình có bằng chứng). Chỉ chấm khi có bằng chứng; nếu không có nội dung bài đầy đủ, không có ảnh, không xác định được tác giả hoặc mục đích thì assessed=false và score=null. Không coi đuôi miền .co hoặc .xyz là bằng chứng tin giả. Tổng là chỉ số rủi ro nội dung, không phải xác suất tin giả. fakeScore = mức độ là tin giả/sai lệch. tabloidScore = mức độ lá cải, tin đồn truyền miệng, câu view. ${resultLanguage(data.locale)}`;
@@ -499,6 +499,8 @@ Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpo
       : rubricPercent <= 50 ? "suspect" : rubricPercent <= 75 ? "sensational" : "high_risk";
     const verifiedBy: string[] = [];
     const verified = false;
+    const allowedNewsVerdicts = ["likely_true", "unverified", "misleading", "likely_fake", "fake"];
+    const evidenceVerdict = allowedNewsVerdicts.includes(parsed.verdict) ? parsed.verdict : "unverified";
     return {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
@@ -515,10 +517,10 @@ Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpo
       fakeScore: clampScore(parsed.fakeScore),
       tabloidScore: clampScore(parsed.tabloidScore),
       level: str(parsed.level, "unknown"),
-      verdict: verified ? str(parsed.verdict, "likely_true") : "unverified",
+      verdict: evidenceVerdict,
       category: str(parsed.category, fallback(data.locale, "chưa rõ", "unclear")),
       summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
-      matchedNews: [], // Similar headlines are not independently verified evidence.
+      matchedNews: strArr(parsed.matchedNews, 4), // Related headlines, not independently verified evidence.
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
       checkSteps: strArr(parsed.checkSteps),

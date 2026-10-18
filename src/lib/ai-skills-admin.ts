@@ -84,3 +84,14 @@ export async function listAnonymousSignals() {
     consentCounts: (consents.data ?? []).reduce((acc: Record<string, number>, r: { consent_source: string }) => { acc[r.consent_source] = (acc[r.consent_source] ?? 0) + 1; return acc; }, {}),
   };
 }
+
+/** Publish only an admin-written, reviewed rule; never auto-publish raw feedback. */
+export async function approveFeedbackLearning(feedbackId: string, skillKey: string, rule: string): Promise<number> {
+  const { data, error } = await (supabase.rpc as unknown as (name: string, args: object) => Promise<{ data: number | null; error: { message: string } | null }>)(
+    "approve_feedback_learning",
+    { _feedback_id: feedbackId, _skill_key: skillKey, _rule_text: rule.trim() },
+  );
+  if (error) throw new Error(error.message);
+  if (typeof data !== "number") throw new Error("Không nhận được phiên bản skill mới.");
+  return data;
+}

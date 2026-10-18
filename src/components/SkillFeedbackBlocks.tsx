@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CHECK_KINDS, CHECK_LABELS_VI, type CheckKind } from "@/lib/ai-skills";
 import { FEEDBACK_REASONS, summarizeFeedback } from "@/lib/ai-feedback";
-import { listFeedback, setCheckSkill, type CheckSkillRow, type FeedbackAdminRow, type SkillRow } from "@/lib/ai-skills-admin";
+import { listFeedback, approveFeedbackLearning, setCheckSkill, type CheckSkillRow, type FeedbackAdminRow, type SkillRow } from "@/lib/ai-skills-admin";
 import { pushAdminLog } from "@/lib/admin";
 
 const reasonLabel = (k: string | null) => FEEDBACK_REASONS.find((r) => r.key === k)?.vi ?? "—";
@@ -58,9 +58,26 @@ export function CheckSkillMapping({ skills, mapping, onChanged }: {
 
 export function FeedbackBlocks() {
   const [rows, setRows] = useState<FeedbackAdminRow[] | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [published, setPublished] = useState<string[]>([]);
   useEffect(() => {
     listFeedback().then(setRows).catch((e) => { toast.error(`Không tải được phản hồi: ${(e as Error).message}`); setRows([]); });
   }, []);
+  async function approve(r: FeedbackAdminRow) {
+    if (!r.skill_key) return toast.error("Phản hồi chưa gắn với AI Skill.");
+    const rule = (drafts[r.id] ?? "").trim();
+    if (rule.length < 20) return toast.error("Viết quy tắc đã kiểm chứng ít nhất 20 ký tự.");
+    if (!window.confirm("Đã kiểm tra nguồn, bỏ thông tin cá nhân và duyệt vào dataset chính?")) return;
+    setSavingId(r.id);
+    try {
+      const version = await approveFeedbackLearning(r.id, r.skill_key, rule);
+      setPublished((old) => [...old, r.id]);
+      toast.success("Đã cập nhật AI Skill phiên bản " + version);
+      pushAdminLog("Duyệt phản hồi " + r.id + " vào " + r.skill_key + " v" + version);
+    } catch (e) { toast.error((e as Error).message); }
+    finally { setSavingId(null); }
+  }
   const summary = useMemo(() => summarizeFeedback(rows ?? []), [rows]);
   const detailed = useMemo(() => (rows ?? []).filter((r) => r.note || r.attached_content).slice(0, 50), [rows]);
 
@@ -97,11 +114,11 @@ export function FeedbackBlocks() {
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-sm">
             <thead className="bg-muted/60 text-left">
-              <tr><th className="p-2">Kiểm tra</th><th className="p-2">Phiên bản</th><th className="p-2"></th><th className="p-2">Lý do</th><th className="p-2">Nguồn</th><th className="p-2">Ghi chú</th><th className="p-2">Nội dung đã che</th></tr>
+              <tr><th className="p-2">Kiểm tra</th><th className="p-2">Phiên bản</th><th className="p-2"></th><th className="p-2">Lý do</th><th className="p-2">Nguồn</th><th className="p-2">Ghi chú</th><th className="p-2">Nội dung đã che</th><th className="p-2">Duyệt vào AI Skills</th></tr>
             </thead>
             <tbody>
               {detailed.length === 0 ? (
-                <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">Chưa có.</td></tr>
+                <tr><td colSpan={8} className="p-4 text-center text-muted-foreground">Chưa có.</td></tr>
               ) : detailed.map((r) => (
                 <tr key={r.id} className="border-t align-top">
                   <td className="p-2">{kindLabel(r.check_kind)}</td>
@@ -111,6 +128,15 @@ export function FeedbackBlocks() {
                   <td className="p-2 text-xs">{r.reporter_role === "student" ? "Học sinh, có đồng ý" : "Giáo viên"}</td>
                   <td className="p-2 text-xs whitespace-pre-wrap">{r.note ?? "—"}</td>
                   <td className="p-2 text-xs whitespace-pre-wrap break-words max-w-xs">{r.attached_content ?? "—"}</td>
+                  <td className="p-2 min-w-60">
+                    {published.includes(r.id) ? <span className="text-green-700 font-bold">Đã duyệt</span> : r.skill_key ? (
+                      <div className="space-y-2">
+                        <p className="text-xs">Skill: {r.skill_key}</p>
+                        <textarea rows={3} value={drafts[r.id] ?? ""} onChange={(e) => setDrafts((old) => ({ ...old, [r.id]: e.target.value }))} placeholder="Quy tắc đã xác minh, không chứa thông tin cá nhân..." className="w-full rounded-lg border p-2 text-xs" />
+                        <button type="button" disabled={savingId === r.id || (drafts[r.id] ?? "").trim().length < 20} onClick={() => void approve(r)} className="rounded-lg bg-emerald-700 px-3 py-2 text-white text-xs font-bold disabled:opacity-50">Admin duyệt vào dataset</button>
+                      </div>
+                    ) : <span className="text-xs">Chưa gắn skill</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>

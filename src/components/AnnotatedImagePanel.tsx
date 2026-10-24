@@ -310,7 +310,8 @@ function Editor({
 
   const pick = async (f: File | null) => {
     if (!f) return;
-    if (!f.type.startsWith("image/")) return toast.error("Hãy chọn một tấm ảnh");
+    if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) return toast.error("Chỉ hỗ trợ ảnh PNG, JPEG hoặc WebP.");
+    if (f.size > 8 * 1024 * 1024) return toast.error("Ảnh quá lớn (tối đa 8 MB).");
     setFile(f);
     setPreview(await compress(f));
   };

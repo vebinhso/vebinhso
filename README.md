@@ -31,7 +31,7 @@ Mỗi công cụ là một hàm server riêng trong `src/lib/ai-detect.functions
 8. Lộ thông tin qua ảnh/video (`analyzePrivacyMedia`)
 9. Lộ thông tin qua chữ (`analyzePrivacyText`)
 
-Kết quả được **đối chéo hai mô hình** (sai số tối đa 5%) và người chơi đánh giá 👍/👎 cho 7 bài kiểm tra đầu. Phần "Rủi ro lộ thông tin" có thêm công cụ mô phỏng mạng xã hội (`SocialSimulator`).
+Mã nguồn có khai báo cơ chế kiểm tra chéo, nhưng đường xử lý V1 hiện trả `crossChecked: false`; **chưa thể khẳng định kết quả được hai mô hình đối chiếu độc lập hoặc có sai số tối đa 5%** và người chơi đánh giá 👍/👎 cho 7 bài kiểm tra đầu. Phần "Rủi ro lộ thông tin" có thêm công cụ mô phỏng mạng xã hội (`SocialSimulator`).
 
 ### 5 bài nhập vai (`/roleplay`)
 1. Bài 1 — *Alo, cảnh sát đây!* (`/roleplay/scam-police`)
@@ -64,12 +64,11 @@ Trang chủ `/`, đăng nhập `/login`, tạo & thay đổi nhân vật `/chara
 - **3D:** Three.js 0.184 với `@react-three/fiber` 9 và `@react-three/drei` 10.
 - **Kiểu chữ / kiểu dáng:** Tailwind CSS v4 (cấu hình qua `src/styles.css`, không dùng `tailwind.config.js`).
 - **Dữ liệu & tài khoản:** Supabase (`@supabase/supabase-js` 2.x) — bảng, quyền RLS và migration nằm trong `supabase/migrations` (63 tệp).
-- **AI:** Lovable AI Gateway (`https://ai.gateway.lovable.dev/v1`), các mô hình đang dùng trong mã:
-  - `google/gemini-3.5-flash` — mô hình chính của 9 bài kiểm tra
-  - `openai/gpt-5.6-terra` — mô hình đối chéo
-  - `google/gemini-3.1-flash-lite` — tạo bài giảng, gợi ý ghi chú
-  - `google/gemini-2.5-flash` — phối màu trang phục
-  - `google/gemini-3.1-flash-tts-preview` — đọc thoại nhập vai
+- **AI Trung tâm:** các hàm trong `src/lib/ai-detect.functions.ts` gọi dịch vụ AI V1 trên Render qua `AI_V1_API_URL` (mặc định `https://vebinhso-ai-v1.onrender.com`) và token máy chủ. Mã khai báo `google/gemini-3.5-flash` là model chính; đây là định danh được khai báo, không chứng minh model thực tế của dịch vụ Render.
+- **Đối chiếu AI:** có hằng `CROSS_MODEL = "openai/gpt-5.6-terra"`, nhưng hàm `callGatewayVerified` hiện chỉ gọi V1 và trả `crossChecked: false`. Không coi chênh lệch điểm AI là sai số thống kê hoặc độ chính xác đã được kiểm định.
+- **AI lớp học:** `src/lib/classroom-ai.server.ts` gọi Groq API trực tiếp để hỗ trợ bài giảng và ghi chú; model lấy từ cấu hình `GROQ_CLASSROOM_MODEL` / `GROQ_CLASSROOM_VISION_MODEL`. Không có tự động chuyển nhà cung cấp trong hàm này.
+- **TTS:** `src/lib/tts.functions.ts` gọi Lovable AI Gateway với `google/gemini-3.1-flash-tts-preview`.
+- **AI tạo nhân vật:** cần xác nhận model và đường gọi đang hoạt động trước khi ghi tên phiên bản cố định.
 - **Build & phân phối:** Vite 7, `@cloudflare/vite-plugin` + `wrangler.jsonc` (môi trường Worker, `nodejs_compat`), Nitro.
 - **Kiểm thử / chất lượng:** Vitest (`src/lib/*.test.ts`), ESLint, Prettier.
 - **Trình quản lý gói:** Bun (`bun.lock`).
@@ -88,7 +87,7 @@ bun run dev
 Mở địa chỉ mà terminal in ra (mặc định `http://localhost:5173`; trong môi trường Lovable là cổng 8080).
 
 ### Biến môi trường
-Tạo tệp `.env` ở thư mục gốc. Các giá trị này do Lovable Cloud cấp cho dự án.
+Tạo tệp `.env` ở thư mục gốc. Các giá trị phải được cấu hình theo từng môi trường triển khai; không phải tất cả đều do Lovable Cloud cấp.
 
 | Biến | Dùng ở | Tác dụng |
 | --- | --- | --- |
@@ -98,7 +97,12 @@ Tạo tệp `.env` ở thư mục gốc. Các giá trị này do Lovable Cloud c
 | `SUPABASE_URL` | server | Địa chỉ backend phía server |
 | `SUPABASE_PUBLISHABLE_KEY` | server | Khoá công khai phía server |
 | `SUPABASE_SERVICE_ROLE_KEY` | server | Khoá đặc quyền, chỉ dùng trong server function |
-| `LOVABLE_API_KEY` | server | Khoá gọi Lovable AI Gateway (thiếu thì tính năng AI báo "AI chưa được cấu hình") |
+| `LOVABLE_API_KEY` | server | Khoá gọi Lovable AI Gateway cho TTS; thiếu khoá thì chức năng giọng nói trả lỗi cấu hình |
+| `AI_V1_API_URL` | server | URL dịch vụ AI V1 trên Render; mã có giá trị mặc định |
+| `AI_V1_API_TOKEN` | server | Token xác thực với dịch vụ AI V1; mã có thể dùng `SCAM_API_TOKEN` thay thế |
+| `GROQ_CLASSROOM_API_KEY` | server | Khoá API Groq cho AI lớp học |
+| `GROQ_CLASSROOM_MODEL` | server | Model Groq xử lý văn bản lớp học |
+| `GROQ_CLASSROOM_VISION_MODEL` | server | Model Groq xử lý ảnh lớp học |
 
 `VITE_*` được nhúng vào mã trình duyệt, vì vậy **không** đặt dữ liệu bí mật vào các biến này.
 
@@ -141,7 +145,7 @@ public/             # tệp tĩnh (mô hình .glb, .png…)
 - `project-code-guide.tsx` — tài liệu tham khảo mã nguồn ngay trong ứng dụng.
 
 ### `src/lib`
-- `ai-detect.functions.ts` — 9 bài kiểm tra AI; `ai-feedback.functions.ts` — phản hồi 👍/👎, quyền phụ huynh; `ai-signals.ts` — chuẩn hoá tên miền / đầu số.
+- `ai-detect.functions.ts` — 9 bài kiểm tra AI, gọi Render AI V1 và có khai báo V2 (chưa mặc định coi là đối chiếu độc lập); `ai-feedback.functions.ts` — phản hồi 👍/👎, quyền phụ huynh; `ai-signals.ts` — chuẩn hoá tên miền / đầu số.
 - `ai-skills.ts`, `ai-skills.server.ts`, `ai-skills-admin.ts` — nạp, cắt ghép và quản lý skill.
 - `tts.functions.ts` (đọc thoại), `ai-lesson.functions.ts` + `ai-lesson.server.ts` (bài giảng), `ai-note.functions.ts` (ghi chú), `ai.functions.ts` (phối màu trang phục).
 - `duels.functions.ts`, `friend-houses.functions.ts` — đấu 1vs1 và nhà bạn bè.
@@ -169,3 +173,12 @@ Quy ước: tệp `*.functions.ts` là hàm server gọi từ giao diện; tệp
 ## Ghi chú khi đóng góp
 - `src/integrations/supabase/*`, `src/routeTree.gen.ts` và `.env` được sinh tự động — không sửa tay.
 - Các quyết định kiến trúc quan trọng được ghi ở `AGENTS.md`; danh sách việc đang làm ở `roadmap.md`.
+
+---
+
+## Trạng thái xác minh kỹ thuật (24/10/2026)
+
+- Các nhận định về model và đường gọi API ở trên được đối chiếu với mã nguồn nhánh `main`, đặc biệt `src/lib/ai-detect.functions.ts`, `src/lib/classroom-ai.server.ts`, `src/lib/ai-lesson.functions.ts`, `src/lib/ai-note.functions.ts`, `src/lib/tts.functions.ts` và `package.json`.
+- Có mã nguồn **không đồng nghĩa** với việc API, Secrets, model hoặc tính năng đã được kiểm thử thành công trên website công khai.
+- Quy trình AI V2, Groq dự phòng cho Trung tâm AI, cập nhật dataset từ phản hồi được admin duyệt và kết quả đánh giá độ chính xác phải được xác minh riêng trước khi công bố là đã triển khai.
+- Không lưu API key hoặc dữ liệu cá nhân thật trong repository; chỉ sử dụng biến môi trường phía máy chủ.

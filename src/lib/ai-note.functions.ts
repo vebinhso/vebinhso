@@ -1,20 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
-
-type NoteInput = {
-  mode: "material" | "exercise" | "feedback";
-  imageBase64?: string;
-  mimeType?: string;
-  title?: string;
-  hint?: string;
-  /** Vị trí chấm ghi chú trên ảnh (theo %) để AI biết đang nói về vùng nào */
-  x?: number;
-  y?: number;
-  question?: string;
-  expected?: string;
-  studentAnswer?: string;
-};
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { noteInputSchema, noteOutputSchemas, type NoteInput } from "./classroom-ai";
+import { requestClassroomJson } from "./classroom-ai.server";
 
 const SYS: Record<NoteInput["mode"], string> = {
   material: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu MỘT ĐIỂM trên ảnh minh hoạ và cần nội dung học liệu ngắn cho điểm đó.
@@ -26,24 +13,14 @@ Trả về CHÍNH XÁC JSON: {"grade":"điểm dạng x/10","feedback":"nhận x
 };
 
 export const suggestNote = createServerFn({ method: "POST" })
-  .inputValidator((data: NoteInput) => {
-    if (!data?.mode) throw new Error("Thiếu chế độ");
-    return {
-      mode: data.mode,
-      imageBase64: data.imageBase64 || undefined,
-      mimeType: data.mimeType || "image/jpeg",
-      title: (data.title || "").slice(0, 200),
-      hint: (data.hint || "").slice(0, 1500),
-      x: typeof data.x === "number" ? Math.round(data.x) : undefined,
-      y: typeof data.y === "number" ? Math.round(data.y) : undefined,
-      question: (data.question || "").slice(0, 1000),
-      expected: (data.expected || "").slice(0, 1500),
-      studentAnswer: (data.studentAnswer || "").slice(0, 3000),
-    } as NoteInput;
-  })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: NoteInput) => noteInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("AI chưa được cấu hình");
+    const config = {
+      apiKey: process.env["GROQ_CLASSROOM_API_KEY"] || "",
+      model: process.env["GROQ_CLASSROOM_MODEL"] || "",
+      visionModel: process.env["GROQ_CLASSROOM_VISION_MODEL"] || "",
+    };
 
     const lines = [
       data.title ? `Chủ đề/bài học: ${data.title}` : "",
@@ -54,44 +31,8 @@ export const suggestNote = createServerFn({ method: "POST" })
       data.studentAnswer ? `Bài làm của học sinh: ${data.studentAnswer}` : "",
     ].filter(Boolean);
 
-    const content: any[] = [{ type: "text", text: lines.join("\n") || "Hãy đề xuất nội dung phù hợp." }];
-    if (data.imageBase64) {
-      content.push({
-        type: "image_url",
-        image_url: { url: `data:${data.mimeType};base64,${data.imageBase64}` },
-      });
-    }
-
-    const res = await fetch(`${GATEWAY}/chat/completions`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-lite",
-        max_tokens: 550,
-        messages: [
-          { role: "system", content: SYS[data.mode] },
-          { role: "user", content },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      if (res.status === 429) throw new Error("AI đang quá tải, thử lại sau ít phút nhé.");
-      if (res.status === 402) throw new Error("Hết tín dụng AI của không gian làm việc.");
-      throw new Error(`AI lỗi ${res.status}: ${t.slice(0, 160)}`);
-    }
-    const j: any = await res.json();
-    try {
-      return JSON.parse(j?.choices?.[0]?.message?.content ?? "{}") as {
-        title?: string;
-        content?: string;
-        question?: string;
-        expected?: string;
-        grade?: string;
-        feedback?: string;
-      };
-    } catch {
-      return {};
-    }
+    const raw = await requestClassroomJson(config, SYS[data.mode], lines.join("\n") || "Hãy đề xuất nội dung phù hợp.", data);
+    const result = noteOutputSchemas[data.mode].safeParse(raw);
+    if (!result.success) throw new Error("AI lớp học trả về ghi chú thiếu hoặc sai cấu trúc. Vui lòng thử lại.");
+    return result.data as { title?: string; content?: string; question?: string; expected?: string; grade?: string; feedback?: string };
   });

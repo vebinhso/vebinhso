@@ -1,5 +1,10 @@
 # Bilingual rollout
 
+## Groq classroom isolation
+- [ ] Connect lesson text/vision and AI notes using existing server-only Secrets
+- [ ] Validate JSON, authentication and provider errors with focused tests
+- [ ] Verify actual preview calls without exposing credentials; check experiment branch without merging or publishing
+
 ## Neighborhood activities
 - [ ] Fix overlapping ground surfaces that flicker
 - [ ] Add left-side amusement park, quiz tickets and playable rides

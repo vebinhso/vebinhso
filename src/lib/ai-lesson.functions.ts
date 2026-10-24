@@ -1,32 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { buildLesson } from "@/lib/ai-lesson.server";
-
-type GenInput = {
-  imageBase64?: string; // raw base64 (không có tiền tố data:)
-  mimeType?: string;
-  title: string;
-  description: string;
-  reviseNote?: string;
-};
-
+import { lessonInputSchema, type LessonInput } from "./classroom-ai";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const generateAiLesson = createServerFn({ method: "POST" })
-  .inputValidator((data: GenInput) => {
-    if (!data?.title?.trim() && !data?.description?.trim()) throw new Error("Thiếu nội dung");
-    return {
-      imageBase64: data.imageBase64 || undefined,
-      mimeType: data.mimeType || "image/png",
-      title: (data.title || "").slice(0, 200),
-      description: (data.description || "").slice(0, 3000),
-      reviseNote: (data.reviseNote || "").slice(0, 1000),
-    } as GenInput;
-  })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: LessonInput) => lessonInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("AI chưa được cấu hình");
-    const lessonRaw = await buildLesson(apiKey, data);
-    const lesson = lessonRaw || {};
-    const questions = Array.isArray(lesson.questions) ? lesson.questions.slice(0, 8) : [];
-    delete lesson.questions;
+    const config = {
+      apiKey: process.env["GROQ_CLASSROOM_API_KEY"] || "",
+      model: process.env["GROQ_CLASSROOM_MODEL"] || "",
+      visionModel: process.env["GROQ_CLASSROOM_VISION_MODEL"] || "",
+    };
+    const { questions, ...lesson } = await buildLesson(config, data);
     return { lesson, questions };
   });

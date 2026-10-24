@@ -24,7 +24,8 @@ async function callGateway(body: unknown) {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(45000),
+    // Render can take over two minutes when Gemini retries unavailable models.
+    signal: AbortSignal.timeout(165000),
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error("Token kết nối website và Render AI V1 không khớp.");

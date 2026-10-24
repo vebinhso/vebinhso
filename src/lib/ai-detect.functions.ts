@@ -429,7 +429,7 @@ export const analyzeNews = createServerFn({ method: "POST" })
         response_format: { type: "json_object" },
       });
       if (typeof claim.claim === "string" && claim.claim.trim()) claimText = claim.claim.trim().slice(0, 500);
-      const queries = Array.isArray(claim.queries) ? claim.queries : [];
+      const queries: unknown[] = Array.isArray(claim.queries) ? claim.queries : [];
       const valid = queries.filter((q: unknown): q is string => typeof q === "string" && q.trim().length >= 5 && q.length <= 120);
       if (valid.length) searchQueries = [...new Set(valid.map((q: string) => q.trim()))].slice(0, 3);
     } catch {

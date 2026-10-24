@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
@@ -269,6 +270,7 @@ function Editor({
   onDone: () => void;
 }) {
   const [title, setTitle] = useState(row?.title ?? "");
+  const askNote = useServerFn(suggestNote);
   const [description, setDescription] = useState(row?.description ?? "");
   const [notes, setNotes] = useState<ImageNote[]>(row?.notes ?? []);
   const [active, setActive] = useState<string | null>(null);
@@ -326,7 +328,7 @@ function Editor({
       const small = preview.startsWith("data:") ? await shrinkForAi(preview) : "";
       const b64 = small ? (small.split(",")[1] ?? "") : undefined;
       setProgress(28);
-      const res = await suggestNote({
+      const res = await askNote({
         data: {
           mode: kind === "material" ? "material" : "exercise",
           ...(b64 ? { imageBase64: b64, mimeType: "image/jpeg" } : {}),
@@ -653,6 +655,7 @@ function Viewer({ row, canPost }: { row: AnnotatedImage; canPost: boolean }) {
 /* ---------- Chấm bài của giáo viên ---------- */
 
 function GradingList({ row }: { row: AnnotatedImage }) {
+  const askNote = useServerFn(suggestNote);
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<NoteAnswer[] | null>(null);
   const [roster, setRoster] = useState<RosterMember[]>([]);
@@ -684,7 +687,7 @@ function GradingList({ row }: { row: AnnotatedImage }) {
     const note = row.notes.find((n) => n.id === a.note_id);
     setBusy(a.id);
     try {
-      const res = await suggestNote({
+      const res = await askNote({
         data: {
           mode: "feedback",
           title: row.title,

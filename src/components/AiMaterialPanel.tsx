@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
@@ -241,6 +242,7 @@ type Draft = {
 };
 
 function Generator({ classId, onSaved }: { classId: string; onSaved: () => void }) {
+  const generateLesson = useServerFn(generateAiLesson);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -293,10 +295,10 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     try {
       const b64 = preview ? (preview.split(",")[1] ?? "") : undefined;
       setProgress(24);
-      const res = await generateAiLesson({
+      const res = await generateLesson({
         data: {
           imageBase64: b64,
-          mimeType: preview.startsWith("data:image/jpeg") ? "image/jpeg" : file?.type || "image/png",
+          mimeType: "image/jpeg",
           title: title.trim(),
           description,
           reviseNote,

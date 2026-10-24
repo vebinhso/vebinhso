@@ -213,7 +213,32 @@ function FilmPage() {
 
     const play = async () => {
       try {
-        const b64 = cacheRef.current.get(`${locale}:${node.id}`) ?? "";
+        const cacheKey = `${locale}:${node.id}`;
+        let b64 = cacheRef.current.get(cacheKey) ?? "";
+        if (!b64) {
+          // Desktop browsers may not provide Vietnamese speechSynthesis voices.
+          // Wait for the original AI voice instead of silently showing captions.
+          let pending = pendingRef.current.get(cacheKey);
+          if (!pending) {
+            pending = tts({
+              data: {
+                text: node.text,
+                locale: "vi",
+                voice: SPEAKER_META[node.speaker].voice,
+                instructions: SPEAKER_META[node.speaker].instructions,
+                speed: SPEAKER_META[node.speaker].speed,
+              },
+            }).then((result) => {
+              const audio = (result as { audio: string }).audio;
+              if (audio) cacheRef.current.set(cacheKey, audio);
+              return audio || "";
+            }).catch(() => "").finally(() => {
+              pendingRef.current.delete(cacheKey);
+            });
+            pendingRef.current.set(cacheKey, pending);
+          }
+          b64 = await pending;
+        }
         if (cancelled || muted) return;
         window.clearTimeout(lateStart);
         if (!b64) {

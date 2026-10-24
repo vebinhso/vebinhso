@@ -1,5 +1,11 @@
 # Bilingual rollout
 
+## Groq classroom isolation
+- [x] Connect lesson text/vision and AI notes using existing server-only Secrets
+- [x] Validate JSON and provider errors with six focused tests; confirm authenticated preview RPC reaches Groq and client modules exclude secret reads
+- [x] Check experiment branch locally without merging or publishing (requested branch/PR unavailable in local refs)
+- [ ] Obtain successful Groq text/vision results and verify teacher UI end-to-end — blocked by both configured models returning 404 model_not_found; classroom UI test redirects to login
+
 ## Neighborhood activities
 - [ ] Fix overlapping ground surfaces that flicker
 - [ ] Add left-side amusement park, quiz tickets and playable rides

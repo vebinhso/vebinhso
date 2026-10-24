@@ -1,5 +1,7 @@
 # Architecture decisions
 
+- Isolate classroom lesson/note AI in a shared Groq server helper; read its configuration only inside authenticated server-function handlers, so classroom quotas and credentials never affect Security check providers or enter the browser.
+
 - Store the active locale client-side and resolve bilingual content at read time, because users switch languages per device.
 - Keep Vietnamese system questions canonical and pair them by stable ID with position-aligned English questions and choices; never auto-translate teacher/class or uploaded assignment content.
 

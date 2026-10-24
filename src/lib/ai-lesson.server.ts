@@ -22,27 +22,35 @@ Tạo đúng 3 parts, 2 sections, 3 keyPoints và đúng 3 câu trắc nghiệm.
     content.push({ type: "image_url", image_url: { url: `data:${input.mimeType || "image/jpeg"};base64,${input.imageBase64}` } });
   }
 
-  if (input.imageBase64 && !process.env["GROQ_CLASSROOM_VISION_MODEL"]) throw new Error("Chưa cấu hình mô hình Groq hỗ trợ ảnh cho lớp học.");
-  if (!input.imageBase64 && !process.env["GROQ_CLASSROOM_MODEL"]) throw new Error("Chưa cấu hình mô hình Groq lớp học.");
+  const hasImage = Boolean(input.imageBase64);
+  const model = hasImage ? process.env["GROQ_CLASSROOM_VISION_MODEL"] : process.env["GROQ_CLASSROOM_MODEL"];
+  if (!model) throw new Error("Chưa cấu hình mô hình Groq phù hợp cho lớp học.");
+  if (hasImage && model === "meta-llama/llama-4-scout-17b-16e-instruct") throw new Error("Mô hình đọc ảnh đã ngừng khả dụng. Vui lòng chọn mô hình hỗ trợ ảnh trong Groq.");
   const response = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: input.imageBase64 ? process.env["GROQ_CLASSROOM_VISION_MODEL"] : process.env["GROQ_CLASSROOM_MODEL"],
-      messages: [{ role: "system", content: system }, { role: "user", content }],
-      response_format: { type: "json_object" },
+      model,
+      messages: hasImage ? [{ role: "user", content: [{ type: "text", text: system }, ...content] }] : [{ role: "system", content: system }, { role: "user", content }],
+      ...(!hasImage ? { response_format: { type: "json_object" } } : {}),
       temperature: 0.3,
-      max_tokens: 700,
+      max_completion_tokens: 2400,
     }),
   });
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`AI lỗi ${response.status}: ${message.slice(0, 160)}`);
+    if (response.status === 429) throw new Error("Groq đang giới hạn lượt yêu cầu. Vui lòng thử lại sau.");
+    if (response.status === 400 || response.status === 404) throw new Error("Groq không hỗ trợ mô hình hoặc định dạng đầu vào đã chọn.");
+    if (response.status === 401 || response.status === 403) throw new Error("Khóa Groq lớp học không hợp lệ hoặc không có quyền truy cập.");
+    throw new Error(`Groq gặp lỗi HTTP ${response.status}.`);
   }
   const result = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
   try {
-    return JSON.parse(result.choices?.[0]?.message?.content ?? "{}");
+    const raw = result.choices?.[0]?.message?.content;
+    if (!raw) throw new Error("empty");
+    const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
+    if (!parsed || !Array.isArray(parsed.questions) || !Array.isArray(parsed.parts)) throw new Error("shape");
+    return parsed;
   } catch {
-    return {};
+    throw new Error("Groq trả về bài giảng không đúng định dạng. Vui lòng thử lại.");
   }
 }

@@ -92,14 +92,14 @@ async def call_gemini(messages, json_mode):
             models.extend(m for m in eligible if m in available)
     except (httpx.RequestError, ValueError, TypeError):
         logger.warning("Gemini fallback discovery unavailable; using configured models")
-    models = list(dict.fromkeys(models))[:8]
+    models = list(dict.fromkeys(models))[:4]
     last_error = None
     async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
         for model_index, model in enumerate(models):
             model_body = json.loads(json.dumps(body))
             if model.startswith("gemini-2.5-"):
                 model_body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
-            for attempt in range(3):
+            for attempt in range(2):
                 try:
                     response = await client.post(
                         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -107,13 +107,13 @@ async def call_gemini(messages, json_mode):
                     )
                 except httpx.TimeoutException:
                     last_error = HTTPException(504, "Gemini timed out; please try again")
-                    if attempt < 2:
+                    if attempt < 1:
                         await asyncio.sleep(1.0 + attempt * 1.5)
                         continue
                     break
                 except httpx.RequestError:
                     last_error = HTTPException(502, "Cannot connect to Gemini")
-                    if attempt < 2:
+                    if attempt < 1:
                         await asyncio.sleep(1.0 + attempt * 1.5)
                         continue
                     break
@@ -150,7 +150,7 @@ async def call_gemini(messages, json_mode):
                     break
                 if code in (500, 502, 503, 504):
                     last_error = HTTPException(503, "Gemini is temporarily busy; please try again")
-                    if attempt < 2:
+                    if attempt < 1:
                         await asyncio.sleep((1.0 + attempt * 1.5) + random.uniform(0, 0.3))
                         continue
                     break

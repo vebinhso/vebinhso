@@ -4,9 +4,9 @@ import { noteInputSchema, noteOutputSchemas, type NoteInput } from "./classroom-
 import { requestClassroomJson } from "./classroom-ai.server";
 
 const SYS: Record<NoteInput["mode"], string> = {
-  material: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu MỘT ĐIỂM trên ảnh minh hoạ và cần nội dung học liệu ngắn cho điểm đó.
+  material: `Bạn là giáo viên Việt Nam. Bạn chỉ được dùng chữ OCR toàn ảnh và gợi ý giáo viên; không thể biết nội dung hình ảnh tại điểm được đánh dấu. Không đoán hình vẽ hoặc chi tiết ở vị trí chấm.
 Trả về CHÍNH XÁC JSON: {"title":"tên ngắn của chi tiết","content":"giải thích 2-4 câu, dễ hiểu, chính xác"}`,
-  exercise: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu MỘT ĐIỂM trên ảnh và cần một câu hỏi tự luận ngắn cho điểm đó.
+  exercise: `Bạn là giáo viên Việt Nam. Bạn chỉ được dùng chữ OCR toàn ảnh và gợi ý giáo viên; không thể biết nội dung hình ảnh tại điểm được đánh dấu. Không đoán hình vẽ hoặc chi tiết ở vị trí chấm.
 Trả về CHÍNH XÁC JSON: {"title":"nhãn ngắn","question":"câu hỏi tự luận ngắn","expected":"đáp án gợi ý 1-3 câu"}`,
   feedback: `Bạn là giáo viên Việt Nam đang chấm bài tự luận ngắn của học sinh.
 Trả về CHÍNH XÁC JSON: {"grade":"điểm dạng x/10","feedback":"nhận xét ngắn gọn, động viên, chỉ ra chỗ cần sửa"}`,

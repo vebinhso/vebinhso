@@ -68,7 +68,7 @@ Trang chủ `/`, đăng nhập `/login`, tạo & thay đổi nhân vật `/chara
 - **Đối chiếu AI:** có hằng `CROSS_MODEL = "openai/gpt-5.6-terra"`, nhưng hàm `callGatewayVerified` hiện chỉ gọi V1 và trả `crossChecked: false`. Không coi chênh lệch điểm AI là sai số thống kê hoặc độ chính xác đã được kiểm định.
 - **AI lớp học:** `src/lib/classroom-ai.server.ts` gọi Groq API trực tiếp để hỗ trợ bài giảng và ghi chú; model lấy từ cấu hình `GROQ_CLASSROOM_MODEL` / `GROQ_CLASSROOM_VISION_MODEL`. Không có tự động chuyển nhà cung cấp trong hàm này.
 - **TTS:** `src/lib/tts.functions.ts` gọi Lovable AI Gateway với `google/gemini-3.1-flash-tts-preview`.
-- **AI tạo nhân vật:** cần xác nhận model và đường gọi đang hoạt động trước khi ghi tên phiên bản cố định.
+- **AI tạo nhân vật:** `src/lib/ai.functions.ts` gửi yêu cầu phối màu đến dịch vụ Render qua `SCAM_API_URL` hoặc `AI_RENDER_URL` và `SCAM_API_TOKEN`; không thể xác nhận model cụ thể chỉ từ mã website.
 - **Build & phân phối:** Vite 7, `@cloudflare/vite-plugin` + `wrangler.jsonc` (môi trường Worker, `nodejs_compat`), Nitro.
 - **Kiểm thử / chất lượng:** Vitest (`src/lib/*.test.ts`), ESLint, Prettier.
 - **Trình quản lý gói:** Bun (`bun.lock`).
@@ -103,6 +103,8 @@ Tạo tệp `.env` ở thư mục gốc. Các giá trị phải được cấu h
 | `GROQ_CLASSROOM_API_KEY` | server | Khoá API Groq cho AI lớp học |
 | `GROQ_CLASSROOM_MODEL` | server | Model Groq xử lý văn bản lớp học |
 | `GROQ_CLASSROOM_VISION_MODEL` | server | Model Groq xử lý ảnh lớp học |
+| `SCAM_API_URL` / `AI_RENDER_URL` | server | Endpoint Render cho chức năng phối màu trang phục |
+| `SCAM_API_TOKEN` | server | Token cho dịch vụ Render (cũng có thể được V1 sử dụng) |
 
 `VITE_*` được nhúng vào mã trình duyệt, vì vậy **không** đặt dữ liệu bí mật vào các biến này.
 
@@ -147,7 +149,7 @@ public/             # tệp tĩnh (mô hình .glb, .png…)
 ### `src/lib`
 - `ai-detect.functions.ts` — 9 bài kiểm tra AI, gọi Render AI V1 và có khai báo V2 (chưa mặc định coi là đối chiếu độc lập); `ai-feedback.functions.ts` — phản hồi 👍/👎, quyền phụ huynh; `ai-signals.ts` — chuẩn hoá tên miền / đầu số.
 - `ai-skills.ts`, `ai-skills.server.ts`, `ai-skills-admin.ts` — nạp, cắt ghép và quản lý skill.
-- `tts.functions.ts` (đọc thoại), `ai-lesson.functions.ts` + `ai-lesson.server.ts` (bài giảng), `ai-note.functions.ts` (ghi chú), `ai.functions.ts` (phối màu trang phục).
+- `tts.functions.ts` (đọc thoại), `ai-lesson.functions.ts` + `ai-lesson.server.ts` (bài giảng), `ai-note.functions.ts` (ghi chú), `ai.functions.ts` (phối màu trang phục qua Render AI).
 - `duels.functions.ts`, `friend-houses.functions.ts` — đấu 1vs1 và nhà bạn bè.
 - `teacher.ts`, `classroom-posts.ts`, `class-annotations.ts` — lớp học, bài đăng, chú thích.
 - `film-*.ts` — lời thoại và dữ liệu 5 kịch bản; `caption-engine.ts` — phụ đề; `roleplay-rewards.ts` — thưởng.
@@ -182,3 +184,7 @@ Quy ước: tệp `*.functions.ts` là hàm server gọi từ giao diện; tệp
 - Có mã nguồn **không đồng nghĩa** với việc API, Secrets, model hoặc tính năng đã được kiểm thử thành công trên website công khai.
 - Quy trình AI V2, Groq dự phòng cho Trung tâm AI, cập nhật dataset từ phản hồi được admin duyệt và kết quả đánh giá độ chính xác phải được xác minh riêng trước khi công bố là đã triển khai.
 - Không lưu API key hoặc dữ liệu cá nhân thật trong repository; chỉ sử dụng biến môi trường phía máy chủ.
+
+## Tài liệu kê khai nghiên cứu
+
+Tài liệu kê khai công cụ AI, dữ liệu, API, thư viện và mã nguồn mở cần phân biệt **mã đã có**, **dịch vụ đang hoạt động** và **tính năng dự kiến**. `package.json` thể hiện phiên bản khai báo (thường có `^`), không phải phiên bản cài đặt chính xác; số lượng bảng/migration cần kiểm đếm theo commit. Không tuyên bố đã fine-tune mô hình chỉ vì hệ thống có AI Skills hoặc dữ liệu tham chiếu.

@@ -47,6 +47,7 @@ export const suggestNote = createServerFn({ method: "POST" })
 
     const model = data.imageBase64 ? process.env["GROQ_CLASSROOM_VISION_MODEL"] : process.env["GROQ_CLASSROOM_MODEL"];
     if (!model) throw new Error("Chưa cấu hình mô hình Groq phù hợp cho ghi chú lớp học.");
+    if (data.imageBase64 && model === "meta-llama/llama-4-scout-17b-16e-instruct") throw new Error("Mô hình đọc ảnh đã ngừng khả dụng. Vui lòng chọn mô hình Groq hỗ trợ ảnh.");
 
     const lines = [
       data.title ? `Chủ đề/bài học: ${data.title}` : "",
@@ -70,23 +71,27 @@ export const suggestNote = createServerFn({ method: "POST" })
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        max_tokens: 550,
-        messages: [
-          { role: "system", content: SYS[data.mode] },
-          { role: "user", content },
-        ],
-        response_format: { type: "json_object" },
+        max_completion_tokens: 900,
+        messages: data.imageBase64
+          ? [{ role: "user", content: [{ type: "text", text: SYS[data.mode] }, ...content] }]
+          : [{ role: "system", content: SYS[data.mode] }, { role: "user", content }],
+        ...(!data.imageBase64 ? { response_format: { type: "json_object" } } : {}),
       }),
     });
     if (!res.ok) {
-      const t = await res.text();
       if (res.status === 429) throw new Error("AI đang quá tải, thử lại sau ít phút nhé.");
       if (res.status === 402) throw new Error("Dịch vụ AI lớp học hết tín dụng.");
-      throw new Error(`AI lỗi ${res.status}: ${t.slice(0, 160)}`);
+      if (res.status === 400 || res.status === 404) throw new Error("Groq không hỗ trợ mô hình hoặc định dạng đầu vào đã chọn.");
+      if (res.status === 401 || res.status === 403) throw new Error("Khóa Groq lớp học không hợp lệ hoặc không có quyền truy cập.");
+      throw new Error(`Groq gặp lỗi HTTP ${res.status}.`);
     }
     const j: any = await res.json();
     try {
-      return JSON.parse(j?.choices?.[0]?.message?.content ?? "{}") as {
+      const raw = j?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("empty");
+      const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("shape");
+      return parsed as {
         title?: string;
         content?: string;
         question?: string;
@@ -95,6 +100,6 @@ export const suggestNote = createServerFn({ method: "POST" })
         feedback?: string;
       };
     } catch {
-      return {};
+      throw new Error("Groq trả về ghi chú không đúng định dạng. Vui lòng thử lại.");
     }
   });

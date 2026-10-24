@@ -2,6 +2,8 @@ name: Verify website build
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   build:
@@ -15,5 +17,13 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Test classroom OCR inputs
+        run: npx vitest run src/lib/classroom-ocr.test.ts
+      - name: Verify dependency lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            echo "::error::Dependency lockfile out of sync"
+            exit 1
+          fi
       - name: Check production build
         run: npm run build

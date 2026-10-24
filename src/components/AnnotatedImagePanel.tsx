@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { readClassroomImageText, validateClassroomOcrFile } from "@/lib/classroom-ocr";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { RichTextEditor, RichText } from "@/components/RichTextEditor";
@@ -311,7 +312,7 @@ function Editor({
 
   const pick = async (f: File | null) => {
     if (!f) return;
-    if (!f.type.startsWith("image/")) return toast.error("Hãy chọn một tấm ảnh");
+    try { validateClassroomOcrFile(f); } catch (error) { toast.error((error as Error).message); return; }
     setFile(f);
     setPreview(await compress(f));
   };
@@ -325,15 +326,16 @@ function Editor({
     setBusy(true);
     setProgress(12);
     try {
-      const small = preview.startsWith("data:") ? await shrinkForAi(preview) : "";
-      const b64 = small ? (small.split(",")[1] ?? "") : undefined;
+      const extractedText = file ? await readClassroomImageText(file) : "";
+      if (!extractedText && !(note.title || description).trim()) {
+        throw new Error("Hãy nhập mô tả hoặc chọn ảnh có chữ để AI tạo ghi chú.");
+      }
       setProgress(28);
       const res = await askNote({
         data: {
           mode: kind === "material" ? "material" : "exercise",
-          ...(b64 ? { imageBase64: b64, mimeType: "image/jpeg" } : {}),
           title: title || "Học liệu",
-          hint: note.title || description,
+          hint: [note.title || description, extractedText ? `Văn bản OCR toàn ảnh (có thể sai, không xác định vùng chấm): ${extractedText}` : ""].filter(Boolean).join("\n").slice(0, 1500),
           x: note.x,
           y: note.y,
         },

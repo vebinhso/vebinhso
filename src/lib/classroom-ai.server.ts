@@ -43,6 +43,13 @@ export async function requestClassroomJson(
   }
   // Never log/return raw provider bodies: they may contain request details.
   if (!response.ok) {
+    let category = "other";
+    try {
+      const body = await response.json() as { error?: { code?: unknown } };
+      const code = body.error?.code;
+      if (typeof code === "string" && ["model_not_found", "model_decommissioned", "invalid_api_key", "json_validate_failed", "rate_limit_exceeded"].includes(code)) category = code;
+    } catch { /* Body details intentionally discarded. */ }
+    console.warn("[Classroom Groq] request rejected", { status: response.status, category });
     if (response.status === 401 || response.status === 403) throw new Error("Groq chưa chấp nhận cấu hình AI lớp học. Chủ dự án cần kiểm tra Secrets.");
     if (response.status === 429) throw new Error("Groq đang giới hạn lượt AI lớp học. Vui lòng thử lại sau.");
     if (response.status === 400 || response.status === 404) throw new Error("Groq chưa chấp nhận model hoặc ảnh của AI lớp học. Chủ dự án cần kiểm tra cấu hình model.");

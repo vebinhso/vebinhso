@@ -33,7 +33,14 @@ import { pendingRequestCounts } from "@/lib/classroom-posts";
 
 export const Route = createFileRoute("/classroom")({
   component: ClassroomPage,
-  head: () => ({ meta: [{ title: "LỚP HỌC — VeBinhSo" }] }),
+  head: () => ({ meta: [
+    { title: "Lớp học — VỆ BINH SỐ" },
+    { name: "description", content: "Quản lý lớp học, học liệu và bài tập kỹ năng số của VỆ BINH SỐ." },
+    { property: "og:title", content: "Lớp học — VỆ BINH SỐ" },
+    { property: "og:description", content: "Học liệu, bài tập và hoạt động lớp học kỹ năng số." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 type Tab = "overview" | "students" | "questions" | "import" | "stream";

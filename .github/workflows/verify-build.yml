@@ -19,11 +19,6 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
       - name: Check OCR input tests
         run: npx vitest run src/lib/classroom-ocr.test.ts
-      - name: Check dependency lock consistency
-        run: |
-          if ! git diff --quiet -- package-lock.json; then
-            echo "::warning::package-lock.json needs regeneration and commit before merge"
-          fi
       - name: Export updated lockfile for review
         uses: actions/upload-artifact@v4
         with:
@@ -32,3 +27,9 @@ jobs:
           retention-days: 3
       - name: Check production build
         run: npm run build
+      - name: Require committed dependency lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            echo "::error::package-lock.json differs from npm install output. Download generated-package-lock artifact and commit it before merge."
+            exit 1
+          fi

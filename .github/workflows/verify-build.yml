@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,6 +29,16 @@ jobs:
           retention-days: 3
       - name: Check production build
         run: npm run build
+      - name: Commit regenerated lockfile on explicit manual run
+        if: github.event_name == 'workflow_dispatch' && github.ref_name == 'experiment/classroom-ocr-20261024'
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add package-lock.json
+            git commit -m 'chore: synchronize OCR dependency lockfile'
+            git push origin HEAD:experiment/classroom-ocr-20261024
+          fi
       - name: Require committed dependency lockfile
         run: |
           if ! git diff --quiet -- package-lock.json; then

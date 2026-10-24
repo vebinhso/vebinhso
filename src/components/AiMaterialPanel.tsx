@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { generateAiLesson } from "@/lib/ai-lesson.functions";
+import { readClassroomImageText } from "@/lib/classroom-ocr";
 import {
   listAiLessons,
   saveAiLesson,
@@ -291,14 +292,15 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     setProgress(8);
     setPhase("✍️ Đang soạn nội dung bài học...");
     try {
-      const b64 = preview ? (preview.split(",")[1] ?? "") : undefined;
       setProgress(24);
+      // Groq text models cannot accept image input. Extract text locally first.
+      const extractedText = file && preview ? await readClassroomImageText(file) : "";
+      if (extractedText) setPhase("📝 Đã đọc chữ từ ảnh; đang soạn bài học...");
       const res = await generateAiLesson({
         data: {
-          imageBase64: b64,
-          mimeType: preview.startsWith("data:image/jpeg") ? "image/jpeg" : file?.type || "image/png",
+          // OCR text only; never send the image to a text-only Groq model.
+          description: [description, extractedText ? `Nội dung chữ nhận dạng từ ảnh (cần kiểm tra độ chính xác):\n${extractedText}` : ""].filter(Boolean).join("\n\n").slice(0, 3000),
           title: title.trim(),
-          description,
           reviseNote,
         },
       });

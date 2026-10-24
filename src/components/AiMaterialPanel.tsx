@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { readClassroomImageText, validateClassroomOcrFile } from "@/lib/classroom-ocr";
 import LoadingPercent from "@/components/LoadingPercent";
 import { PasteDropZone } from "@/components/PasteDropZone";
 import { generateAiLesson } from "@/lib/ai-lesson.functions";
@@ -280,10 +281,10 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     });
 
   const pick = async (f: File | null) => {
+    if (!f) { setFile(null); setPreview(""); return; }
+    try { validateClassroomOcrFile(f); } catch (error) { toast.error((error as Error).message); return; }
     setFile(f);
-    if (!f) return setPreview("");
-    if (f.type.startsWith("image/")) setPreview(await compress(f));
-    else setPreview("");
+    setPreview(await compress(f));
   };
 
   const run = async (reviseNote?: string) => {
@@ -293,14 +294,13 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     setProgress(8);
     setPhase("✍️ Đang soạn nội dung bài học...");
     try {
-      const b64 = preview ? (preview.split(",")[1] ?? "") : undefined;
       setProgress(24);
+      const extractedText = file && preview ? await readClassroomImageText(file) : "";
+      if (extractedText) setPhase("📝 Đã nhận dạng chữ trong ảnh, đang soạn bài học...");
       const res = await generateLesson({
         data: {
-          imageBase64: b64,
-          mimeType: "image/jpeg",
           title: title.trim(),
-          description,
+          description: [description, extractedText ? `Chữ trích xuất từ ảnh bằng OCR (có thể sai; không suy đoán hình vẽ):\n${extractedText}` : ""].filter(Boolean).join("\n\n").slice(0, 3000),
           reviseNote,
         },
       });

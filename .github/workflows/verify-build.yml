@@ -17,5 +17,12 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps --no-audit --no-fund
+      - name: Check OCR input tests
+        run: npx vitest run src/lib/classroom-ocr.test.ts
+      - name: Check dependency lock consistency
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            echo "::warning::package-lock.json needs regeneration and commit before merge"
+          fi
       - name: Check production build
         run: npm run build

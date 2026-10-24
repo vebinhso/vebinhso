@@ -252,7 +252,7 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
   const [draft, setDraft] = useState<Draft | null>(null);
   const [revise, setRevise] = useState("");
 
-  // Ảnh 768px đủ để AI đọc nội dung nhưng nhẹ hơn đáng kể khi gửi.
+  // Compress the display preview only. OCR reads the original image for accuracy.
   const compress = (f: File) =>
     new Promise<string>((resolve) => {
       const r = new FileReader();
@@ -279,10 +279,17 @@ function Generator({ classId, onSaved }: { classId: string; onSaved: () => void 
     });
 
   const pick = async (f: File | null) => {
+    if (!f) { setFile(null); setPreview(""); return; }
+    if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) {
+      toast.error("Chỉ hỗ trợ ảnh PNG, JPEG hoặc WebP.");
+      return;
+    }
+    if (f.size > 8 * 1024 * 1024) {
+      toast.error("Ảnh quá lớn (tối đa 8 MB).");
+      return;
+    }
     setFile(f);
-    if (!f) return setPreview("");
-    if (f.type.startsWith("image/")) setPreview(await compress(f));
-    else setPreview("");
+    setPreview(await compress(f));
   };
 
   const run = async (reviseNote?: string) => {

@@ -5,6 +5,7 @@ import { PasteDropZone } from "@/components/PasteDropZone";
 import { RichTextEditor, RichText } from "@/components/RichTextEditor";
 import { uploadClassFile, getClassRoster, type RosterMember } from "@/lib/classroom-posts";
 import { suggestNote } from "@/lib/ai-note.functions";
+import { readClassroomImageText } from "@/lib/classroom-ocr";
 import {
   listAnnotatedImages,
   saveAnnotatedImage,
@@ -323,15 +324,17 @@ function Editor({
     setBusy(true);
     setProgress(12);
     try {
-      const small = preview.startsWith("data:") ? await shrinkForAi(preview) : "";
-      const b64 = small ? (small.split(",")[1] ?? "") : undefined;
+      // Read text locally: the available Groq model does not accept images.
+      if (!file) throw new Error("Vui lòng chọn ảnh gốc để AI đọc chữ.");
+      const extractedText = await readClassroomImageText(file);
       setProgress(28);
       const res = await suggestNote({
         data: {
           mode: kind === "material" ? "material" : "exercise",
-          ...(b64 ? { imageBase64: b64, mimeType: "image/jpeg" } : {}),
+          // OCR cannot identify what lies at the selected image coordinate.
+          // Treat extracted text as general context only.
           title: title || "Học liệu",
-          hint: note.title || description,
+          hint: [note.title || description, `Chữ trích xuất từ toàn ảnh (OCR, có thể sai; không xác định vùng được đánh dấu): ${extractedText}`].filter(Boolean).join("\n").slice(0, 1500),
           x: note.x,
           y: note.y,
         },

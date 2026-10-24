@@ -22,7 +22,7 @@ export const generateAiLesson = createServerFn({ method: "POST" })
     } as GenInput;
   })
   .handler(async ({ data }) => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = process.env["GROQ_CLASSROOM_API_KEY"];
     if (!apiKey) throw new Error("AI chưa được cấu hình");
     const lessonRaw = await buildLesson(apiKey, data);
     const lesson = lessonRaw || {};

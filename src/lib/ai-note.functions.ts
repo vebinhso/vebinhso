@@ -17,9 +17,9 @@ type NoteInput = {
 };
 
 const SYS: Record<NoteInput["mode"], string> = {
-  material: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu MỘT ĐIỂM trên ảnh minh hoạ và cần nội dung học liệu ngắn cho điểm đó.
+  material: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu một điểm trên ảnh, nhưng bạn CHỈ có văn bản OCR toàn ảnh, không có thông tin hình ảnh tại điểm đó. Không đoán chi tiết tại vị trí đánh dấu. Chỉ viết nội dung học liệu dựa trên chữ OCR và gợi ý của giáo viên.
 Trả về CHÍNH XÁC JSON: {"title":"tên ngắn của chi tiết","content":"giải thích 2-4 câu, dễ hiểu, chính xác"}`,
-  exercise: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu MỘT ĐIỂM trên ảnh và cần một câu hỏi tự luận ngắn cho điểm đó.
+  exercise: `Bạn là giáo viên Việt Nam. Người dùng đánh dấu một điểm trên ảnh, nhưng bạn CHỈ có văn bản OCR toàn ảnh. Không suy đoán nội dung hình ảnh tại điểm đánh dấu. Hãy tạo câu hỏi từ chữ OCR và gợi ý của giáo viên.
 Trả về CHÍNH XÁC JSON: {"title":"nhãn ngắn","question":"câu hỏi tự luận ngắn","expected":"đáp án gợi ý 1-3 câu"}`,
   feedback: `Bạn là giáo viên Việt Nam đang chấm bài tự luận ngắn của học sinh.
 Trả về CHÍNH XÁC JSON: {"grade":"điểm dạng x/10","feedback":"nhận xét ngắn gọn, động viên, chỉ ra chỗ cần sửa"}`,

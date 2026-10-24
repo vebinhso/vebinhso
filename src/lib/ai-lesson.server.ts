@@ -6,7 +6,7 @@ type GenInput = {
   reviseNote?: string;
 };
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+const GATEWAY = "https://api.groq.com/openai/v1";
 
 export async function buildLesson(apiKey: string, input: GenInput) {
   const system = `Bạn là chuyên gia thiết kế bài giảng số cho học sinh Việt Nam lớp 6-12.
@@ -22,11 +22,13 @@ Tạo đúng 3 parts, 2 sections, 3 keyPoints và đúng 3 câu trắc nghiệm.
     content.push({ type: "image_url", image_url: { url: `data:${input.mimeType || "image/jpeg"};base64,${input.imageBase64}` } });
   }
 
+  if (input.imageBase64 && !process.env["GROQ_CLASSROOM_VISION_MODEL"]) throw new Error("Chưa cấu hình mô hình Groq hỗ trợ ảnh cho lớp học.");
+  if (!input.imageBase64 && !process.env["GROQ_CLASSROOM_MODEL"]) throw new Error("Chưa cấu hình mô hình Groq lớp học.");
   const response = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-3.1-flash-lite",
+      model: input.imageBase64 ? process.env["GROQ_CLASSROOM_VISION_MODEL"] : process.env["GROQ_CLASSROOM_MODEL"],
       messages: [{ role: "system", content: system }, { role: "user", content }],
       response_format: { type: "json_object" },
       temperature: 0.3,

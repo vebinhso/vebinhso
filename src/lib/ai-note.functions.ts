@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+const GATEWAY = "https://api.groq.com/openai/v1";
 
 type NoteInput = {
   mode: "material" | "exercise" | "feedback";
@@ -42,8 +42,11 @@ export const suggestNote = createServerFn({ method: "POST" })
     } as NoteInput;
   })
   .handler(async ({ data }) => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = process.env["GROQ_CLASSROOM_API_KEY"];
     if (!apiKey) throw new Error("AI chưa được cấu hình");
+
+    const model = data.imageBase64 ? process.env["GROQ_CLASSROOM_VISION_MODEL"] : process.env["GROQ_CLASSROOM_MODEL"];
+    if (!model) throw new Error("Chưa cấu hình mô hình Groq phù hợp cho ghi chú lớp học.");
 
     const lines = [
       data.title ? `Chủ đề/bài học: ${data.title}` : "",
@@ -66,7 +69,7 @@ export const suggestNote = createServerFn({ method: "POST" })
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-lite",
+        model,
         max_tokens: 550,
         messages: [
           { role: "system", content: SYS[data.mode] },
@@ -78,7 +81,7 @@ export const suggestNote = createServerFn({ method: "POST" })
     if (!res.ok) {
       const t = await res.text();
       if (res.status === 429) throw new Error("AI đang quá tải, thử lại sau ít phút nhé.");
-      if (res.status === 402) throw new Error("Hết tín dụng AI của không gian làm việc.");
+      if (res.status === 402) throw new Error("Dịch vụ AI lớp học hết tín dụng.");
       throw new Error(`AI lỗi ${res.status}: ${t.slice(0, 160)}`);
     }
     const j: any = await res.json();

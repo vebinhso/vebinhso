@@ -325,8 +325,12 @@ function Editor({
     setProgress(12);
     try {
       // Read text locally: the available Groq model does not accept images.
-      if (!file) throw new Error("Vui lòng chọn ảnh gốc để AI đọc chữ.");
-      const extractedText = await readClassroomImageText(file);
+      // Previously saved annotations may have an image URL but no local File.
+      // Allow text-only suggestions instead of blocking those teachers.
+      const extractedText = file ? await readClassroomImageText(file) : "";
+      if (!extractedText && !(note.title || description).trim()) {
+        throw new Error("Hãy nhập mô tả hoặc chọn ảnh có chữ để AI tạo ghi chú.");
+      }
       setProgress(28);
       const res = await suggestNote({
         data: {
@@ -334,7 +338,7 @@ function Editor({
           // OCR cannot identify what lies at the selected image coordinate.
           // Treat extracted text as general context only.
           title: title || "Học liệu",
-          hint: [note.title || description, `Chữ trích xuất từ toàn ảnh (OCR, có thể sai; không xác định vùng được đánh dấu): ${extractedText}`].filter(Boolean).join("\n").slice(0, 1500),
+          hint: [note.title || description, extractedText ? `Chữ trích xuất từ toàn ảnh (OCR, có thể sai; không xác định vùng được đánh dấu): ${extractedText}` : ""].filter(Boolean).join("\n").slice(0, 1500),
           x: note.x,
           y: note.y,
         },

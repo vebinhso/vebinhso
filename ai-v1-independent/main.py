@@ -82,7 +82,7 @@ async def call_gemini(messages, json_mode):
     fallbacks = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.6-flash").split(",") if m.strip()]
     models = list(dict.fromkeys([configured] + fallbacks))
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=4.0)) as discovery:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(3.0, connect=2.0)) as discovery:
             listing = await discovery.get("https://generativelanguage.googleapis.com/v1beta/models", headers={"x-goog-api-key": key}, params={"pageSize": 100})
         if listing.status_code == 200:
             available = [m.get("name", "").removeprefix("models/") for m in listing.json().get("models", []) if "generateContent" in m.get("supportedGenerationMethods", [])]
@@ -92,14 +92,14 @@ async def call_gemini(messages, json_mode):
             models.extend(m for m in eligible if m in available)
     except (httpx.RequestError, ValueError, TypeError):
         logger.warning("Gemini fallback discovery unavailable; using configured models")
-    models = list(dict.fromkeys(models))[:4]
+    models = list(dict.fromkeys(models))[:3]
     last_error = None
-    async with httpx.AsyncClient(timeout=httpx.Timeout(35.0, connect=6.0)) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=4.0)) as client:
         for model_index, model in enumerate(models):
             model_body = json.loads(json.dumps(body))
             if model.startswith("gemini-2.5-"):
                 model_body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": 0}
-            for attempt in range(2):
+            for attempt in range(1):
                 try:
                     response = await client.post(
                         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -201,13 +201,27 @@ async def call_groq(messages, json_mode):
 
 
 async def call_ai(messages, json_mode):
+    # Enforce an end-to-end provider budget rather than allowing sequential
+    # Gemini model retries to exhaust the website request timeout.
     try:
-        return await call_gemini(messages, json_mode)
+        return await asyncio.wait_for(call_gemini(messages, json_mode), timeout=22.0)
+    except asyncio.TimeoutError:
+        logger.warning("Gemini exceeded 22-second budget; trying fallback")
+        error = HTTPException(504, "Primary AI exceeded time budget")
     except HTTPException as exc:
-        if exc.status_code not in (429, 502, 503, 504) or not os.getenv("GROQ_API_KEY"):
+        if exc.status_code not in (429, 502, 503, 504):
             raise
-        logger.warning("Primary AI unavailable: switching to independent text fallback")
-        return await call_groq(messages, json_mode)
+        error = exc
+    if not os.getenv("GROQ_API_KEY"):
+        raise error
+    if any(not isinstance(m.get("content"), str) for m in messages):
+        # Do not silently discard image inputs or send them to text-only AI.
+        raise error
+    logger.warning("Primary AI unavailable: switching to independent text fallback")
+    try:
+        return await asyncio.wait_for(call_groq(messages, json_mode), timeout=16.0)
+    except asyncio.TimeoutError:
+        raise HTTPException(504, "Backup AI exceeded time budget")
 
 
 @app.get("/admin/gemini-models")

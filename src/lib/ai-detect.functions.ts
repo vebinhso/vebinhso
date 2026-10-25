@@ -390,17 +390,16 @@ const NEWS_GENERIC = new Set([
 ]);
 function newsTokens(value: string): string[] {
   return [...new Set(value.toLocaleLowerCase("vi").normalize("NFC")
-    .split(/[^\\p{L}\\p{N}]+/u)
+    .split(/[^\p{L}\p{N}]+/u)
     .filter((w) => w.length >= 3 && !VI_STOP.has(w) && !NEWS_GENERIC.has(w)))];
 }
 function headlineRelevance(headline: Headline, query: string): number {
   const terms = newsTokens(query);
   if (terms.length < 2) return 0;
-  const titleTerms = new Set(newsTokens(headline.title.replace(/\\s+-\\s+[^-]+$/, "")));
+  const titleTerms = new Set(newsTokens(headline.title.replace(/\s+-\s+[^-]+$/, "")));
   const hits = terms.filter((term) => titleTerms.has(term));
   // Two distinct terms and at least a third of the topic must match.
   if (hits.length < 2 || hits.length / terms.length < 0.34) return 0;
-  const queryWords = terms.join(" ");
   const titleWords = [...titleTerms].join(" ");
   const bigrams = terms.slice(0, -1).filter((w, i) => titleWords.includes(w + " " + terms[i + 1])).length;
   return hits.length / terms.length + Math.min(bigrams, 2) * 0.12;

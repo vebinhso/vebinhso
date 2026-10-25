@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { withSkill } from "@/lib/ai-skills";
 import { AI_CATEGORY_LABELS, FORENSIC_PROMPT_BLOCK } from "@/lib/image-forensics";
 import { PHISHING_CATEGORY_LABELS, PHISHING_PROMPT_BLOCK } from "@/lib/phishing-dataset";
-import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
+import { SCAM_CATEGORY_LABELS, SCAM_MESSAGE_DATASET, SCAM_MESSAGE_PROMPT_BLOCK } from "@/lib/scam-messages";
 import { SCAM_PHONE_CATEGORY_LABELS, SCAM_PHONE_PROMPT_BLOCK } from "@/lib/scam-phones";
 
 // AI V1 checks use the independent Render service, never the Lovable AI Gateway.
@@ -202,48 +202,63 @@ export const analyzeText = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { loadSkillForCheck } = await import("./ai-skills.server");
     const skill = await loadSkillForCheck("text");
-    const sys = `Bạn là chuyên gia phát hiện văn bản do AI viết VÀ phát hiện tin nhắn lừa đảo trên mạng xã hội Việt Nam (Threads, Facebook/Messenger, Zalo, Instagram, TikTok, Telegram, SMS).
-Chấm ĐỘC LẬP hai việc:
-1) Văn bản do AI viết hay người viết: độ đều của câu, cụm từ sáo rỗng, liệt kê máy móc, thiếu chi tiết cá nhân, giọng trung tính quá mức.
-2) Nguy cơ lừa đảo: dựa trên ý đồ của tin nhắn, dù văn phong rất giống người thật.
-
-${SCAM_MESSAGE_PROMPT_BLOCK}
-
-Trả về CHÍNH XÁC một JSON (không markdown):
-{"aiScore":0-100,"verdict":"human|likely_human|uncertain|likely_ai|ai","confidence":0-100,"summary":"1-2 câu tiếng Việt","aiSigns":["dấu hiệu AI"],"humanSigns":["dấu hiệu người viết"],"misinfoRisk":0-100,"scamCategory":"id nhóm lừa đảo hoặc khong_ro","platform":"nền tảng có khả năng nhất hoặc rỗng","difficulty":"Dễ|Trung bình|Khó","scamSigns":["dấu hiệu lừa đảo"],"tips":["cách kiểm chứng và nên làm gì"]}
-misinfoRisk = nguy cơ nội dung sai lệch/lừa đảo (0-100). difficulty = mức độ khó nhận ra với học sinh. ${resultLanguage(data.locale)}`;
-    const parsed = await callGatewayVerified({
-      messages: [
-        { role: "system", content: withSkill(sys, skill) },
-        { role: "user", content: data.text },
-      ],
-      response_format: { type: "json_object" },
-    }, ["aiScore", "confidence", "misinfoRisk"], data.locale);
-    // V2 is an independent cross-check AFTER Gemini; never override Gemini's verdict.
+    // Deterministic V1 knowledge-base screening + independent V2 classifier.
+    // No Gemini/Groq call for this room. RSS is contextual, never proof of fraud.
     const { checkScamMl } = await import("./scam-ml.server");
-    const mlAdvisory = await checkScamMl(data.text);
-    const rawCat = str(parsed.scamCategory, "khong_ro").trim();
-    const scamCategory = SCAM_CATEGORY_LABELS[rawCat] ? rawCat : "khong_ro";
+    const normalize = (value: string) => value.toLocaleLowerCase("vi").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+    const input = normalize(data.text);
+    const rules: Array<[RegExp, string]> = [
+      [/\\b(otp|mat khau|password|ma xac minh)\\b/i, "Yêu cầu mã OTP hoặc mật khẩu"],
+      [/(chuyen khoan|nap tien|dong phi|dat coc|so tai khoan)/i, "Yêu cầu chuyển tiền hoặc đóng phí"],
+      [/(trung thuong|nhan qua|qua tang|iphone mien phi)/i, "Hứa hẹn phần thưởng"],
+      [/(viec nhe luong cao|hoa hong|lam nhiem vu|tang don)/i, "Mời làm nhiệm vụ kiếm tiền"],
+      [/(khoa tai khoan|xac minh tai khoan|khong xac minh|khancap|khan cap)/i, "Tạo áp lực xác minh tài khoản"],
+      [/(https?:\\/\\/|www\\.)/i, "Có liên kết cần kiểm tra nguồn gốc"],
+    ];
+    const scamSigns = rules.filter(([pattern]) => pattern.test(input)).map(([, reason]) => reason);
+    const category = SCAM_MESSAGE_DATASET.categories.map((item) => {
+      const examples = item.examples.map(normalize);
+      const words = normalize(item.label).split(/\\s+/).filter((w) => w.length >= 4);
+      const overlap = words.filter((word) => input.includes(word)).length;
+      const exampleMatch = examples.some((example) => example.slice(0, 35).length >= 15 && input.includes(example.slice(0, 35)));
+      return { item, score: overlap + (exampleMatch ? 4 : 0) };
+    }).sort((x, y) => y.score - x.score)[0];
+    const scamCategory = category && category.score >= 2 ? category.item.id : "khong_ro";
+    const safeSearch = data.text.replace(/https?:\\/\\/\\S+|\\b[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}\\b|\\b\\d{4,}\\b/gi, " ");
+    const [mlAdvisory, headlines] = await Promise.all([
+      checkScamMl(data.text),
+      // Search only public RSS titles; never submit private message text to Google.
+      safeSearch.trim().length >= 8 ? fetchLatestNews(safeSearch, false) : Promise.resolve([] as Headline[]),
+    ]);
+    const v2Risk = mlAdvisory?.status === "risk_indicated";
+    const flagged = scamSigns.length > 0 || v2Risk;
+    const risk = v2Risk ? Math.max(65, Math.min(90, 45 + scamSigns.length * 10))
+      : scamSigns.length ? Math.min(80, 25 + scamSigns.length * 12) : null;
+    const summary = flagged
+      ? fallback(data.locale, "Tin nhắn có dấu hiệu cần cảnh giác. Đây là sàng lọc theo quy tắc và mô hình V2, chưa phải kết luận lừa đảo đã được xác minh.", "The message contains warning signs. This is a rules/V2 screening, not a confirmed fraud finding.")
+      : fallback(data.locale, "Chưa phát hiện dấu hiệu rõ ràng trong dữ liệu hiện có; điều này không chứng minh tin nhắn an toàn.", "No clear warning signs were detected; this does not establish that the message is safe.");
     return {
       skillKey: skill?.key ?? null,
       skillVersion: skill?.version ?? null,
-      accuracy: parsed.accuracy,
-      aiScore: clampScore(parsed.aiScore),
-      verdict: str(parsed.verdict, "uncertain"),
-      confidence: clampScore(parsed.confidence),
-      summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
-      aiSigns: strArr(parsed.aiSigns),
-      humanSigns: strArr(parsed.humanSigns),
-      misinfoRisk: clampScore(parsed.misinfoRisk),
+      accuracy: { margin: 0, within: false, crossChecked: false, models: ["V1 rules", ...(mlAdvisory ? ["V2"] : [])], note: "Không dùng Gemini/Groq; kết quả chỉ là sàng lọc theo quy tắc và V2." },
+      aiScore: 50,
+      verdict: "uncertain",
+      confidence: 0,
+      summary,
+      aiSigns: [],
+      humanSigns: [],
+      misinfoRisk: risk ?? 50,
       scamCategory,
       scamCategoryLabel: scamCategory === "khong_ro" ? "" : (SCAM_CATEGORY_LABELS[scamCategory] ?? ""),
-      platform: str(parsed.platform, ""),
-      difficulty: ["Dễ", "Trung bình", "Khó"].includes(str(parsed.difficulty, ""))
-        ? str(parsed.difficulty, "")
-        : "Trung bình",
+      platform: "",
+      difficulty: "Trung bình",
       mlAdvisory,
-      scamSigns: strArr(parsed.scamSigns, 8),
-      tips: strArr(parsed.tips),
+      scamSigns: scamSigns.slice(0, 8),
+      tips: [
+        fallback(data.locale, "Không cung cấp OTP, mật khẩu hoặc chuyển tiền theo yêu cầu trong tin nhắn chưa xác thực.", "Do not share passwords, OTP codes, or send money based on an unverified message."),
+        fallback(data.locale, "Liên hệ tổ chức qua kênh chính thức để kiểm tra.", "Verify through the organization's official channels."),
+      ],
+      relatedNews: headlines.slice(0, 6).map((h) => ({ title: h.title, source: h.source, link: h.link, date: h.date })),
     };
   });
 
@@ -302,8 +317,17 @@ const TRUSTED_FEEDS = [
     "giao-duc", "giai-tri", "du-lich", "phap-luat", "khoa-hoc",
     "suc-khoe", "khoa-hoc-cong-nghe",
   ].map((section) => ({ name: "VnExpress", url: `https://vnexpress.net/rss/${section}.rss` })),
-  { name: "Tuổi Trẻ", url: "https://tuoitre.vn/rss/tin-moi-nhat.rss" },
   { name: "Thanh Niên", url: "https://thanhnien.vn/rss/home.rss" },
+  { name: "Thanh Niên", url: "https://thanhnien.vn/rss/kinh-te.rss" },
+  { name: "Tuổi Trẻ", url: "https://tuoitre.vn/home.rss" },
+  ...["giao-duc", "thoi-su", "kinh-doanh"].map((section) => ({
+    name: "Tuổi Trẻ", url: `https://tuoitre.vn/rss/${section}.rss`,
+  })),
+  { name: "VietNamNet", url: "https://vietnamnet.vn/home.rss" },
+  { name: "VietNamNet", url: "https://vietnamnet.vn/rss/thoi-su.rss" },
+  { name: "Nhân Dân", url: "https://nhandan.vn/rss/home.rss" },
+  { name: "The New York Times", url: "https://www.nytimes.com/svc/collections/v1/publish/https://www.nytimes.com/section/magazine/rss.xml" },
+  { name: "The New York Times", url: "https://rss.nytimes.com/services/xml/rss/nyt/es.xml" },
 ];
 
 function decodeXml(s: string) {
@@ -360,22 +384,22 @@ function buildQuery(content: string) {
 
 // Related coverage is not evidence that the user's claim is true.
 function headlineRelevance(headline: Headline, query: string): number {
-  const terms = [...new Set(buildQuery(query).toLocaleLowerCase("vi").split(/\\s+/).filter((w) => w.length >= 3))];
+  const terms = [...new Set(buildQuery(query).toLocaleLowerCase("vi").split(/\s+/).filter((w) => w.length >= 3))];
   if (!terms.length) return 0;
   const title = headline.title.toLocaleLowerCase("vi");
   const hits = terms.filter((term) => title.includes(term)).length;
   return hits / terms.length;
 }
 
-async function fetchLatestNews(content: string): Promise<Headline[]> {
+async function fetchLatestNews(content: string, useGoogleSearch = true): Promise<Headline[]> {
   const q = buildQuery(content);
   const urls = [
-    { name: "Google Tin tức", url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`, limit: 20 },
+    ...(useGoogleSearch ? [{ name: "Google Tin tức", url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`, limit: 20 }] : []),
     ...TRUSTED_FEEDS.map((f) => ({ ...f, limit: 25 })),
   ];
   const results = await Promise.all(urls.map(async (feed) => {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4500);
+    const timer = setTimeout(() => ctrl.abort(), 3500);
     try {
       const res = await fetch(feed.url, {
         signal: ctrl.signal,

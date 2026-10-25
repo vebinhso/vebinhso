@@ -205,26 +205,26 @@ export const analyzeText = createServerFn({ method: "POST" })
     // Deterministic V1 knowledge-base screening + independent V2 classifier.
     // No Gemini/Groq call for this room. RSS is contextual, never proof of fraud.
     const { checkScamMl } = await import("./scam-ml.server");
-    const normalize = (value: string) => value.toLocaleLowerCase("vi").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+    const normalize = (value: string) => value.toLocaleLowerCase("vi").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const input = normalize(data.text);
     const rules: Array<[RegExp, string]> = [
-      [/\\b(otp|mat khau|password|ma xac minh)\\b/i, "Yêu cầu mã OTP hoặc mật khẩu"],
+      [/\b(otp|mat khau|password|ma xac minh)\b/i, "Yêu cầu mã OTP hoặc mật khẩu"],
       [/(chuyen khoan|nap tien|dong phi|dat coc|so tai khoan)/i, "Yêu cầu chuyển tiền hoặc đóng phí"],
       [/(trung thuong|nhan qua|qua tang|iphone mien phi)/i, "Hứa hẹn phần thưởng"],
       [/(viec nhe luong cao|hoa hong|lam nhiem vu|tang don)/i, "Mời làm nhiệm vụ kiếm tiền"],
       [/(khoa tai khoan|xac minh tai khoan|khong xac minh|khancap|khan cap)/i, "Tạo áp lực xác minh tài khoản"],
-      [/(https?:\\/\\/|www\\.)/i, "Có liên kết cần kiểm tra nguồn gốc"],
+      [/(https?:\/\/|www\.)/i, "Có liên kết cần kiểm tra nguồn gốc"],
     ];
     const scamSigns = rules.filter(([pattern]) => pattern.test(input)).map(([, reason]) => reason);
     const category = SCAM_MESSAGE_DATASET.categories.map((item) => {
       const examples = item.examples.map(normalize);
-      const words = normalize(item.label).split(/\\s+/).filter((w) => w.length >= 4);
+      const words = normalize(item.label).split(/\s+/).filter((w) => w.length >= 4);
       const overlap = words.filter((word) => input.includes(word)).length;
       const exampleMatch = examples.some((example) => example.slice(0, 35).length >= 15 && input.includes(example.slice(0, 35)));
       return { item, score: overlap + (exampleMatch ? 4 : 0) };
     }).sort((x, y) => y.score - x.score)[0];
     const scamCategory = category && category.score >= 2 ? category.item.id : "khong_ro";
-    const safeSearch = data.text.replace(/https?:\\/\\/\\S+|\\b[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}\\b|\\b\\d{4,}\\b/gi, " ");
+    const safeSearch = data.text.replace(/https?:\/\/\S+|\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b|\b\d{4,}\b/gi, " ");
     const [mlAdvisory, headlines] = await Promise.all([
       checkScamMl(data.text),
       // Search only public RSS titles; never submit private message text to Google.

@@ -382,16 +382,31 @@ function buildQuery(content: string) {
   return (top.length ? top.join(" ") : cleaned.slice(0, 80)).slice(0, 120);
 }
 
-// Related coverage is not evidence that the user's claim is true.
+// Require shared meaningful concepts, not one common word or a substring.
+const NEWS_GENERIC = new Set([
+  "thông", "tin", "kiểm", "tra", "thật", "giả", "đúng", "sai", "liên", "quan",
+  "bài", "báo", "mới", "nhất", "năm", "ngày", "việt", "nam", "hiện", "nay",
+  "công", "ty", "được", "phát", "hiện", "đang", "chính", "thức", "trên", "toàn",
+]);
+function newsTokens(value: string): string[] {
+  return [...new Set(value.toLocaleLowerCase("vi").normalize("NFC")
+    .split(/[^\\p{L}\\p{N}]+/u)
+    .filter((w) => w.length >= 3 && !VI_STOP.has(w) && !NEWS_GENERIC.has(w)))];
+}
 function headlineRelevance(headline: Headline, query: string): number {
-  const terms = [...new Set(buildQuery(query).toLocaleLowerCase("vi").split(/\s+/).filter((w) => w.length >= 3))];
-  if (!terms.length) return 0;
-  const title = headline.title.toLocaleLowerCase("vi");
-  const hits = terms.filter((term) => title.includes(term)).length;
-  return hits / terms.length;
+  const terms = newsTokens(query);
+  if (terms.length < 2) return 0;
+  const titleTerms = new Set(newsTokens(headline.title.replace(/\\s+-\\s+[^-]+$/, "")));
+  const hits = terms.filter((term) => titleTerms.has(term));
+  // Two distinct terms and at least a third of the topic must match.
+  if (hits.length < 2 || hits.length / terms.length < 0.34) return 0;
+  const queryWords = terms.join(" ");
+  const titleWords = [...titleTerms].join(" ");
+  const bigrams = terms.slice(0, -1).filter((w, i) => titleWords.includes(w + " " + terms[i + 1])).length;
+  return hits.length / terms.length + Math.min(bigrams, 2) * 0.12;
 }
 
-async function fetchLatestNews(content: string, useGoogleSearch = true): Promise<Headline[]> {
+async function fetchLatestNews(content: string, useGoogleSearch = true, originalClaim = content): Promise<Headline[]> {
   const q = buildQuery(content);
   const urls = [
     ...(useGoogleSearch ? [{ name: "Google Tin tức", url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`, limit: 20 }] : []),
@@ -416,7 +431,7 @@ async function fetchLatestNews(content: string, useGoogleSearch = true): Promise
     }
   }));
   const ranked = results.flat().map((headline) => ({
-    headline, relevance: headlineRelevance(headline, content),
+    headline, relevance: headlineRelevance(headline, originalClaim),
   })).filter((item) => item.relevance > 0)
     .sort((a, b) => b.relevance - a.relevance);
   const seen = new Set<string>();
@@ -459,7 +474,7 @@ export const analyzeNews = createServerFn({ method: "POST" })
     } catch {
       // Keep a single query when keyword extraction is unavailable.
     }
-    const batches = await Promise.all(searchQueries.map((q) => fetchLatestNews(q)));
+    const batches = await Promise.all(searchQueries.map((q) => fetchLatestNews(q, true, claimText)));
     const seen = new Set<string>();
     const headlines = batches.flat().filter((h) => {
       const key = h.link || `${h.source}:${h.title.toLocaleLowerCase("vi")}`;
@@ -467,9 +482,9 @@ export const analyzeNews = createServerFn({ method: "POST" })
       seen.add(key);
       return true;
     }).sort((a, b) => {
-      const score = (h: Headline) => Math.max(...searchQueries.map((q) => headlineRelevance(h, q)));
+      const score = (h: Headline) => headlineRelevance(h, claimText);
       return score(b) - score(a);
-    }).slice(0, 36);
+    }).filter((h) => headlineRelevance(h, claimText) > 0).slice(0, 18);
     const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const feedBlock = headlines.length
       ? headlines.map((h, i) => `${i + 1}. [${h.source}] ${h.title}${h.date ? ` (${h.date})` : ""} | URL: ${h.link}`).join("\n")

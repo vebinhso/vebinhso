@@ -1131,7 +1131,7 @@ function AiPage() {
                   <Gauge value={textResult.misinfoRisk} label={en ? "Scam / misinformation risk" : "Nguy cơ lừa đảo / thông tin sai lệch"} />
                   <Gauge value={textResult.confidence} label={en ? "Conclusion confidence" : "Độ tin cậy của kết luận"} />
                   <section className="rounded-xl border border-dashed border-violet-300 bg-violet-50/60 p-3 text-sm text-slate-800" aria-label={en ? "Experimental AI V2" : "AI V2 thử nghiệm"}>
-                    <p className="font-black">{en ? "AI V2 – Experimental scam check" : "AI V2 – Kiểm tra lừa đảo (thử nghiệm)"}</p>
+                    <p className="font-black">{en ? "AI V2 – Scam screening" : "AI V2 – Sàng lọc dấu hiệu lừa đảo"}</p>
                     {textResult.mlAdvisory ? (
                       <>
                         <p className="mt-1 font-semibold">
@@ -1168,6 +1168,16 @@ function AiPage() {
                   <SignList title={en ? "Signs of AI writing" : "Dấu hiệu của AI"} items={textResult.aiSigns} tone="bad" />
                   <SignList title={en ? "Signs of human writing" : "Dấu hiệu do người viết"} items={textResult.humanSigns} tone="good" />
                   <SignList title={en ? "How to verify" : "Cách kiểm chứng"} items={textResult.tips} tone="info" />
+                  {textResult.relatedNews?.length > 0 && (
+                    <section className="rounded-xl border p-3 space-y-2" aria-label={en ? "Related reporting" : "Bài báo liên quan"}>
+                      <p className="font-bold text-sm">{en ? "Related reporting (not proof of fraud)" : "Bài báo liên quan (không phải bằng chứng kết luận lừa đảo)"}</p>
+                      {textResult.relatedNews.map((article: { title: string; source: string; link: string; date?: string }, index: number) => (
+                        <a key={article.link + index} href={article.link} target="_blank" rel="noopener noreferrer" className="block text-sm underline text-primary">
+                          {article.source}: {article.title}
+                        </a>
+                      ))}
+                    </section>
+                  )}
                 </div>
               )}
             </div>

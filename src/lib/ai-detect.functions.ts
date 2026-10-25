@@ -297,7 +297,11 @@ riskScore = mức độ email là giả mạo/lừa đảo. difficulty = mức �
   });
 
 const TRUSTED_FEEDS = [
-  { name: "VnExpress", url: "https://vnexpress.net/rss/tin-moi-nhat.rss" },
+  ...[
+    "tin-moi-nhat", "kinh-doanh", "thoi-su", "the-gioi", "so-hoa",
+    "giao-duc", "giai-tri", "du-lich", "phap-luat", "khoa-hoc",
+    "suc-khoe", "khoa-hoc-cong-nghe",
+  ].map((section) => ({ name: "VnExpress", url: `https://vnexpress.net/rss/${section}.rss` })),
   { name: "Tuổi Trẻ", url: "https://tuoitre.vn/rss/tin-moi-nhat.rss" },
   { name: "Thanh Niên", url: "https://thanhnien.vn/rss/home.rss" },
 ];
@@ -354,55 +358,50 @@ function buildQuery(content: string) {
   return (top.length ? top.join(" ") : cleaned.slice(0, 80)).slice(0, 120);
 }
 
+// Related coverage is not evidence that the user's claim is true.
+function headlineRelevance(headline: Headline, query: string): number {
+  const terms = [...new Set(buildQuery(query).toLocaleLowerCase("vi").split(/\\s+/).filter((w) => w.length >= 3))];
+  if (!terms.length) return 0;
+  const title = headline.title.toLocaleLowerCase("vi");
+  const hits = terms.filter((term) => title.includes(term)).length;
+  return hits / terms.length;
+}
+
 async function fetchLatestNews(content: string): Promise<Headline[]> {
   const q = buildQuery(content);
   const urls = [
-    {
-      name: "Google Tin tức",
-      url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`,
-      limit: 12,
-    },
-    ...TRUSTED_FEEDS.map((f) => ({ name: f.name, url: f.url, limit: 12 })),
+    { name: "Google Tin tức", url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=vi&gl=VN&ceid=VN:vi`, limit: 20 },
+    ...TRUSTED_FEEDS.map((f) => ({ ...f, limit: 25 })),
   ];
-  const results = await Promise.all(
-    urls.map(async (u) => {
-      try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 8000);
-        const res = await fetch(u.url, {
-          signal: ctrl.signal,
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; VeBinhSoBot/1.0)" },
-        });
-        clearTimeout(timer);
-        if (!res.ok) return [];
-        return parseRss(await res.text(), u.name, u.limit);
-      } catch {
-        return [];
-      }
-    }),
-  );
-  const google = results[0] ?? [];
-  const keys = new Set(
-    buildQuery(content)
-      .split(" ")
-      .filter((w) => w.length > 2),
-  );
-  const others = results
-    .slice(1)
-    .flat()
-    .filter((h) => {
-      const t = h.title.toLowerCase();
-      return [...keys].some((k) => t.includes(k));
-    });
+  const results = await Promise.all(urls.map(async (feed) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4500);
+    try {
+      const res = await fetch(feed.url, {
+        signal: ctrl.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; VeBinhSoBot/1.0)" },
+      });
+      if (!res.ok) return [];
+      return parseRss(await res.text(), feed.name, feed.limit).filter((h) => {
+        try { return new URL(h.link).protocol === "https:"; } catch { return false; }
+      });
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timer);
+    }
+  }));
+  const ranked = results.flat().map((headline) => ({
+    headline, relevance: headlineRelevance(headline, content),
+  })).filter((item) => item.relevance > 0)
+    .sort((a, b) => b.relevance - a.relevance);
   const seen = new Set<string>();
-  return [...google, ...others]
-    .filter((h) => {
-      const k = h.title.toLowerCase();
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    })
-    .slice(0, 18);
+  return ranked.filter(({ headline }) => {
+    const key = headline.link || headline.title.toLocaleLowerCase("vi");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 18).map(({ headline }) => headline);
 }
 
 /** Kiểm tra tin tức: tin giả / tin lá cải / tin truyền miệng — đối chiếu tin mới nhất mỗi ngày */
@@ -443,6 +442,9 @@ export const analyzeNews = createServerFn({ method: "POST" })
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
+    }).sort((a, b) => {
+      const score = (h: Headline) => Math.max(...searchQueries.map((q) => headlineRelevance(h, q)));
+      return score(b) - score(a);
     }).slice(0, 36);
     const today = new Date().toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     const feedBlock = headlines.length
@@ -521,12 +523,14 @@ Thêm thuộc tính JSON "rubric" gồm source, headline, evidence, media, purpo
       verdict: evidenceVerdict,
       category: str(parsed.category, fallback(data.locale, "chưa rõ", "unclear")),
       summary: str(parsed.summary, fallback(data.locale, "Chưa đủ dữ liệu để kết luận.", "There is not enough information to reach a conclusion.")),
-      matchedNews: strArr(parsed.matchedNews, 4), // Related headlines, not independently verified evidence.
+      // Show grounded, clickable related coverage even when the claim is false or unverified.
+      // Do not use model-generated titles or imply these links verify the claim.
+      matchedNews: headlines.slice(0, 6).map((h) => `[${h.source}] ${h.title}`),
       redFlags: strArr(parsed.redFlags),
       goodSigns: strArr(parsed.goodSigns),
       checkSteps: strArr(parsed.checkSteps),
       checkedAt: today,
-      sources: headlines.slice(0, 6).map((h) => ({ title: h.title, source: h.source, link: h.link })),
+      sources: headlines.slice(0, 6).map((h) => ({ title: h.title, source: h.source, link: h.link, date: h.date })),
     };
   });
 

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { GardenSnapshot } from "./neighborhood";
+import { gardenStatus } from "./garden-growth";
 
 export const readGarden = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }): Promise<GardenSnapshot> => {
   const { supabase, userId } = context;
@@ -17,7 +18,7 @@ export const readGarden = createServerFn({ method: "GET" }).middleware([requireS
   const now = Date.now();
   const vnDay = (t: number) => Math.floor((t + 7 * 3600000) / 86400000);
   return {
-    plants: (plants.data ?? []).map(p => ({ ...p, owner_name: names.get(p.owner_id) ?? "", growth: p.watered_at ? Math.min(p.grow_days, Math.max(0, vnDay(now) - vnDay(Date.parse(p.watered_at)))) : 0 })),
+    plants: (plants.data ?? []).map(p => ({ ...p, owner_name: names.get(p.owner_id) ?? "", ...(() => { const s = gardenStatus({ plantedAt: p.planted_at, lastWateredAt: p.watered_at, now: new Date(now).toISOString(), boosted: !!p.boosted }); return { growth: s.effectiveDays, grow_days: 30, level: s.level, wilted: s.wilted, can_water_today: s.canWaterToday }; })() })),
     inventory: Object.fromEntries((inventory.data ?? []).map(i => [i.item_id, i.quantity])),
     money: state.data?.money ?? 0, server_time: new Date(now).toISOString(),
   };

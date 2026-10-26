@@ -47,6 +47,21 @@ export function useNeighborhoodActivities(userId: string | undefined, questionsR
     const t = window.setTimeout(() => { void garden.refetch(); }, next - now + 1000);
     return () => clearTimeout(t);
   }, [garden.data, panel]);
+  useEffect(() => {
+    if (!userId || !garden.data) return;
+    const messages:string[]=[];
+    for (const plant of garden.data.plants.filter(p => p.owner_id===userId)) {
+      const label=gardenGoods.find(g=>g.id===plant.species)?.[en?"en":"vi"] ?? plant.species;
+      const state=plant.wilted ? "wilted" : String(plant.level ?? 0);
+      const key=`vbs-garden-notified-${userId}-${plant.id}`;
+      const previous=localStorage.getItem(key);
+      if (previous!==null && previous!==state) {
+        messages.push(plant.wilted ? (en ? `${label} has wilted. Use a shovel to remove it.` : `${label} đã héo! Hãy dùng xẻng để dọn.`) : (en ? `${label} reached level ${plant.level}/5!` : `${label} đã đạt cấp ${plant.level}/5!`));
+      }
+      localStorage.setItem(key,state);
+    }
+    if (messages.length) setNotice(messages.slice(0,3).join(" • "));
+  }, [garden.data, userId, en]);
   const changeTickets = (n: number) => {
     setTickets(n); if (userId) localStorage.setItem(`vbs-park-tickets-${userId}`, String(n));
   };

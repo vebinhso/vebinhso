@@ -10,7 +10,7 @@ export const gardenGoods = [
   { id: "watering_use", vi: "Vòi tưới cây (1 lần tưới)", en: "Watering hose (one use)", price: 5, icon: "🚿", days: 0 },
 ] as const;
 export type GardenGoodId = (typeof gardenGoods)[number]["id"];
-export type GardenPlant = { id: string; owner_id: string; owner_name: string; species: string; slot: number; planted_at: string; watered_at: string | null; grow_days: number; growth: number };
+export type GardenPlant = { id: string; owner_id: string; owner_name: string; species: string; slot: number; planted_at: string; watered_at: string | null; grow_days: number; growth: number; boosted?: boolean; wilted?: boolean; level?: number; can_water_today?: boolean };
 export type GardenSnapshot = { plants: GardenPlant[]; inventory: Record<string, number>; money: number; server_time: string };
 export type RideKind = "coaster" | "wheel" | "carousel";
 export const rideNames: Record<RideKind, { vi: string; en: string }> = {

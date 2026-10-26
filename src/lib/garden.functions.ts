@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { GardenSnapshot } from "./neighborhood";
+import { gardenStatus } from "./garden-growth";
 
 export const readGarden = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }): Promise<GardenSnapshot> => {
   const { supabase, userId } = context;
@@ -17,7 +18,7 @@ export const readGarden = createServerFn({ method: "GET" }).middleware([requireS
   const now = Date.now();
   const vnDay = (t: number) => Math.floor((t + 7 * 3600000) / 86400000);
   return {
-    plants: (plants.data ?? []).map(p => ({ ...p, owner_name: names.get(p.owner_id) ?? "", growth: p.watered_at ? Math.min(p.grow_days, Math.max(0, vnDay(now) - vnDay(Date.parse(p.watered_at)))) : 0 })),
+    plants: (plants.data ?? []).map(p => ({ ...p, owner_name: names.get(p.owner_id) ?? "", ...(() => { const s = gardenStatus({ plantedAt: p.planted_at, lastWateredAt: p.watered_at, now: new Date(now).toISOString(), boosted: !!p.boosted }); return { growth: s.effectiveDays, grow_days: 30, level: s.level, wilted: s.wilted, can_water_today: s.canWaterToday }; })() })),
     inventory: Object.fromEntries((inventory.data ?? []).map(i => [i.item_id, i.quantity])),
     money: state.data?.money ?? 0, server_time: new Date(now).toISOString(),
   };
@@ -43,3 +44,32 @@ export const waterGardenPlant = createServerFn({ method: "POST" }).middleware([r
     if (result.error) throw new Error(result.error.message);
     return { ok: true };
   });
+export const removeWiltedGardenPlant = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ plant: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.rpc("garden_remove_wilted", data);
+    if (result.error) throw new Error(result.error.message);
+    return result.data as { money: number; garden_spent: number };
+  });
+
+export const startGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ kind: z.enum(["water","boost"]), plant: z.string().uuid().nullable() }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_start", data);
+   if (result.error) throw new Error(result.error.message);
+   return { ok: true };
+ });
+export const answerGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ qid: z.string().uuid(), selected: z.number().int().min(0) }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_answer", data);
+   if (result.error) throw new Error(result.error.message);
+   return result.data as { correct: boolean; streak: number; completed: boolean };
+ });
+export const purchaseGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ item: z.enum(["watering_use","boost"]), plant: z.string().uuid().nullable() }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_purchase", data);
+   if (result.error) throw new Error(result.error.message);
+   return result.data as { money: number; garden_spent: number };
+ });

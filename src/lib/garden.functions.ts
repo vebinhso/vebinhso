@@ -43,3 +43,10 @@ export const waterGardenPlant = createServerFn({ method: "POST" }).middleware([r
     if (result.error) throw new Error(result.error.message);
     return { ok: true };
   });
+export const removeWiltedGardenPlant = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ plant: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const result = await context.supabase.rpc("garden_remove_wilted", data);
+    if (result.error) throw new Error(result.error.message);
+    return result.data as { money: number; garden_spent: number };
+  });

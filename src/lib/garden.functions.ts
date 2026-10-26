@@ -51,3 +51,25 @@ export const removeWiltedGardenPlant = createServerFn({ method: "POST" }).middle
     if (result.error) throw new Error(result.error.message);
     return result.data as { money: number; garden_spent: number };
   });
+
+export const startGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ kind: z.enum(["water","boost"]), plant: z.string().uuid().nullable() }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_start", data);
+   if (result.error) throw new Error(result.error.message);
+   return { ok: true };
+ });
+export const answerGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ qid: z.string().uuid(), selected: z.number().int().min(0) }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_answer", data);
+   if (result.error) throw new Error(result.error.message);
+   return result.data as { correct: boolean; streak: number; completed: boolean };
+ });
+export const purchaseGardenChallenge = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+ .inputValidator((input: unknown) => z.object({ item: z.enum(["watering_use","boost"]), plant: z.string().uuid().nullable() }).parse(input))
+ .handler(async ({ data, context }) => {
+   const result = await context.supabase.rpc("garden_challenge_purchase", data);
+   if (result.error) throw new Error(result.error.message);
+   return result.data as { money: number; garden_spent: number };
+ });

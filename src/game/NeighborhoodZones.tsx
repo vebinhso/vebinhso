@@ -125,12 +125,12 @@ function Garden({ plants = [], onOpenGarden }: ZoneProps) {
     <Block p={[GARDEN_ORIGIN[0], 0.14, 12]} s={[47, 0.16, 3]} mat="path" />
     {Array.from({ length: 40 }, (_, slot) => {
       const [x, z] = gardenSlotPosition(slot), plant = bySlot.get(slot);
-      const growth = plant ? 0.3 + 0.7 * (plant.growth / plant.grow_days) : 0;
+      const growth = plant ? 0.15 + 0.85 * ((plant.level ?? 0) / 5) : 0;
       return <group key={slot} position={[x, 0.15, z]} onClick={e => { e.stopPropagation(); onOpenGarden?.(slot); }}>
         <Block p={[0, 0, 0]} s={[3.8, 0.18, 3.8]} mat="soil" />
-        <Suspense fallback={null}>{plant && <group scale={growth}>
+        <Suspense fallback={null}>{plant && <group scale={growth} rotation={plant.wilted ? [0, 0, 0.45] : [0, 0, 0]}>
           <Model url={plant.species === "seed_mango" ? treeAsset.url : plant.species === "seed_sunflower" ? flowerAsset.url : roseAsset.url} scale={plant.species === "seed_mango" ? 3 : 5} />
-          {plant.species === "seed_mango" && plant.growth >= plant.grow_days && [-1, 0, 1].map(i => <mesh key={i} position={[i * 0.6, 2.7, 0.7]} material={mats.wheel}><sphereGeometry args={[0.17, 6, 6]} /></mesh>)}
+          {plant.species === "seed_mango" && (plant.level ?? 0) >= 5 && [-1, 0, 1].map(i => <mesh key={i} position={[i * 0.6, 2.7, 0.7]} material={mats.wheel}><sphereGeometry args={[0.17, 6, 6]} /></mesh>)}
         </group>}</Suspense>
       </group>;
     })}

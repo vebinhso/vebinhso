@@ -859,7 +859,14 @@ function QuestionsPanel({
       setDraft(emptyQuestionDraft());
       await reload();
     } catch (e: any) {
-      alert("Lỗi thêm câu hỏi: " + (e?.message || e));
+      const code = e?.code ? ` (mã ${e.code})` : "";
+      const detail = e?.details ? `\nChi tiết: ${e.details}` : "";
+      const hint = e?.hint ? `\nGợi ý: ${e.hint}` : "";
+      const denied = e?.code === "42501" || /permission denied|row-level security|not authorized|forbidden/i.test(e?.message || "");
+      const advice = denied
+        ? "\nTài khoản có thể vào giao diện Admin nhưng chưa được Supabase cấp quyền thêm câu hỏi. Hãy kiểm tra user_roles và chính sách RLS; không mở quyền cho mọi người dùng."
+        : "";
+      alert(`Không thể lưu câu hỏi${code}: ${e?.message || e}${detail}${hint}${advice}\nNội dung bạn đang nhập vẫn được giữ lại để thử lại.`);
     } finally {
       setBusy(false);
     }

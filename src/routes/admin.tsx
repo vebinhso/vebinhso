@@ -859,7 +859,14 @@ function QuestionsPanel({
       setDraft(emptyQuestionDraft());
       await reload();
     } catch (e: any) {
-      alert("Lỗi thêm câu hỏi: " + (e?.message || e));
+      const code = e?.code ? ` (mã ${e.code})` : "";
+      const detail = e?.details ? `\nChi tiết: ${e.details}` : "";
+      const hint = e?.hint ? `\nGợi ý: ${e.hint}` : "";
+      const denied = e?.code === "42501" || /permission denied|row-level security|not authorized|forbidden/i.test(e?.message || "");
+      const advice = denied
+        ? "\nTài khoản có thể vào giao diện Admin nhưng chưa được Supabase cấp quyền thêm câu hỏi. Hãy kiểm tra user_roles và chính sách RLS; không mở quyền cho mọi người dùng."
+        : "";
+      alert(`Không thể lưu câu hỏi${code}: ${e?.message || e}${detail}${hint}${advice}\nNội dung bạn đang nhập vẫn được giữ lại để thử lại.`);
     } finally {
       setBusy(false);
     }
@@ -938,80 +945,70 @@ function QuestionsPanel({
       let csvUrl = sheetUrl.trim();
       const m = csvUrl.match(/\/d\/([\w-]+)/);
       if (m) {
-        const id = m[1];
         const gidMatch = csvUrl.match(/[#&?]gid=(\d+)/);
-        const gid = gidMatch ? gidMatch[1] : "0";
-        csvUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+        csvUrl = `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv&gid=${gidMatch ? gidMatch[1] : "0"}`;
       }
       const res = await fetch(csvUrl);
-      if (!res.ok) throw new Error("Không tải được sheet (sheet cần Public).");
-      const text = await res.text();
-      const rows = text
-        .split(/\r?\n/)
-        .filter(Boolean)
-        .map((row) => {
-          const cells: string[] = [];
-          let cur = "";
-          let q = false;
-          for (let i = 0; i < row.length; i++) {
-            const ch = row[i];
-            if (ch === '"') q = !q;
-            else if (ch === "," && !q) {
-              cells.push(cur);
-              cur = "";
-            } else cur += ch;
-          }
-          cells.push(cur);
-          return cells.map((c) => c.trim());
+      if (!res.ok) throw new Error(`Không tải được Google Sheet (HTTP ${res.status}). Kiểm tra quyền chia sẻ và liên kết CSV.`);
+      const csv = (await res.text()).replace(/^\uFEFF/, "");
+      // RFC 4180-style CSV: quoted commas, escaped quotes and newlines.
+      const rows: string[][] = [];
+      let cells: string[] = [], cell = "", quoted = false;
+      for (let i = 0; i < csv.length; i++) {
+        const ch = csv[i];
+        if (ch === '"') {
+          if (quoted && csv[i + 1] === '"') { cell += '"'; i++; }
+          else quoted = !quoted;
+        } else if (ch === "," && !quoted) {
+          cells.push(cell.trim()); cell = "";
+        } else if ((ch === "\n" || ch === "\r") && !quoted) {
+          if (ch === "\r" && csv[i + 1] === "\n") i++;
+          cells.push(cell.trim());
+          if (cells.some(Boolean)) rows.push(cells);
+          cells = []; cell = "";
+        } else cell += ch;
+      }
+      if (quoted) throw new Error("CSV không hợp lệ: thiếu dấu ngoặc kép đóng.");
+      cells.push(cell.trim());
+      if (cells.some(Boolean)) rows.push(cells);
+      if (rows.length < 2) throw new Error("Sheet không có dòng dữ liệu câu hỏi.");
+      rows.shift(); // Header
+      const invalid: string[] = [];
+      const parsed: AdminQuestion[] = [];
+      rows.forEach((r, index) => {
+        const line = index + 2;
+        const answer = Number(r[5]);
+        if (!r[0] || !r.slice(1, 5).every(Boolean) || !Number.isInteger(answer) || answer < 1 || answer > 4) {
+          invalid.push(`Dòng ${line}: cần câu hỏi, đủ 4 lựa chọn và đáp án đúng từ 1 đến 4.`);
+          return;
+        }
+        parsed.push({
+          id: "", q: r[0],
+          options: r.slice(1, 5).map((text) => ({ text, imageUrl: "" })),
+          correctIndexes: [answer - 1], maps: ["all"],
+          reward: Number(r[6]) > 0 ? Number(r[6]) : 10,
+          imageUrl: r[7] || "", enabled: true, priority: 0,
         });
-      const header = rows.shift();
-      if (!header) throw new Error("Sheet rỗng");
-      const parsed: AdminQuestion[] = rows
-        .map((r) => {
-          const ans = Math.max(0, Math.min(3, (parseInt(r[5] || "1", 10) || 1) - 1));
-          return {
-            id: "",
-            q: r[0] || "",
-            options: [
-              { text: r[1] || "", imageUrl: "" },
-              { text: r[2] || "", imageUrl: "" },
-              { text: r[3] || "", imageUrl: "" },
-              { text: r[4] || "", imageUrl: "" },
-            ],
-            correctIndexes: [ans],
-            maps: ["all"],
-            reward: parseInt(r[6] || "10", 10) || 10,
-            imageUrl: r[7] || "",
-            enabled: true,
-            priority: 0,
-          };
-        })
-        .filter((q) => q.q && q.options.every((o) => o.text));
-      if (parsed.length === 0) throw new Error("Không phân tích được câu nào");
+      });
+      if (invalid.length) throw new Error(`Có ${invalid.length} dòng sai định dạng. Chưa nhập dữ liệu.\n${invalid.slice(0, 5).join("\n")}`);
       let ok = 0;
-      for (const q of parsed) {
-        const auto = classifyQuestion(
-          q.q,
-          q.options.map((o) => o.text),
-        );
+      for (const [index, q] of parsed.entries()) {
+        const auto = classifyQuestion(q.q, q.options.map((o) => o.text));
         try {
-          await createQuestion({
-            ...q,
-            category: auto.category,
-            competencyLevel: auto.level,
-            competencyDomain: auto.domain,
-          });
+          await createQuestion({ ...q, category: auto.category, competencyLevel: auto.level, competencyDomain: auto.domain });
           ok++;
-        } catch {
-          /* skip */
+        } catch (e: any) {
+          const message = e?.message || String(e);
+          pushAdminLog(`Import dừng sau ${ok}/${parsed.length} câu: ${message}`);
+          throw new Error(`Đã lưu ${ok}/${parsed.length} câu. Lỗi ở dòng ${index + 2}: ${message}. Không thử nhập lại toàn bộ ngay vì có thể tạo câu trùng.`);
         }
       }
       pushAdminLog(`Import ${ok} câu từ Google Sheet`);
-      alert(`Đã import ${ok}/${parsed.length} câu hỏi`);
+      alert(`Đã import thành công ${ok}/${parsed.length} câu hỏi.`);
       setSheetUrl("");
       await reload();
     } catch (e: any) {
-      alert("Lỗi: " + (e?.message || e));
+      alert("Lỗi import câu hỏi: " + (e?.message || e));
     } finally {
       setImporting(false);
     }
